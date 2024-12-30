@@ -5,12 +5,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Edit2, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Bot {
   id: string;
   name: string;
   instructions: string;
   starters: string[];
+  model: "gemini" | "claude" | "openai";
+  apiKey: string;
 }
 
 const Bots = () => {
@@ -68,7 +77,7 @@ const Bots = () => {
       <div className="flex flex-col gap-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">My Chatbots</h1>
-          <Button onClick={() => setEditingBot({ id: "", name: "", instructions: "", starters: [] })}>
+          <Button onClick={() => setEditingBot({ id: "", name: "", instructions: "", starters: [], model: "gemini", apiKey: "" })}>
             <Plus className="mr-2 h-4 w-4" /> New Bot
           </Button>
         </div>
@@ -85,6 +94,33 @@ const Bots = () => {
                   value={editingBot.name}
                   onChange={(e) => setEditingBot({ ...editingBot, name: e.target.value })}
                   placeholder="Bot name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Model</label>
+                <Select
+                  value={editingBot.model}
+                  onValueChange={(value: "gemini" | "claude" | "openai") =>
+                    setEditingBot({ ...editingBot, model: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gemini">Google Gemini</SelectItem>
+                    <SelectItem value="claude">Anthropic Claude</SelectItem>
+                    <SelectItem value="openai">OpenAI GPT</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">API Key</label>
+                <Input
+                  type="password"
+                  value={editingBot.apiKey}
+                  onChange={(e) => setEditingBot({ ...editingBot, apiKey: e.target.value })}
+                  placeholder="Enter your API key"
                 />
               </div>
               <div>
@@ -137,6 +173,7 @@ const Bots = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-semibold">{bot.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Model: {bot.model}</p>
                   <p className="text-sm text-muted-foreground mt-1">{bot.instructions}</p>
                   {bot.starters.length > 0 && (
                     <div className="mt-2">
