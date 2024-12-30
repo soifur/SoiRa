@@ -38,6 +38,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     });
   };
 
+  const openRouterModels = [
+    { value: "openai/gpt-4-turbo-preview", label: "GPT-4 Turbo" },
+    { value: "anthropic/claude-3-opus", label: "Claude 3 Opus" },
+    { value: "anthropic/claude-3-sonnet", label: "Claude 3 Sonnet" },
+    { value: "anthropic/claude-2", label: "Claude 2" },
+    { value: "google/gemini-pro", label: "Gemini Pro" },
+    { value: "meta-llama/llama-2-70b-chat", label: "Llama 2 70B" },
+  ];
+
   return (
     <div className="space-y-4">
       <div>
@@ -52,8 +61,13 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         <label className="block text-sm font-medium mb-1">Model</label>
         <Select
           value={editingBot.model}
-          onValueChange={(value: "gemini" | "claude" | "openai") =>
-            setEditingBot({ ...editingBot, model: value })
+          onValueChange={(value: "gemini" | "claude" | "openai" | "openrouter") =>
+            setEditingBot({ 
+              ...editingBot, 
+              model: value,
+              // Reset openRouterModel when switching away from OpenRouter
+              openRouterModel: value === "openrouter" ? editingBot.openRouterModel : undefined 
+            })
           }
         >
           <SelectTrigger>
@@ -63,9 +77,34 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             <SelectItem value="gemini">Google Gemini</SelectItem>
             <SelectItem value="claude">Anthropic Claude</SelectItem>
             <SelectItem value="openai">OpenAI GPT</SelectItem>
+            <SelectItem value="openrouter">OpenRouter</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {editingBot.model === "openrouter" && (
+        <div>
+          <label className="block text-sm font-medium mb-1">OpenRouter Model</label>
+          <Select
+            value={editingBot.openRouterModel}
+            onValueChange={(value: string) =>
+              setEditingBot({ ...editingBot, openRouterModel: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an OpenRouter model" />
+            </SelectTrigger>
+            <SelectContent>
+              {openRouterModels.map((model) => (
+                <SelectItem key={model.value} value={model.value}>
+                  {model.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium mb-1">API Key</label>
         <Input
