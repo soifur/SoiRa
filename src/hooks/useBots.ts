@@ -5,8 +5,9 @@ export interface Bot {
   name: string;
   instructions: string;
   starters: string[];
-  model: "gemini" | "claude" | "openai";
+  model: "gemini" | "claude" | "openai" | "openrouter";
   apiKey: string;
+  openRouterModel?: string; // for OpenRouter specific model
 }
 
 export const useBots = () => {

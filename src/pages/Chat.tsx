@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [input, setInput] = useState("");
@@ -52,6 +54,31 @@ const Chat = () => {
     });
   };
 
+  const sendOpenRouterMessage = async (messages: Array<{ role: string; content: string }>) => {
+    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${selectedBot?.apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+      },
+      body: JSON.stringify({
+        model: selectedBot?.openRouterModel,
+        messages: messages.map(msg => ({
+          role: msg.role === "user" ? "user" : "assistant",
+          content: msg.content,
+        })),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenRouter API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  };
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || !selectedBot) return;
@@ -62,27 +89,34 @@ const Chat = () => {
       setMessages(newMessages);
       setInput("");
 
-      const genAI = new GoogleGenerativeAI(selectedBot.apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      let response: string;
 
-      const chat = model.startChat({
-        history: [],
-        generationConfig: {
-          maxOutputTokens: 1000,
-        },
-      });
+      if (selectedBot.model === "openrouter") {
+        response = await sendOpenRouterMessage(newMessages);
+      } else if (selectedBot.model === "gemini") {
+        const genAI = new GoogleGenerativeAI(selectedBot.apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const chat = model.startChat({
+          history: [],
+          generationConfig: {
+            maxOutputTokens: 1000,
+          },
+        });
 
-      const fullPrompt = `${selectedBot.instructions}\n\nPrevious messages:\n${
-        newMessages
-          .map(msg => `${msg.role === "user" ? "User" : selectedBot.name}: ${msg.content}`)
-          .join("\n")
-      }`;
+        const fullPrompt = `${selectedBot.instructions}\n\nPrevious messages:\n${
+          newMessages
+            .map(msg => `${msg.role === "user" ? "User" : selectedBot.name}: ${msg.content}`)
+            .join("\n")
+        }`;
 
-      const result = await chat.sendMessage(fullPrompt);
-      const response = await result.response;
-      const text = response.text();
+        const result = await chat.sendMessage(fullPrompt);
+        const text = await result.response.text();
+        response = text;
+      } else {
+        throw new Error("Unsupported model type");
+      }
 
-      setMessages([...newMessages, { role: "assistant", content: text }]);
+      setMessages([...newMessages, { role: "assistant", content: response }]);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
