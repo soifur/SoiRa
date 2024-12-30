@@ -8,26 +8,34 @@ import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Bots from "./pages/Bots";
 import { Navigation } from "./components/Navigation";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/bots" element={<Bots />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Force dark mode on initial load
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Navigation />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/bots" element={<Bots />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

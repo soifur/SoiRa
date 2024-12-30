@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Card } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Code } from "lucide-react";
 import { useBots } from "@/hooks/useBots";
 import {
   Select,
@@ -24,6 +24,33 @@ const Chat = () => {
   const [selectedBotId, setSelectedBotId] = useState<string>("");
 
   const selectedBot = bots.find(bot => bot.id === selectedBotId);
+
+  const getEmbedCode = () => {
+    if (!selectedBot) return "";
+    return `<iframe
+  src="${window.location.origin}/chat?bot=${selectedBot.id}"
+  width="100%"
+  height="600px"
+  frameborder="0"
+></iframe>`;
+  };
+
+  const handleEmbed = () => {
+    if (!selectedBot) {
+      toast({
+        title: "No bot selected",
+        description: "Please select a bot first",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    navigator.clipboard.writeText(getEmbedCode());
+    toast({
+      title: "Embed code copied!",
+      description: "The embed code has been copied to your clipboard",
+    });
+  };
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +111,14 @@ const Chat = () => {
               ))}
             </SelectContent>
           </Select>
+          <Button
+            variant="outline"
+            onClick={handleEmbed}
+            disabled={!selectedBot}
+          >
+            <Code className="mr-2 h-4 w-4" />
+            Embed
+          </Button>
         </div>
 
         {selectedBot && selectedBot.starters.length > 0 && messages.length === 0 && (
@@ -100,7 +135,7 @@ const Chat = () => {
           </div>
         )}
 
-        <ScrollArea className="flex-1 rounded-lg border p-4 bg-background">
+        <ScrollArea className="flex-1 rounded-lg border p-4">
           <div className="space-y-4">
             {messages.map((message, i) => (
               <div
