@@ -69,7 +69,6 @@ const Chat = () => {
               bots={bots}
               selectedBotId={selectedBotId}
               onBotSelect={setSelectedBotId}
-              embedCode={selectedBot ? `<iframe src="${window.location.origin}/chat?bot=${selectedBot.id}" />` : ""}
             />
             <MessageList
               messages={messages}
