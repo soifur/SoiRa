@@ -38,7 +38,6 @@ const Chat = () => {
       const genAI = new GoogleGenerativeAI(selectedBot.apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-      // Start a new chat for each message to ensure instructions are followed
       const chat = model.startChat({
         history: [],
         generationConfig: {
@@ -46,10 +45,9 @@ const Chat = () => {
         },
       });
 
-      // Send the instructions first, followed by all previous context and the new message
       const fullPrompt = `${selectedBot.instructions}\n\nPrevious messages:\n${
         newMessages
-          .map(msg => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`)
+          .map(msg => `${msg.role === "user" ? "User" : selectedBot.name}: ${msg.content}`)
           .join("\n")
       }`;
 
@@ -119,6 +117,9 @@ const Chat = () => {
                   }`}
                 >
                   <div className="prose dark:prose-invert max-w-none">
+                    {message.role === "assistant" && (
+                      <p className="font-semibold text-sm mb-1">{selectedBot?.name}</p>
+                    )}
                     <p className="whitespace-pre-wrap m-0">{message.content}</p>
                   </div>
                 </Card>
