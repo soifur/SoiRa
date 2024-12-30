@@ -39,12 +39,36 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const openRouterModels = [
+    // GPT-4 Models
     { value: "openai/gpt-4-turbo-preview", label: "GPT-4 Turbo" },
+    { value: "openai/gpt-4-1106-preview", label: "GPT-4 1106 Preview" },
+    { value: "openai/gpt-4", label: "GPT-4" },
+    
+    // Claude Models
     { value: "anthropic/claude-3-opus", label: "Claude 3 Opus" },
     { value: "anthropic/claude-3-sonnet", label: "Claude 3 Sonnet" },
     { value: "anthropic/claude-2", label: "Claude 2" },
+    { value: "anthropic/claude-2.1", label: "Claude 2.1" },
+    { value: "anthropic/claude-instant-1.2", label: "Claude Instant 1.2" },
+    
+    // Mistral Models
+    { value: "mistral/mistral-tiny", label: "Mistral Tiny" },
+    { value: "mistral/mistral-small", label: "Mistral Small" },
+    { value: "mistral/mistral-medium", label: "Mistral Medium" },
+    { value: "mistral/mistral-large", label: "Mistral Large" },
+    
+    // Google Models
     { value: "google/gemini-pro", label: "Gemini Pro" },
+    { value: "google/palm-2", label: "PaLM 2" },
+    
+    // Meta Models
+    { value: "meta-llama/llama-2-13b-chat", label: "Llama 2 13B" },
     { value: "meta-llama/llama-2-70b-chat", label: "Llama 2 70B" },
+    
+    // Other Models
+    { value: "perplexity/pplx-7b-chat", label: "PPLX 7B" },
+    { value: "perplexity/pplx-70b-chat", label: "PPLX 70B" },
+    { value: "cohere/command-r", label: "Cohere Command R" },
   ];
 
   return (
@@ -65,7 +89,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             setEditingBot({ 
               ...editingBot, 
               model: value,
-              // Reset openRouterModel when switching away from OpenRouter
               openRouterModel: value === "openrouter" ? editingBot.openRouterModel : undefined 
             })
           }
