@@ -15,8 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
-
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [input, setInput] = useState("");
@@ -26,6 +24,36 @@ const Chat = () => {
   const [selectedBotId, setSelectedBotId] = useState<string>("");
 
   const selectedBot = bots.find(bot => bot.id === selectedBotId);
+
+  const sendOpenRouterMessage = async (messages: Array<{ role: string; content: string }>) => {
+    const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${selectedBot?.apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Lovable Chat Interface',
+      },
+      body: JSON.stringify({
+        model: selectedBot?.openRouterModel,
+        messages: [
+          ...(selectedBot?.instructions ? [{
+            role: "system",
+            content: selectedBot.instructions
+          }] : []),
+          ...messages
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  };
 
   const getEmbedCode = () => {
     if (!selectedBot) return "";
@@ -52,38 +80,6 @@ const Chat = () => {
       title: "Embed code copied!",
       description: "The embed code has been copied to your clipboard",
     });
-  };
-
-  const sendOpenRouterMessage = async (messages: Array<{ role: string; content: string }>) => {
-    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${selectedBot?.apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin,
-      },
-      body: JSON.stringify({
-        model: selectedBot?.openRouterModel,
-        messages: [
-          // Add system message with instructions if present
-          ...(selectedBot?.instructions ? [{
-            role: "system",
-            content: selectedBot.instructions
-          }] : []),
-          ...messages.map(msg => ({
-            role: msg.role === "user" ? "user" : "assistant",
-            content: msg.content,
-          }))
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -128,7 +124,7 @@ const Chat = () => {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: "Failed to get response from AI",
+        description: error instanceof Error ? error.message : "Failed to get response from AI",
         variant: "destructive",
       });
     } finally {
