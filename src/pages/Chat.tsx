@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { useBots, Bot } from "@/hooks/useBots";
+import { useBots } from "@/hooks/useBots";
 import {
   Select,
   SelectContent,
@@ -102,28 +102,38 @@ const Chat = () => {
           </div>
         )}
 
-        <ScrollArea className="flex-1 rounded-lg border p-4">
-          {messages.map((message, i) => (
-            <Card
-              key={i}
-              className={`mb-4 p-4 ${
-                message.role === "assistant"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
-              }`}
-            >
-              <div className="prose dark:prose-invert max-w-none">
-                <p className="whitespace-pre-wrap">{message.content}</p>
+        <ScrollArea className="flex-1 rounded-lg border p-4 bg-background">
+          <div className="space-y-4">
+            {messages.map((message, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <Card
+                  className={`max-w-[80%] p-4 ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                  }`}
+                >
+                  <div className="prose dark:prose-invert max-w-none">
+                    <p className="whitespace-pre-wrap m-0">{message.content}</p>
+                  </div>
+                </Card>
               </div>
-            </Card>
-          ))}
+            ))}
+          </div>
         </ScrollArea>
+
         <form onSubmit={sendMessage} className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={selectedBot ? "Type your message..." : "Select a bot to start chatting"}
             disabled={isLoading || !selectedBot}
+            className="flex-1"
           />
           <Button type="submit" disabled={isLoading || !selectedBot}>
             {isLoading ? <Loader2 className="animate-spin" /> : "Send"}
