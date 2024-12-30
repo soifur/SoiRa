@@ -107,11 +107,11 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     { value: "google/gemini-pro-1.5", label: "Google: Gemini Pro 1.5 - $1.25/$5.00 - 2000k ctx" },
     { value: "google/palm-2-chat-32k", label: "Google: PaLM 2 Chat 32k - $1.00/$2.00 - 32k ctx" },
     { value: "google/palm-2-codechat-32k", label: "Google: PaLM 2 Code Chat 32k - $1.00/$2.00 - 32k ctx" },
-    { value: "google/gemini-2.0-flash-pro", label: "Google: Gemini 2.0 Flash Pro - $0.60/$1.80 - 128k ctx" },
-    { value: "google/gemini-2.0-flash-ultra", label: "Google: Gemini 2.0 Flash Ultra - $1.20/$3.60 - 128k ctx" },
-    { value: "google/gemini-2.0-flash-vision", label: "Google: Gemini 2.0 Flash Vision - $0.90/$2.70 - 128k ctx" },
-    { value: "google/gemini-2.0-flash-xl", label: "Google: Gemini 2.0 Flash XL - $2.40/$7.20 - 128k ctx" },
-    { value: "google/gemini-2.0-flash-multimodal", label: "Google: Gemini 2.0 Flash Multimodal - $1.50/$4.50 - 128k ctx" },
+    { value: "google/gemini-flash-pro", label: "Google: Gemini Flash Pro - $0.60/$1.80 - 128k ctx" },
+    { value: "google/gemini-flash-ultra", label: "Google: Gemini Flash Ultra - $1.20/$3.60 - 128k ctx" },
+    { value: "google/gemini-flash-vision", label: "Google: Gemini Flash Vision - $0.90/$2.70 - 128k ctx" },
+    { value: "google/gemini-flash-xl", label: "Google: Gemini Flash XL - $2.40/$7.20 - 128k ctx" },
+    { value: "google/gemini-flash-multimodal", label: "Google: Gemini Flash Multimodal - $1.50/$4.50 - 128k ctx" },
 
     // Meta Models
     { value: "meta-llama/llama-2-13b-chat", label: "Meta: Llama 2 13B Chat - $0.20/$0.20 - 4k ctx" },
