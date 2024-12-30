@@ -64,10 +64,17 @@ const Chat = () => {
       },
       body: JSON.stringify({
         model: selectedBot?.openRouterModel,
-        messages: messages.map(msg => ({
-          role: msg.role === "user" ? "user" : "assistant",
-          content: msg.content,
-        })),
+        messages: [
+          // Add system message with instructions if present
+          ...(selectedBot?.instructions ? [{
+            role: "system",
+            content: selectedBot.instructions
+          }] : []),
+          ...messages.map(msg => ({
+            role: msg.role === "user" ? "user" : "assistant",
+            content: msg.content,
+          }))
+        ],
       }),
     });
 

@@ -43,6 +43,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     { value: "openai/gpt-4-turbo-preview", label: "GPT-4 Turbo" },
     { value: "openai/gpt-4-1106-preview", label: "GPT-4 1106 Preview" },
     { value: "openai/gpt-4", label: "GPT-4" },
+    { value: "openai/gpt-4-32k", label: "GPT-4 32K" },
     
     // Claude Models
     { value: "anthropic/claude-3-opus", label: "Claude 3 Opus" },
@@ -56,19 +57,38 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     { value: "mistral/mistral-small", label: "Mistral Small" },
     { value: "mistral/mistral-medium", label: "Mistral Medium" },
     { value: "mistral/mistral-large", label: "Mistral Large" },
+    { value: "mistral/mistral-7b-instruct", label: "Mistral 7B Instruct" },
     
     // Google Models
     { value: "google/gemini-pro", label: "Gemini Pro" },
     { value: "google/palm-2", label: "PaLM 2" },
+    { value: "google/palm-2-chat", label: "PaLM 2 Chat" },
+    { value: "google/palm-2-codechat", label: "PaLM 2 Code Chat" },
     
     // Meta Models
     { value: "meta-llama/llama-2-13b-chat", label: "Llama 2 13B" },
     { value: "meta-llama/llama-2-70b-chat", label: "Llama 2 70B" },
+    { value: "meta-llama/llama-2-7b-chat", label: "Llama 2 7B" },
     
-    // Other Models
+    // Anthropic Models
+    { value: "anthropic/claude-1", label: "Claude 1" },
+    { value: "anthropic/claude-1.2", label: "Claude 1.2" },
+    
+    // Perplexity Models
     { value: "perplexity/pplx-7b-chat", label: "PPLX 7B" },
     { value: "perplexity/pplx-70b-chat", label: "PPLX 70B" },
+    { value: "perplexity/pplx-online", label: "PPLX Online" },
+    
+    // Cohere Models
     { value: "cohere/command-r", label: "Cohere Command R" },
+    { value: "cohere/command", label: "Cohere Command" },
+    { value: "cohere/command-light", label: "Cohere Command Light" },
+    
+    // Additional Models
+    { value: "databricks/dolly-v2-12b", label: "Dolly v2 12B" },
+    { value: "phind/phind-codellama-34b", label: "Phind CodeLlama 34B" },
+    { value: "intel/neural-chat-7b", label: "Intel Neural Chat 7B" },
+    { value: "rwkv/rwkv-5-world-3b", label: "RWKV-5 World 3B" },
   ];
 
   return (
