@@ -6,16 +6,28 @@ import { useToast } from "@/components/ui/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useBots, Bot } from "@/hooks/useBots";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { bots } = useBots();
+  const [selectedBotId, setSelectedBotId] = useState<string>("");
+
+  const selectedBot = bots.find(bot => bot.id === selectedBotId);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !selectedBot) return;
 
     try {
       setIsLoading(true);
@@ -23,10 +35,22 @@ const Chat = () => {
       setMessages(newMessages);
       setInput("");
 
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+      const genAI = new GoogleGenerativeAI(selectedBot.apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-      const result = await model.generateContent(input);
+      const chat = model.startChat({
+        history: messages.map(msg => ({
+          role: msg.role,
+          parts: msg.content,
+        })),
+        generationConfig: {
+          maxOutputTokens: 1000,
+        },
+      });
+
+      const result = await chat.sendMessage(
+        `${selectedBot.instructions}\n\nUser: ${input}`
+      );
       const response = await result.response;
       const text = response.text();
 
@@ -34,7 +58,7 @@ const Chat = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to get response from Gemini",
+        description: "Failed to get response from AI",
         variant: "destructive",
       });
     } finally {
@@ -45,6 +69,35 @@ const Chat = () => {
   return (
     <div className="container mx-auto max-w-4xl pt-20">
       <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select a bot" />
+            </SelectTrigger>
+            <SelectContent>
+              {bots.map((bot) => (
+                <SelectItem key={bot.id} value={bot.id}>
+                  {bot.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selectedBot && selectedBot.starters.length > 0 && messages.length === 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedBot.starters.map((starter, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                onClick={() => setInput(starter)}
+              >
+                {starter}
+              </Button>
+            ))}
+          </div>
+        )}
+
         <ScrollArea className="flex-1 rounded-lg border p-4">
           {messages.map((message, i) => (
             <Card
@@ -65,10 +118,10 @@ const Chat = () => {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={isLoading}
+            placeholder={selectedBot ? "Type your message..." : "Select a bot to start chatting"}
+            disabled={isLoading || !selectedBot}
           />
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading || !selectedBot}>
             {isLoading ? <Loader2 className="animate-spin" /> : "Send"}
           </Button>
         </form>
