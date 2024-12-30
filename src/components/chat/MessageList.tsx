@@ -4,7 +4,7 @@ import { ChatMessage } from "./ChatMessage";
 import { Button } from "@/components/ui/button";
 
 interface MessageListProps {
-  messages: Array<{ role: string; content: string }>;
+  messages: Array<{ role: string; content: string; timestamp?: Date }>;
   selectedBot?: Bot;
   onStarterClick?: (starter: string) => void;
 }
@@ -32,6 +32,7 @@ export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageLi
             role={message.role}
             content={message.content}
             selectedBot={selectedBot}
+            timestamp={message.timestamp}
           />
         ))}
       </div>

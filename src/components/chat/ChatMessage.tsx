@@ -1,29 +1,62 @@
 import { Card } from "@/components/ui/card";
 import { Bot } from "@/hooks/useBots";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatMessageProps {
   role: string;
   content: string;
   selectedBot?: Bot;
+  timestamp?: Date;
 }
 
-export const ChatMessage = ({ role, content, selectedBot }: ChatMessageProps) => {
+export const ChatMessage = ({ role, content, selectedBot, timestamp = new Date() }: ChatMessageProps) => {
   return (
     <div className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}>
       <Card
         className={`max-w-[80%] p-4 ${
           role === "user"
             ? "bg-primary text-primary-foreground"
-            : "bg-muted"
+            : "bg-card"
         }`}
       >
         <div className="prose dark:prose-invert max-w-none">
           {role === "assistant" && (
-            <p className="font-semibold text-sm mb-2">{selectedBot?.name}</p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-sm">{selectedBot?.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {timestamp.toLocaleTimeString()}
+              </span>
+            </div>
           )}
-          <p className="whitespace-pre-wrap m-0 leading-relaxed text-base">
-            {content}
-          </p>
+          <div className="whitespace-pre-wrap leading-relaxed text-base">
+            {content.split('\n').map((paragraph, index) => {
+              // Handle bullet points
+              if (paragraph.startsWith('* ')) {
+                return (
+                  <li key={index} className="ml-4 mb-2">
+                    {paragraph.substring(2)}
+                  </li>
+                );
+              }
+              // Handle headers
+              if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+                const headerText = paragraph.slice(2, -2);
+                return (
+                  <h3 key={index} className="font-semibold text-lg mb-2 mt-4">
+                    {headerText}
+                  </h3>
+                );
+              }
+              // Regular paragraphs
+              return paragraph ? (
+                <p key={index} className="mb-2">
+                  {paragraph}
+                </p>
+              ) : (
+                <br key={index} />
+              );
+            })}
+          </div>
         </div>
       </Card>
     </div>
