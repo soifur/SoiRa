@@ -11,7 +11,7 @@ export const Navigation = () => {
       <div className="container flex h-16 items-center px-4">
         <div className="flex gap-6 md:gap-10">
           <Link to="/" className="flex items-center space-x-2">
-            <span className="inline-block font-bold">ChatGemini</span>
+            <span className="inline-block font-bold">SoiRa</span>
           </Link>
           <Link to="/bots" className="text-sm font-medium transition-colors hover:text-primary">
             Bots
