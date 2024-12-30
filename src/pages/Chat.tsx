@@ -38,24 +38,28 @@ const Chat = () => {
       const genAI = new GoogleGenerativeAI(selectedBot.apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
+      // Start a new chat for each message to ensure instructions are followed
       const chat = model.startChat({
-        history: messages.map(msg => ({
-          role: msg.role as "user" | "model",
-          parts: [{ text: msg.content }],
-        })),
+        history: [],
         generationConfig: {
           maxOutputTokens: 1000,
         },
       });
 
-      const result = await chat.sendMessage(
-        `${selectedBot.instructions}\n\nUser: ${input}`
-      );
+      // Send the instructions first, followed by all previous context and the new message
+      const fullPrompt = `${selectedBot.instructions}\n\nPrevious messages:\n${
+        newMessages
+          .map(msg => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`)
+          .join("\n")
+      }`;
+
+      const result = await chat.sendMessage(fullPrompt);
       const response = await result.response;
       const text = response.text();
 
       setMessages([...newMessages, { role: "assistant", content: text }]);
     } catch (error) {
+      console.error("Chat error:", error);
       toast({
         title: "Error",
         description: "Failed to get response from AI",
