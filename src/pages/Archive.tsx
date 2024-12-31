@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Message } from "@/components/chat/MessageList";
+import { createMessage } from "@/utils/messageUtils";
 
 interface ChatRecord {
   id: string;
   botId: string;
-  messages: Array<{ role: string; content: string; timestamp: Date }>;
+  messages: Message[];
   timestamp: string;
   shareKey?: string;
   type: string;
@@ -46,7 +48,13 @@ const Archive = () => {
       const transformedHistory = data.map((record): ChatRecord => ({
         id: record.id,
         botId: record.bot_id,
-        messages: record.messages,
+        messages: (record.messages as any[]).map(msg => ({
+          id: msg.id || createMessage(msg.role, msg.content).id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+          isBot: msg.role === 'assistant'
+        })),
         timestamp: record.created_at,
         shareKey: record.share_key,
         type: 'dedicated'

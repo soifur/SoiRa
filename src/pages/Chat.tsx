@@ -9,7 +9,7 @@ import { useBots } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
 
 const Chat = () => {
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const { toast } = useToast();
@@ -25,7 +25,11 @@ const Chat = () => {
 
       const chatData = {
         bot_id: selectedBotId,
-        messages: updatedMessages,
+        messages: updatedMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp?.toISOString()
+        })),
         user_id: session.session.user.id
       };
 
