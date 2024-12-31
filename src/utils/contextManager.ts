@@ -4,7 +4,6 @@ import { Json } from "@/integrations/supabase/types";
 export interface UserContext {
   recentTopics?: string[];
   userPreferences?: {
-    name?: string;
     interests?: string[];
   };
   keyInsights?: string[];
@@ -15,6 +14,21 @@ export interface UserContext {
 }
 
 export const ContextManager = {
+  async clearContext(botId: string, clientId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('user_context')
+        .delete()
+        .match({ bot_id: botId, client_id: clientId });
+
+      if (error) throw error;
+      
+      console.log("Cleared context for bot:", botId, "client:", clientId);
+    } catch (error) {
+      console.error('Error clearing context:', error);
+    }
+  },
+
   async getContext(botId: string, clientId: string): Promise<UserContext> {
     try {
       console.log("Getting context for bot:", botId, "client:", clientId);
@@ -38,7 +52,6 @@ export const ContextManager = {
         },
         keyInsights: [],
         botSpecificData: {
-          knownName: undefined,
           lastInteraction: new Date().toISOString()
         }
       };
@@ -76,16 +89,15 @@ export const ContextManager = {
     try {
       console.log("Updating context for bot:", botId, "client:", clientId, "context:", newContext);
 
-      // Ensure we're not carrying over name data from other bots
+      // Create a clean context without any shared data
       const contextToSave: UserContext = {
-        ...newContext,
+        recentTopics: newContext.recentTopics || [],
         userPreferences: {
-          ...newContext.userPreferences,
-          // Remove any shared name data
-          name: undefined
+          interests: newContext.userPreferences?.interests || []
         },
+        keyInsights: newContext.keyInsights || [],
         botSpecificData: {
-          ...newContext.botSpecificData,
+          knownName: newContext.botSpecificData?.knownName,
           lastInteraction: new Date().toISOString()
         }
       };
@@ -108,12 +120,13 @@ export const ContextManager = {
 
   async processMessageForContext(message: string, context: UserContext): Promise<UserContext> {
     const newContext: UserContext = { 
-      ...context,
       recentTopics: [...(context.recentTopics || [])],
-      userPreferences: { ...context.userPreferences },
+      userPreferences: {
+        interests: context.userPreferences?.interests || []
+      },
       keyInsights: [...(context.keyInsights || [])],
       botSpecificData: {
-        ...context.botSpecificData,
+        knownName: context.botSpecificData?.knownName,
         lastInteraction: new Date().toISOString()
       }
     };

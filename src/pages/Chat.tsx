@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { useBots } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
+import { ContextManager } from "@/utils/contextManager";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -15,6 +16,23 @@ const Chat = () => {
   const { toast } = useToast();
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
+
+  const clearChat = async () => {
+    try {
+      setMessages([]);
+      if (selectedBotId) {
+        const clientIp = await fetch('/api/get-client-ip').then(res => res.text());
+        await ContextManager.clearContext(selectedBotId, clientIp);
+      }
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear chat history",
+        variant: "destructive",
+      });
+    }
+  };
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
@@ -88,7 +106,10 @@ const Chat = () => {
               <ChatHeader
                 bots={bots}
                 selectedBotId={selectedBotId}
-                onBotSelect={setSelectedBotId}
+                onBotSelect={(botId) => {
+                  setSelectedBotId(botId);
+                  clearChat(); // Clear chat and context when switching bots
+                }}
               />
             </div>
             <div className="flex-1 overflow-hidden">
