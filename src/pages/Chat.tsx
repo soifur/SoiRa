@@ -8,7 +8,11 @@ import { ChatService } from "@/services/ChatService";
 import { ChatHistory } from "@/components/chat/ChatHistory";
 import { useLocation } from "react-router-dom";
 
-const Chat = () => {
+interface ChatProps {
+  embeddedBotId?: string;
+}
+
+const Chat = ({ embeddedBotId }: ChatProps) => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -16,17 +20,18 @@ const Chat = () => {
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
   const location = useLocation();
-  const embeddedBotId = new URLSearchParams(location.search).get('bot');
-  const isEmbedded = embeddedBotId !== null;
+  const urlBotId = new URLSearchParams(location.search).get('bot');
+  const isEmbedded = urlBotId !== null || embeddedBotId !== undefined;
 
-  // Set the bot ID from URL parameter if in embedded mode
   useEffect(() => {
     if (embeddedBotId) {
-      const botExists = bots.some(bot => bot.id === embeddedBotId);
+      setSelectedBotId(embeddedBotId);
+    } else if (urlBotId) {
+      const botExists = bots.some(bot => bot.id === urlBotId);
       if (botExists) {
-        setSelectedBotId(embeddedBotId);
+        setSelectedBotId(urlBotId);
       } else {
-        console.error('Embedded bot ID not found:', embeddedBotId);
+        console.error('Embedded bot ID not found:', urlBotId);
         toast({
           title: "Error",
           description: "The specified chatbot could not be found.",
@@ -34,7 +39,7 @@ const Chat = () => {
         });
       }
     }
-  }, [embeddedBotId, bots, toast]);
+  }, [embeddedBotId, urlBotId, bots, toast]);
 
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
@@ -99,10 +104,10 @@ const Chat = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl pt-20">
+    <div className={`container mx-auto ${isEmbedded ? '' : 'max-w-6xl pt-20'}`}>
       <div className="flex gap-4">
         <div className="flex-1">
-          <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
+          <div className={`flex flex-col gap-4 ${isEmbedded ? 'h-[600px]' : 'h-[calc(100vh-8rem)]'}`}>
             {!isEmbedded && (
               <ChatHeader
                 bots={bots}

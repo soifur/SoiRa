@@ -53,10 +53,10 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground dark;
   }
 
   #root {
-    @apply min-h-screen bg-background;
+    @apply min-h-screen bg-background dark;
   }
 }
