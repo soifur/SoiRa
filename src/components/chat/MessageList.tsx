@@ -1,38 +1,49 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot } from "@/hooks/useBots";
+import React, { useEffect, useRef } from "react";
 import { ChatMessage } from "./ChatMessage";
-import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface MessageListProps {
-  messages: Array<{ role: string; content: string; timestamp?: Date }>;
-  selectedBot?: Bot;
-  onStarterClick?: (starter: string) => void;
+interface Message {
+  id: string;
+  content: string;
+  isBot?: boolean;
+  avatar?: string;
 }
 
-export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageListProps) => {
+interface MessageListProps {
+  messages: Message[];
+}
+
+export const MessageList = ({ messages }: MessageListProps) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isNearBottom = useRef(true);
+
+  useEffect(() => {
+    const scrollArea = scrollRef.current;
+    if (scrollArea && isNearBottom.current) {
+      scrollArea.scrollTop = scrollArea.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const threshold = 100; // pixels from bottom
+    isNearBottom.current = 
+      target.scrollHeight - target.scrollTop - target.clientHeight < threshold;
+  };
+
   return (
-    <ScrollArea className="flex-1 rounded-lg border p-4">
-      {selectedBot && selectedBot.starters.length > 0 && messages.length === 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {selectedBot.starters.map((starter, index) => (
-            <Button
-              key={index}
-              variant="outline"
-              onClick={() => onStarterClick?.(starter)}
-            >
-              {starter}
-            </Button>
-          ))}
-        </div>
-      )}
+    <ScrollArea 
+      ref={scrollRef}
+      className="flex-1 p-4"
+      onScroll={handleScroll}
+    >
       <div className="space-y-4">
-        {messages.map((message, i) => (
+        {messages.map((message) => (
           <ChatMessage
-            key={i}
-            role={message.role}
-            content={message.content}
-            selectedBot={selectedBot}
-            timestamp={message.timestamp}
+            key={message.id}
+            message={message.content}
+            isBot={message.isBot}
+            avatar={message.avatar}
           />
         ))}
       </div>

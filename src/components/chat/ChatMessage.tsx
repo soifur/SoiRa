@@ -1,70 +1,52 @@
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Bot } from "@/hooks/useBots";
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
-  role: string;
-  content: string;
-  selectedBot?: Bot;
-  timestamp?: Date;
+  message: string;
+  isBot?: boolean;
+  avatar?: string;
 }
 
-export const ChatMessage = ({ role, content, selectedBot, timestamp }: ChatMessageProps) => {
-  const messageTime = timestamp instanceof Date ? timestamp : new Date();
-
-  const formatContent = (text: string) => {
-    return text.split('\n').map((paragraph, index) => {
-      if (paragraph.trim().startsWith('* ')) {
-        return (
-          <li key={index} className="ml-4 mb-1">
-            {paragraph.substring(2)}
-          </li>
-        );
-      }
-      if (paragraph.includes('**')) {
-        const parts = paragraph.split('**');
-        return (
-          <p key={index} className="mb-1">
-            {parts.map((part, i) => (
-              i % 2 === 1 ? 
-                <strong key={i}>{part}</strong> : 
-                <span key={i}>{part}</span>
-            ))}
-          </p>
-        );
-      }
-      return paragraph ? (
-        <p key={index} className="mb-1">
-          {paragraph}
-        </p>
-      ) : (
-        <br key={index} />
-      );
-    });
-  };
-
+export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
   return (
-    <div className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}>
+    <div
+      className={cn(
+        "flex gap-3 mb-2",
+        isBot ? "justify-start" : "justify-end"
+      )}
+    >
+      {isBot && (
+        <Avatar className="h-8 w-8">
+          <img src={avatar || "/placeholder.svg"} alt="Bot" />
+        </Avatar>
+      )}
       <Card
-        className={`max-w-[80%] p-2 ${
-          role === "user"
-            ? "bg-primary text-primary-foreground"
-            : "bg-card"
-        }`}
+        className={cn(
+          "px-3 py-2 max-w-[80%]",
+          isBot ? "bg-accent" : "bg-primary text-primary-foreground"
+        )}
       >
-        <div className="prose dark:prose-invert max-w-none text-sm">
-          {role === "assistant" && (
-            <div className="flex items-center justify-between mb-1 text-xs">
-              <span className="font-semibold">{selectedBot?.name}</span>
-              <span className="text-muted-foreground">
-                {messageTime.toLocaleTimeString()}
-              </span>
-            </div>
-          )}
-          <div className="whitespace-pre-wrap leading-relaxed">
-            {formatContent(content)}
-          </div>
+        <div className="prose prose-sm max-w-none">
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+              pre: ({ children }) => (
+                <pre className="p-2 bg-muted rounded-md my-1">{children}</pre>
+              ),
+            }}
+          >
+            {message}
+          </ReactMarkdown>
         </div>
       </Card>
+      {!isBot && (
+        <Avatar className="h-8 w-8">
+          <img src="/placeholder.svg" alt="User" />
+        </Avatar>
+      )}
     </div>
   );
 };
