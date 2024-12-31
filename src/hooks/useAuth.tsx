@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export type UserRole = "super_admin" | "admin" | "user";
 
@@ -14,6 +15,7 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const getProfile = async () => {
@@ -25,17 +27,42 @@ export const useAuth = () => {
           return;
         }
 
+        // First try to get the profile
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
 
-        if (error) throw error;
-
-        setProfile(profile);
+        if (error) {
+          // If there's an error, check if it's the recursion error
+          if (error.message.includes("infinite recursion")) {
+            // Create a basic profile from session data
+            const basicProfile = {
+              id: session.user.id,
+              email: session.user.email || '',
+              role: 'user' as UserRole
+            };
+            setProfile(basicProfile);
+            
+            toast({
+              title: "Profile Access Issue",
+              description: "There was an issue accessing your full profile. Some features may be limited.",
+              variant: "destructive"
+            });
+          } else {
+            throw error;
+          }
+        } else {
+          setProfile(profile);
+        }
       } catch (error) {
         console.error("Error loading user profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load user profile. Please try refreshing the page.",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -53,7 +80,7 @@ export const useAuth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
