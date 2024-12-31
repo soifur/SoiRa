@@ -1,5 +1,16 @@
-export const createMessage = (role: string, content: string, isBot?: boolean, avatar?: string) => ({
-  id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+import { v4 as uuidv4 } from 'uuid';
+
+export interface Message {
+  id: string;
+  role: string;
+  content: string;
+  timestamp?: Date;
+  isBot?: boolean;
+  avatar?: string;
+}
+
+export const createMessage = (role: string, content: string, isBot?: boolean, avatar?: string): Message => ({
+  id: uuidv4(),
   role,
   content,
   timestamp: new Date(),
@@ -7,9 +18,10 @@ export const createMessage = (role: string, content: string, isBot?: boolean, av
   avatar
 });
 
-export const formatMessages = (messages: Array<{ role: string; content: string; timestamp?: Date }>) => {
+export const formatMessages = (messages: Array<{ role: string; content: string; timestamp?: Date }>): Message[] => {
   return messages.map(msg => ({
+    id: uuidv4(),
     ...msg,
-    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    isBot: msg.role === 'assistant'
   }));
 };

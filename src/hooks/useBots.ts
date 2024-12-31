@@ -7,7 +7,8 @@ export interface Bot {
   starters: string[];
   model: "gemini" | "claude" | "openai" | "openrouter";
   apiKey: string;
-  openRouterModel?: string; // for OpenRouter specific model
+  openRouterModel?: string;
+  avatar?: string; // Added avatar property
 }
 
 export const useBots = () => {

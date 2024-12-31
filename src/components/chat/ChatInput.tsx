@@ -9,14 +9,17 @@ interface ChatInputProps {
   placeholder?: string;
   isLoading?: boolean;
   onInputChange?: (value: string) => void;
+  onSubmit?: (e: React.FormEvent) => void;
 }
 
-export const ChatInput = ({ onSend, disabled, placeholder, isLoading, onInputChange }: ChatInputProps) => {
+export const ChatInput = ({ onSend, disabled, placeholder, isLoading, onInputChange, onSubmit }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (textareaRef.current?.value.trim()) {
+    if (onSubmit) {
+      onSubmit(e);
+    } else if (textareaRef.current?.value.trim()) {
       onSend(textareaRef.current.value);
       textareaRef.current.value = "";
       textareaRef.current.style.height = "auto";
@@ -44,7 +47,7 @@ export const ChatInput = ({ onSend, disabled, placeholder, isLoading, onInputCha
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "36px"; // Reduced initial height
+      textareaRef.current.style.height = "36px";
     }
   }, []);
 
