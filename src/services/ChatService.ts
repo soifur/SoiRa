@@ -2,6 +2,27 @@ import { Bot } from "@/hooks/useBots";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export class ChatService {
+  private static sanitizeText(text: string): string {
+    // Replace smart quotes with straight quotes
+    return text
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      // Replace other problematic characters
+      .replace(/[^\x00-\x7F]/g, char => {
+        // Common replacements for non-ASCII characters
+        const replacements: { [key: string]: string } = {
+          '—': '-',    // em dash
+          '–': '-',    // en dash
+          ''': "'",    // curly single quote
+          ''': "'",    // curly single quote
+          '"': '"',    // curly double quote
+          '"': '"',    // curly double quote
+          '…': '...',  // ellipsis
+        };
+        return replacements[char] || ' ';
+      });
+  }
+
   static async sendOpenRouterMessage(
     messages: Array<{ role: string; content: string }>,
     bot: Bot
@@ -9,6 +30,13 @@ export class ChatService {
     if (!bot.apiKey) {
       throw new Error("OpenRouter API key is missing");
     }
+
+    const sanitizedMessages = messages.map(msg => ({
+      ...msg,
+      content: this.sanitizeText(msg.content)
+    }));
+
+    const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
 
     const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
       method: "POST",
@@ -21,15 +49,15 @@ export class ChatService {
       body: JSON.stringify({
         model: bot.openRouterModel,
         messages: [
-          ...(bot.instructions
+          ...(sanitizedInstructions
             ? [
                 {
                   role: "system",
-                  content: bot.instructions,
+                  content: sanitizedInstructions,
                 },
               ]
             : []),
-          ...messages,
+          ...sanitizedMessages,
         ],
       }),
     });
