@@ -9,19 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 
-interface Message {
-  role: string;
-  content: string;
-  timestamp?: Date;
-}
-
 interface DedicatedBotChatProps {
   bot: Bot;
 }
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +33,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     const savedMessages = localStorage.getItem(chatKey);
     if (savedMessages) {
       try {
-        const parsedMessages = JSON.parse(savedMessages) as Message[];
+        const parsedMessages = JSON.parse(savedMessages);
         setMessages(parsedMessages);
       } catch (error) {
         console.error("Error parsing saved messages:", error);
@@ -58,7 +53,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     });
   };
 
-  const updateChatHistory = (updatedMessages: Message[]) => {
+  const updateChatHistory = (updatedMessages: typeof messages) => {
     const history = localStorage.getItem("chatHistory") || "[]";
     let existingHistory = JSON.parse(history);
     
@@ -112,10 +107,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         response = await ChatService.sendOpenRouterMessage(newMessages, bot);
       } else if (bot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(newMessages, bot);
-      } else if (bot.model === "openai") {
-        response = await ChatService.sendOpenAIMessage(newMessages, bot);
-      } else if (bot.model === "claude") {
-        response = await ChatService.sendClaudeMessage(newMessages, bot);
       } else {
         throw new Error("Unsupported model type");
       }
