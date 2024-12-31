@@ -20,23 +20,27 @@ export const useAuth = () => {
   useEffect(() => {
     const getProfile = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
+        if (sessionError) {
+          throw sessionError;
+        }
+
         if (!session) {
           setLoading(false);
           return;
         }
 
-        // Use maybeSingle() instead of single() to handle the case where no profile exists
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .maybeSingle();
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email, role')
+          .eq('id', session.user.id)
+          .single();
 
-        if (error) {
-          console.error("Error fetching profile:", error);
-          // Create a basic profile from session data
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          
+          // Create a basic profile if none exists
           const basicProfile = {
             id: session.user.id,
             email: session.user.email || '',
@@ -46,10 +50,10 @@ export const useAuth = () => {
           
           toast({
             title: "Profile Access Issue",
-            description: "There was an issue accessing your full profile. Some features may be limited.",
+            description: "There was an issue accessing your profile. Some features may be limited.",
             variant: "destructive"
           });
-        } else if (!profile) {
+        } else if (!profileData) {
           // Handle case where no profile exists
           const basicProfile = {
             id: session.user.id,
@@ -64,15 +68,16 @@ export const useAuth = () => {
             variant: "destructive"
           });
         } else {
-          setProfile(profile);
+          setProfile(profileData);
         }
       } catch (error) {
-        console.error("Error loading user profile:", error);
+        console.error("Error in auth flow:", error);
         toast({
-          title: "Error",
-          description: "Failed to load user profile. Please try refreshing the page.",
+          title: "Authentication Error",
+          description: "There was an issue with authentication. Please try logging in again.",
           variant: "destructive"
         });
+        await signOut();
       } finally {
         setLoading(false);
       }
@@ -80,9 +85,9 @@ export const useAuth = () => {
 
     getProfile();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        getProfile();
+        await getProfile();
       } else {
         setProfile(null);
         navigate("/login");
@@ -93,7 +98,18 @@ export const useAuth = () => {
   }, [navigate, toast]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      setProfile(null);
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return { profile, loading, signOut };
