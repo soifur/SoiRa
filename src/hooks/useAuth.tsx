@@ -27,32 +27,42 @@ export const useAuth = () => {
           return;
         }
 
-        // First try to get the profile
+        // Use maybeSingle() instead of single() to handle the case where no profile exists
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
-          // If there's an error, check if it's the recursion error
-          if (error.message.includes("infinite recursion")) {
-            // Create a basic profile from session data
-            const basicProfile = {
-              id: session.user.id,
-              email: session.user.email || '',
-              role: 'user' as UserRole
-            };
-            setProfile(basicProfile);
-            
-            toast({
-              title: "Profile Access Issue",
-              description: "There was an issue accessing your full profile. Some features may be limited.",
-              variant: "destructive"
-            });
-          } else {
-            throw error;
-          }
+          console.error("Error fetching profile:", error);
+          // Create a basic profile from session data
+          const basicProfile = {
+            id: session.user.id,
+            email: session.user.email || '',
+            role: 'user' as UserRole
+          };
+          setProfile(basicProfile);
+          
+          toast({
+            title: "Profile Access Issue",
+            description: "There was an issue accessing your full profile. Some features may be limited.",
+            variant: "destructive"
+          });
+        } else if (!profile) {
+          // Handle case where no profile exists
+          const basicProfile = {
+            id: session.user.id,
+            email: session.user.email || '',
+            role: 'user' as UserRole
+          };
+          setProfile(basicProfile);
+          
+          toast({
+            title: "Profile Not Found",
+            description: "Your profile is being created. Please refresh the page.",
+            variant: "destructive"
+          });
         } else {
           setProfile(profile);
         }
