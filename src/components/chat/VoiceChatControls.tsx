@@ -25,9 +25,10 @@ export const VoiceChatControls = ({
         description: "Speak clearly and I'll listen to you",
       });
     } catch (error) {
+      console.error('Voice chat error:', error);
       toast({
-        title: "Microphone Access Required",
-        description: "Please allow microphone access to use voice chat",
+        title: "Voice Chat Error",
+        description: "Failed to start voice chat. Please try again.",
         variant: "destructive",
       });
     }
@@ -38,7 +39,7 @@ export const VoiceChatControls = ({
       variant="ghost"
       size="icon"
       onClick={isListening ? stopListening : handleStartListening}
-      className={`text-muted-foreground hover:text-foreground ${isListening ? 'bg-red-100' : ''}`}
+      className={`text-muted-foreground hover:text-foreground ${isListening ? 'bg-red-100 dark:bg-red-900' : ''}`}
       disabled={isSpeaking}
     >
       {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
