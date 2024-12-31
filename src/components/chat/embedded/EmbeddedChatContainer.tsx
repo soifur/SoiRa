@@ -32,9 +32,17 @@ const EmbeddedChatContainer = () => {
           .from("bots")
           .select("*")
           .eq("id", botId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        if (!data) {
+          toast({
+            title: "Error",
+            description: "Bot not found",
+            variant: "destructive",
+          });
+          return;
+        }
         
         // Transform the data to match the Bot interface
         const transformedBot: Bot = {
@@ -43,10 +51,10 @@ const EmbeddedChatContainer = () => {
           instructions: data.instructions || "",
           starters: data.starters || [],
           model: data.model,
-          apiKey: data.api_key, // Transform snake_case to camelCase
+          apiKey: data.api_key,
           openRouterModel: data.open_router_model,
           avatar: data.avatar,
-          accessType: "private"
+          accessType: "private",
         };
 
         setBot(transformedBot);
