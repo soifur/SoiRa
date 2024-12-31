@@ -64,13 +64,7 @@ const Login = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
-          onError={(error) => {
-            toast({
-              variant: "destructive",
-              title: "Authentication Error",
-              description: error.message
-            });
-          }}
+          showLinks={true}
         />
       </Card>
     </div>
