@@ -22,8 +22,8 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'hsl(220, 13%, 13%)', // Dark grey background
-        foreground: 'hsl(220, 13%, 95%)', // Light grey text
+        background: '#1a1a1a', // Darker gray background
+        foreground: '#ffffff', // White text
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))'
@@ -37,20 +37,20 @@ export default {
           foreground: 'hsl(var(--destructive-foreground))'
         },
         muted: {
-          DEFAULT: 'hsl(220, 13%, 18%)', // Slightly lighter dark grey
-          foreground: 'hsl(220, 13%, 75%)' // Muted text color
+          DEFAULT: '#222222', // Slightly lighter dark gray
+          foreground: '#888888' // Muted text color
         },
         accent: {
-          DEFAULT: 'hsl(220, 13%, 16%)', // Accent dark grey
-          foreground: 'hsl(220, 13%, 90%)' // Accent text color
+          DEFAULT: '#2a2a2a', // Accent dark gray
+          foreground: '#ffffff' // White text
         },
         popover: {
-          DEFAULT: 'hsl(220, 13%, 13%)', // Dark grey background
-          foreground: 'hsl(220, 13%, 95%)' // Light grey text
+          DEFAULT: '#1a1a1a', // Darker gray background
+          foreground: '#ffffff' // White text
         },
         card: {
-          DEFAULT: 'hsl(220, 13%, 15%)', // Slightly lighter than background
-          foreground: 'hsl(220, 13%, 95%)' // Light grey text
+          DEFAULT: '#222222', // Slightly lighter dark gray
+          foreground: '#ffffff' // White text
         }
       },
       borderRadius: {

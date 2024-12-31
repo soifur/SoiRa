@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MessageList } from "../MessageList";
 import { ChatInput } from "../ChatInput";
 import { Card } from "@/components/ui/card";
