@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 interface Profile {
   id: string;
@@ -35,7 +36,7 @@ export default function Users() {
     return <Navigate to="/" replace />;
   }
 
-  const { data: profiles, refetch } = useQuery({
+  const { data: profiles, isLoading, error } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -69,8 +70,6 @@ export default function Users() {
         title: "Role updated",
         description: "User role has been updated successfully.",
       });
-
-      refetch();
     } catch (error: any) {
       toast({
         title: "Error updating role",
@@ -79,6 +78,22 @@ export default function Users() {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-10 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-10">
+        <div className="text-red-500">Error loading users. Please try again.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-10">
