@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
@@ -16,6 +16,15 @@ const EmbeddedBotChat = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     try {
@@ -24,11 +33,9 @@ const EmbeddedBotChat = () => {
         throw new Error('No bot configuration provided');
       }
 
-      // Decode the URL-encoded JSON string
       const decodedConfig = JSON.parse(decodeURIComponent(configParam));
       console.log("Decoded bot config:", decodedConfig);
       
-      // Ensure the API key is included in the bot configuration
       if (!decodedConfig.apiKey) {
         toast({
           title: "Configuration Error",
@@ -40,7 +47,6 @@ const EmbeddedBotChat = () => {
       
       setSelectedBot(decodedConfig);
 
-      // Initialize chat with bot's instructions as system message
       const initialMessages = [{
         role: "system",
         content: decodedConfig.instructions,
@@ -57,10 +63,43 @@ const EmbeddedBotChat = () => {
     }
   }, [searchParams, toast]);
 
+  const updateChatHistory = (updatedMessages: typeof messages) => {
+    const history = localStorage.getItem("chatHistory") || "[]";
+    let existingHistory = JSON.parse(history);
+    
+    if (!Array.isArray(existingHistory)) {
+      existingHistory = [];
+    }
+    
+    const chatSessionId = Date.now().toString();
+    
+    const newRecord = {
+      id: chatSessionId,
+      botId: selectedBot?.id,
+      messages: updatedMessages,
+      timestamp: new Date().toISOString(),
+      type: 'embedded'
+    };
+    
+    existingHistory.unshift(newRecord);
+    
+    const limitedHistory = existingHistory.slice(0, 100);
+    
+    try {
+      localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save chat history",
+        variant: "destructive",
+      });
+    }
+  };
+
   const clearChat = () => {
     if (!selectedBot) return;
     
-    // Reset to initial state with just the system message
     const initialMessages = [{
       role: "system",
       content: selectedBot.instructions,
@@ -103,6 +142,8 @@ const EmbeddedBotChat = () => {
       ];
       
       setMessages(updatedMessages);
+      updateChatHistory(updatedMessages);
+      scrollToBottom();
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -137,11 +178,14 @@ const EmbeddedBotChat = () => {
           Clear Chat
         </Button>
       </div>
-      <MessageList
-        messages={messages.filter(msg => msg.role !== 'system')}
-        selectedBot={selectedBot}
-        onStarterClick={setInput}
-      />
+      <div className="flex-1 overflow-hidden">
+        <MessageList
+          messages={messages.filter(msg => msg.role !== 'system')}
+          selectedBot={selectedBot}
+          onStarterClick={setInput}
+        />
+        <div ref={messagesEndRef} />
+      </div>
       <ChatInput
         input={input}
         isLoading={isLoading}

@@ -9,8 +9,41 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage = ({ role, content, selectedBot, timestamp }: ChatMessageProps) => {
-  // Ensure timestamp is a valid Date object
   const messageTime = timestamp instanceof Date ? timestamp : new Date();
+
+  const formatContent = (text: string) => {
+    return text.split('\n').map((paragraph, index) => {
+      // Handle bullet points
+      if (paragraph.trim().startsWith('* ')) {
+        return (
+          <li key={index} className="ml-4 mb-2">
+            {paragraph.substring(2)}
+          </li>
+        );
+      }
+      // Handle bold text
+      if (paragraph.includes('**')) {
+        const parts = paragraph.split('**');
+        return (
+          <p key={index} className="mb-2">
+            {parts.map((part, i) => (
+              i % 2 === 1 ? 
+                <strong key={i}>{part}</strong> : 
+                <span key={i}>{part}</span>
+            ))}
+          </p>
+        );
+      }
+      // Regular paragraphs
+      return paragraph ? (
+        <p key={index} className="mb-2">
+          {paragraph}
+        </p>
+      ) : (
+        <br key={index} />
+      );
+    });
+  };
 
   return (
     <div className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}>
@@ -31,33 +64,7 @@ export const ChatMessage = ({ role, content, selectedBot, timestamp }: ChatMessa
             </div>
           )}
           <div className="whitespace-pre-wrap leading-relaxed text-base">
-            {content.split('\n').map((paragraph, index) => {
-              // Handle bullet points
-              if (paragraph.startsWith('* ')) {
-                return (
-                  <li key={index} className="ml-4 mb-2">
-                    {paragraph.substring(2)}
-                  </li>
-                );
-              }
-              // Handle headers (without "Assistant:" prefix)
-              if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-                const headerText = paragraph.slice(2, -2).replace(/^Assistant:\s*/, '');
-                return (
-                  <h3 key={index} className="font-semibold text-lg mb-2 mt-4">
-                    {headerText}
-                  </h3>
-                );
-              }
-              // Regular paragraphs (without "Assistant:" prefix)
-              return paragraph ? (
-                <p key={index} className="mb-2">
-                  {paragraph.replace(/^Assistant:\s*/, '')}
-                </p>
-              ) : (
-                <br key={index} />
-              );
-            })}
+            {formatContent(content)}
           </div>
         </div>
       </Card>
