@@ -19,7 +19,7 @@ export const transformChatHistory = (data: any[]): ChatRecord[] => {
         id: msg.id || createMessage(msg.role, msg.content).id,
         role: msg.role,
         content: msg.content,
-        timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
+        timestamp: msg.timestamp || new Date().toISOString(),
         isBot: msg.role === 'assistant'
       }));
 
@@ -38,7 +38,7 @@ export const transformChatHistory = (data: any[]): ChatRecord[] => {
       shareKey: record.share_key,
       type: record.share_key ? 'public' : 'private',
       user_id: record.user_id,
-      client_id: record.client_id || 'anonymous'
+      client_id: normalizedClientId
     };
   });
 };
@@ -49,11 +49,12 @@ export const groupChatsByClient = (transformedHistory: ChatRecord[]): GroupedCha
       group => group.clientId === chat.client_id
     );
 
+    const latestMessageTime = chat.messages.length > 0 
+      ? chat.messages[chat.messages.length - 1].timestamp 
+      : chat.timestamp;
+
     if (existingGroup) {
       existingGroup.chats.push(chat);
-      const latestMessageTime = chat.messages.length > 0 
-        ? chat.messages[chat.messages.length - 1].timestamp 
-        : chat.timestamp;
       
       if (new Date(latestMessageTime) > new Date(existingGroup.latestTimestamp)) {
         existingGroup.latestTimestamp = latestMessageTime;
@@ -63,9 +64,7 @@ export const groupChatsByClient = (transformedHistory: ChatRecord[]): GroupedCha
         clientId: chat.client_id || 'anonymous',
         botId: chat.botId,
         chats: [chat],
-        latestTimestamp: chat.messages.length > 0 
-          ? chat.messages[chat.messages.length - 1].timestamp 
-          : chat.timestamp
+        latestTimestamp: latestMessageTime
       });
     }
     return acc;
