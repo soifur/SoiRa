@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Navigation } from "@/components/Navigation";
 import { ThemeProvider } from "next-themes";
@@ -6,7 +6,33 @@ import Index from "@/pages/Index";
 import Bots from "@/pages/Bots";
 import Chat from "@/pages/Chat";
 import Archive from "@/pages/Archive";
+import Login from "@/pages/Login";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
+import { useAuth } from "@/hooks/useAuth";
+
+const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: "super_admin" | "admin" }) => {
+  const { profile, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!profile) {
+    return <Navigate to="/login" />;
+  }
+
+  if (requiredRole) {
+    const hasAccess = requiredRole === "super_admin" 
+      ? profile.role === "super_admin"
+      : profile.role === "super_admin" || profile.role === "admin";
+
+    if (!hasAccess) {
+      return <Navigate to="/" />;
+    }
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   return (
@@ -14,10 +40,32 @@ function App() {
       <Router>
         <Navigation />
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/bots" element={<Bots />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/archive" element={<Archive />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route 
+            path="/bots" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Bots />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/chat" 
+            element={
+              <ProtectedRoute>
+                <Chat />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/archive" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Archive />
+              </ProtectedRoute>
+            } 
+          />
           <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
         </Routes>
         <Toaster />
