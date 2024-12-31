@@ -65,17 +65,19 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
   return (
     <ScrollArea 
       ref={scrollRef}
-      className="flex-1 p-4"
+      className="flex-1 p-4 pb-32" // Added padding bottom to prevent overlap with input
       onScroll={handleScroll}
     >
       {messages.length === 0 && starters && starters.length > 0 && (
-        <div className="h-full flex flex-col items-center justify-center px-4">
+        <div className="h-full flex flex-col items-center justify-center">
           {selectedBot && (
             <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
               {selectedBot.name}
             </h2>
           )}
-          <h1 className="text-4xl font-bold mb-12 text-foreground text-center">What can I help with?</h1>
+          <h1 className="text-4xl font-bold mb-12 text-foreground text-center">
+            What can I help with?
+          </h1>
           <div className="grid grid-cols-1 gap-3 w-full max-w-2xl">
             {starters.map((starter, index) => {
               const Icon = getStarterIcon(starter);
