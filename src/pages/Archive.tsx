@@ -41,11 +41,12 @@ const Archive = () => {
 
       console.log("Fetching chat history...");
       
-      // Fetch all chats for the user
+      // Fetch all chats for the user with proper ordering
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
-        .eq('user_id', session.session.user.id);
+        .eq('user_id', session.session.user.id)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error fetching chat history:", error);
@@ -61,9 +62,17 @@ const Archive = () => {
       }
 
       const transformedHistory = data.map((record): ChatRecord => {
+        console.log("Processing record:", record);
+        
         const messages = Array.isArray(record.messages) 
           ? (record.messages as Json[])
-              .filter(isDatabaseMessage)
+              .filter(msg => {
+                const isValid = isDatabaseMessage(msg);
+                if (!isValid) {
+                  console.warn("Invalid message format:", msg);
+                }
+                return isValid;
+              })
               .map((msg: DatabaseMessage) => ({
                 id: msg.id || createMessage(msg.role, msg.content).id,
                 role: msg.role,
@@ -72,6 +81,8 @@ const Archive = () => {
                 isBot: msg.role === 'assistant'
               }))
           : [];
+
+        console.log("Transformed messages:", messages);
 
         return {
           id: record.id,
@@ -85,7 +96,9 @@ const Archive = () => {
         };
       });
 
-      // Group chats by bot_id first, then by client_id
+      console.log("Transformed history:", transformedHistory);
+
+      // Group chats by bot_id first
       const groupedChats = transformedHistory.reduce((acc: GroupedChatRecord[], chat) => {
         const existingGroup = acc.find(
           group => group.botId === chat.botId
