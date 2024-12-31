@@ -37,6 +37,7 @@ const Archive = () => {
         return;
       }
       
+      // Fetch all chat history for the user
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
@@ -45,21 +46,22 @@ const Archive = () => {
 
       if (error) throw error;
 
+      // Transform the raw data into ChatRecord format
       const transformedHistory = data.map((record): ChatRecord => ({
         id: record.id,
         botId: record.bot_id,
-        messages: (record.messages as any[]).map(msg => ({
+        messages: Array.isArray(record.messages) ? record.messages.map(msg => ({
           id: msg.id || createMessage(msg.role, msg.content).id,
           role: msg.role,
           content: msg.content,
-          timestamp: new Date(msg.timestamp),
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
           isBot: msg.role === 'assistant'
-        })),
-        timestamp: record.created_at,
+        })) : [],
+        timestamp: record.created_at || new Date().toISOString(),
         shareKey: record.share_key,
         type: record.share_key ? 'public' : 'private',
         user_id: record.user_id,
-        client_id: record.client_id
+        client_id: record.client_id || 'unknown'
       }));
 
       // Group chats by client_id and bot_id
