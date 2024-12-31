@@ -18,21 +18,25 @@ const EmbeddedBotChat = () => {
 
   useEffect(() => {
     if (!shareKey) {
-      console.error('No share key provided');
+      console.error('Share key is missing');
       return;
     }
 
     try {
-      const storedConfig = localStorage.getItem(shareKey);
+      const storedConfig = localStorage.getItem(`share_${shareKey}`);
       if (!storedConfig) {
-        throw new Error('Share configuration not found');
+        console.error('Share configuration not found for key:', shareKey);
+        toast({
+          title: "Error",
+          description: "This shared chat is no longer available",
+          variant: "destructive",
+        });
+        return;
       }
 
       const config = JSON.parse(storedConfig);
       console.log("Loaded shared bot config:", config);
-      
       setSelectedBot(config);
-      setMessages([]);
     } catch (error) {
       console.error('Error loading bot configuration:', error);
       toast({
