@@ -92,7 +92,10 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
       </div>
       {!isMobile && (
         <div className="mt-2 text-sm text-muted-foreground">
-          Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
+          <div>IP: {record.client_id || 'anonymous'}</div>
+          <div className="mt-1">
+            Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
+          </div>
         </div>
       )}
     </Card>

@@ -38,7 +38,7 @@ export const transformChatHistory = (data: any[]): ChatRecord[] => {
       shareKey: record.share_key,
       type: record.share_key ? 'public' : 'private',
       user_id: record.user_id,
-      client_id: normalizedClientId
+      client_id: record.client_id || 'anonymous'
     };
   });
 };
@@ -51,30 +51,40 @@ export const groupChatsByClient = (transformedHistory: ChatRecord[]): GroupedCha
 
     if (existingGroup) {
       existingGroup.chats.push(chat);
-      if (new Date(chat.timestamp) > new Date(existingGroup.latestTimestamp)) {
-        existingGroup.latestTimestamp = chat.timestamp;
+      const latestMessageTime = chat.messages.length > 0 
+        ? chat.messages[chat.messages.length - 1].timestamp 
+        : chat.timestamp;
+      
+      if (new Date(latestMessageTime) > new Date(existingGroup.latestTimestamp)) {
+        existingGroup.latestTimestamp = latestMessageTime;
       }
     } else {
       acc.push({
         clientId: chat.client_id || 'anonymous',
         botId: chat.botId,
         chats: [chat],
-        latestTimestamp: chat.timestamp
+        latestTimestamp: chat.messages.length > 0 
+          ? chat.messages[chat.messages.length - 1].timestamp 
+          : chat.timestamp
       });
     }
     return acc;
   }, []);
 
-  // Sort groups by latest timestamp, using UTC dates for comparison
+  // Sort groups by latest message timestamp
   groupedChats.sort((a, b) => 
     new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime()
   );
 
-  // Sort chats within each group by timestamp
+  // Sort chats within each group by latest message timestamp
   groupedChats.forEach(group => {
-    group.chats.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    group.chats.sort((a, b) => {
+      const aLastMessage = a.messages[a.messages.length - 1];
+      const bLastMessage = b.messages[b.messages.length - 1];
+      const aTime = aLastMessage?.timestamp || a.timestamp;
+      const bTime = bLastMessage?.timestamp || b.timestamp;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    });
   });
 
   return groupedChats;

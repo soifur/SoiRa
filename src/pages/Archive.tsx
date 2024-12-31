@@ -18,13 +18,20 @@ const Archive = () => {
   const isMobile = useIsMobile();
   const { chatHistory } = useChatHistory();
 
-  const filteredHistory = chatHistory
-    .filter(group => {
-      const matchesBot = selectedBotId === "all" || group.botId === selectedBotId;
-      const matchesSearch = searchTerm === "" || group.chats.some(chat => 
-        chat.messages.some(msg => 
-          msg.content.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+  // Flatten and sort all chats by latest message timestamp
+  const sortedChats = chatHistory
+    .flatMap(group => group.chats)
+    .sort((a, b) => {
+      const aLastMessage = a.messages[a.messages.length - 1];
+      const bLastMessage = b.messages[b.messages.length - 1];
+      const aTime = aLastMessage?.timestamp || a.timestamp;
+      const bTime = bLastMessage?.timestamp || b.timestamp;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    })
+    .filter(chat => {
+      const matchesBot = selectedBotId === "all" || chat.botId === selectedBotId;
+      const matchesSearch = searchTerm === "" || chat.messages.some(msg => 
+        msg.content.toLowerCase().includes(searchTerm.toLowerCase())
       );
       return matchesBot && matchesSearch;
     });
@@ -66,27 +73,20 @@ const Archive = () => {
         
         <ScrollArea className={`${isMobile ? 'h-[calc(100vh-12rem)]' : 'h-[calc(100vh-14rem)]'}`}>
           <div className="space-y-4">
-            {filteredHistory.length === 0 ? (
+            {sortedChats.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 {searchTerm || selectedBotId !== "all" 
                   ? "No chats found matching your filters"
                   : "No chat history available"}
               </div>
             ) : (
-              filteredHistory.map((group) => (
-                <div key={`${group.clientId}`} className="space-y-2">
-                  <div className="font-medium text-sm text-muted-foreground">
-                    IP: {group.clientId}
-                  </div>
-                  {group.chats.map((record) => (
-                    <ChatListItem
-                      key={record.id}
-                      record={record}
-                      bot={getSelectedBot(record.botId)}
-                      onClick={() => setSelectedChat(record)}
-                    />
-                  ))}
-                </div>
+              sortedChats.map((record) => (
+                <ChatListItem
+                  key={record.id}
+                  record={record}
+                  bot={getSelectedBot(record.botId)}
+                  onClick={() => setSelectedChat(record)}
+                />
               ))
             )}
           </div>
