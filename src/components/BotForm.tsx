@@ -64,24 +64,59 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const openRouterModels = [
-    // Anthropic Models (Most strict and safe)
-    { value: "anthropic/claude-3-haiku-sm", label: "Anthropic: Claude 3 Haiku (self-moderated) - $0.25/$1.25 - 200k ctx" },
-    { value: "anthropic/claude-3-opus-sm", label: "Anthropic: Claude 3 Opus (self-moderated) - $15.00/$75.00 - 200k ctx" },
-    { value: "anthropic/claude-3-sonnet-sm", label: "Anthropic: Claude 3 Sonnet (self-moderated) - $3.00/$15.00 - 200k ctx" },
-    { value: "anthropic/claude-v2-sm", label: "Anthropic: Claude v2 (self-moderated) - $8.00/$24.00 - 200k ctx" },
+    // Anthropic Models (Most advanced and reliable)
+    { value: "anthropic/claude-3-haiku", label: "Claude 3 Haiku - $0.25/$1.25 per 1M tokens - 200k ctx" },
+    { value: "anthropic/claude-3-opus", label: "Claude 3 Opus - $15/$75 per 1M tokens - 200k ctx" },
+    { value: "anthropic/claude-3-sonnet", label: "Claude 3 Sonnet - $3/$15 per 1M tokens - 200k ctx" },
+    { value: "anthropic/claude-2", label: "Claude 2 - $8/$24 per 1M tokens - 100k ctx" },
+    { value: "anthropic/claude-instant-1", label: "Claude Instant 1.2 - $0.80/$2.40 per 1M tokens - 100k ctx" },
     
-    // Google Models (With content filtering)
-    { value: "google/gemini-pro", label: "Google: Gemini Pro 1.0 - $0.50/$1.50 - 32k ctx" },
-    { value: "google/gemini-pro-1.5", label: "Google: Gemini Pro 1.5 - $1.25/$5.00 - 2000k ctx" },
+    // Google Models
+    { value: "google/gemini-pro", label: "Gemini Pro - $0.50/$1.50 per 1M tokens - 32k ctx" },
+    { value: "google/gemini-pro-vision", label: "Gemini Pro Vision - $0.50/$1.50 per 1M tokens - 32k ctx" },
+    { value: "google/palm-2-chat-bison", label: "PaLM 2 Chat - $0.50/$0.50 per 1M tokens - 8k ctx" },
+    { value: "google/palm-2-codechat-bison", label: "PaLM 2 Code Chat - $0.50/$0.50 per 1M tokens - 8k ctx" },
     
-    // OpenAI Models (With moderation)
-    { value: "openai/gpt-4", label: "OpenAI: GPT-4 - $30.00/$60.00 - 8k ctx" },
-    { value: "openai/gpt-4-turbo", label: "OpenAI: GPT-4 Turbo - $10.00/$30.00 - 128k ctx" },
+    // OpenAI Models
+    { value: "openai/gpt-4-turbo-preview", label: "GPT-4 Turbo Preview - $10/$30 per 1M tokens - 128k ctx" },
+    { value: "openai/gpt-4-vision-preview", label: "GPT-4 Vision Preview - $10/$30 per 1M tokens - 128k ctx" },
+    { value: "openai/gpt-4", label: "GPT-4 - $30/$60 per 1M tokens - 8k ctx" },
+    { value: "openai/gpt-3.5-turbo", label: "GPT-3.5 Turbo - $0.50/$1.50 per 1M tokens - 16k ctx" },
+    { value: "openai/gpt-3.5-turbo-16k", label: "GPT-3.5 Turbo 16k - $1/$2 per 1M tokens - 16k ctx" },
     
-    // Mistral Models (With safety measures)
-    { value: "mistral/large", label: "Mistral Large - $2.00/$6.00 - 128k ctx" },
-    { value: "mistral/medium", label: "Mistral Medium - $2.75/$8.10 - 32k ctx" },
-    { value: "mistral/small", label: "Mistral Small - $0.20/$0.60 - 32k ctx" },
+    // Mistral Models
+    { value: "mistral/mistral-large-latest", label: "Mistral Large - $7/$20 per 1M tokens - 32k ctx" },
+    { value: "mistral/mistral-medium-latest", label: "Mistral Medium - $2.75/$8.10 per 1M tokens - 32k ctx" },
+    { value: "mistral/mistral-small-latest", label: "Mistral Small - $0.20/$0.60 per 1M tokens - 32k ctx" },
+    
+    // Meta Models
+    { value: "meta/llama-2-70b-chat", label: "Llama 2 70B Chat - $1/$1.50 per 1M tokens - 4k ctx" },
+    { value: "meta/llama-2-13b-chat", label: "Llama 2 13B Chat - $0.20/$0.30 per 1M tokens - 4k ctx" },
+    { value: "meta/llama-2-7b-chat", label: "Llama 2 7B Chat - $0.10/$0.15 per 1M tokens - 4k ctx" },
+    
+    // Anthropic Legacy Models
+    { value: "anthropic/claude-2.1", label: "Claude 2.1 - $8/$24 per 1M tokens - 200k ctx" },
+    { value: "anthropic/claude-2.0", label: "Claude 2.0 - $8/$24 per 1M tokens - 100k ctx" },
+    { value: "anthropic/claude-1.3", label: "Claude 1.3 - $8/$24 per 1M tokens - 100k ctx" },
+    
+    // Cohere Models
+    { value: "cohere/command", label: "Command - $1.50/$2 per 1M tokens - 4k ctx" },
+    { value: "cohere/command-light", label: "Command Light - $0.30/$0.60 per 1M tokens - 4k ctx" },
+    { value: "cohere/command-nightly", label: "Command Nightly - $2/$3 per 1M tokens - 4k ctx" },
+    
+    // Open Source Models
+    { value: "nousresearch/nous-hermes-2-mixtral-8x7b-dpo", label: "Nous Hermes 2 Mixtral - $0.30/$0.35 per 1M tokens - 32k ctx" },
+    { value: "nousresearch/nous-hermes-2-vision-7b", label: "Nous Hermes 2 Vision - $0.15/$0.20 per 1M tokens - 4k ctx" },
+    { value: "nousresearch/nous-capybara-7b", label: "Nous Capybara 7B - $0.10/$0.15 per 1M tokens - 4k ctx" },
+    
+    // Perplexity Models
+    { value: "perplexity/pplx-70b-chat", label: "PPLX 70B Chat - $1/$1.50 per 1M tokens - 4k ctx" },
+    { value: "perplexity/pplx-7b-chat", label: "PPLX 7B Chat - $0.10/$0.15 per 1M tokens - 4k ctx" },
+    { value: "perplexity/pplx-online-70b-chat", label: "PPLX Online 70B Chat - $1.50/$2 per 1M tokens - 4k ctx" },
+    
+    // Mixtral Models
+    { value: "mistral/mixtral-8x7b", label: "Mixtral 8x7B - $0.20/$0.60 per 1M tokens - 32k ctx" },
+    { value: "mistral/mixtral-8x7b-instruct", label: "Mixtral 8x7B Instruct - $0.20/$0.60 per 1M tokens - 32k ctx" },
     
     // Auto Router (Uses the most appropriate model)
     { value: "auto-router", label: "Auto Router (best for prompt) - Dynamic Pricing - 200k ctx" }
