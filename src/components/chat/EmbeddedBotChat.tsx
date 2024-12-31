@@ -1,170 +1,182 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { ChatInput } from "@/components/chat/ChatInput";
-import { ChatService } from "@/services/ChatService";
-import { Bot } from "@/hooks/useBots";
-import { createMessage } from "@/utils/messageUtils";
 import { EmbeddedChatHeader } from "./embedded/EmbeddedChatHeader";
 import { EmbeddedChatMessages } from "./embedded/EmbeddedChatMessages";
+import { ChatInput } from "./ChatInput";
+import { Bot } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { sendGeminiMessage, sendOpenAIMessage, sendClaudeMessage, sendOpenRouterMessage } from "@/services/ChatService";
 
-const EmbeddedBotChat = () => {
-  const { botId } = useParams();
+interface Message {
+  role: string;
+  content: string;
+  timestamp?: Date;
+}
+
+export const EmbeddedBotChat = () => {
+  const { shareKey } = useParams();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [bot, setBot] = useState<Bot | null>(null);
+  const [userScrolled, setUserScrolled] = useState(false);
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
+
+  const loadChatHistory = useCallback(async (shareKey: string) => {
+    try {
+      const { data: historyData } = await supabase
+        .from('chat_history')
+        .select('messages')
+        .eq('share_key', shareKey)
+        .single();
+
+      if (historyData) {
+        setMessages(historyData.messages);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+  }, []);
+
+  const saveChatHistory = useCallback(async (newMessages: Message[]) => {
+    if (!shareKey || !bot) return;
+
+    try {
+      const { data: existingChat } = await supabase
+        .from('chat_history')
+        .select('id')
+        .eq('share_key', shareKey)
+        .single();
+
+      if (existingChat) {
+        await supabase
+          .from('chat_history')
+          .update({ 
+            messages: newMessages,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingChat.id);
+      } else {
+        await supabase
+          .from('chat_history')
+          .insert({
+            bot_id: bot.id,
+            share_key: shareKey,
+            messages: newMessages
+          });
+      }
+    } catch (error) {
+      console.error('Error saving chat history:', error);
+    }
+  }, [shareKey, bot]);
 
   useEffect(() => {
-    const fetchBotConfig = async () => {
-      if (!botId) {
-        setError('No bot ID provided');
-        return;
-      }
+    const loadBotConfig = async () => {
+      if (!shareKey) return;
 
       try {
-        console.log("Fetching bot config for ID:", botId);
-        
-        const { data: sharedBot, error: fetchError } = await supabase
+        const { data: sharedBot, error: sharedBotError } = await supabase
           .from('shared_bots')
           .select(`
             *,
-            bot_api_keys!inner (
+            bot_api_keys (
               api_key
             )
           `)
-          .eq('share_key', botId)
+          .eq('share_key', shareKey)
           .single();
 
-        if (fetchError) {
-          console.error('Supabase error:', fetchError);
-          throw fetchError;
-        }
+        if (sharedBotError) throw sharedBotError;
 
-        if (!sharedBot) {
-          console.log('No bot configuration found for ID:', botId);
-          throw new Error('Bot configuration not found');
-        }
-
-        console.log("Loaded shared bot config:", sharedBot);
-        
         const botConfig: Bot = {
           id: sharedBot.bot_id,
           name: sharedBot.bot_name,
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
           model: sharedBot.model as "gemini" | "claude" | "openai" | "openrouter",
-          apiKey: sharedBot.bot_api_keys.api_key,
+          apiKey: sharedBot.bot_api_keys?.api_key || "",
           openRouterModel: sharedBot.open_router_model,
         };
 
-        setSelectedBot(botConfig);
-        setError(null);
+        setBot(botConfig);
+        await loadChatHistory(shareKey);
       } catch (error) {
-        console.error('Error loading bot configuration:', error);
-        setError('Bot configuration not found. Please make sure the share link is correct.');
+        console.error("Error loading bot configuration:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load bot configuration",
+          variant: "destructive",
+        });
       }
     };
 
-    fetchBotConfig();
-  }, [botId, toast]);
+    loadBotConfig();
+  }, [shareKey, toast, loadChatHistory]);
 
-  const handleStarterClick = async (starter: string) => {
-    if (!selectedBot || isLoading) return;
-    setInput(starter);
-    await sendMessage(new Event('submit') as any);
+  const handleScroll = () => {
+    setUserScrolled(true);
   };
 
-  const clearChat = () => {
-    if (!selectedBot) return;
-    setMessages([]);
-    toast({
-      title: "Chat Cleared",
-      description: "The chat history has been cleared.",
-    });
-  };
+  const handleSend = async (message: string) => {
+    if (!bot) return;
 
-  const sendMessage = async (e: React.FormEvent | Event) => {
-    if (e instanceof Event && 'preventDefault' in e) {
-      e.preventDefault();
-    }
-    
-    if (!input.trim() || !selectedBot) return;
+    const newMessage = { role: "user", content: message, timestamp: new Date() };
+    const updatedMessages = [...messages, newMessage];
+    setMessages(updatedMessages);
+    await saveChatHistory(updatedMessages);
 
     try {
-      setIsLoading(true);
-      const newMessages = [
-        ...messages,
-        createMessage("user", input)
-      ];
-      setMessages(newMessages);
-      setInput("");
-
       let response: string;
-
-      if (selectedBot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(newMessages, selectedBot);
-      } else if (selectedBot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, selectedBot);
-      } else {
-        throw new Error("Unsupported model type");
+      switch (bot.model) {
+        case "gemini":
+          response = await sendGeminiMessage(message, messages, bot);
+          break;
+        case "claude":
+          response = await sendClaudeMessage(message, messages, bot);
+          break;
+        case "openai":
+          response = await sendOpenAIMessage(message, messages, bot);
+          break;
+        case "openrouter":
+          response = await sendOpenRouterMessage(message, messages, bot);
+          break;
+        default:
+          throw new Error("Invalid model selected");
       }
 
-      const updatedMessages = [
-        ...newMessages,
-        createMessage("assistant", response)
-      ];
-      
-      setMessages(updatedMessages);
+      const botResponse = { role: "assistant", content: response, timestamp: new Date() };
+      const newMessages = [...updatedMessages, botResponse];
+      setMessages(newMessages);
+      await saveChatHistory(newMessages);
+      setUserScrolled(false);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI",
+        description: error instanceof Error ? error.message : "Failed to send message",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const handleStarterClick = (starter: string) => {
+    handleSend(starter);
+  };
 
-  if (!selectedBot) {
+  if (!bot) {
     return null;
   }
 
   return (
-    <div className="flex h-screen flex-col gap-4 p-4">
-      <EmbeddedChatHeader bot={selectedBot} onClearChat={clearChat} />
+    <div className="flex flex-col h-screen bg-background">
+      <EmbeddedChatHeader bot={bot} />
       <EmbeddedChatMessages
         messages={messages}
-        bot={selectedBot}
-        userScrolled={false}
-        onScroll={() => {}}
+        bot={bot}
+        userScrolled={userScrolled}
+        onScroll={handleScroll}
         onStarterClick={handleStarterClick}
       />
-      <ChatInput
-        onSend={() => {}}
-        disabled={isLoading}
-        isLoading={isLoading}
-        placeholder="Type your message..."
-        onInputChange={setInput}
-        value={input}
-        onSubmit={sendMessage}
-      />
+      <ChatInput onSend={handleSend} />
     </div>
   );
 };
