@@ -25,7 +25,17 @@ const Archive = () => {
   const getChatHistory = (): ChatRecord[] => {
     try {
       const history = localStorage.getItem("chatHistory");
-      return history ? JSON.parse(history) : [];
+      if (!history) return [];
+      
+      const parsedHistory = JSON.parse(history);
+      // Convert string timestamps to Date objects for messages
+      return parsedHistory.map((record: ChatRecord) => ({
+        ...record,
+        messages: record.messages.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }))
+      }));
     } catch (error) {
       console.error("Error loading chat history:", error);
       return [];
@@ -46,12 +56,14 @@ const Archive = () => {
     return bots.find(b => b.id === botId);
   };
 
-  const getChatTitle = (record: ChatRecord) => {
-    if (record.type === 'embedded') {
-      return `Shared Chat - ${record.shareKey}`;
-    }
-    const bot = getSelectedBot(record.botId);
-    return bot?.name || "Unknown Bot";
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -65,7 +77,6 @@ const Archive = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Chats</SelectItem>
-              <SelectItem value="public">Public Chats</SelectItem>
               {bots.map((bot) => (
                 <SelectItem key={bot.id} value={bot.id}>
                   {bot.name}
@@ -79,7 +90,6 @@ const Archive = () => {
             {filteredHistory.map((record, index) => {
               const bot = getSelectedBot(record.botId);
               const lastMessage = record.messages[record.messages.length - 1];
-              const firstMessage = record.messages[0];
               
               return (
                 <Card 
@@ -89,10 +99,10 @@ const Archive = () => {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">
-                      {record.botId === 'public' ? 'Public Chat' : bot?.name || "Unknown Bot"}
+                      {bot?.name || "Unknown Bot"}
                     </span>
                     <span className="text-sm text-muted-foreground">
-                      {new Date(record.timestamp).toLocaleDateString()}
+                      {formatDate(record.timestamp)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -102,11 +112,11 @@ const Archive = () => {
                     </span>
                     <span className="text-muted-foreground flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {new Date(lastMessage.timestamp).toLocaleTimeString()}
+                      {lastMessage?.timestamp ? formatDate(lastMessage.timestamp.toString()) : 'No messages'}
                     </span>
                   </div>
                   <div className="mt-2 text-sm text-muted-foreground">
-                    Latest message: {lastMessage.content.slice(0, 100)}...
+                    Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
                   </div>
                 </Card>
               );
@@ -120,9 +130,7 @@ const Archive = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>
-                {selectedChat?.botId === 'public' 
-                  ? 'Public Chat History' 
-                  : `Chat History - ${getSelectedBot(selectedChat?.botId || '')?.name || 'Unknown Bot'}`}
+                {getSelectedBot(selectedChat?.botId || '')?.name || 'Chat History'}
               </span>
               <Button
                 variant="ghost"
@@ -133,16 +141,7 @@ const Archive = () => {
               </Button>
             </DialogTitle>
             <DialogDescription>
-              {selectedChat?.botId !== 'public' && getSelectedBot(selectedChat?.botId || '')?.starters && (
-                <div className="mt-2">
-                  <h3 className="text-sm font-medium mb-1">Conversation Starters:</h3>
-                  <ul className="list-disc list-inside text-sm text-muted-foreground">
-                    {getSelectedBot(selectedChat?.botId || '')?.starters.map((starter, index) => (
-                      <li key={index}>{starter}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {formatDate(selectedChat?.timestamp || '')}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[60vh] mt-4">

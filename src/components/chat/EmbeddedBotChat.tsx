@@ -15,7 +15,7 @@ const EmbeddedBotChat = () => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 
@@ -23,14 +23,12 @@ const EmbeddedBotChat = () => {
     const fetchBotConfig = async () => {
       if (!botId) {
         setError('No bot ID provided');
-        setIsLoading(false);
         return;
       }
 
       try {
         console.log("Fetching bot config for ID:", botId);
         
-        // First, get the shared bot configuration and its associated API key
         const { data: sharedBot, error: fetchError } = await supabase
           .from('shared_bots')
           .select(`
@@ -54,7 +52,6 @@ const EmbeddedBotChat = () => {
 
         console.log("Loaded shared bot config:", sharedBot);
         
-        // Create bot configuration with the retrieved API key
         const botConfig: Bot = {
           id: sharedBot.bot_id,
           name: sharedBot.bot_name,
@@ -70,8 +67,6 @@ const EmbeddedBotChat = () => {
       } catch (error) {
         console.error('Error loading bot configuration:', error);
         setError('Bot configuration not found. Please make sure the share link is correct.');
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -137,14 +132,6 @@ const EmbeddedBotChat = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Loading bot configuration...</p>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex items-center justify-center h-screen p-4">
@@ -156,13 +143,7 @@ const EmbeddedBotChat = () => {
   }
 
   if (!selectedBot) {
-    return (
-      <div className="flex items-center justify-center h-screen p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertDescription>Invalid bot configuration</AlertDescription>
-        </Alert>
-      </div>
-    );
+    return null;
   }
 
   return (
