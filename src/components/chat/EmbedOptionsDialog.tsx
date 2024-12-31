@@ -8,14 +8,18 @@ import { useToast } from "@/components/ui/use-toast";
 interface EmbedOptionsDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  bot: Bot;
+  bot: Bot | null;
 }
 
 export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogProps) => {
   const { toast } = useToast();
   const baseUrl = window.location.origin;
-  const shortConfig = createShortBotConfig(bot);
   
+  if (!bot) {
+    return null;
+  }
+  
+  const shortConfig = createShortBotConfig(bot);
   const publicLink = `${baseUrl}/embed/${bot.id}?config=${shortConfig}`;
   const embedCode = `<iframe src="${publicLink}" width="100%" height="600px" frameborder="0"></iframe>`;
 
