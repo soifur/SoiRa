@@ -8,6 +8,7 @@ import { createMessage } from "@/utils/messageUtils";
 import { ChatListItem } from "@/components/archive/ChatListItem";
 import { ChatDialog } from "@/components/archive/ChatDialog";
 import { ChatRecord } from "@/components/archive/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Archive = () => {
   const { bots } = useBots();
@@ -15,6 +16,7 @@ const Archive = () => {
   const [selectedChat, setSelectedChat] = useState<ChatRecord | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatRecord[]>([]);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchChatHistory();
@@ -69,12 +71,12 @@ const Archive = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl pt-20">
+    <div className={`container mx-auto max-w-6xl ${isMobile ? 'pt-4 px-2' : 'pt-20'}`}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Chat Archive</h1>
           <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className={`${isMobile ? 'w-[140px]' : 'w-[200px]'}`}>
               <SelectValue placeholder="Filter by bot" />
             </SelectTrigger>
             <SelectContent>
@@ -87,7 +89,7 @@ const Archive = () => {
             </SelectContent>
           </Select>
         </div>
-        <ScrollArea className="h-[calc(100vh-10rem)]">
+        <ScrollArea className={`${isMobile ? 'h-[calc(100vh-8rem)]' : 'h-[calc(100vh-10rem)]'}`}>
           <div className="space-y-4">
             {filteredHistory.map((record) => (
               <ChatListItem
