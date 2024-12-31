@@ -22,14 +22,14 @@ const Bots = () => {
     });
   };
 
-  const handleSelectBot = (bot: Bot) => {
-    setSelectedBot(bot);
+  const handleEdit = (bot: Bot) => {
     setEditingBot(bot);
+    setSelectedBot(bot); // Automatically select the bot when editing
   };
 
   const getEmbedCode = (botId: string) => {
     const currentUrl = window.location.origin;
-    return `<iframe src="${currentUrl}/chat?bot=${botId}" width="100%" height="600px" frameborder="0"></iframe>`;
+    return `<iframe src="${currentUrl}/embed/${botId}" width="100%" height="600px" frameborder="0"></iframe>`;
   };
 
   const copyEmbedCode = (botId: string) => {
@@ -83,7 +83,7 @@ const Bots = () => {
                 className={`p-4 cursor-pointer transition-colors ${
                   selectedBot?.id === bot.id ? 'border-primary' : ''
                 }`}
-                onClick={() => handleSelectBot(bot)}
+                onClick={() => setSelectedBot(bot)}
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -111,7 +111,7 @@ const Bots = () => {
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setEditingBot(bot);
+                        handleEdit(bot);
                       }}
                     >
                       <Edit2 className="h-4 w-4" />
