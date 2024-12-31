@@ -35,7 +35,21 @@ const EmbeddedChatContainer = () => {
           .single();
 
         if (error) throw error;
-        setBot(data as Bot);
+        
+        // Transform the data to match the Bot interface
+        const transformedBot: Bot = {
+          id: data.id,
+          name: data.name,
+          instructions: data.instructions || "",
+          starters: data.starters || [],
+          model: data.model,
+          apiKey: data.api_key, // Transform snake_case to camelCase
+          openRouterModel: data.open_router_model,
+          avatar: data.avatar,
+          accessType: "private"
+        };
+
+        setBot(transformedBot);
       } catch (error) {
         console.error("Error fetching bot:", error);
         toast({
