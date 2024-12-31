@@ -13,6 +13,8 @@ interface ChatRecord {
   botId: string;
   messages: Array<{ role: string; content: string; timestamp: Date }>;
   timestamp: string;
+  shareKey?: string;
+  type: string;
 }
 
 const Archive = () => {
@@ -40,7 +42,16 @@ const Archive = () => {
   };
 
   const getSelectedBot = (botId: string): Bot | undefined => {
+    if (!botId) return undefined;
     return bots.find(b => b.id === botId);
+  };
+
+  const getChatTitle = (record: ChatRecord) => {
+    if (record.type === 'embedded') {
+      return `Shared Chat - ${record.shareKey}`;
+    }
+    const bot = getSelectedBot(record.botId);
+    return bot?.name || "Unknown Bot";
   };
 
   return (

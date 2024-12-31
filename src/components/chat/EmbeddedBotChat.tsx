@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
@@ -9,8 +9,7 @@ import { EmbeddedChatHeader } from "./embedded/EmbeddedChatHeader";
 import { EmbeddedChatMessages } from "./embedded/EmbeddedChatMessages";
 
 const EmbeddedBotChat = () => {
-  const { botId } = useParams();
-  const [searchParams] = useSearchParams();
+  const { shareKey } = useParams();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
@@ -19,24 +18,19 @@ const EmbeddedBotChat = () => {
 
   useEffect(() => {
     try {
-      const configParam = searchParams.get('config');
-      if (!configParam) {
-        throw new Error('No bot configuration provided');
+      if (!shareKey) {
+        throw new Error('No share key provided');
       }
 
-      const decodedConfig = JSON.parse(decodeURIComponent(configParam));
-      console.log("Decoded bot config:", decodedConfig);
-      
-      if (!decodedConfig.apiKey) {
-        toast({
-          title: "Configuration Error",
-          description: "API key is missing from the bot configuration",
-          variant: "destructive",
-        });
-        return;
+      const storedConfig = localStorage.getItem(`share_${shareKey}`);
+      if (!storedConfig) {
+        throw new Error('Share configuration not found');
       }
+
+      const config = JSON.parse(storedConfig);
+      console.log("Loaded shared bot config:", config);
       
-      setSelectedBot(decodedConfig);
+      setSelectedBot(config);
       setMessages([]);
     } catch (error) {
       console.error('Error loading bot configuration:', error);
@@ -46,7 +40,7 @@ const EmbeddedBotChat = () => {
         variant: "destructive",
       });
     }
-  }, [searchParams, toast]);
+  }, [shareKey, toast]);
 
   const updateChatHistory = (updatedMessages: typeof messages) => {
     try {
@@ -57,14 +51,15 @@ const EmbeddedBotChat = () => {
         existingHistory = [];
       }
       
-      const chatSessionId = `${Date.now()}_${selectedBot?.id}_embedded`;
+      const chatSessionId = `${Date.now()}_${shareKey}_embedded`;
       
       const newRecord = {
         id: chatSessionId,
         botId: selectedBot?.id,
+        shareKey: shareKey,
         messages: updatedMessages,
         timestamp: new Date().toISOString(),
-        type: 'embedded'  // This is specifically for embedded/public chats
+        type: 'embedded'
       };
       
       existingHistory.unshift(newRecord);
@@ -161,7 +156,7 @@ const EmbeddedBotChat = () => {
   if (!selectedBot) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">Bot configuration not found. Please make sure the embed code is correct.</p>
+        <p className="text-red-500">Bot configuration not found. Please make sure the share link is correct.</p>
       </div>
     );
   }
