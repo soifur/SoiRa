@@ -27,9 +27,10 @@ export const useVoiceChat = (botId: string) => {
       if (error) throw error;
       if (!data?.signed_url) throw new Error('Failed to get signed URL');
       
-      // Start the conversation with ElevenLabs using the signed URL
+      // Start the conversation with ElevenLabs
       await conversation.startSession({
-        url: data.signed_url
+        agentId: botId,
+        authorization: data.signed_url
       });
       
       setIsListening(true);
