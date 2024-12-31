@@ -8,8 +8,6 @@ interface ChatInputProps {
   disabled?: boolean;
   placeholder?: string;
   isLoading?: boolean;
-  onInputChange?: (value: string) => void;
-  onSubmit?: (e: React.FormEvent) => void;
 }
 
 export const ChatInput = ({ onSend, disabled, placeholder, isLoading }: ChatInputProps) => {
@@ -17,11 +15,13 @@ export const ChatInput = ({ onSend, disabled, placeholder, isLoading }: ChatInpu
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (textareaRef.current?.value.trim()) {
-      const message = textareaRef.current.value;
+    const message = textareaRef.current?.value.trim();
+    if (message) {
       onSend(message);
-      textareaRef.current.value = "";
-      textareaRef.current.style.height = "36px";
+      if (textareaRef.current) {
+        textareaRef.current.value = "";
+        textareaRef.current.style.height = "36px";
+      }
     }
   };
 

@@ -42,6 +42,12 @@ export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageLi
     lastUserInteraction.current = Date.now();
   };
 
+  const handleStarterClick = (starter: string) => {
+    if (onStarterClick) {
+      onStarterClick(starter);
+    }
+  };
+
   return (
     <ScrollArea 
       ref={scrollRef}
@@ -57,7 +63,7 @@ export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageLi
                 key={index}
                 variant="outline"
                 className="text-left"
-                onClick={() => onStarterClick && onStarterClick(starter)}
+                onClick={() => handleStarterClick(starter)}
               >
                 {starter}
               </Button>

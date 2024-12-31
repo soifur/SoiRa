@@ -16,27 +16,26 @@ const Chat = () => {
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
   const updateChatHistory = (updatedMessages: typeof messages) => {
-    const history = localStorage.getItem("chatHistory") || "[]";
-    let existingHistory = JSON.parse(history);
-    
-    if (!Array.isArray(existingHistory)) {
-      existingHistory = [];
-    }
-    
-    const chatSessionId = Date.now().toString();
-    
-    const newRecord = {
-      id: chatSessionId,
-      botId: 'public',
-      messages: updatedMessages,
-      timestamp: new Date().toISOString(),
-      type: 'public'
-    };
-    
-    existingHistory.unshift(newRecord);
-    const limitedHistory = existingHistory.slice(0, 100);
-    
     try {
+      const history = localStorage.getItem("chatHistory") || "[]";
+      let existingHistory = JSON.parse(history);
+      
+      if (!Array.isArray(existingHistory)) {
+        existingHistory = [];
+      }
+      
+      const chatSessionId = Date.now().toString();
+      
+      const newRecord = {
+        id: chatSessionId,
+        botId: selectedBot?.id || 'public',
+        messages: updatedMessages,
+        timestamp: new Date().toISOString()
+      };
+      
+      existingHistory.unshift(newRecord);
+      const limitedHistory = existingHistory.slice(0, 100);
+      
       localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
     } catch (error) {
       console.error("Error saving chat history:", error);
