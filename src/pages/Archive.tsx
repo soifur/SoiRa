@@ -11,6 +11,8 @@ import { ChatRecord, GroupedChatRecord } from "@/components/archive/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { isDatabaseMessage } from "@/types/database";
+import { Json } from "@/integrations/supabase/types";
 
 const Archive = () => {
   const { bots } = useBots();
@@ -50,13 +52,17 @@ const Archive = () => {
       const transformedHistory = data.map((record): ChatRecord => ({
         id: record.id,
         botId: record.bot_id,
-        messages: Array.isArray(record.messages) ? record.messages.map(msg => ({
-          id: msg.id || createMessage(msg.role, msg.content).id,
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-          isBot: msg.role === 'assistant'
-        })) : [],
+        messages: Array.isArray(record.messages) 
+          ? (record.messages as Json[])
+              .filter(isDatabaseMessage)
+              .map(msg => ({
+                id: msg.id || createMessage(msg.role, msg.content).id,
+                role: msg.role,
+                content: msg.content,
+                timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+                isBot: msg.role === 'assistant'
+              }))
+          : [],
         timestamp: record.created_at || new Date().toISOString(),
         shareKey: record.share_key,
         type: record.share_key ? 'public' : 'private',
