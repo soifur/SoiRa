@@ -11,7 +11,7 @@ import { ChatRecord, GroupedChatRecord } from "@/components/archive/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { isDatabaseMessage } from "@/types/database";
+import { isDatabaseMessage, DatabaseMessage } from "@/types/database";
 import { Json } from "@/integrations/supabase/types";
 
 const Archive = () => {
@@ -39,7 +39,6 @@ const Archive = () => {
         return;
       }
       
-      // Fetch all chat history for the user
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
@@ -48,14 +47,13 @@ const Archive = () => {
 
       if (error) throw error;
 
-      // Transform the raw data into ChatRecord format
       const transformedHistory = data.map((record): ChatRecord => ({
         id: record.id,
         botId: record.bot_id,
         messages: Array.isArray(record.messages) 
           ? (record.messages as Json[])
               .filter(isDatabaseMessage)
-              .map(msg => ({
+              .map((msg: DatabaseMessage) => ({
                 id: msg.id || createMessage(msg.role, msg.content).id,
                 role: msg.role,
                 content: msg.content,
