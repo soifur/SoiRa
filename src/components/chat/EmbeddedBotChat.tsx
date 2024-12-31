@@ -16,36 +16,33 @@ const EmbeddedBotChat = () => {
 
   const selectedBot = bots.find((bot) => bot.id === botId);
 
-  // Load chat history specific to this bot and interface type
   useEffect(() => {
-    if (selectedBot) {
-      const chatKey = `embedded_chat_${selectedBot.id}`;
-      const savedMessages = localStorage.getItem(chatKey);
-      if (savedMessages) {
-        try {
-          const parsedMessages = JSON.parse(savedMessages);
-          setMessages(parsedMessages);
-        } catch (error) {
-          console.error("Error parsing saved messages:", error);
-          setMessages([]);
-        }
-      } else {
+    if (!selectedBot) {
+      console.error('Bot not found:', botId);
+      toast({
+        title: "Error",
+        description: "Bot not found. Please make sure the bot ID is correct.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const chatKey = `embedded_chat_${selectedBot.id}`;
+    const savedMessages = localStorage.getItem(chatKey);
+    if (savedMessages) {
+      try {
+        const parsedMessages = JSON.parse(savedMessages);
+        setMessages(parsedMessages);
+      } catch (error) {
+        console.error("Error parsing saved messages:", error);
         setMessages([]);
       }
     }
-  }, [selectedBot]);
-
-  if (!selectedBot) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">Bot not found. Please make sure the bot ID is correct.</p>
-      </div>
-    );
-  }
+  }, [selectedBot, botId, toast]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !selectedBot) return;
 
     try {
       setIsLoading(true);
@@ -73,7 +70,6 @@ const EmbeddedBotChat = () => {
       
       setMessages(updatedMessages);
       
-      // Save to localStorage with unique bot ID and interface type key
       const chatKey = `embedded_chat_${selectedBot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
@@ -87,6 +83,14 @@ const EmbeddedBotChat = () => {
       setIsLoading(false);
     }
   };
+
+  if (!selectedBot) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500">Bot not found. Please make sure the bot ID is correct.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col gap-4 p-4">
