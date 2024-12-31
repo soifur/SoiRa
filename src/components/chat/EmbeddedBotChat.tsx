@@ -22,7 +22,7 @@ const EmbeddedBotChat = () => {
         throw new Error('No share key provided');
       }
 
-      const storedConfig = localStorage.getItem(`share_${shareKey}`);
+      const storedConfig = localStorage.getItem(shareKey);
       if (!storedConfig) {
         throw new Error('Share configuration not found');
       }

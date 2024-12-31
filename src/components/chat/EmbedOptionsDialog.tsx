@@ -20,7 +20,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
   useEffect(() => {
     if (bot && isOpen) {
       // Generate a unique key for sharing
-      const newShareKey = `${bot.id}_${Date.now()}`;
+      const newShareKey = `share_${bot.id}_${Date.now()}`;
       setShareKey(newShareKey);
       
       // Store the bot configuration in localStorage with the share key
@@ -33,7 +33,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           model: bot.model,
           accessType: "public",
         };
-        localStorage.setItem(`share_${newShareKey}`, JSON.stringify(shareConfig));
+        localStorage.setItem(newShareKey, JSON.stringify(shareConfig));
       } catch (error) {
         console.error("Error storing share configuration:", error);
       }
