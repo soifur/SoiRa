@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@auth0/auth0-react";
 
 export interface Bot {
   id: string;
@@ -15,79 +17,89 @@ export interface Bot {
 
 export const useBots = () => {
   const { toast } = useToast();
-  const [bots, setBots] = useState<Bot[]>(() => {
-    try {
-      const saved = localStorage.getItem("chatbots");
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error("Error loading bots from localStorage:", error);
-      return [];
-    }
-  });
+  const [bots, setBots] = useState<Bot[]>([]);
+  const { user } = useAuth();
 
+  // Fetch bots from Supabase on component mount
   useEffect(() => {
-    try {
-      // Remove old data if needed
-      const oldItems = Object.keys(localStorage).filter(key => 
-        key.startsWith("dedicated_chat_") || 
-        key.startsWith("embedded_chat_") ||
-        key.startsWith("public_chat_")
-      );
-      
-      if (oldItems.length > 50) {
-        // Keep only the 50 most recent chats
-        oldItems
-          .sort((a, b) => {
-            const timeA = localStorage.getItem(a) ? JSON.parse(localStorage.getItem(a)!)[0]?.timestamp || 0 : 0;
-            const timeB = localStorage.getItem(b) ? JSON.parse(localStorage.getItem(b)!)[0]?.timestamp || 0 : 0;
-            return timeB - timeA;
-          })
-          .slice(50)
-          .forEach(key => localStorage.removeItem(key));
-      }
-
-      // Try to save bots data
-      const botsString = JSON.stringify(bots);
-      localStorage.setItem("chatbots", botsString);
-    } catch (error) {
-      console.error("Error saving bots to localStorage:", error);
-      
-      if (error instanceof Error && error.name === "QuotaExceededError") {
-        toast({
-          title: "Storage Full",
-          description: "Cleaning up old chat data to make space. Some chat history may be lost.",
-          variant: "destructive",
-        });
-        
-        // Clear old chat data
-        Object.keys(localStorage)
-          .filter(key => 
-            key.startsWith("dedicated_chat_") || 
-            key.startsWith("embedded_chat_") ||
-            key.startsWith("public_chat_")
-          )
-          .forEach(key => localStorage.removeItem(key));
-        
-        // Try saving again
-        try {
-          localStorage.setItem("chatbots", JSON.stringify(bots));
-        } catch (retryError) {
-          toast({
-            title: "Error",
-            description: "Unable to save bot data. Please delete some bots or clear your browser data.",
-            variant: "destructive",
-          });
-        }
-      }
+    if (user) {
+      fetchBots();
     }
-  }, [bots, toast]);
+  }, [user]);
 
-  const saveBot = (bot: Bot) => {
+  const fetchBots = async () => {
     try {
-      const newBots = bot.id
-        ? bots.map((b) => (b.id === bot.id ? bot : b))
-        : [...bots, { ...bot, id: Date.now().toString() }];
-      setBots(newBots);
+      const { data, error } = await supabase
+        .from('bots')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform the data to match our Bot interface
+      const transformedBots = data.map((bot): Bot => ({
+        id: bot.id,
+        name: bot.name,
+        instructions: bot.instructions || "",
+        starters: bot.starters || [],
+        model: bot.model,
+        apiKey: bot.api_key,
+        openRouterModel: bot.open_router_model,
+        avatar: bot.avatar,
+        accessType: "private"
+      }));
+
+      setBots(transformedBots);
+    } catch (error) {
+      console.error("Error fetching bots:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch bots. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveBot = async (bot: Bot) => {
+    try {
+      const botData = {
+        name: bot.name,
+        instructions: bot.instructions,
+        starters: bot.starters,
+        model: bot.model,
+        api_key: bot.apiKey,
+        open_router_model: bot.openRouterModel,
+        avatar: bot.avatar,
+        user_id: user?.sub
+      };
+
+      let result;
+      if (bot.id) {
+        // Update existing bot
+        result = await supabase
+          .from('bots')
+          .update(botData)
+          .eq('id', bot.id)
+          .select()
+          .single();
+      } else {
+        // Insert new bot
+        result = await supabase
+          .from('bots')
+          .insert(botData)
+          .select()
+          .single();
+      }
+
+      if (result.error) throw result.error;
+
+      // Refresh the bots list
+      await fetchBots();
+
+      toast({
+        title: "Success",
+        description: `Bot ${bot.id ? "updated" : "created"} successfully`,
+      });
     } catch (error) {
       console.error("Error saving bot:", error);
       toast({
@@ -98,13 +110,22 @@ export const useBots = () => {
     }
   };
 
-  const deleteBot = (id: string) => {
+  const deleteBot = async (id: string) => {
     try {
+      const { error } = await supabase
+        .from('bots')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state
       setBots(bots.filter((b) => b.id !== id));
-      // Clean up associated chat data
-      localStorage.removeItem(`dedicated_chat_${id}`);
-      localStorage.removeItem(`embedded_chat_${id}`);
-      localStorage.removeItem(`public_chat_${id}`);
+
+      toast({
+        title: "Success",
+        description: "Bot deleted successfully",
+      });
     } catch (error) {
       console.error("Error deleting bot:", error);
       toast({

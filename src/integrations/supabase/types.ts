@@ -30,6 +30,48 @@ export type Database = {
         }
         Relationships: []
       }
+      bots: {
+        Row: {
+          api_key: string
+          avatar: string | null
+          created_at: string
+          id: string
+          instructions: string | null
+          model: Database["public"]["Enums"]["bot_model"]
+          name: string
+          open_router_model: string | null
+          starters: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          avatar?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          model: Database["public"]["Enums"]["bot_model"]
+          name: string
+          open_router_model?: string | null
+          starters?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          avatar?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          model?: Database["public"]["Enums"]["bot_model"]
+          name?: string
+          open_router_model?: string | null
+          starters?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           bot_id: string
@@ -150,6 +192,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      bot_model: "gemini" | "claude" | "openai" | "openrouter"
       user_role: "super_admin" | "admin" | "user"
     }
     CompositeTypes: {
