@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useBots } from "@/hooks/useBots";
-import { ChatHeader } from "@/components/chat/ChatHeader";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
-import { ChatHistory } from "@/components/chat/ChatHistory";
-import { useLocation } from "react-router-dom";
+import { Bot } from "@/hooks/useBots";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 
 const Chat = () => {
@@ -16,29 +16,9 @@ const Chat = () => {
   const { toast } = useToast();
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
-  const location = useLocation();
-  const urlBotId = new URLSearchParams(location.search).get('bot');
-  const isEmbedded = urlBotId !== null;
-
-  useEffect(() => {
-    if (urlBotId) {
-      const botExists = bots.some(bot => bot.id === urlBotId);
-      if (botExists) {
-        setSelectedBotId(urlBotId);
-      } else {
-        console.error('Embedded bot ID not found:', urlBotId);
-        toast({
-          title: "Error",
-          description: "The specified chatbot could not be found.",
-          variant: "destructive",
-        });
-      }
-    }
-  }, [urlBotId, bots, toast]);
-
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
-  const saveChatToHistory = (chatMessages: typeof messages) => {
+  const updateChatHistory = (updatedMessages: typeof messages) => {
     const history = localStorage.getItem("chatHistory") || "[]";
     let existingHistory = JSON.parse(history);
     
@@ -46,12 +26,12 @@ const Chat = () => {
       existingHistory = [];
     }
     
+    const chatSessionId = Date.now().toString();
+    
     const newRecord = {
-      botId: selectedBotId,
-      messages: chatMessages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp || new Date().toISOString()
-      })),
+      id: chatSessionId,
+      botId: selectedBot?.id || 'public',
+      messages: updatedMessages,
       timestamp: new Date().toISOString()
     };
     
@@ -60,8 +40,17 @@ const Chat = () => {
     
     try {
       localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+      // Also save to public chat storage if no bot is selected
+      if (!selectedBot) {
+        localStorage.setItem(`public_chat_${chatSessionId}`, JSON.stringify(updatedMessages));
+      }
     } catch (error) {
-      console.error('Error saving to chat history:', error);
+      console.error("Error saving chat history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save chat history",
+        variant: "destructive",
+      });
     }
   };
 
@@ -94,7 +83,7 @@ const Chat = () => {
       ];
       
       setMessages(updatedMessages);
-      saveChatToHistory(updatedMessages);
+      updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -116,32 +105,19 @@ const Chat = () => {
       <div className="flex gap-4">
         <div className="flex-1">
           <div className="flex flex-col gap-4 h-[calc(100vh-8rem)]">
-            <ChatHeader
-              bots={bots}
-              selectedBotId={selectedBotId}
-              onBotSelect={setSelectedBotId}
-            />
             <MessageList
               messages={formatMessages(messages)}
               selectedBot={selectedBot}
               onStarterClick={setInput}
             />
             <ChatInput
-              onSend={() => {}}
+              onSend={sendMessage}
               disabled={!selectedBot}
               isLoading={isLoading}
               placeholder="Type your message..."
               onInputChange={setInput}
-              onSubmit={sendMessage}
             />
           </div>
-        </div>
-        <div className="w-80">
-          <ChatHistory
-            messages={messages}
-            selectedBot={selectedBot}
-            onLoadChat={loadChat}
-          />
         </div>
       </div>
     </div>

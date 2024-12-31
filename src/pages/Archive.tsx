@@ -4,14 +4,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquare, Calendar, X } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChatMessage } from "@/components/chat/ChatMessage";
-import { createMessage } from "@/utils/messageUtils";
 
 interface ChatRecord {
+  id: string;
   botId: string;
   messages: Array<{ role: string; content: string; timestamp: Date }>;
+  timestamp: string;
 }
 
 const Archive = () => {
@@ -19,10 +20,14 @@ const Archive = () => {
   const [selectedBotId, setSelectedBotId] = useState<string>("all");
   const [selectedChat, setSelectedChat] = useState<ChatRecord | null>(null);
 
-  // Get chat history from localStorage
   const getChatHistory = (): ChatRecord[] => {
-    const history = localStorage.getItem("chatHistory");
-    return history ? JSON.parse(history) : [];
+    try {
+      const history = localStorage.getItem("chatHistory");
+      return history ? JSON.parse(history) : [];
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+      return [];
+    }
   };
 
   const chatHistory = getChatHistory();
@@ -32,6 +37,10 @@ const Archive = () => {
 
   const handleChatClick = (chat: ChatRecord) => {
     setSelectedChat(chat);
+  };
+
+  const getSelectedBot = (botId: string): Bot | undefined => {
+    return bots.find(b => b.id === botId);
   };
 
   return (
@@ -44,7 +53,8 @@ const Archive = () => {
               <SelectValue placeholder="Filter by bot" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Bots</SelectItem>
+              <SelectItem value="all">All Chats</SelectItem>
+              <SelectItem value="public">Public Chats</SelectItem>
               {bots.map((bot) => (
                 <SelectItem key={bot.id} value={bot.id}>
                   {bot.name}
@@ -56,7 +66,7 @@ const Archive = () => {
         <ScrollArea className="h-[calc(100vh-10rem)]">
           <div className="space-y-4">
             {filteredHistory.map((record, index) => {
-              const bot = bots.find(b => b.id === record.botId);
+              const bot = getSelectedBot(record.botId);
               const lastMessage = record.messages[record.messages.length - 1];
               const firstMessage = record.messages[0];
               
@@ -67,9 +77,11 @@ const Archive = () => {
                   onClick={() => handleChatClick(record)}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold">{bot?.name || "Unknown Bot"}</span>
+                    <span className="font-semibold">
+                      {record.botId === 'public' ? 'Public Chat' : bot?.name || "Unknown Bot"}
+                    </span>
                     <span className="text-sm text-muted-foreground">
-                      {new Date(firstMessage.timestamp).toLocaleDateString()}
+                      {new Date(record.timestamp).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -96,7 +108,11 @@ const Archive = () => {
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              <span>Chat History</span>
+              <span>
+                {selectedChat?.botId === 'public' 
+                  ? 'Public Chat History' 
+                  : `Chat History - ${getSelectedBot(selectedChat?.botId || '')?.name || 'Unknown Bot'}`}
+              </span>
               <Button
                 variant="ghost"
                 size="icon"
@@ -105,6 +121,18 @@ const Archive = () => {
                 <X className="h-4 w-4" />
               </Button>
             </DialogTitle>
+            <DialogDescription>
+              {selectedChat?.botId !== 'public' && getSelectedBot(selectedChat?.botId || '')?.starters && (
+                <div className="mt-2">
+                  <h3 className="text-sm font-medium mb-1">Conversation Starters:</h3>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground">
+                    {getSelectedBot(selectedChat?.botId || '')?.starters.map((starter, index) => (
+                      <li key={index}>{starter}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[60vh] mt-4">
             <div className="space-y-4">
@@ -113,7 +141,7 @@ const Archive = () => {
                   key={index}
                   message={message.content}
                   isBot={message.role === 'assistant'}
-                  avatar={bots.find(b => b.id === selectedChat.botId)?.avatar}
+                  avatar={getSelectedBot(selectedChat.botId)?.avatar}
                 />
               ))}
             </div>
