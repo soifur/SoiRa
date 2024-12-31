@@ -7,6 +7,7 @@ import { Bot } from "@/hooks/useBots";
 import { createMessage } from "@/utils/messageUtils";
 import { EmbeddedChatHeader } from "./embedded/EmbeddedChatHeader";
 import { EmbeddedChatMessages } from "./embedded/EmbeddedChatMessages";
+import { supabase } from "@/integrations/supabase/client";
 
 const EmbeddedBotChat = () => {
   const { shareKey } = useParams();
@@ -17,30 +18,50 @@ const EmbeddedBotChat = () => {
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 
   useEffect(() => {
-    if (!shareKey) {
-      console.error('No share key provided');
-      return;
-    }
-
-    try {
-      const storedConfig = localStorage.getItem(shareKey);
-      if (!storedConfig) {
-        throw new Error('Share configuration not found');
+    const fetchBotConfig = async () => {
+      if (!shareKey) {
+        console.error('No share key provided');
+        return;
       }
 
-      const config = JSON.parse(storedConfig);
-      console.log("Loaded shared bot config:", config);
-      
-      setSelectedBot(config);
-      setMessages([]);
-    } catch (error) {
-      console.error('Error loading bot configuration:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load bot configuration",
-        variant: "destructive",
-      });
-    }
+      try {
+        const { data, error } = await supabase
+          .from('shared_bots')
+          .select('*')
+          .eq('share_key', shareKey)
+          .single();
+
+        if (error) throw error;
+
+        if (!data) {
+          throw new Error('Share configuration not found');
+        }
+
+        console.log("Loaded shared bot config:", data);
+        
+        const botConfig: Bot = {
+          id: data.bot_id,
+          name: data.bot_name,
+          instructions: data.instructions || "",
+          starters: data.starters || [],
+          model: data.model as "gemini" | "claude" | "openai" | "openrouter",
+          apiKey: "", // API key is not shared for security
+          openRouterModel: data.open_router_model,
+        };
+
+        setSelectedBot(botConfig);
+        setMessages([]);
+      } catch (error) {
+        console.error('Error loading bot configuration:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load bot configuration",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchBotConfig();
   }, [shareKey, toast]);
 
   const updateChatHistory = (updatedMessages: typeof messages) => {

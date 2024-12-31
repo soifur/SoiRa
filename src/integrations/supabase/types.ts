@@ -9,7 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      shared_bots: {
+        Row: {
+          bot_id: string
+          bot_name: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          instructions: string | null
+          model: string
+          open_router_model: string | null
+          share_key: string
+          starters: string[] | null
+        }
+        Insert: {
+          bot_id: string
+          bot_name: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          instructions?: string | null
+          model: string
+          open_router_model?: string | null
+          share_key: string
+          starters?: string[] | null
+        }
+        Update: {
+          bot_id?: string
+          bot_name?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          instructions?: string | null
+          model?: string
+          open_router_model?: string | null
+          share_key?: string
+          starters?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

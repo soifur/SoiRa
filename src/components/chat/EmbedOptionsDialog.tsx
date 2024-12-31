@@ -5,6 +5,7 @@ import { Bot } from "@/hooks/useBots";
 import { Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EmbedOptionsDialogProps {
   isOpen: boolean;
@@ -16,27 +17,46 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
   const { toast } = useToast();
   const baseUrl = window.location.origin;
   const [shareKey, setShareKey] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
-    if (bot && isOpen) {
-      const newShareKey = `${bot.id}_${Date.now()}`;
-      setShareKey(newShareKey);
+    const createShareConfig = async () => {
+      if (!bot || !isOpen) return;
       
+      setIsLoading(true);
       try {
-        const shareConfig = {
-          id: bot.id,
-          name: bot.name,
-          instructions: bot.instructions,
-          starters: bot.starters,
-          model: bot.model,
-          accessType: "public",
-        };
-        localStorage.setItem(newShareKey, JSON.stringify(shareConfig));
+        const newShareKey = `${bot.id}_${Date.now()}`;
+        setShareKey(newShareKey);
+        
+        const { error } = await supabase
+          .from('shared_bots')
+          .insert({
+            share_key: newShareKey,
+            bot_id: bot.id,
+            bot_name: bot.name,
+            instructions: bot.instructions,
+            starters: bot.starters,
+            model: bot.model,
+            open_router_model: bot.openRouterModel,
+          });
+
+        if (error) throw error;
+
+        console.log("Share configuration stored in Supabase");
       } catch (error) {
         console.error("Error storing share configuration:", error);
+        toast({
+          title: "Error",
+          description: "Failed to create share configuration",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [bot, isOpen]);
+    };
+
+    createShareConfig();
+  }, [bot, isOpen, toast]);
 
   if (!bot) {
     return null;
@@ -64,24 +84,30 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Public Link</h3>
-            <div className="flex gap-2">
-              <Input value={publicLink} readOnly />
-              <Button onClick={() => copyToClipboard(publicLink, "Public link")}>
-                Copy
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Embed Code</h3>
-            <div className="flex gap-2">
-              <Input value={embedCode} readOnly />
-              <Button onClick={() => copyToClipboard(embedCode, "Embed code")}>
-                Copy
-              </Button>
-            </div>
-          </div>
+          {isLoading ? (
+            <div className="text-center">Creating share link...</div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Public Link</h3>
+                <div className="flex gap-2">
+                  <Input value={publicLink} readOnly />
+                  <Button onClick={() => copyToClipboard(publicLink, "Public link")}>
+                    Copy
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Embed Code</h3>
+                <div className="flex gap-2">
+                  <Input value={embedCode} readOnly />
+                  <Button onClick={() => copyToClipboard(embedCode, "Embed code")}>
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
