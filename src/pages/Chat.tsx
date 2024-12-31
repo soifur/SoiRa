@@ -7,12 +7,9 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
 import { ChatHistory } from "@/components/chat/ChatHistory";
 import { useLocation } from "react-router-dom";
+import { createMessage, formatMessages } from "@/utils/messageUtils";
 
-interface ChatProps {
-  embeddedBotId?: string;
-}
-
-const Chat = ({ embeddedBotId }: ChatProps) => {
+const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,12 +18,10 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
   const [selectedBotId, setSelectedBotId] = useState<string>("");
   const location = useLocation();
   const urlBotId = new URLSearchParams(location.search).get('bot');
-  const isEmbedded = urlBotId !== null || embeddedBotId !== undefined;
+  const isEmbedded = urlBotId !== null;
 
   useEffect(() => {
-    if (embeddedBotId) {
-      setSelectedBotId(embeddedBotId);
-    } else if (urlBotId) {
+    if (urlBotId) {
       const botExists = bots.some(bot => bot.id === urlBotId);
       if (botExists) {
         setSelectedBotId(urlBotId);
@@ -39,7 +34,7 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
         });
       }
     }
-  }, [embeddedBotId, urlBotId, bots, toast]);
+  }, [urlBotId, bots, toast]);
 
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
@@ -47,12 +42,10 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
     const history = localStorage.getItem("chatHistory") || "[]";
     let existingHistory = JSON.parse(history);
     
-    // Ensure existingHistory is an array
     if (!Array.isArray(existingHistory)) {
       existingHistory = [];
     }
     
-    // Add new chat record with timestamp
     const newRecord = {
       botId: selectedBotId,
       messages: chatMessages.map(msg => ({
@@ -62,13 +55,9 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
       timestamp: new Date().toISOString()
     };
     
-    // Add to beginning of array to show newest first
     existingHistory.unshift(newRecord);
-    
-    // Limit history to prevent localStorage from getting too full (optional)
     const limitedHistory = existingHistory.slice(0, 100);
     
-    // Save back to localStorage
     try {
       localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
     } catch (error) {
@@ -84,7 +73,7 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
       setIsLoading(true);
       const newMessages = [
         ...messages,
-        { role: "user", content: input, timestamp: new Date() }
+        createMessage("user", input)
       ];
       setMessages(newMessages);
       setInput("");
@@ -101,7 +90,7 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
 
       const updatedMessages = [
         ...newMessages,
-        { role: "assistant", content: response, timestamp: new Date() }
+        createMessage("assistant", response)
       ];
       
       setMessages(updatedMessages);
@@ -123,40 +112,37 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
   };
 
   return (
-    <div className={`container mx-auto ${isEmbedded ? '' : 'max-w-6xl pt-20'}`}>
+    <div className="container mx-auto max-w-6xl pt-20">
       <div className="flex gap-4">
         <div className="flex-1">
-          <div className={`flex flex-col gap-4 ${isEmbedded ? 'h-[600px]' : 'h-[calc(100vh-8rem)]'}`}>
-            {!isEmbedded && (
-              <ChatHeader
-                bots={bots}
-                selectedBotId={selectedBotId}
-                onBotSelect={setSelectedBotId}
-              />
-            )}
+          <div className="flex flex-col gap-4 h-[calc(100vh-8rem)]">
+            <ChatHeader
+              bots={bots}
+              selectedBotId={selectedBotId}
+              onBotSelect={setSelectedBotId}
+            />
             <MessageList
-              messages={messages}
+              messages={formatMessages(messages)}
               selectedBot={selectedBot}
               onStarterClick={setInput}
             />
             <ChatInput
-              input={input}
-              isLoading={isLoading}
+              onSend={() => {}}
               disabled={!selectedBot}
+              isLoading={isLoading}
+              placeholder="Type your message..."
               onInputChange={setInput}
               onSubmit={sendMessage}
             />
           </div>
         </div>
-        {!isEmbedded && (
-          <div className="w-80">
-            <ChatHistory
-              messages={messages}
-              selectedBot={selectedBot}
-              onLoadChat={loadChat}
-            />
-          </div>
-        )}
+        <div className="w-80">
+          <ChatHistory
+            messages={messages}
+            selectedBot={selectedBot}
+            onLoadChat={loadChat}
+          />
+        </div>
       </div>
     </div>
   );

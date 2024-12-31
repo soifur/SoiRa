@@ -7,6 +7,7 @@ import { MessageSquare, Calendar, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChatMessage } from "@/components/chat/ChatMessage";
+import { createMessage } from "@/utils/messageUtils";
 
 interface ChatRecord {
   botId: string;
@@ -110,10 +111,9 @@ const Archive = () => {
               {selectedChat?.messages.map((message, index) => (
                 <ChatMessage
                   key={index}
-                  role={message.role}
-                  content={message.content}
-                  selectedBot={bots.find(b => b.id === selectedChat.botId)}
-                  timestamp={new Date(message.timestamp)}
+                  message={message.content}
+                  isBot={message.role === 'assistant'}
+                  avatar={bots.find(b => b.id === selectedChat.botId)?.avatar}
                 />
               ))}
             </div>

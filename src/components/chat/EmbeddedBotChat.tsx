@@ -7,6 +7,7 @@ import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { createMessage, formatMessages } from "@/utils/messageUtils";
 
 const EmbeddedBotChat = () => {
   const { botId } = useParams();
@@ -133,7 +134,7 @@ const EmbeddedBotChat = () => {
       setIsLoading(true);
       const newMessages = [
         ...messages,
-        { role: "user", content: input, timestamp: new Date() }
+        createMessage("user", input)
       ];
       setMessages(newMessages);
       setInput("");
@@ -151,7 +152,7 @@ const EmbeddedBotChat = () => {
 
       const updatedMessages = [
         ...newMessages,
-        { role: "assistant", content: response, timestamp: new Date() }
+        createMessage("assistant", response)
       ];
       
       setMessages(updatedMessages);
@@ -196,16 +197,16 @@ const EmbeddedBotChat = () => {
         onScroll={handleScroll}
       >
         <MessageList
-          messages={messages.filter(msg => msg.role !== 'system')}
+          messages={formatMessages(messages)}
           selectedBot={selectedBot}
-          onStarterClick={setInput}
         />
         <div ref={messagesEndRef} />
       </div>
       <ChatInput
-        input={input}
+        onSend={() => {}}
+        disabled={isLoading}
         isLoading={isLoading}
-        disabled={false}
+        placeholder="Type your message..."
         onInputChange={setInput}
         onSubmit={sendMessage}
       />
