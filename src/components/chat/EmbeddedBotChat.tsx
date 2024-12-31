@@ -24,7 +24,8 @@ const EmbeddedBotChat = () => {
         throw new Error('No bot configuration provided');
       }
 
-      const decodedConfig = JSON.parse(atob(decodeURIComponent(configParam)));
+      // Decode the URL-encoded JSON string
+      const decodedConfig = JSON.parse(decodeURIComponent(configParam));
       console.log("Decoded bot config:", decodedConfig);
       
       setSelectedBot(decodedConfig);

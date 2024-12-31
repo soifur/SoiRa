@@ -37,7 +37,9 @@ const Bots = () => {
       model: bot.model,
       openRouterModel: bot.openRouterModel
     };
-    const encodedBot = encodeURIComponent(btoa(JSON.stringify(botConfig)));
+    
+    // Use encodeURIComponent on the stringified JSON to handle special characters
+    const encodedBot = encodeURIComponent(JSON.stringify(botConfig));
     const embedUrl = `${window.location.origin}/embed/${bot.id}?config=${encodedBot}`;
     const embedCode = `<iframe src="${embedUrl}" width="100%" height="600px" frameborder="0"></iframe>`;
     
