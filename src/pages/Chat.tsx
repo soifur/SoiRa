@@ -7,6 +7,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { useBots } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
+import { useVoiceChat } from "@/hooks/useVoiceChat";
+import { Button } from "@/components/ui/button";
+import { Mic, MicOff } from "lucide-react";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -15,6 +18,7 @@ const Chat = () => {
   const { toast } = useToast();
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
+  const { isListening, startListening, stopListening, isSpeaking } = useVoiceChat(selectedBotId);
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
@@ -103,15 +107,30 @@ const Chat = () => {
               />
             </div>
             <div className="p-4">
-              <ChatInput
-                onSend={() => {}}
-                disabled={isLoading}
-                isLoading={isLoading}
-                placeholder="Type your message..."
-                onInputChange={setInput}
-                value={input}
-                onSubmit={handleMessageSend}
-              />
+              <div className="flex gap-2 items-center">
+                <ChatInput
+                  onSend={() => {}}
+                  disabled={isLoading}
+                  isLoading={isLoading}
+                  placeholder="Type your message..."
+                  onInputChange={setInput}
+                  value={input}
+                  onSubmit={handleMessageSend}
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={isListening ? stopListening : startListening}
+                  className={isListening ? 'bg-red-100' : ''}
+                  disabled={!selectedBotId}
+                >
+                  {isListening ? (
+                    <MicOff className="h-4 w-4" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </Card>
         </div>
