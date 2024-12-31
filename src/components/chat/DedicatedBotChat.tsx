@@ -6,7 +6,7 @@ import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Code } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -44,12 +44,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     }
   }, [bot.id]);
 
-  const handleEmbed = () => {
-    const embedCode = `<iframe src="${window.location.origin}/embed/${bot.id}" width="100%" height="600px" frameborder="0"></iframe>`;
-    navigator.clipboard.writeText(embedCode);
+  const clearChat = () => {
+    setMessages([]);
+    localStorage.removeItem(`dedicated_chat_${bot.id}`);
     toast({
-      title: "Embed code copied!",
-      description: "The embed code has been copied to your clipboard",
+      title: "Chat Cleared",
+      description: "The chat history has been cleared.",
     });
   };
 
@@ -101,9 +101,13 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   return (
     <Card className="flex flex-col h-full p-4 bg-card">
       <div className="flex justify-end mb-4">
-        <Button variant="outline" onClick={handleEmbed}>
-          <Code className="mr-2 h-4 w-4" />
-          Embed
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={clearChat}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
       

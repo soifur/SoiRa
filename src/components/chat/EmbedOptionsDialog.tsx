@@ -43,9 +43,8 @@ export const EmbedOptionsDialog = ({ bot }: EmbedOptionsDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          <Link className="h-4 w-4 mr-2" />
-          Embed
+        <Button variant="ghost" size="icon">
+          <Link className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>
