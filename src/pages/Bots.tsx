@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Link } from "lucide-react";
 import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
@@ -24,13 +24,33 @@ const Bots = () => {
 
   const handleEdit = (bot: Bot) => {
     setEditingBot(bot);
-    setSelectedBot(bot); // Automatically select the bot when editing
+    setSelectedBot(bot);
+  };
+
+  const handleCopyEmbed = (bot: Bot) => {
+    // Generate the correct embed URL using the bot's ID
+    const embedUrl = `${window.location.origin}/embed/${bot.id}`;
+    const embedCode = `<iframe src="${embedUrl}" width="100%" height="600px" frameborder="0"></iframe>`;
+    
+    navigator.clipboard.writeText(embedCode).then(() => {
+      console.log("Embed URL copied:", embedUrl); // Debug log
+      toast({
+        title: "Embed Code Copied",
+        description: "The embed code has been copied to your clipboard.",
+      });
+    }).catch(err => {
+      console.error("Failed to copy embed code:", err);
+      toast({
+        title: "Error",
+        description: "Failed to copy embed code to clipboard",
+        variant: "destructive",
+      });
+    });
   };
 
   return (
     <div className="container mx-auto max-w-full pt-20 px-4">
       <div className="flex gap-6 h-[calc(100vh-8rem)]">
-        {/* Left side: Bot list and editing */}
         <div className="w-1/2 flex flex-col gap-6 overflow-y-auto">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">My Chatbots</h1>
@@ -88,6 +108,17 @@ const Bots = () => {
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
+                        handleCopyEmbed(bot);
+                      }}
+                      title="Copy embed code"
+                    >
+                      <Link className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleEdit(bot);
                       }}
                     >
@@ -110,7 +141,6 @@ const Bots = () => {
           </div>
         </div>
 
-        {/* Right side: Dedicated chat interface */}
         <div className="w-1/2 border-l border-border">
           {selectedBot ? (
             <DedicatedBotChat bot={selectedBot} />
