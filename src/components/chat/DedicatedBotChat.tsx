@@ -27,7 +27,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     scrollToBottom();
   }, [messages]);
 
-  // Load chat history specific to this bot and interface type
   useEffect(() => {
     const chatKey = `dedicated_chat_${bot.id}`;
     const savedMessages = localStorage.getItem(chatKey);
@@ -47,12 +46,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const clearChat = () => {
     setMessages([]);
     localStorage.removeItem(`dedicated_chat_${bot.id}`);
-    // Also remove from chat history
-    const history = localStorage.getItem("chatHistory") || "[]";
-    let existingHistory = JSON.parse(history);
-    existingHistory = existingHistory.filter((record: any) => record.botId !== bot.id);
-    localStorage.setItem("chatHistory", JSON.stringify(existingHistory));
-    
     toast({
       title: "Chat Cleared",
       description: "The chat history has been cleared.",
@@ -68,11 +61,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       existingHistory = [];
     }
     
-    // Remove old entries for this bot
-    existingHistory = existingHistory.filter((record: any) => record.botId !== bot.id);
+    // Create a unique identifier for this chat session
+    const chatSessionId = Date.now().toString();
     
     // Add new chat record
     const newRecord = {
+      id: chatSessionId,
       botId: bot.id,
       messages: updatedMessages,
       timestamp: new Date().toISOString()
@@ -85,7 +79,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     const limitedHistory = existingHistory.slice(0, 100);
     
     // Save back to localStorage
-    localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+    try {
+      localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save chat history",
+        variant: "destructive",
+      });
+    }
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -122,7 +125,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const chatKey = `dedicated_chat_${bot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
       
-      // Update chat history
+      // Update chat history with new messages
       updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);

@@ -24,7 +24,8 @@ export const ChatInput = ({
         onChange={(e) => onInputChange(e.target.value)}
         placeholder={disabled ? "Select a bot to start chatting" : "Type your message..."}
         disabled={isLoading || disabled}
-        className="flex-1"
+        className="flex-1 h-8"
+        style={{ minHeight: '32px' }}
       />
       <Button type="submit" disabled={isLoading || disabled}>
         {isLoading ? <Loader2 className="animate-spin" /> : "Send"}
