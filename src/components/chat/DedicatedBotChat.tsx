@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
-import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Mic, MicOff } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useVoiceChat } from "@/hooks/useVoiceChat";
+import { ChatControls } from "./ChatControls";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -18,7 +18,6 @@ interface DedicatedBotChatProps {
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isListening, startListening, stopListening, isSpeaking } = useVoiceChat(bot.id);
@@ -166,14 +165,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={isListening ? stopListening : startListening}
-          className={`text-muted-foreground hover:text-foreground ${isListening ? 'bg-red-100' : ''}`}
-        >
-          {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
           onClick={clearChat}
           className="text-muted-foreground hover:text-foreground"
         >
@@ -189,14 +180,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="mt-4">
-        <ChatInput
-          onSend={sendMessage}
-          disabled={isLoading || isSpeaking}
-          isLoading={isLoading}
-          placeholder={isListening ? "Listening..." : "Type your message..."}
-        />
-      </div>
+      <ChatControls
+        onSend={sendMessage}
+        isLoading={isLoading}
+        isSpeaking={isSpeaking}
+        isListening={isListening}
+        startListening={startListening}
+        stopListening={stopListening}
+      />
     </Card>
   );
 };
