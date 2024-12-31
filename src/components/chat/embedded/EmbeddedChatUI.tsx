@@ -17,7 +17,6 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [clientId, setClientId] = useState<string>('anonymous');
 
   const clearChat = () => {
     setMessages([]);
@@ -29,10 +28,12 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (newMessages: typeof messages) => {
     try {
+      let clientId = 'anonymous';
+      
       try {
         const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
         if (user_ip) {
-          setClientId(user_ip);
+          clientId = user_ip;
         }
       } catch (error) {
         console.warn("Could not get client IP, using anonymous:", error);
@@ -49,25 +50,26 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
         share_key: bot.id
       };
 
+      // First, try to find existing chat history
       const { data: existingChat } = await supabase
         .from('chat_history')
         .select('id')
-        .match({ 
-          bot_id: bot.id,
-          client_id: clientId,
-          share_key: bot.id
-        })
+        .eq('bot_id', bot.id)
+        .eq('client_id', clientId)
+        .eq('share_key', bot.id)
         .maybeSingle();
 
       let error;
       if (existingChat) {
         console.log("Updating existing chat:", existingChat.id);
+        // Update existing chat
         ({ error } = await supabase
           .from('chat_history')
           .update(chatData)
           .eq('id', existingChat.id));
       } else {
         console.log("Creating new chat history");
+        // Insert new chat
         ({ error } = await supabase
           .from('chat_history')
           .insert(chatData));
@@ -114,9 +116,9 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
       let response: string;
 
       if (bot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(newMessages, bot, clientId);
+        response = await ChatService.sendOpenRouterMessage(newMessages, bot);
       } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, bot, clientId);
+        response = await ChatService.sendGeminiMessage(newMessages, bot);
       } else {
         throw new Error("Unsupported model type");
       }

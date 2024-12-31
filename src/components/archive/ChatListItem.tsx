@@ -18,24 +18,21 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = isMobile 
-      ? {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        }
-      : {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        };
-    
-    return new Intl.DateTimeFormat(undefined, options).format(date);
+    if (isMobile) {
+      return date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const copyShareLink = () => {
@@ -50,7 +47,6 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
   };
 
   const lastMessage = record.messages[record.messages.length - 1];
-  const lastMessageTime = lastMessage?.timestamp || record.timestamp;
 
   return (
     <Card 
@@ -88,15 +84,12 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
         </span>
         <span className="text-muted-foreground flex items-center gap-1">
           <Calendar className="w-4 h-4" />
-          {lastMessageTime ? formatDate(lastMessageTime.toString()) : 'No messages'}
+          {lastMessage?.timestamp ? formatDate(lastMessage.timestamp.toString()) : 'No messages'}
         </span>
       </div>
       {!isMobile && (
         <div className="mt-2 text-sm text-muted-foreground">
-          <div>IP: {record.client_id || 'anonymous'}</div>
-          <div className="mt-1">
-            Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
-          </div>
+          Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
         </div>
       )}
     </Card>
