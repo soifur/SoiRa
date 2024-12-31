@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2, Link } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
+import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
@@ -25,38 +26,6 @@ const Bots = () => {
   const handleEdit = (bot: Bot) => {
     setEditingBot(bot);
     setSelectedBot(bot);
-  };
-
-  const handleCopyEmbed = (bot: Bot) => {
-    // Encode bot configuration (excluding sensitive data like API keys)
-    const botConfig = {
-      id: bot.id,
-      name: bot.name,
-      instructions: bot.instructions,
-      starters: bot.starters,
-      model: bot.model,
-      openRouterModel: bot.openRouterModel
-    };
-    
-    // Use encodeURIComponent on the stringified JSON to handle special characters
-    const encodedBot = encodeURIComponent(JSON.stringify(botConfig));
-    const embedUrl = `${window.location.origin}/embed/${bot.id}?config=${encodedBot}`;
-    const embedCode = `<iframe src="${embedUrl}" width="100%" height="600px" frameborder="0"></iframe>`;
-    
-    navigator.clipboard.writeText(embedCode).then(() => {
-      console.log("Embed URL copied:", embedUrl); // Debug log
-      toast({
-        title: "Embed Code Copied",
-        description: "The embed code has been copied to your clipboard.",
-      });
-    }).catch(err => {
-      console.error("Failed to copy embed code:", err);
-      toast({
-        title: "Error",
-        description: "Failed to copy embed code to clipboard",
-        variant: "destructive",
-      });
-    });
   };
 
   return (
@@ -114,17 +83,7 @@ const Bots = () => {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopyEmbed(bot);
-                      }}
-                      title="Copy embed code"
-                    >
-                      <Link className="h-4 w-4" />
-                    </Button>
+                    <EmbedOptionsDialog bot={bot} />
                     <Button
                       variant="ghost"
                       size="icon"
