@@ -19,16 +19,9 @@ export const useVoiceChat = (botId: string) => {
       // Request microphone access
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Get a signed URL from our backend
-      const { data: { signed_url }, error } = await supabase.functions.invoke('get-elevenlabs-url', {
-        body: { botId }
-      });
-      
-      if (error) throw error;
-      
-      // Start the conversation with ElevenLabs using the signed URL
+      // Start the conversation with ElevenLabs using the agent ID
       await conversation.startSession({
-        url: signed_url
+        agentId: botId
       });
       
       setIsListening(true);
@@ -52,9 +45,11 @@ export const useVoiceChat = (botId: string) => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      conversation.endSession().catch(console.error);
+      if (isListening) {
+        conversation.endSession().catch(console.error);
+      }
     };
-  }, [conversation]);
+  }, [conversation, isListening]);
 
   return {
     isListening,
