@@ -149,6 +149,7 @@ export type Database = {
           model: string
           open_router_model: string | null
           share_key: string
+          short_key: string | null
           starters: string[] | null
         }
         Insert: {
@@ -162,6 +163,7 @@ export type Database = {
           model: string
           open_router_model?: string | null
           share_key: string
+          short_key?: string | null
           starters?: string[] | null
         }
         Update: {
@@ -175,6 +177,7 @@ export type Database = {
           model?: string
           open_router_model?: string | null
           share_key?: string
+          short_key?: string | null
           starters?: string[] | null
         }
         Relationships: [
@@ -192,7 +195,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_short_key: {
+        Args: {
+          length?: number
+        }
+        Returns: string
+      }
     }
     Enums: {
       bot_model: "gemini" | "claude" | "openai" | "openrouter"

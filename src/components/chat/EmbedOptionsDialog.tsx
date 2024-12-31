@@ -37,13 +37,18 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
 
         if (apiKeyError) throw apiKeyError;
 
-        const newShareKey = `${bot.id}_${Date.now()}`;
+        // Generate a short share key
+        const { data: shortKeyData } = await supabase
+          .rpc('generate_short_key');
+        
+        const newShareKey = shortKeyData;
         setShareKey(newShareKey);
         
         const { error } = await supabase
           .from('shared_bots')
           .insert({
-            share_key: newShareKey,
+            share_key: bot.id,
+            short_key: newShareKey,
             bot_id: bot.id,
             bot_name: bot.name,
             instructions: bot.instructions,
