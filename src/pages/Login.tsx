@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,59 +13,31 @@ const Login = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      console.log("Checking user session...");
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
         console.error("Session check error:", error);
         toast({
           title: "Error",
-          description: "Failed to check login status. Please try again.",
+          description: "Failed to check login status",
           variant: "destructive",
         });
         return;
       }
 
       if (session) {
-        console.log("Session found:", session);
-        console.log("User ID:", session.user.id);
-        console.log("User email:", session.user.email);
         navigate("/");
-      } else {
-        console.log("No session found");
       }
     };
     
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
       if (event === 'SIGNED_IN') {
-        console.log("User signed in, checking profile...");
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session?.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Profile check error:", profileError);
-          // Still redirect but with a delay to allow for profile creation
-          setTimeout(() => navigate("/"), 2000);
-        } else {
-          console.log("Profile found:", profile);
+        // Add a small delay to allow for profile creation
+        setTimeout(() => {
           navigate("/");
-        }
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
-        toast({
-          title: "Signed out",
-          description: "You have been signed out successfully."
-        });
-      } else if (event === 'USER_UPDATED') {
-        console.log("User updated");
-        if (session) navigate("/");
+        }, 500);
       }
     });
 
