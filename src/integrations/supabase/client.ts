@@ -12,8 +12,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-// Clear any invalid sessions on initialization
-const session = supabase.auth.getSession()
-if (!session) {
-  supabase.auth.signOut()
+// Initialize auth state
+const initAuth = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    await supabase.auth.signOut()
+  }
 }
+
+initAuth()
