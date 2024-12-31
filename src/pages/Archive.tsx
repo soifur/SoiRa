@@ -41,11 +41,11 @@ const Archive = () => {
 
       console.log("Fetching chat history...");
       
+      // Fetch all chats for the user
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
-        .eq('user_id', session.session.user.id)
-        .order('created_at', { ascending: false });
+        .eq('user_id', session.session.user.id);
 
       if (error) {
         console.error("Error fetching chat history:", error);
@@ -61,17 +61,9 @@ const Archive = () => {
       }
 
       const transformedHistory = data.map((record): ChatRecord => {
-        console.log("Processing record:", record);
-        
         const messages = Array.isArray(record.messages) 
           ? (record.messages as Json[])
-              .filter(msg => {
-                const isValid = isDatabaseMessage(msg);
-                if (!isValid) {
-                  console.warn("Invalid message format:", msg);
-                }
-                return isValid;
-              })
+              .filter(isDatabaseMessage)
               .map((msg: DatabaseMessage) => ({
                 id: msg.id || createMessage(msg.role, msg.content).id,
                 role: msg.role,
@@ -80,8 +72,6 @@ const Archive = () => {
                 isBot: msg.role === 'assistant'
               }))
           : [];
-
-        console.log("Transformed messages:", messages);
 
         return {
           id: record.id,
@@ -95,12 +85,10 @@ const Archive = () => {
         };
       });
 
-      console.log("Transformed history:", transformedHistory);
-
-      // Group chats by client_id and bot_id
+      // Group chats by bot_id first, then by client_id
       const groupedChats = transformedHistory.reduce((acc: GroupedChatRecord[], chat) => {
         const existingGroup = acc.find(
-          group => group.clientId === chat.client_id && group.botId === chat.botId
+          group => group.botId === chat.botId
         );
 
         if (existingGroup) {
@@ -123,6 +111,13 @@ const Archive = () => {
       groupedChats.sort((a, b) => 
         new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime()
       );
+
+      // Sort chats within each group by timestamp
+      groupedChats.forEach(group => {
+        group.chats.sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      });
 
       console.log("Final grouped chats:", groupedChats);
       setChatHistory(groupedChats);
@@ -192,9 +187,9 @@ const Archive = () => {
               </div>
             ) : (
               filteredHistory.map((group) => (
-                <div key={`${group.clientId}-${group.botId}`} className="space-y-2">
+                <div key={`${group.botId}`} className="space-y-2">
                   <div className="font-medium text-sm text-muted-foreground">
-                    Client ID: {group.clientId}
+                    Bot: {getSelectedBot(group.botId)?.name || 'Unknown Bot'}
                   </div>
                   {group.chats.map((record) => (
                     <ChatListItem
