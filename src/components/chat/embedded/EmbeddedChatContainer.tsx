@@ -26,10 +26,23 @@ export const EmbeddedChatContainer = ({
   onClearChat,
   onStarterClick,
 }: EmbeddedChatContainerProps) => {
+  const [isConnected, setIsConnected] = useState(false);
+
   // Handle postMessage communication
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Accept messages from any origin for public embeds
+      // Handle the initial connection message
+      if (event.data?.type === "CONNECT_CHAT") {
+        setIsConnected(true);
+        try {
+          window.parent.postMessage({ type: "CHAT_READY" }, event.origin);
+        } catch (error) {
+          console.error("Failed to send ready message:", error);
+        }
+        return;
+      }
+
+      // Handle chat messages
       if (event.data?.type === "CHAT_MESSAGE") {
         onSend(event.data.message);
       }
@@ -37,30 +50,32 @@ export const EmbeddedChatContainer = ({
 
     window.addEventListener("message", handleMessage);
 
-    // Send ready message to parent
+    // Send initial connection request
     try {
-      window.parent.postMessage({ type: "CHAT_READY" }, "*");
+      window.parent.postMessage({ type: "CHAT_INIT" }, "*");
     } catch (error) {
-      console.error("Failed to send ready message:", error);
+      console.error("Failed to send init message:", error);
     }
 
     return () => window.removeEventListener("message", handleMessage);
   }, [onSend]);
 
-  // Send message updates to parent
+  // Send message updates to parent only when connected
   useEffect(() => {
-    try {
-      window.parent.postMessage(
-        { 
-          type: "CHAT_UPDATE", 
-          messages: messages 
-        }, 
-        "*"
-      );
-    } catch (error) {
-      console.error("Failed to send message update:", error);
+    if (isConnected) {
+      try {
+        window.parent.postMessage(
+          { 
+            type: "CHAT_UPDATE", 
+            messages: messages 
+          }, 
+          "*"
+        );
+      } catch (error) {
+        console.error("Failed to send message update:", error);
+      }
     }
-  }, [messages]);
+  }, [messages, isConnected]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
