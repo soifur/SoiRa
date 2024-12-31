@@ -29,23 +29,12 @@ const Archive = () => {
 
   const fetchChatHistory = async () => {
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session?.user.id) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to view chat history",
-          variant: "destructive",
-        });
-        return;
-      }
-
       console.log("Fetching chat history...");
       
-      // Fetch all chats for the user with proper ordering
+      // Fetch ALL chats without user_id filter
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
-        .eq('user_id', session.session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -98,10 +87,10 @@ const Archive = () => {
 
       console.log("Transformed history:", transformedHistory);
 
-      // Group chats by bot_id first
+      // Group chats by client_id first
       const groupedChats = transformedHistory.reduce((acc: GroupedChatRecord[], chat) => {
         const existingGroup = acc.find(
-          group => group.botId === chat.botId
+          group => group.clientId === chat.client_id
         );
 
         if (existingGroup) {
@@ -200,9 +189,9 @@ const Archive = () => {
               </div>
             ) : (
               filteredHistory.map((group) => (
-                <div key={`${group.botId}`} className="space-y-2">
+                <div key={`${group.clientId}`} className="space-y-2">
                   <div className="font-medium text-sm text-muted-foreground">
-                    Bot: {getSelectedBot(group.botId)?.name || 'Unknown Bot'}
+                    IP: {group.clientId}
                   </div>
                   {group.chats.map((record) => (
                     <ChatListItem
