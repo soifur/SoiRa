@@ -14,27 +14,29 @@ export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
   return (
     <div
       className={cn(
-        "flex gap-3 mb-2",
+        "flex gap-3 max-w-3xl mx-auto",
         isBot ? "justify-start" : "justify-end"
       )}
     >
       {isBot && (
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-8 w-8 shrink-0">
           <img src={avatar || "/placeholder.svg"} alt="Bot" />
         </Avatar>
       )}
       <Card
         className={cn(
-          "px-3 py-2 max-w-[80%]",
-          isBot ? "bg-accent" : "bg-primary text-primary-foreground"
+          "px-4 py-3 rounded-2xl",
+          isBot ? "bg-accent/50" : "bg-primary text-primary-foreground"
         )}
       >
-        <div className="prose prose-sm max-w-none space-y-2">
+        <div className="prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown
             components={{
               p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
               pre: ({ children }) => (
-                <pre className="p-2 bg-muted rounded-md my-2">{children}</pre>
+                <pre className="p-2 bg-muted rounded-xl my-2 overflow-x-auto">
+                  {children}
+                </pre>
               ),
             }}
           >
@@ -43,7 +45,7 @@ export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
         </div>
       </Card>
       {!isBot && (
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-8 w-8 shrink-0">
           <img src="/placeholder.svg" alt="User" />
         </Avatar>
       )}

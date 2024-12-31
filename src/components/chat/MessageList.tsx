@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Image, Gift, Lightbulb, List } from "lucide-react";
 
 export interface Message {
   id: string;
@@ -43,24 +44,32 @@ export const MessageList = ({ messages, selectedBot, starters, onStarterClick }:
     lastUserInteraction.current = Date.now();
   };
 
+  const starterButtons = [
+    { text: "Create image", icon: Image },
+    { text: "Surprise me", icon: Gift },
+    { text: "Get advice", icon: Lightbulb },
+    { text: "Make a plan", icon: List },
+  ];
+
   return (
     <ScrollArea 
       ref={scrollRef}
-      className="flex-1 p-4"
+      className="flex-1 p-4 pb-32"
       onScroll={handleScroll}
     >
-      {messages.length === 0 && starters && starters.length > 0 && (
-        <div className="space-y-2 mb-4">
-          <h3 className="text-sm font-medium">Conversation Starters:</h3>
-          <div className="flex flex-col gap-2">
-            {starters.map((starter: string, index: number) => (
+      {messages.length === 0 && (
+        <div className="h-full flex flex-col items-center justify-center">
+          <h1 className="text-4xl font-bold mb-12">What can I help with?</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl px-4">
+            {starterButtons.map((button, index) => (
               <Button
                 key={index}
                 variant="outline"
-                className="text-left"
-                onClick={() => onStarterClick && onStarterClick(starter)}
+                className="flex items-center justify-start gap-2 p-4 h-auto text-base rounded-2xl hover:bg-accent/50 transition-colors"
+                onClick={() => onStarterClick && onStarterClick(button.text)}
               >
-                {starter}
+                <button.icon className="h-5 w-5" />
+                {button.text}
               </Button>
             ))}
           </div>

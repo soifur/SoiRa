@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send } from "lucide-react";
+import { Send, Paperclip, Globe } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -76,24 +76,46 @@ export const ChatInput = ({
   }, [value]);
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-2 p-4 bg-background/80 backdrop-blur-sm border-t fixed bottom-0 left-0 right-0 max-w-3xl mx-auto">
-      <div className="relative flex-1">
-        <Textarea
-          ref={textareaRef}
-          placeholder={placeholder || "Type a message..."}
-          disabled={disabled || isLoading}
-          className="min-h-[36px] max-h-[100px] resize-none py-2 px-4 pr-12 text-sm rounded-xl bg-accent/50 focus:bg-accent border-accent-foreground/20 focus:border-accent-foreground/30 transition-colors"
-          onKeyDown={handleKeyDown}
-          onChange={handleChange}
-        />
-        <Button 
-          type="submit" 
-          size="icon" 
-          disabled={disabled || isLoading}
-          className="absolute right-2 bottom-1.5 h-8 w-8 bg-primary hover:bg-primary/90"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+    <form onSubmit={handleSubmit} className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t">
+      <div className="max-w-3xl mx-auto">
+        <div className="relative flex items-end gap-2">
+          <div className="relative flex-1 overflow-hidden rounded-2xl bg-accent/50">
+            <Textarea
+              ref={textareaRef}
+              placeholder={placeholder || "Message ChatGPT..."}
+              disabled={disabled || isLoading}
+              className="min-h-[36px] max-h-[100px] resize-none py-3 px-4 pr-12 text-sm bg-transparent border-0 focus:ring-0"
+              onKeyDown={handleKeyDown}
+              onChange={handleChange}
+            />
+            <div className="absolute bottom-2 left-2 flex gap-2">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-xl opacity-50 hover:opacity-100 transition-opacity"
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-xl opacity-50 hover:opacity-100 transition-opacity"
+              >
+                <Globe className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <Button 
+            type="submit" 
+            size="icon" 
+            disabled={disabled || isLoading}
+            className="h-10 w-10 rounded-xl bg-primary hover:bg-primary/90"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </form>
   );
