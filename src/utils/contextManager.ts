@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 export interface UserContext {
   recentTopics?: string[];
@@ -19,7 +20,7 @@ export const ContextManager = {
         .single();
 
       if (error) throw error;
-      return data?.context as UserContext || {};
+      return (data?.context as Json as UserContext) || {};
     } catch (error) {
       console.error('Error fetching context:', error);
       return {};
@@ -35,7 +36,7 @@ export const ContextManager = {
         .single();
 
       const updatedContext: UserContext = {
-        ...(existingContext?.context as UserContext || {}),
+        ...(existingContext?.context as Json as UserContext || {}),
         ...newContext,
       };
 
@@ -44,7 +45,7 @@ export const ContextManager = {
         .upsert({
           bot_id: botId,
           client_id: clientId,
-          context: updatedContext,
+          context: updatedContext as Json
         }, {
           onConflict: 'client_id,bot_id'
         });
