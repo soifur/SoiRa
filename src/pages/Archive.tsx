@@ -38,6 +38,8 @@ const Archive = () => {
         });
         return;
       }
+
+      console.log("Fetching chat history...");
       
       const { data, error } = await supabase
         .from('chat_history')
@@ -45,14 +47,31 @@ const Archive = () => {
         .eq('user_id', session.session.user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching chat history:", error);
+        throw error;
+      }
 
-      const transformedHistory = data.map((record): ChatRecord => ({
-        id: record.id,
-        botId: record.bot_id,
-        messages: Array.isArray(record.messages) 
+      console.log("Raw chat history data:", data);
+
+      if (!data || data.length === 0) {
+        console.log("No chat history found");
+        setChatHistory([]);
+        return;
+      }
+
+      const transformedHistory = data.map((record): ChatRecord => {
+        console.log("Processing record:", record);
+        
+        const messages = Array.isArray(record.messages) 
           ? (record.messages as Json[])
-              .filter(isDatabaseMessage)
+              .filter(msg => {
+                const isValid = isDatabaseMessage(msg);
+                if (!isValid) {
+                  console.warn("Invalid message format:", msg);
+                }
+                return isValid;
+              })
               .map((msg: DatabaseMessage) => ({
                 id: msg.id || createMessage(msg.role, msg.content).id,
                 role: msg.role,
@@ -60,13 +79,23 @@ const Archive = () => {
                 timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
                 isBot: msg.role === 'assistant'
               }))
-          : [],
-        timestamp: record.created_at || new Date().toISOString(),
-        shareKey: record.share_key,
-        type: record.share_key ? 'public' : 'private',
-        user_id: record.user_id,
-        client_id: record.client_id || 'unknown'
-      }));
+          : [];
+
+        console.log("Transformed messages:", messages);
+
+        return {
+          id: record.id,
+          botId: record.bot_id,
+          messages,
+          timestamp: record.created_at || new Date().toISOString(),
+          shareKey: record.share_key,
+          type: record.share_key ? 'public' : 'private',
+          user_id: record.user_id,
+          client_id: record.client_id || 'unknown'
+        };
+      });
+
+      console.log("Transformed history:", transformedHistory);
 
       // Group chats by client_id and bot_id
       const groupedChats = transformedHistory.reduce((acc: GroupedChatRecord[], chat) => {
@@ -95,6 +124,7 @@ const Archive = () => {
         new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime()
       );
 
+      console.log("Final grouped chats:", groupedChats);
       setChatHistory(groupedChats);
     } catch (error) {
       console.error("Error fetching chat history:", error);
