@@ -27,17 +27,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     scrollToBottom();
   }, [messages]);
 
-  // Load chat history specific to this bot
+  // Load chat history specific to this bot using a unique key
   useEffect(() => {
-    const history = localStorage.getItem("chatHistory");
-    if (history) {
-      const allHistory = JSON.parse(history);
-      const botHistory = allHistory.find((h: any) => h.botId === bot.id);
-      if (botHistory) {
-        setMessages(botHistory.messages);
-      } else {
-        setMessages([]); // Reset messages if no history found for this bot
-      }
+    const chatKey = `chat_history_${bot.id}`;
+    const savedMessages = localStorage.getItem(chatKey);
+    if (savedMessages) {
+      setMessages(JSON.parse(savedMessages));
+    } else {
+      setMessages([]); // Reset messages for new bot
     }
   }, [bot.id]); // Reset messages when bot changes
 
@@ -80,15 +77,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       
       setMessages(updatedMessages);
       
-      // Save to localStorage with bot ID
-      const history = localStorage.getItem("chatHistory");
-      const existingHistory = history ? JSON.parse(history) : [];
-      const newHistory = existingHistory.filter((h: any) => h.botId !== bot.id);
-      newHistory.push({
-        botId: bot.id,
-        messages: updatedMessages,
-      });
-      localStorage.setItem("chatHistory", JSON.stringify(newHistory));
+      // Save to localStorage with unique bot ID key
+      const chatKey = `chat_history_${bot.id}`;
+      localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
       console.error("Chat error:", error);
       toast({

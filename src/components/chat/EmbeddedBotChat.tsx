@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
@@ -16,10 +16,23 @@ const EmbeddedBotChat = () => {
 
   const selectedBot = bots.find((bot) => bot.id === botId);
 
+  // Load chat history specific to this bot
+  useEffect(() => {
+    if (selectedBot) {
+      const chatKey = `chat_history_${selectedBot.id}`;
+      const savedMessages = localStorage.getItem(chatKey);
+      if (savedMessages) {
+        setMessages(JSON.parse(savedMessages));
+      } else {
+        setMessages([]);
+      }
+    }
+  }, [selectedBot]);
+
   if (!selectedBot) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">Bot not found</p>
+        <p className="text-red-500">Bot not found. Please make sure the bot ID is correct.</p>
       </div>
     );
   }
@@ -54,14 +67,9 @@ const EmbeddedBotChat = () => {
       
       setMessages(updatedMessages);
       
-      // Save to localStorage with bot ID
-      const history = localStorage.getItem("chatHistory");
-      const existingHistory = history ? JSON.parse(history) : [];
-      existingHistory.push({
-        botId: selectedBot.id,
-        messages: updatedMessages,
-      });
-      localStorage.setItem("chatHistory", JSON.stringify(existingHistory));
+      // Save to localStorage with unique bot ID
+      const chatKey = `chat_history_${selectedBot.id}`;
+      localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
       console.error("Chat error:", error);
       toast({
