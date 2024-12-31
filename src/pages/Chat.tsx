@@ -9,7 +9,6 @@ import { useToast } from "@/components/ui/use-toast";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { bots } = useBots();
   const { toast } = useToast();
@@ -24,11 +23,11 @@ const Chat = () => {
       existingHistory = [];
     }
     
-    const chatSessionId = `${Date.now()}_${selectedBot ? selectedBot.id : 'public'}`;
+    const chatSessionId = Date.now().toString();
     
     const newRecord = {
       id: chatSessionId,
-      botId: selectedBot ? selectedBot.id : 'public',
+      botId: 'public',
       messages: updatedMessages,
       timestamp: new Date().toISOString(),
       type: 'public'
@@ -57,7 +56,6 @@ const Chat = () => {
       const newUserMessage = createMessage("user", message);
       const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
-      setInput(""); // Clear input immediately after sending
 
       let response: string;
 
@@ -90,24 +88,31 @@ const Chat = () => {
     }
   };
 
+  const handleStarterClick = (starter: string) => {
+    handleMessageSend(starter);
+  };
+
   return (
     <div className="container mx-auto max-w-6xl pt-20">
       <div className="flex gap-4">
         <div className="flex-1">
-          <div className="flex flex-col gap-4 h-[calc(100vh-8rem)]">
-            <MessageList
-              messages={formatMessages(messages)}
-              selectedBot={selectedBot}
-              onStarterClick={handleMessageSend}
-            />
-            <ChatInput
-              onSend={handleMessageSend}
-              disabled={isLoading}
-              isLoading={isLoading}
-              placeholder="Type your message..."
-              onInputChange={setInput}
-            />
-          </div>
+          <Card className="flex flex-col h-[calc(100vh-8rem)]">
+            <div className="flex-1 overflow-hidden">
+              <MessageList
+                messages={formatMessages(messages)}
+                selectedBot={selectedBot}
+                onStarterClick={handleStarterClick}
+              />
+            </div>
+            <div className="p-4">
+              <ChatInput
+                onSend={handleMessageSend}
+                disabled={isLoading}
+                isLoading={isLoading}
+                placeholder="Type your message..."
+              />
+            </div>
+          </Card>
         </div>
       </div>
     </div>

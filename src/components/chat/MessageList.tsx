@@ -42,12 +42,6 @@ export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageLi
     lastUserInteraction.current = Date.now();
   };
 
-  const handleStarterClick = (starter: string) => {
-    if (onStarterClick) {
-      onStarterClick(starter);
-    }
-  };
-
   return (
     <ScrollArea 
       ref={scrollRef}
@@ -63,7 +57,7 @@ export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageLi
                 key={index}
                 variant="outline"
                 className="text-left"
-                onClick={() => handleStarterClick(starter)}
+                onClick={() => onStarterClick && onStarterClick(starter)}
               >
                 {starter}
               </Button>
@@ -71,7 +65,7 @@ export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageLi
           </div>
         </div>
       )}
-      <div className="space-y-2">
+      <div className="space-y-4">
         {messages.map((message) => (
           <ChatMessage
             key={message.id}
