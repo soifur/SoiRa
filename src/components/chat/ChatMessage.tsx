@@ -26,7 +26,7 @@ export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
       <Card
         className={cn(
           "px-4 py-3 rounded-2xl",
-          isBot ? "bg-accent/50" : "bg-primary text-primary-foreground"
+          isBot ? "bg-accent/50 backdrop-blur-sm" : "bg-primary text-primary-foreground"
         )}
       >
         <div className="prose prose-sm dark:prose-invert max-w-none">

@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -79,16 +80,18 @@ export const ChatInput = ({
     <form onSubmit={handleSubmit} className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t">
       <div className="max-w-3xl mx-auto">
         <div className="relative flex items-end gap-2">
-          <div className="relative flex-1">
-            <Textarea
-              ref={textareaRef}
-              placeholder={placeholder || "Type your message..."}
-              disabled={disabled || isLoading}
-              className="min-h-[48px] max-h-[100px] resize-none py-3 px-4 text-sm bg-accent/50 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50"
-              onKeyDown={handleKeyDown}
-              onChange={handleChange}
-            />
-          </div>
+          <Textarea
+            ref={textareaRef}
+            placeholder={placeholder || "Type your message..."}
+            disabled={disabled || isLoading}
+            className={cn(
+              "min-h-[48px] max-h-[100px] resize-none py-3 px-4 text-base",
+              "bg-accent/50 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50",
+              "backdrop-blur-sm"
+            )}
+            onKeyDown={handleKeyDown}
+            onChange={handleChange}
+          />
           <Button 
             type="submit" 
             size="icon" 

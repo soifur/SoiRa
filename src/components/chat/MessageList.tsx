@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Lightbulb, List } from "lucide-react";
+import { MessageCircle, HelpCircle, Lightbulb, Code, BookOpen } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface Message {
   id: string;
@@ -46,14 +47,18 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
 
   // Map starter types to icons
   const getStarterIcon = (starter: string) => {
-    if (starter.toLowerCase().includes('help') || starter.toLowerCase().includes('how')) {
+    const lowerStarter = starter.toLowerCase();
+    if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
       return HelpCircle;
     }
-    if (starter.toLowerCase().includes('advice') || starter.toLowerCase().includes('suggest')) {
-      return Lightbulb;
+    if (lowerStarter.includes('code') || lowerStarter.includes('program')) {
+      return Code;
     }
-    if (starter.toLowerCase().includes('list') || starter.toLowerCase().includes('plan')) {
-      return List;
+    if (lowerStarter.includes('explain') || lowerStarter.includes('learn')) {
+      return BookOpen;
+    }
+    if (lowerStarter.includes('idea') || lowerStarter.includes('suggest')) {
+      return Lightbulb;
     }
     return MessageCircle;
   };
@@ -65,20 +70,29 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
       onScroll={handleScroll}
     >
       {messages.length === 0 && starters && starters.length > 0 && (
-        <div className="h-full flex flex-col items-center justify-center">
-          <h1 className="text-4xl font-bold mb-12">What can I help with?</h1>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl px-4">
+        <div className="h-full flex flex-col items-center justify-center px-4 -mt-20">
+          {selectedBot && (
+            <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+              {selectedBot.name}
+            </h2>
+          )}
+          <h1 className="text-4xl font-bold mb-12 text-foreground">What can I help with?</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
             {starters.map((starter, index) => {
               const Icon = getStarterIcon(starter);
               return (
                 <Button
                   key={index}
                   variant="outline"
-                  className="flex items-center justify-start gap-2 p-4 h-auto text-base rounded-2xl hover:bg-accent/50 transition-colors"
+                  className={cn(
+                    "flex items-center justify-start gap-3 p-4 h-auto text-base",
+                    "rounded-2xl hover:bg-accent/50 transition-colors",
+                    "bg-background/50 backdrop-blur-sm border-muted-foreground/20"
+                  )}
                   onClick={() => onStarterClick && onStarterClick(starter)}
                 >
-                  <Icon className="h-5 w-5" />
-                  {starter}
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-left">{starter}</span>
                 </Button>
               );
             })}
