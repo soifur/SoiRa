@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 export type UserRole = "super_admin" | "admin" | "user";
@@ -15,6 +15,7 @@ export const useAuth = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -40,7 +41,6 @@ export const useAuth = () => {
         if (profileError) {
           console.error("Error fetching profile:", profileError);
           
-          // Create a basic profile if none exists
           const basicProfile = {
             id: session.user.id,
             email: session.user.email || '',
@@ -54,7 +54,6 @@ export const useAuth = () => {
             variant: "destructive"
           });
         } else if (!profileData) {
-          // Handle case where no profile exists
           const basicProfile = {
             id: session.user.id,
             email: session.user.email || '',
@@ -77,7 +76,7 @@ export const useAuth = () => {
           description: "There was an issue with authentication. Please try logging in again.",
           variant: "destructive"
         });
-        await signOut();
+        await handleSignOut();
       } finally {
         setLoading(false);
       }
@@ -90,18 +89,28 @@ export const useAuth = () => {
         await getProfile();
       } else {
         setProfile(null);
-        navigate("/login");
+        // Only navigate if we're not already on the login page to prevent infinite loops
+        if (location.pathname !== '/login') {
+          try {
+            navigate('/login', { replace: true });
+          } catch (error) {
+            console.error("Navigation error:", error);
+          }
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate, toast, location.pathname]);
 
-  const signOut = async () => {
+  const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
       setProfile(null);
-      navigate("/login");
+      // Only navigate if we're not already on the login page
+      if (location.pathname !== '/login') {
+        navigate('/login', { replace: true });
+      }
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
@@ -112,5 +121,5 @@ export const useAuth = () => {
     }
   };
 
-  return { profile, loading, signOut };
+  return { profile, loading, signOut: handleSignOut };
 };
