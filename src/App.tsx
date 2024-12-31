@@ -1,35 +1,29 @@
-import { useEffect } from 'react'
-import { supabase } from './integrations/supabase/client'
-import './App.css'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Home from './pages/Home'
-import About from './pages/About'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { Navigation } from "@/components/Navigation";
+import { ThemeProvider } from "next-themes";
+import Index from "@/pages/Index";
+import Bots from "@/pages/Bots";
+import Chat from "@/pages/Chat";
+import Archive from "@/pages/Archive";
+import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 
 function App() {
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        // Clear local storage on sign out
-        window.localStorage.clear()
-      }
-      console.log('Auth state changed:', event)
-    })
-
-    // Cleanup subscription
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
-    </Router>
-  )
+    <ThemeProvider defaultTheme="dark" attribute="class">
+      <Router>
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/bots" element={<Bots />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/archive" element={<Archive />} />
+          <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
+        </Routes>
+        <Toaster />
+      </Router>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;

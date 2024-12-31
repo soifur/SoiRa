@@ -30,68 +30,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_history: {
-        Row: {
-          bot_id: string
-          created_at: string | null
-          id: string
-          messages: Json
-          share_key: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          bot_id: string
-          created_at?: string | null
-          id?: string
-          messages?: Json
-          share_key?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          bot_id?: string
-          created_at?: string | null
-          id?: string
-          messages?: Json
-          share_key?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          role: Database["public"]["Enums"]["user_role"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id: string
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
       shared_bots: {
         Row: {
           api_key_id: string | null
@@ -150,7 +88,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      user_role: "super_admin" | "admin" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
