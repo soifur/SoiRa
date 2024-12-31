@@ -88,6 +88,37 @@ const EmbeddedBotChat = () => {
     });
   };
 
+  const updateChatHistory = async (newMessages: typeof messages) => {
+    if (!selectedBot || !botId) return;
+    
+    try {
+      const chatData = {
+        bot_id: selectedBot.id,
+        messages: newMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp?.toISOString()
+        })),
+        share_key: botId
+      };
+
+      const { error } = await supabase
+        .from('chat_history')
+        .insert(chatData);
+
+      if (error) throw error;
+      
+      console.log("Chat history saved successfully");
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save chat history",
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendMessage = async (e: React.FormEvent | Event) => {
     if (e instanceof Event && 'preventDefault' in e) {
       e.preventDefault();
@@ -120,6 +151,7 @@ const EmbeddedBotChat = () => {
       ];
       
       setMessages(updatedMessages);
+      await updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
