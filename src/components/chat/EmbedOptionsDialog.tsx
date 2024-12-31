@@ -19,7 +19,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
   
   useEffect(() => {
     if (bot && isOpen) {
-      const newShareKey = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      const newShareKey = `${bot.id}_${Date.now()}`;
       setShareKey(newShareKey);
       
       try {
@@ -29,22 +29,18 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           instructions: bot.instructions,
           starters: bot.starters,
           model: bot.model,
-          openRouterModel: bot.openRouterModel,
-          avatar: bot.avatar,
           accessType: "public",
         };
-        localStorage.setItem(`share_${newShareKey}`, JSON.stringify(shareConfig));
-        console.log("Stored share configuration:", shareConfig);
+        localStorage.setItem(newShareKey, JSON.stringify(shareConfig));
       } catch (error) {
         console.error("Error storing share configuration:", error);
-        toast({
-          title: "Error",
-          description: "Failed to create share configuration",
-          variant: "destructive",
-        });
       }
     }
-  }, [bot, isOpen, toast]);
+  }, [bot, isOpen]);
+
+  if (!bot) {
+    return null;
+  }
 
   const publicLink = `${baseUrl}/embed/${shareKey}`;
   const embedCode = `<iframe src="${publicLink}" width="100%" height="600px" frameborder="0"></iframe>`;
