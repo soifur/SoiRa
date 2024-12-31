@@ -26,20 +26,13 @@ export const EmbeddedChatContainer = ({
   onClearChat,
   onStarterClick,
 }: EmbeddedChatContainerProps) => {
-  const [isConnected, setIsConnected] = useState(false);
+  const [parentOrigin, setParentOrigin] = useState<string | null>(null);
 
-  // Handle postMessage communication
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Handle the initial connection message
-      if (event.data?.type === "CONNECT_CHAT") {
-        setIsConnected(true);
-        try {
-          window.parent.postMessage({ type: "CHAT_READY" }, event.origin);
-        } catch (error) {
-          console.error("Failed to send ready message:", error);
-        }
-        return;
+      // Store the parent origin on first message
+      if (!parentOrigin) {
+        setParentOrigin(event.origin);
       }
 
       // Handle chat messages
@@ -50,19 +43,28 @@ export const EmbeddedChatContainer = ({
 
     window.addEventListener("message", handleMessage);
 
-    // Send initial connection request
-    try {
-      window.parent.postMessage({ type: "CHAT_INIT" }, "*");
-    } catch (error) {
-      console.error("Failed to send init message:", error);
-    }
+    // Notify parent that chat is ready
+    const sendReadyMessage = () => {
+      try {
+        window.parent.postMessage({ type: "CHAT_READY" }, "*");
+      } catch (error) {
+        console.error("Failed to send ready message:", error);
+      }
+    };
 
-    return () => window.removeEventListener("message", handleMessage);
-  }, [onSend]);
+    // Send ready message periodically until parent responds
+    const readyInterval = setInterval(sendReadyMessage, 1000);
+    sendReadyMessage();
 
-  // Send message updates to parent only when connected
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      clearInterval(readyInterval);
+    };
+  }, [onSend, parentOrigin]);
+
+  // Send message updates to parent
   useEffect(() => {
-    if (isConnected) {
+    if (messages.length > 0) {
       try {
         window.parent.postMessage(
           { 
@@ -75,7 +77,7 @@ export const EmbeddedChatContainer = ({
         console.error("Failed to send message update:", error);
       }
     }
-  }, [messages, isConnected]);
+  }, [messages]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
