@@ -52,13 +52,20 @@ const EmbeddedChatContainer = () => {
           return;
         }
 
+        // Validate that the model is one of the allowed types
+        const validModel = (model: string): model is Bot['model'] => {
+          return ['gemini', 'claude', 'openai', 'openrouter'].includes(model);
+        };
+
+        const model = validModel(sharedBot.model) ? sharedBot.model : 'gemini';
+
         // Transform the data to match our Bot interface
         setBot({
           id: sharedBot.bot_id,
           name: sharedBot.bot_name,
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
-          model: sharedBot.model,
+          model: model,
           apiKey: sharedBot.bot_api_keys?.api_key || "",
           openRouterModel: sharedBot.open_router_model,
           accessType: "public"
