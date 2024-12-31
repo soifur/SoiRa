@@ -23,9 +23,9 @@ export class ChatService {
     const contextStr = `
 Previous context:
 ${context.recentTopics ? `Recent topics discussed: ${context.recentTopics.join(', ')}` : ''}
-${context.userPreferences?.name ? `User's name: ${context.userPreferences.name}` : ''}
 ${context.userPreferences?.interests ? `User's interests: ${context.userPreferences.interests.join(', ')}` : ''}
 ${context.keyInsights ? `Key insights: ${context.keyInsights.join(', ')}` : ''}
+${context.botSpecificData?.knownName ? `User's name: ${context.botSpecificData.knownName}` : ''}
 
 Instructions: Use this context to provide more personalized responses while keeping the conversation natural.
 `;
