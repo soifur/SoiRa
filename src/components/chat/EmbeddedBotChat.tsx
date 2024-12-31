@@ -59,28 +59,30 @@ const EmbeddedBotChat = () => {
   }, [searchParams, toast]);
 
   const updateChatHistory = (updatedMessages: typeof messages) => {
-    const history = localStorage.getItem("chatHistory") || "[]";
-    let existingHistory = JSON.parse(history);
-    
-    if (!Array.isArray(existingHistory)) {
-      existingHistory = [];
-    }
-    
-    const chatSessionId = `${Date.now()}_${selectedBot?.id}_embedded`;
-    
-    const newRecord = {
-      id: chatSessionId,
-      botId: selectedBot?.id,
-      messages: updatedMessages,
-      timestamp: new Date().toISOString(),
-      type: 'embedded'
-    };
-    
-    existingHistory.unshift(newRecord);
-    const limitedHistory = existingHistory.slice(0, 100);
-    
     try {
+      const history = localStorage.getItem("chatHistory") || "[]";
+      let existingHistory = JSON.parse(history);
+      
+      if (!Array.isArray(existingHistory)) {
+        existingHistory = [];
+      }
+      
+      const chatSessionId = `${Date.now()}_${selectedBot?.id}_embedded`;
+      
+      const newRecord = {
+        id: chatSessionId,
+        botId: selectedBot?.id,
+        messages: updatedMessages,
+        timestamp: new Date().toISOString(),
+        type: 'embedded'
+      };
+      
+      existingHistory.unshift(newRecord);
+      const limitedHistory = existingHistory.slice(0, 100);
+      
       localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+      
+      console.log("Chat history updated:", newRecord);
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -94,8 +96,7 @@ const EmbeddedBotChat = () => {
   const handleStarterClick = async (starter: string) => {
     if (!selectedBot || isLoading) return;
     setInput(starter);
-    const fakeEvent = new Event('submit') as unknown as React.FormEvent;
-    await sendMessage(fakeEvent);
+    await sendMessage(new Event('submit') as React.FormEvent);
   };
 
   const clearChat = () => {
@@ -120,7 +121,7 @@ const EmbeddedBotChat = () => {
         createMessage("user", input)
       ];
       setMessages(newMessages);
-      setInput(""); // Clear input immediately after sending
+      setInput("");
       setUserScrolled(false);
 
       let response: string;
