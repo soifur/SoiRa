@@ -10,6 +10,7 @@ export interface Bot {
   apiKey: string;
   openRouterModel?: string;
   avatar?: string;
+  accessType?: "public" | "private";
 }
 
 export const useBots = () => {

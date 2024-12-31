@@ -11,11 +11,12 @@ import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
+  const [embedDialogBot, setEmbedDialogBot] = useState<Bot | null>(null);
   const { toast } = useToast();
   const { bots, saveBot, deleteBot } = useBots();
 
   const handleSave = (bot: Bot) => {
-    saveBot(bot);
+    saveBot({ ...bot, accessType: bot.accessType || "private" });
     setEditingBot(null);
     toast({
       title: "Success",
@@ -43,6 +44,7 @@ const Bots = () => {
                   starters: [],
                   model: "gemini",
                   apiKey: "",
+                  accessType: "private",
                 })
               }
             >
@@ -83,7 +85,16 @@ const Bots = () => {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <EmbedOptionsDialog bot={bot} />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEmbedDialogBot(bot);
+                      }}
+                    >
+                      Share
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -121,6 +132,12 @@ const Bots = () => {
           )}
         </div>
       </div>
+
+      <EmbedOptionsDialog 
+        isOpen={!!embedDialogBot}
+        onClose={() => setEmbedDialogBot(null)}
+        bot={embedDialogBot as Bot}
+      />
     </div>
   );
 };
