@@ -27,6 +27,20 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     scrollToBottom();
   }, [messages]);
 
+  // Load chat history specific to this bot
+  useEffect(() => {
+    const history = localStorage.getItem("chatHistory");
+    if (history) {
+      const allHistory = JSON.parse(history);
+      const botHistory = allHistory.find((h: any) => h.botId === bot.id);
+      if (botHistory) {
+        setMessages(botHistory.messages);
+      } else {
+        setMessages([]); // Reset messages if no history found for this bot
+      }
+    }
+  }, [bot.id]); // Reset messages when bot changes
+
   const handleEmbed = () => {
     const embedCode = `<iframe src="${window.location.origin}/embed/${bot.id}" width="100%" height="600px" frameborder="0"></iframe>`;
     navigator.clipboard.writeText(embedCode);
@@ -69,11 +83,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       // Save to localStorage with bot ID
       const history = localStorage.getItem("chatHistory");
       const existingHistory = history ? JSON.parse(history) : [];
-      existingHistory.push({
+      const newHistory = existingHistory.filter((h: any) => h.botId !== bot.id);
+      newHistory.push({
         botId: bot.id,
         messages: updatedMessages,
       });
-      localStorage.setItem("chatHistory", JSON.stringify(existingHistory));
+      localStorage.setItem("chatHistory", JSON.stringify(newHistory));
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -88,11 +103,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
   return (
     <Card className="flex flex-col h-full p-4 bg-card">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-bold">{bot.name}</h2>
-          <p className="text-sm text-muted-foreground">{bot.instructions}</p>
-        </div>
+      <div className="flex justify-end mb-4">
         <Button variant="outline" onClick={handleEmbed}>
           <Code className="mr-2 h-4 w-4" />
           Embed
