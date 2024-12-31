@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -14,35 +14,80 @@ interface ModelSelectorProps {
   onOpenRouterModelChange: (model: string) => void;
 }
 
+interface OpenRouterModel {
+  id: string;
+  name: string;
+  pricing: {
+    prompt: string;
+    completion: string;
+  };
+  context_length: number;
+}
+
 export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: ModelSelectorProps) => {
-  const openRouterModels = [
-    // Anthropic Models (Latest)
-    { value: "anthropic/claude-3-haiku", label: "Claude 3 Haiku - $0.25/$1.25 per 1M tokens - 200k ctx" },
-    { value: "anthropic/claude-3-opus", label: "Claude 3 Opus - $15/$75 per 1M tokens - 200k ctx" },
-    { value: "anthropic/claude-3-sonnet", label: "Claude 3 Sonnet - $3/$15 per 1M tokens - 200k ctx" },
-    
-    // Google Models (Latest)
-    { value: "google/gemini-pro", label: "Gemini Pro - $0.50/$1.50 per 1M tokens - 32k ctx" },
-    { value: "google/gemini-pro-vision", label: "Gemini Pro Vision - $0.50/$1.50 per 1M tokens - 32k ctx" },
-    
-    // OpenAI Models (Latest)
-    { value: "openai/gpt-4-turbo-preview", label: "GPT-4 Turbo Preview - $10/$30 per 1M tokens - 128k ctx" },
-    { value: "openai/gpt-4-vision-preview", label: "GPT-4 Vision Preview - $10/$30 per 1M tokens - 128k ctx" },
-    { value: "openai/gpt-3.5-turbo", label: "GPT-3.5 Turbo - $0.50/$1.50 per 1M tokens - 16k ctx" },
-    
-    // Mistral Models (Latest)
-    { value: "mistral/mistral-large-latest", label: "Mistral Large Latest - $7/$20 per 1M tokens - 32k ctx" },
-    { value: "mistral/mistral-medium-latest", label: "Mistral Medium Latest - $2.75/$8.10 per 1M tokens - 32k ctx" },
-    { value: "mistral/mistral-small-latest", label: "Mistral Small Latest - $0.20/$0.60 per 1M tokens - 32k ctx" },
-    { value: "mistral/mixtral-8x7b-instruct", label: "Mixtral 8x7B Instruct - $0.20/$0.60 per 1M tokens - 32k ctx" },
-    
-    // Meta Models (Latest)
-    { value: "meta/llama-2-70b-chat", label: "Llama 2 70B Chat - $1/$1.50 per 1M tokens - 4k ctx" },
-    { value: "meta/llama-2-13b-chat", label: "Llama 2 13B Chat - $0.20/$0.30 per 1M tokens - 4k ctx" },
-    
-    // Auto Router (Always keep this as an option)
-    { value: "auto", label: "Auto Router (best for prompt) - Dynamic Pricing - 200k ctx" }
-  ];
+  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('https://openrouter.ai/api/v1/models');
+        const data = await response.json();
+        
+        // Filter and transform the models
+        const models = data.data
+          .filter((model: OpenRouterModel) => 
+            // Only include models that are fully operational
+            model.id && model.name && model.pricing
+          )
+          .map((model: OpenRouterModel) => ({
+            id: model.id,
+            name: model.name,
+            pricing: model.pricing,
+            context_length: model.context_length
+          }));
+
+        setOpenRouterModels([
+          ...models,
+          // Always include the auto router option
+          {
+            id: "auto",
+            name: "Auto Router",
+            pricing: { prompt: "Dynamic", completion: "Dynamic" },
+            context_length: 200000
+          }
+        ]);
+      } catch (error) {
+        console.error('Error fetching OpenRouter models:', error);
+        // Fallback to a minimal set of reliable models if the API fails
+        setOpenRouterModels([
+          {
+            id: "anthropic/claude-3-opus",
+            name: "Claude 3 Opus",
+            pricing: { prompt: "$15", completion: "$75" },
+            context_length: 200000
+          },
+          {
+            id: "openai/gpt-4-turbo-preview",
+            name: "GPT-4 Turbo Preview",
+            pricing: { prompt: "$10", completion: "$30" },
+            context_length: 128000
+          },
+          {
+            id: "auto",
+            name: "Auto Router",
+            pricing: { prompt: "Dynamic", completion: "Dynamic" },
+            context_length: 200000
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -74,12 +119,12 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select an OpenRouter model" />
+              <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
             <SelectContent>
               {openRouterModels.map((model) => (
-                <SelectItem key={model.value} value={model.value}>
-                  {model.label}
+                <SelectItem key={model.id} value={model.id}>
+                  {`${model.name} - ${model.pricing.prompt}/${model.pricing.completion} per 1M tokens - ${Math.floor(model.context_length/1000)}k ctx`}
                 </SelectItem>
               ))}
             </SelectContent>
