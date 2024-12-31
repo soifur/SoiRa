@@ -30,7 +30,7 @@ export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps
     }
     
     const embedCode = `<iframe
-      src="${window.location.origin}/chat?bot=${selectedBotId}"
+      src="${window.location.origin}/embed/${selectedBotId}"
       width="100%"
       height="600px"
       frameborder="0"
