@@ -3,7 +3,10 @@ import { useBots, Bot } from "@/hooks/useBots";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Calendar } from "lucide-react";
+import { MessageSquare, Calendar, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ChatMessage } from "@/components/chat/ChatMessage";
 
 interface ChatRecord {
   botId: string;
@@ -13,6 +16,7 @@ interface ChatRecord {
 const Archive = () => {
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("all");
+  const [selectedChat, setSelectedChat] = useState<ChatRecord | null>(null);
 
   // Get chat history from localStorage
   const getChatHistory = (): ChatRecord[] => {
@@ -24,6 +28,10 @@ const Archive = () => {
   const filteredHistory = selectedBotId === "all"
     ? chatHistory
     : chatHistory.filter(record => record.botId === selectedBotId);
+
+  const handleChatClick = (chat: ChatRecord) => {
+    setSelectedChat(chat);
+  };
 
   return (
     <div className="container mx-auto max-w-6xl pt-20">
@@ -52,7 +60,11 @@ const Archive = () => {
               const firstMessage = record.messages[0];
               
               return (
-                <Card key={index} className="p-4">
+                <Card 
+                  key={index} 
+                  className="p-4 hover:bg-accent cursor-pointer transition-colors"
+                  onClick={() => handleChatClick(record)}
+                >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold">{bot?.name || "Unknown Bot"}</span>
                     <span className="text-sm text-muted-foreground">
@@ -78,6 +90,36 @@ const Archive = () => {
           </div>
         </ScrollArea>
       </div>
+
+      <Dialog open={selectedChat !== null} onOpenChange={() => setSelectedChat(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Chat History</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedChat(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[60vh] mt-4">
+            <div className="space-y-4">
+              {selectedChat?.messages.map((message, index) => (
+                <ChatMessage
+                  key={index}
+                  role={message.role}
+                  content={message.content}
+                  selectedBot={bots.find(b => b.id === selectedChat.botId)}
+                  timestamp={new Date(message.timestamp)}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
