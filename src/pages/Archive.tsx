@@ -36,12 +36,12 @@ const Archive = () => {
   const fetchChatHistory = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
-      if (!session.session) return;
-
+      
+      // Fetch both user's chats and public chats
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
-        .eq('user_id', session.session.user.id)
+        .or(`user_id.eq.${session.session?.user.id},share_key.is.not.null`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -58,7 +58,7 @@ const Archive = () => {
         })),
         timestamp: record.created_at,
         shareKey: record.share_key,
-        type: 'dedicated',
+        type: record.share_key ? 'public' : 'private',
         user_id: record.user_id
       }));
 
@@ -128,9 +128,16 @@ const Archive = () => {
                   onClick={() => handleChatClick(record)}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold">
-                      {bot?.name || "Unknown Bot"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">
+                        {bot?.name || "Unknown Bot"}
+                      </span>
+                      {record.shareKey && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                          Public
+                        </span>
+                      )}
+                    </div>
                     <span className="text-sm text-muted-foreground">
                       {formatDate(record.timestamp)}
                     </span>
