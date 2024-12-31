@@ -45,7 +45,12 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
 
   const saveChatToHistory = (chatMessages: typeof messages) => {
     const history = localStorage.getItem("chatHistory") || "[]";
-    const existingHistory = JSON.parse(history);
+    let existingHistory = JSON.parse(history);
+    
+    // Ensure existingHistory is an array
+    if (!Array.isArray(existingHistory)) {
+      existingHistory = [];
+    }
     
     // Add new chat record with timestamp
     const newRecord = {
@@ -60,8 +65,15 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
     // Add to beginning of array to show newest first
     existingHistory.unshift(newRecord);
     
+    // Limit history to prevent localStorage from getting too full (optional)
+    const limitedHistory = existingHistory.slice(0, 100);
+    
     // Save back to localStorage
-    localStorage.setItem("chatHistory", JSON.stringify(existingHistory));
+    try {
+      localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+    } catch (error) {
+      console.error('Error saving to chat history:', error);
+    }
   };
 
   const sendMessage = async (e: React.FormEvent) => {
