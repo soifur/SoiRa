@@ -24,16 +24,19 @@ export const ChatInput = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSubmit) {
-      onSubmit(e);
-      return;
-    }
     const message = textareaRef.current?.value.trim();
     if (message) {
-      onSend(message);
+      if (onSubmit) {
+        onSubmit(e);
+      } else {
+        onSend(message);
+      }
       if (textareaRef.current) {
         textareaRef.current.value = "";
         textareaRef.current.style.height = "36px";
+      }
+      if (onInputChange) {
+        onInputChange("");
       }
     }
   };

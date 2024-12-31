@@ -30,7 +30,8 @@ const Chat = () => {
         id: chatSessionId,
         botId: selectedBot?.id || 'public',
         messages: updatedMessages,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        type: 'public'
       };
       
       existingHistory.unshift(newRecord);
