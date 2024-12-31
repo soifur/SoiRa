@@ -11,8 +11,7 @@ import { ChatRecord, GroupedChatRecord } from "@/components/archive/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { isDatabaseMessage, DatabaseMessage } from "@/types/database";
-import { Json } from "@/integrations/supabase/types";
+import { isDatabaseMessage } from "@/types/database";
 
 const Archive = () => {
   const { bots } = useBots();
@@ -31,7 +30,6 @@ const Archive = () => {
     try {
       console.log("Fetching chat history...");
       
-      // Fetch ALL chats without user_id filter
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
@@ -53,23 +51,37 @@ const Archive = () => {
       const transformedHistory = data.map((record): ChatRecord => {
         console.log("Processing record:", record);
         
-        const messages = Array.isArray(record.messages) 
-          ? (record.messages as Json[])
-              .filter(msg => {
-                const isValid = isDatabaseMessage(msg);
-                if (!isValid) {
-                  console.warn("Invalid message format:", msg);
-                }
-                return isValid;
-              })
-              .map((msg: DatabaseMessage) => ({
-                id: msg.id || createMessage(msg.role, msg.content).id,
-                role: msg.role,
-                content: msg.content,
-                timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-                isBot: msg.role === 'assistant'
-              }))
-          : [];
+        // Ensure messages is an array and handle potential parsing
+        let messagesArray = [];
+        try {
+          if (typeof record.messages === 'string') {
+            messagesArray = JSON.parse(record.messages);
+          } else if (Array.isArray(record.messages)) {
+            messagesArray = record.messages;
+          } else if (record.messages && typeof record.messages === 'object') {
+            messagesArray = [record.messages];
+          }
+        } catch (e) {
+          console.error("Error parsing messages:", e);
+          messagesArray = [];
+        }
+
+        // Transform and validate each message
+        const messages = messagesArray
+          .filter(msg => {
+            const isValid = isDatabaseMessage(msg);
+            if (!isValid) {
+              console.warn("Invalid message format:", msg);
+            }
+            return isValid;
+          })
+          .map(msg => ({
+            id: msg.id || createMessage(msg.role, msg.content).id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+            isBot: msg.role === 'assistant'
+          }));
 
         console.log("Transformed messages:", messages);
 
@@ -87,7 +99,7 @@ const Archive = () => {
 
       console.log("Transformed history:", transformedHistory);
 
-      // Group chats by client_id first
+      // Group chats by client_id
       const groupedChats = transformedHistory.reduce((acc: GroupedChatRecord[], chat) => {
         const existingGroup = acc.find(
           group => group.clientId === chat.client_id
