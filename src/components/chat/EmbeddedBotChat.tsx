@@ -1,47 +1,50 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
-import { useBots } from "@/hooks/useBots";
+import { Bot } from "@/hooks/useBots";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
 const EmbeddedBotChat = () => {
   const { botId } = useParams();
-  const { bots } = useBots();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  console.log("Available bots:", bots); // Debug log
-  console.log("Current botId from params:", botId); // Debug log
-
-  const selectedBot = bots.find((bot) => bot.id === botId);
-  console.log("Selected bot:", selectedBot); // Debug log
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 
   useEffect(() => {
-    if (!selectedBot) {
-      console.error('Bot not found:', botId);
+    try {
+      const configParam = searchParams.get('config');
+      if (!configParam) {
+        throw new Error('No bot configuration provided');
+      }
+
+      const decodedConfig = JSON.parse(atob(decodeURIComponent(configParam)));
+      console.log("Decoded bot config:", decodedConfig);
+      
+      setSelectedBot(decodedConfig);
+
+      // Initialize chat with bot's instructions as system message
+      const initialMessages = [{
+        role: "system",
+        content: decodedConfig.instructions,
+        timestamp: new Date()
+      }];
+      setMessages(initialMessages);
+    } catch (error) {
+      console.error('Error loading bot configuration:', error);
       toast({
         title: "Error",
-        description: "Bot not found. Please make sure the bot ID is correct.",
+        description: "Failed to load bot configuration. Please make sure the embed code is correct.",
         variant: "destructive",
       });
-      return;
     }
-
-    // Initialize chat with bot's instructions as system message
-    const initialMessages = [{
-      role: "system",
-      content: selectedBot.instructions,
-      timestamp: new Date()
-    }];
-    setMessages(initialMessages);
-
-  }, [selectedBot, botId, toast]);
+  }, [searchParams, toast]);
 
   const clearChat = () => {
     if (!selectedBot) return;
@@ -104,7 +107,7 @@ const EmbeddedBotChat = () => {
   if (!selectedBot) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">Bot not found. Please make sure the bot ID is correct.</p>
+        <p className="text-red-500">Bot configuration not found. Please make sure the embed code is correct.</p>
       </div>
     );
   }

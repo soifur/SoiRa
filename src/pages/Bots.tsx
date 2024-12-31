@@ -28,8 +28,17 @@ const Bots = () => {
   };
 
   const handleCopyEmbed = (bot: Bot) => {
-    // Generate the correct embed URL using the bot's ID
-    const embedUrl = `${window.location.origin}/embed/${bot.id}`;
+    // Encode bot configuration (excluding sensitive data like API keys)
+    const botConfig = {
+      id: bot.id,
+      name: bot.name,
+      instructions: bot.instructions,
+      starters: bot.starters,
+      model: bot.model,
+      openRouterModel: bot.openRouterModel
+    };
+    const encodedBot = encodeURIComponent(btoa(JSON.stringify(botConfig)));
+    const embedUrl = `${window.location.origin}/embed/${bot.id}?config=${encodedBot}`;
     const embedCode = `<iframe src="${embedUrl}" width="100%" height="600px" frameborder="0"></iframe>`;
     
     navigator.clipboard.writeText(embedCode).then(() => {
