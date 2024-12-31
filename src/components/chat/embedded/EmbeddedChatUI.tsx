@@ -115,11 +115,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         <MessageList
           messages={messages}
           selectedBot={bot}
-          starters={bot.starters || [
-            "Tell me about yourself",
-            "What can you help me with?",
-            "How does this work?"
-          ]}
+          starters={bot.starters}
           onStarterClick={handleStarterClick}
         />
       </div>

@@ -1,10 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
+import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
 
 export interface Message {
   id: string;
@@ -71,38 +70,32 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
       onScroll={handleScroll}
     >
       {messages.length === 0 && starters && starters.length > 0 && (
-        <div className="h-full flex flex-col items-start justify-start px-4 space-y-6">
-          <div className="w-full space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">
-              Conversation Starters
+        <div className="h-full flex flex-col items-center justify-center px-4 -mt-20">
+          {selectedBot && (
+            <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+              {selectedBot.name}
             </h2>
-            <div className="flex items-center gap-2 mb-4">
-              <Input
-                placeholder="Add a conversation starter"
-                className="flex-1 bg-background/50"
-              />
-              <Button>Add</Button>
-            </div>
-            <div className="space-y-2">
-              {starters.map((starter, index) => (
-                <div key={index} className="flex items-center justify-between gap-2 group">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-left h-auto py-3 text-base font-normal"
-                    onClick={() => onStarterClick && onStarterClick(starter)}
-                  >
-                    {starter}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+          )}
+          <h1 className="text-4xl font-bold mb-12 text-foreground">What can I help with?</h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
+            {starters.map((starter, index) => {
+              const Icon = getStarterIcon(starter);
+              return (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className={cn(
+                    "flex items-center justify-start gap-3 p-4 h-auto text-base",
+                    "rounded-2xl hover:bg-accent/50 transition-colors",
+                    "bg-background/50 backdrop-blur-sm border-muted-foreground/20"
+                  )}
+                  onClick={() => onStarterClick && onStarterClick(starter)}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-left">{starter}</span>
+                </Button>
+              );
+            })}
           </div>
         </div>
       )}

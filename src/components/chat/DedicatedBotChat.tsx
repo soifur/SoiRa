@@ -168,6 +168,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         <MessageList
           messages={formatMessages(messages)}
           selectedBot={bot}
+          starters={bot.starters}
+          onStarterClick={sendMessage}
         />
         <div ref={messagesEndRef} />
       </div>
