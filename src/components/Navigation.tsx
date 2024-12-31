@@ -24,23 +24,27 @@ export const Navigation = () => {
           <Link to="/" className="flex items-center space-x-2">
             <span className="inline-block font-bold">SoiRa</span>
           </Link>
-          {canAccessBots && (
-            <Link to="/bots" className="text-sm font-medium transition-colors hover:text-primary">
-              Bots
-            </Link>
-          )}
-          <Link to="/chat" className="text-sm font-medium transition-colors hover:text-primary">
-            Chat
-          </Link>
-          {canAccessArchive && (
-            <Link to="/archive" className="text-sm font-medium transition-colors hover:text-primary">
-              Archive
-            </Link>
-          )}
-          {canAccessUsers && (
-            <Link to="/users" className="text-sm font-medium transition-colors hover:text-primary">
-              Users
-            </Link>
+          {profile && (
+            <>
+              {canAccessBots && (
+                <Link to="/bots" className="text-sm font-medium transition-colors hover:text-primary">
+                  Bots
+                </Link>
+              )}
+              <Link to="/chat" className="text-sm font-medium transition-colors hover:text-primary">
+                Chat
+              </Link>
+              {canAccessArchive && (
+                <Link to="/archive" className="text-sm font-medium transition-colors hover:text-primary">
+                  Archive
+                </Link>
+              )}
+              {canAccessUsers && (
+                <Link to="/users" className="text-sm font-medium transition-colors hover:text-primary">
+                  Users
+                </Link>
+              )}
+            </>
           )}
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
