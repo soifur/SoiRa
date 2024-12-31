@@ -6,7 +6,7 @@ import EmbeddedChatUI from "./EmbeddedChatUI";
 import { useToast } from "@/components/ui/use-toast";
 
 const EmbeddedChatContainer = () => {
-  const { shareKey } = useParams();
+  const { botId } = useParams();
   const [bot, setBot] = useState<Bot | null>(null);
   const [clientId, setClientId] = useState<string>("");
   const { toast } = useToast();
@@ -29,27 +29,41 @@ const EmbeddedChatContainer = () => {
   useEffect(() => {
     const fetchBotData = async () => {
       try {
-        if (!shareKey) return;
+        if (!botId) return;
 
-        const { data, error } = await supabase
-          .from("bots")
-          .select("*")
-          .eq("id", shareKey)
+        // First fetch the shared bot data using the short_key
+        const { data: sharedBot, error: sharedBotError } = await supabase
+          .from("shared_bots")
+          .select(`
+            *,
+            bot_api_keys(api_key)
+          `)
+          .eq("short_key", botId)
           .single();
 
-        if (error) throw error;
+        if (sharedBotError) throw sharedBotError;
         
+        if (!sharedBot) {
+          toast({
+            title: "Error",
+            description: "Bot not found or sharing has expired",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Transform the data to match our Bot interface
         setBot({
-          id: data.id,
-          name: data.name,
-          instructions: data.instructions || "",
-          starters: data.starters || [],
-          model: data.model,
-          apiKey: data.api_key,
-          openRouterModel: data.open_router_model,
-          avatar: data.avatar,
-          accessType: "private"
+          id: sharedBot.bot_id,
+          name: sharedBot.bot_name,
+          instructions: sharedBot.instructions || "",
+          starters: sharedBot.starters || [],
+          model: sharedBot.model,
+          apiKey: sharedBot.bot_api_keys?.api_key || "",
+          openRouterModel: sharedBot.open_router_model,
+          accessType: "public"
         });
+
       } catch (error) {
         console.error("Error fetching bot:", error);
         toast({
@@ -61,13 +75,13 @@ const EmbeddedChatContainer = () => {
     };
 
     fetchBotData();
-  }, [shareKey, toast]);
+  }, [botId, toast]);
 
   if (!bot || !clientId) {
     return <div>Loading...</div>;
   }
 
-  return <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={shareKey} />;
+  return <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />;
 };
 
 export default EmbeddedChatContainer;
