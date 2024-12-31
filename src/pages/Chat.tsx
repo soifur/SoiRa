@@ -28,10 +28,10 @@ const Chat = () => {
       
       const newRecord = {
         id: chatSessionId,
-        botId: 'public',
+        botId: selectedBotId,  // Use the selected bot ID instead of 'public'
         messages: updatedMessages,
         timestamp: new Date().toISOString(),
-        type: 'public'
+        type: 'dedicated'  // Changed from 'public' to 'dedicated' for personal chats
       };
       
       existingHistory.unshift(newRecord);

@@ -1,79 +1,55 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { Bot } from "@/hooks/useBots";
-import { Link, Globe, Users } from "lucide-react";
+import { createShortBotConfig } from "@/utils/urlUtils";
+import { useToast } from "@/components/ui/use-toast";
 
 interface EmbedOptionsDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
   bot: Bot;
 }
 
-export const EmbedOptionsDialog = ({ bot }: EmbedOptionsDialogProps) => {
+export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogProps) => {
   const { toast } = useToast();
+  const baseUrl = window.location.origin;
+  const shortConfig = createShortBotConfig(bot);
+  
+  const publicLink = `${baseUrl}/embed/${bot.id}?config=${shortConfig}`;
+  const embedCode = `<iframe src="${publicLink}" width="100%" height="600px" frameborder="0"></iframe>`;
 
-  const generateConfig = (type: 'public' | 'link') => {
-    const config = {
-      id: bot.id,
-      name: bot.name,
-      instructions: bot.instructions,
-      starters: bot.starters,
-      model: bot.model,
-      apiKey: bot.apiKey,
-      openRouterModel: bot.openRouterModel,
-      accessType: type
-    };
-    return encodeURIComponent(JSON.stringify(config));
-  };
-
-  const handleCopy = (type: string, isEmbed: boolean) => {
-    const config = generateConfig(type as 'public' | 'link');
-    const baseUrl = `${window.location.origin}/embed/${bot.id}?config=${config}`;
-    const content = isEmbed 
-      ? `<iframe src="${baseUrl}" width="100%" height="600px" frameborder="0"></iframe>`
-      : baseUrl;
-
-    navigator.clipboard.writeText(content).then(() => {
+  const copyToClipboard = (text: string, type: string) => {
+    navigator.clipboard.writeText(text).then(() => {
       toast({
         title: "Copied!",
-        description: `${isEmbed ? 'Embed code' : 'Link'} has been copied to your clipboard.`,
+        description: `${type} has been copied to clipboard`,
       });
     });
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Link className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Share Bot</DialogTitle>
+          <DialogTitle>Share or Embed Chat</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 mt-4">
+        <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Public Link</h3>
             <div className="flex gap-2">
-              <Button onClick={() => handleCopy('public', false)} variant="outline" className="flex-1">
-                <Globe className="h-4 w-4 mr-2" />
-                Copy Link
-              </Button>
-              <Button onClick={() => handleCopy('public', true)} variant="outline" className="flex-1">
-                Copy Embed
+              <Input value={publicLink} readOnly />
+              <Button onClick={() => copyToClipboard(publicLink, "Public link")}>
+                Copy
               </Button>
             </div>
           </div>
-          
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Anyone with Link</h3>
+            <h3 className="text-sm font-medium">Embed Code</h3>
             <div className="flex gap-2">
-              <Button onClick={() => handleCopy('link', false)} variant="outline" className="flex-1">
-                <Users className="h-4 w-4 mr-2" />
-                Copy Link
-              </Button>
-              <Button onClick={() => handleCopy('link', true)} variant="outline" className="flex-1">
-                Copy Embed
+              <Input value={embedCode} readOnly />
+              <Button onClick={() => copyToClipboard(embedCode, "Embed code")}>
+                Copy
               </Button>
             </div>
           </div>

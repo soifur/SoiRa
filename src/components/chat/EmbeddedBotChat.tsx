@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -16,16 +16,6 @@ const EmbeddedBotChat = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
-  const [userScrolled, setUserScrolled] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleScroll = () => {
-    if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 10;
-      setUserScrolled(!isAtBottom);
-    }
-  };
 
   useEffect(() => {
     try {
@@ -40,7 +30,7 @@ const EmbeddedBotChat = () => {
       if (!decodedConfig.apiKey) {
         toast({
           title: "Configuration Error",
-          description: "API key is missing from the bot configuration. Please check your bot settings.",
+          description: "API key is missing from the bot configuration",
           variant: "destructive",
         });
         return;
@@ -52,7 +42,7 @@ const EmbeddedBotChat = () => {
       console.error('Error loading bot configuration:', error);
       toast({
         title: "Error",
-        description: "Failed to load bot configuration. Please make sure the embed code is correct.",
+        description: "Failed to load bot configuration",
         variant: "destructive",
       });
     }
@@ -74,15 +64,14 @@ const EmbeddedBotChat = () => {
         botId: selectedBot?.id,
         messages: updatedMessages,
         timestamp: new Date().toISOString(),
-        type: 'embedded'
+        type: 'embedded'  // This is specifically for embedded/public chats
       };
       
       existingHistory.unshift(newRecord);
       const limitedHistory = existingHistory.slice(0, 100);
       
       localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
-      
-      console.log("Chat history updated:", newRecord);
+      console.log("Embedded chat history updated:", newRecord);
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -97,7 +86,6 @@ const EmbeddedBotChat = () => {
     if (!selectedBot || isLoading) return;
     setInput(starter);
     
-    // Create a synthetic form event
     const syntheticEvent = {
       preventDefault: () => {},
       target: null,
@@ -121,7 +109,6 @@ const EmbeddedBotChat = () => {
   const clearChat = () => {
     if (!selectedBot) return;
     setMessages([]);
-    setUserScrolled(false);
     
     toast({
       title: "Chat Cleared",
@@ -141,7 +128,6 @@ const EmbeddedBotChat = () => {
       ];
       setMessages(newMessages);
       setInput("");
-      setUserScrolled(false);
 
       let response: string;
 
@@ -164,7 +150,7 @@ const EmbeddedBotChat = () => {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI. Please check your API key configuration.",
+        description: error instanceof Error ? error.message : "Failed to get response from AI",
         variant: "destructive",
       });
     } finally {
@@ -186,8 +172,8 @@ const EmbeddedBotChat = () => {
       <EmbeddedChatMessages
         messages={messages}
         bot={selectedBot}
-        userScrolled={userScrolled}
-        onScroll={handleScroll}
+        userScrolled={false}
+        onScroll={() => {}}
         onStarterClick={handleStarterClick}
       />
       <ChatInput
