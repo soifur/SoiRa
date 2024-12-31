@@ -43,12 +43,17 @@ export const updateChatHistory = async (
       console.warn("Could not get client IP, using anonymous:", error);
     }
 
+    // Build the query conditions based on authentication status
+    const queryConditions = sessionData?.session 
+      ? { user_id: sessionData.session.user.id }
+      : { client_id: clientId };
+
     // First, try to find existing chat history
     const { data: existingChat, error: findError } = await supabase
       .from('chat_history')
       .select('id, share_key')
       .eq('bot_id', botId)
-      .eq(sessionData?.session ? 'user_id' : 'client_id', sessionData?.session ? sessionData.session.user.id : clientId)
+      .match(queryConditions)
       .maybeSingle();
 
     if (findError) {
@@ -56,17 +61,15 @@ export const updateChatHistory = async (
       throw findError;
     }
 
-    let error;
     const chatData = {
       bot_id: botId,
       messages: messageData,
-      ...(sessionData?.session 
-        ? { user_id: sessionData.session.user.id }
-        : { client_id: clientId }),
-      // Preserve existing share_key if it exists
+      ...queryConditions,
+      // Only include share_key if it already exists
       ...(existingChat?.share_key && { share_key: existingChat.share_key })
     };
 
+    let error;
     if (existingChat) {
       // Update existing chat
       const { error: updateError } = await supabase
@@ -75,7 +78,7 @@ export const updateChatHistory = async (
         .eq('id', existingChat.id);
       error = updateError;
     } else {
-      // Insert new chat without share_key for new records
+      // Insert new chat without share_key
       const { error: insertError } = await supabase
         .from('chat_history')
         .insert(chatData);
