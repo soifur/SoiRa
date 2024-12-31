@@ -3,24 +3,16 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export class ChatService {
   private static sanitizeText(text: string): string {
-    // Replace smart quotes with straight quotes
+    if (!text) return "";
+    
+    // Replace smart quotes and other special characters with ASCII equivalents
     return text
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
-      // Replace other problematic characters
-      .replace(/[^\x00-\x7F]/g, char => {
-        // Common replacements for non-ASCII characters
-        const replacements: { [key: string]: string } = {
-          "\u2014": "-",    // em dash
-          "\u2013": "-",    // en dash
-          "\u2018": "'",    // left single quote
-          "\u2019": "'",    // right single quote
-          "\u201C": '"',    // left double quote
-          "\u201D": '"',    // right double quote
-          "\u2026": "...",  // ellipsis
-        };
-        return replacements[char] || " ";
-      });
+      .replace(/\u2014/g, "--")
+      .replace(/\u2013/g, "-")
+      .replace(/\u2026/g, "...")
+      .replace(/[^\x00-\x7F]/g, " "); // Replace any remaining non-ASCII chars with space
   }
 
   static async sendOpenRouterMessage(
@@ -38,14 +30,16 @@ export class ChatService {
 
     const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
 
+    const headers = new Headers({
+      'Authorization': `Bearer ${bot.apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'SoiRa Chat Interface'
+    });
+
     const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${bot.apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": window.location.origin,
-        "X-Title": "SoiRa Chat Interface",
-      },
+      headers,
       body: JSON.stringify({
         model: bot.openRouterModel,
         messages: [
