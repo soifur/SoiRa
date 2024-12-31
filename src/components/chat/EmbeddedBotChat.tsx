@@ -28,6 +28,16 @@ const EmbeddedBotChat = () => {
       const decodedConfig = JSON.parse(decodeURIComponent(configParam));
       console.log("Decoded bot config:", decodedConfig);
       
+      // Ensure the API key is included in the bot configuration
+      if (!decodedConfig.apiKey) {
+        toast({
+          title: "Configuration Error",
+          description: "API key is missing from the bot configuration. Please check your bot settings.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setSelectedBot(decodedConfig);
 
       // Initialize chat with bot's instructions as system message
@@ -97,7 +107,7 @@ const EmbeddedBotChat = () => {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI",
+        description: error instanceof Error ? error.message : "Failed to get response from AI. Please check your API key configuration.",
         variant: "destructive",
       });
     } finally {

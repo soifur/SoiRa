@@ -6,6 +6,10 @@ export class ChatService {
     messages: Array<{ role: string; content: string }>,
     bot: Bot
   ) {
+    if (!bot.apiKey) {
+      throw new Error("OpenRouter API key is missing");
+    }
+
     const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
       method: "POST",
       headers: {
@@ -45,20 +49,32 @@ export class ChatService {
     messages: Array<{ role: string; content: string }>,
     bot: Bot
   ) {
-    const genAI = new GoogleGenerativeAI(bot.apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const chat = model.startChat({
-      history: [],
-      generationConfig: {
-        maxOutputTokens: 1000,
-      },
-    });
+    if (!bot.apiKey) {
+      throw new Error("Gemini API key is missing. Please check your bot configuration.");
+    }
 
-    const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messages
-      .map((msg) => `${msg.role === "user" ? "User" : bot.name}: ${msg.content}`)
-      .join("\n")}`;
+    try {
+      const genAI = new GoogleGenerativeAI(bot.apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const chat = model.startChat({
+        history: [],
+        generationConfig: {
+          maxOutputTokens: 1000,
+        },
+      });
 
-    const result = await chat.sendMessage(fullPrompt);
-    return result.response.text();
+      const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messages
+        .map((msg) => `${msg.role === "user" ? "User" : bot.name}: ${msg.content}`)
+        .join("\n")}`;
+
+      const result = await chat.sendMessage(fullPrompt);
+      const response = await result.response.text();
+      return response;
+    } catch (error) {
+      console.error("Gemini API error:", error);
+      throw new Error(
+        `Gemini API error: ${error instanceof Error ? error.message : "Unknown error occurred"}`
+      );
+    }
   }
 }
