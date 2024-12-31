@@ -46,7 +46,7 @@ export const updateChatHistory = async (
     // First, try to find existing chat history
     const { data: existingChat, error: findError } = await supabase
       .from('chat_history')
-      .select('id')
+      .select('id, share_key')
       .eq('bot_id', botId)
       .eq(sessionData?.session ? 'user_id' : 'client_id', sessionData?.session ? sessionData.session.user.id : clientId)
       .maybeSingle();
@@ -62,7 +62,9 @@ export const updateChatHistory = async (
       messages: messageData,
       ...(sessionData?.session 
         ? { user_id: sessionData.session.user.id }
-        : { client_id: clientId })
+        : { client_id: clientId }),
+      // Preserve existing share_key if it exists
+      ...(existingChat?.share_key && { share_key: existingChat.share_key })
     };
 
     if (existingChat) {
@@ -73,7 +75,7 @@ export const updateChatHistory = async (
         .eq('id', existingChat.id);
       error = updateError;
     } else {
-      // Insert new chat
+      // Insert new chat without share_key for new records
       const { error: insertError } = await supabase
         .from('chat_history')
         .insert(chatData);
