@@ -6,7 +6,7 @@ import { useBots } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { createMessage } from "@/utils/messageUtils";
+import { createMessage, formatMessages } from "@/utils/messageUtils";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
@@ -53,10 +53,8 @@ const Chat = () => {
 
     try {
       setIsLoading(true);
-      const newMessages = [
-        ...messages,
-        createMessage("user", message)
-      ];
+      const newUserMessage = createMessage("user", message);
+      const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
       setInput(""); // Clear input
 
@@ -75,10 +73,8 @@ const Chat = () => {
         response = "This is a public chat. Messages are saved but not processed by AI.";
       }
 
-      const updatedMessages = [
-        ...newMessages,
-        createMessage("assistant", response)
-      ];
+      const botResponse = createMessage("assistant", response);
+      const updatedMessages = [...newMessages, botResponse];
       
       setMessages(updatedMessages);
       updateChatHistory(updatedMessages, selectedBot ? 'bot' : 'public');
@@ -95,16 +91,14 @@ const Chat = () => {
         <div className="flex-1">
           <div className="flex flex-col gap-4 h-[calc(100vh-8rem)]">
             <MessageList
-              messages={messages}
+              messages={formatMessages(messages)}
               selectedBot={selectedBot}
-              onStarterClick={setInput}
             />
             <ChatInput
               onSend={handleMessageSend}
               disabled={isLoading}
               isLoading={isLoading}
               placeholder="Type your message..."
-              onInputChange={setInput}
             />
           </div>
         </div>
