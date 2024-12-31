@@ -88,7 +88,7 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
         </span>
         <span className="text-muted-foreground flex items-center gap-1">
           <Calendar className="w-4 h-4" />
-          {lastMessageTime ? formatDate(lastMessageTime) : 'No messages'}
+          {lastMessageTime ? formatDate(lastMessageTime.toString()) : 'No messages'}
         </span>
       </div>
       {!isMobile && (

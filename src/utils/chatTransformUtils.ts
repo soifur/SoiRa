@@ -24,7 +24,6 @@ export const transformChatHistory = (data: any[]): ChatRecord[] => {
 
     console.log("Transformed messages:", messages);
 
-    // Normalize client_id to prevent splitting of chat history
     const normalizedClientId = record.client_id === 'anonymous' || !record.client_id 
       ? 'anonymous'
       : record.client_id;
@@ -55,26 +54,27 @@ export const groupChatsByClient = (transformedHistory: ChatRecord[]): GroupedCha
     if (existingGroup) {
       existingGroup.chats.push(chat);
       
-      if (new Date(latestMessageTime).getTime() > new Date(existingGroup.latestTimestamp).getTime()) {
-        existingGroup.latestTimestamp = latestMessageTime;
+      const latestMessageDate = new Date(latestMessageTime).getTime();
+      const existingTimestampDate = new Date(existingGroup.latestTimestamp).getTime();
+      
+      if (latestMessageDate > existingTimestampDate) {
+        existingGroup.latestTimestamp = latestMessageTime.toString();
       }
     } else {
       acc.push({
         clientId: chat.client_id || 'anonymous',
         botId: chat.botId,
         chats: [chat],
-        latestTimestamp: latestMessageTime
+        latestTimestamp: latestMessageTime.toString()
       });
     }
     return acc;
   }, []);
 
-  // Sort groups by latest message timestamp
   groupedChats.sort((a, b) => 
     new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime()
   );
 
-  // Sort chats within each group by latest message timestamp
   groupedChats.forEach(group => {
     group.chats.sort((a, b) => {
       const aLastMessage = a.messages[a.messages.length - 1];
