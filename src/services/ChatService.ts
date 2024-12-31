@@ -30,12 +30,13 @@ export class ChatService {
 
     const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
 
-    const headers = new Headers({
-      'Authorization': `Bearer ${bot.apiKey}`,
+    // Create headers with ASCII-safe values
+    const headers = {
+      'Authorization': `Bearer ${this.sanitizeText(bot.apiKey)}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
+      'HTTP-Referer': this.sanitizeText(window.location.origin),
       'X-Title': 'SoiRa Chat Interface'
-    });
+    };
 
     const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
       method: "POST",
