@@ -183,7 +183,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         />
       </div>
 
-      <div className="hidden">
+      <div>
         <label className="block text-sm font-medium mb-1">Instructions</label>
         <Textarea
           value={editingBot.instructions}

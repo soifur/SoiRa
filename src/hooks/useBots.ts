@@ -29,7 +29,8 @@ export const useBots = () => {
       // Remove old data if needed
       const oldItems = Object.keys(localStorage).filter(key => 
         key.startsWith("dedicated_chat_") || 
-        key.startsWith("embedded_chat_")
+        key.startsWith("embedded_chat_") ||
+        key.startsWith("public_chat_")
       );
       
       if (oldItems.length > 50) {
@@ -59,7 +60,11 @@ export const useBots = () => {
         
         // Clear old chat data
         Object.keys(localStorage)
-          .filter(key => key.startsWith("dedicated_chat_") || key.startsWith("embedded_chat_"))
+          .filter(key => 
+            key.startsWith("dedicated_chat_") || 
+            key.startsWith("embedded_chat_") ||
+            key.startsWith("public_chat_")
+          )
           .forEach(key => localStorage.removeItem(key));
         
         // Try saving again
@@ -95,8 +100,10 @@ export const useBots = () => {
   const deleteBot = (id: string) => {
     try {
       setBots(bots.filter((b) => b.id !== id));
-      // Also clean up associated chat data
+      // Clean up associated chat data
       localStorage.removeItem(`dedicated_chat_${id}`);
+      localStorage.removeItem(`embedded_chat_${id}`);
+      localStorage.removeItem(`public_chat_${id}`);
     } catch (error) {
       console.error("Error deleting bot:", error);
       toast({
