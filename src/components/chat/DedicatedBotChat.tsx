@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -53,35 +54,53 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     });
   };
 
-  const updateChatHistory = (updatedMessages: typeof messages) => {
-    const history = localStorage.getItem("chatHistory") || "[]";
-    let existingHistory = JSON.parse(history);
-    
-    // Ensure existingHistory is an array
-    if (!Array.isArray(existingHistory)) {
-      existingHistory = [];
-    }
-    
-    // Create a unique identifier for this chat session
-    const chatSessionId = Date.now().toString();
-    
-    // Add new chat record
-    const newRecord = {
-      id: chatSessionId,
-      botId: bot.id,
-      messages: updatedMessages,
-      timestamp: new Date().toISOString()
-    };
-    
-    // Add to beginning of array to show newest first
-    existingHistory.unshift(newRecord);
-    
-    // Limit history to prevent localStorage from getting too full
-    const limitedHistory = existingHistory.slice(0, 100);
-    
-    // Save back to localStorage
+  const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        throw new Error("No authenticated user");
+      }
+
+      // First try to find existing chat history for this bot
+      const { data: existingChat, error: fetchError } = await supabase
+        .from('chat_history')
+        .select('id')
+        .eq('bot_id', bot.id)
+        .eq('user_id', session.session.user.id)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error fetching existing chat:", fetchError);
+        throw fetchError;
+      }
+
+      const chatData = {
+        bot_id: bot.id,
+        messages: updatedMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp?.toISOString()
+        })),
+        user_id: session.session.user.id
+      };
+
+      let error;
+      if (existingChat) {
+        // Update existing chat
+        ({ error } = await supabase
+          .from('chat_history')
+          .update(chatData)
+          .eq('id', existingChat.id));
+      } else {
+        // Insert new chat
+        ({ error } = await supabase
+          .from('chat_history')
+          .insert(chatData));
+      }
+
+      if (error) throw error;
+      
+      console.log("Chat history saved successfully");
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -115,7 +134,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const updatedMessages = [...newMessages, botResponse];
       
       setMessages(updatedMessages);
-      updateChatHistory(updatedMessages);
+      await updateChatHistory(updatedMessages);
       
       const chatKey = `dedicated_chat_${bot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
