@@ -17,7 +17,7 @@ export const ContextManager = {
         .from('user_context')
         .select('context')
         .match({ bot_id: botId, client_id: clientId })
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return (data?.context as Json as UserContext) || {};
@@ -33,7 +33,7 @@ export const ContextManager = {
         .from('user_context')
         .select('context')
         .match({ bot_id: botId, client_id: clientId })
-        .single();
+        .maybeSingle();
 
       const updatedContext: UserContext = {
         ...(existingContext?.context as Json as UserContext || {}),
@@ -47,7 +47,7 @@ export const ContextManager = {
           client_id: clientId,
           context: updatedContext as Json
         }, {
-          onConflict: 'client_id,bot_id'
+          onConflict: 'bot_id,client_id'
         });
 
       if (error) throw error;

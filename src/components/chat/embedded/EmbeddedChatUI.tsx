@@ -52,9 +52,11 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
       const { data: existingChat } = await supabase
         .from('chat_history')
         .select('id')
-        .eq('bot_id', bot.id)
-        .eq('client_id', clientId)
-        .eq('share_key', bot.id)
+        .match({ 
+          bot_id: bot.id,
+          client_id: clientId,
+          share_key: bot.id
+        })
         .maybeSingle();
 
       let error;
