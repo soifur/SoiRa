@@ -11,15 +11,15 @@ export class ChatService {
       .replace(/[^\x00-\x7F]/g, char => {
         // Common replacements for non-ASCII characters
         const replacements: { [key: string]: string } = {
-          '—': '-',    // em dash
-          '–': '-',    // en dash
-          ''': "'",    // curly single quote
-          ''': "'",    // curly single quote
-          '"': '"',    // curly double quote
-          '"': '"',    // curly double quote
-          '…': '...',  // ellipsis
+          "\u2014": "-",    // em dash
+          "\u2013": "-",    // en dash
+          "\u2018": "'",    // left single quote
+          "\u2019": "'",    // right single quote
+          "\u201C": '"',    // left double quote
+          "\u201D": '"',    // right double quote
+          "\u2026": "...",  // ellipsis
         };
-        return replacements[char] || ' ';
+        return replacements[char] || " ";
       });
   }
 
