@@ -7,6 +7,7 @@ import Bots from "@/pages/Bots";
 import Chat from "@/pages/Chat";
 import Archive from "@/pages/Archive";
 import Login from "@/pages/Login";
+import Users from "@/pages/Users";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -64,6 +65,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <Archive />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/users" 
+            element={
+              <ProtectedRoute requiredRole="super_admin">
+                <Users />
               </ProtectedRoute>
             } 
           />
