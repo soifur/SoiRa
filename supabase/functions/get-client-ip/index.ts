@@ -11,19 +11,38 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  const clientIp = req.headers.get('cf-connecting-ip') || 
-                  req.headers.get('x-forwarded-for') || 
-                  'unknown';
-                  
-  return new Response(
-    JSON.stringify({
-      user_ip: clientIp,
-    }),
-    { 
-      headers: { 
-        "Content-Type": "application/json",
-        ...corsHeaders
-      } 
-    },
-  )
+  try {
+    const clientIp = req.headers.get('cf-connecting-ip') || 
+                    req.headers.get('x-forwarded-for') || 
+                    'unknown';
+
+    console.log('Client IP:', clientIp);
+
+    return new Response(
+      JSON.stringify({
+        user_ip: clientIp,
+      }),
+      { 
+        headers: { 
+          "Content-Type": "application/json",
+          ...corsHeaders
+        } 
+      },
+    )
+  } catch (error) {
+    console.error('Error in get-client-ip:', error);
+    return new Response(
+      JSON.stringify({
+        error: 'Failed to get client IP',
+        details: error.message
+      }),
+      { 
+        status: 500,
+        headers: { 
+          "Content-Type": "application/json",
+          ...corsHeaders
+        } 
+      },
+    )
+  }
 })
