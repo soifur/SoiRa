@@ -5,6 +5,8 @@ import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
 import { useBots } from "@/hooks/useBots";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 const EmbeddedBotChat = () => {
   const { botId } = useParams();
@@ -14,11 +16,7 @@ const EmbeddedBotChat = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log("Available bots:", bots);
-  console.log("Current botId from params:", botId);
-
   const selectedBot = bots.find((bot) => bot.id === botId);
-  console.log("Selected bot:", selectedBot);
 
   useEffect(() => {
     if (!selectedBot) {
@@ -31,18 +29,32 @@ const EmbeddedBotChat = () => {
       return;
     }
 
-    const chatKey = `embedded_chat_${selectedBot.id}`;
-    const savedMessages = localStorage.getItem(chatKey);
-    if (savedMessages) {
-      try {
-        const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages);
-      } catch (error) {
-        console.error("Error parsing saved messages:", error);
-        setMessages([]);
-      }
-    }
+    // Initialize chat with bot's instructions as system message
+    const initialMessages = [{
+      role: "system",
+      content: selectedBot.instructions,
+      timestamp: new Date()
+    }];
+    setMessages(initialMessages);
+
   }, [selectedBot, botId, toast]);
+
+  const clearChat = () => {
+    if (!selectedBot) return;
+    
+    // Reset to initial state with just the system message
+    const initialMessages = [{
+      role: "system",
+      content: selectedBot.instructions,
+      timestamp: new Date()
+    }];
+    setMessages(initialMessages);
+    
+    toast({
+      title: "Chat Cleared",
+      description: "The chat history has been cleared.",
+    });
+  };
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +85,6 @@ const EmbeddedBotChat = () => {
       ];
       
       setMessages(updatedMessages);
-      
-      const chatKey = `embedded_chat_${selectedBot.id}`;
-      localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -98,8 +107,20 @@ const EmbeddedBotChat = () => {
 
   return (
     <div className="flex h-screen flex-col gap-4 p-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">{selectedBot.name}</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearChat}
+          className="text-red-500 hover:text-red-700"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Clear Chat
+        </Button>
+      </div>
       <MessageList
-        messages={messages}
+        messages={messages.filter(msg => msg.role !== 'system')}
         selectedBot={selectedBot}
         onStarterClick={setInput}
       />
