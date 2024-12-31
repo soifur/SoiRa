@@ -7,9 +7,11 @@ interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  isLoading?: boolean;
+  onInputChange?: (value: string) => void;
 }
 
-export const ChatInput = ({ onSend, disabled, placeholder }: ChatInputProps) => {
+export const ChatInput = ({ onSend, disabled, placeholder, isLoading, onInputChange }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -32,13 +34,17 @@ export const ChatInput = ({ onSend, disabled, placeholder }: ChatInputProps) => 
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 100)}px`;
+      const newHeight = Math.min(textarea.scrollHeight, 100);
+      textarea.style.height = `${newHeight}px`;
+      if (onInputChange) {
+        onInputChange(textarea.value);
+      }
     }
   };
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "40px"; // Set initial height
+      textareaRef.current.style.height = "36px"; // Reduced initial height
     }
   }, []);
 
@@ -47,12 +53,12 @@ export const ChatInput = ({ onSend, disabled, placeholder }: ChatInputProps) => 
       <Textarea
         ref={textareaRef}
         placeholder={placeholder || "Type a message..."}
-        disabled={disabled}
-        className="min-h-[40px] max-h-[100px] resize-none py-2 px-3"
+        disabled={disabled || isLoading}
+        className="min-h-[36px] max-h-[100px] resize-none py-1.5 px-3 text-sm"
         onKeyDown={handleKeyDown}
         onChange={adjustHeight}
       />
-      <Button type="submit" size="icon" disabled={disabled}>
+      <Button type="submit" size="icon" disabled={disabled || isLoading}>
         <Send className="h-4 w-4" />
       </Button>
     </form>

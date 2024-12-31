@@ -4,7 +4,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import ReactMarkdown from 'react-markdown';
 
-interface ChatMessageProps {
+export interface ChatMessageProps {
   message: string;
   isBot?: boolean;
   avatar?: string;
@@ -29,10 +29,10 @@ export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
           isBot ? "bg-accent" : "bg-primary text-primary-foreground"
         )}
       >
-        <div className="prose prose-sm max-w-none">
+        <div className="prose prose-sm max-w-none [&>p]:mb-0">
           <ReactMarkdown
             components={{
-              p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+              p: ({ children }) => <p className="mb-0.5 last:mb-0">{children}</p>,
               pre: ({ children }) => (
                 <pre className="p-2 bg-muted rounded-md my-1">{children}</pre>
               ),

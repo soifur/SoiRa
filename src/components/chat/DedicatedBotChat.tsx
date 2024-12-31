@@ -7,6 +7,7 @@ import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { createMessage, formatMessages } from "@/utils/messageUtils";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -91,18 +92,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     }
   };
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const sendMessage = async (message: string) => {
+    if (!message.trim()) return;
 
     try {
       setIsLoading(true);
-      const newMessages = [
-        ...messages,
-        { role: "user", content: input, timestamp: new Date() }
-      ];
+      const newUserMessage = createMessage("user", message);
+      const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
-      setInput("");
 
       let response: string;
 
@@ -114,19 +111,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         throw new Error("Unsupported model type");
       }
 
-      const updatedMessages = [
-        ...newMessages,
-        { role: "assistant", content: response, timestamp: new Date() }
-      ];
+      const botResponse = createMessage("assistant", response, true, bot.avatar);
+      const updatedMessages = [...newMessages, botResponse];
       
       setMessages(updatedMessages);
+      updateChatHistory(updatedMessages);
       
-      // Save to localStorage with unique bot ID and interface type key
       const chatKey = `dedicated_chat_${bot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
-      
-      // Update chat history with new messages
-      updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -154,20 +146,18 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       
       <div className="flex-1 overflow-hidden flex flex-col">
         <MessageList
-          messages={messages}
+          messages={formatMessages(messages)}
           selectedBot={bot}
-          onStarterClick={setInput}
         />
         <div ref={messagesEndRef} />
       </div>
       
       <div className="mt-4">
         <ChatInput
-          input={input}
+          onSend={sendMessage}
+          disabled={isLoading}
           isLoading={isLoading}
-          disabled={false}
-          onInputChange={setInput}
-          onSubmit={sendMessage}
+          placeholder="Type your message..."
         />
       </div>
     </Card>
