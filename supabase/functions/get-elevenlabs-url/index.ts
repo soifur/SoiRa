@@ -23,19 +23,28 @@ serve(async (req) => {
       throw new Error('ELEVEN_LABS_API_KEY is not set')
     }
 
+    console.log('Requesting signed URL for bot:', botId)
+
     // Make request to ElevenLabs API to get signed URL
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${botId}`,
+      `https://api.elevenlabs.io/v1/conversation/get_signed_url?agent_id=${botId}`,
       {
         method: 'GET',
         headers: {
           'xi-api-key': ELEVEN_LABS_API_KEY,
+          'Content-Type': 'application/json'
         },
       }
     )
 
     if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.statusText}`)
+      const errorText = await response.text()
+      console.error('ElevenLabs API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
+      throw new Error(`ElevenLabs API error: ${response.statusText} (${response.status})`)
     }
 
     const data = await response.json()
