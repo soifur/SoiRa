@@ -19,6 +19,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [clientId, setClientId] = useState<string>('anonymous');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -43,6 +44,19 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     } else {
       setMessages([]); // Reset messages for new bot
     }
+
+    // Get client IP
+    const getClientId = async () => {
+      try {
+        const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
+        if (user_ip) {
+          setClientId(user_ip);
+        }
+      } catch (error) {
+        console.warn("Could not get client IP, using anonymous:", error);
+      }
+    };
+    getClientId();
   }, [bot.id]);
 
   const clearChat = () => {
@@ -123,9 +137,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       let response: string;
 
       if (bot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(newMessages, bot);
+        response = await ChatService.sendOpenRouterMessage(newMessages, bot, clientId);
       } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, bot);
+        response = await ChatService.sendGeminiMessage(newMessages, bot, clientId);
       } else {
         throw new Error("Unsupported model type");
       }

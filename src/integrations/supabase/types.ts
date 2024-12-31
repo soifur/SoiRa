@@ -196,6 +196,33 @@ export type Database = {
           },
         ]
       }
+      user_context: {
+        Row: {
+          bot_id: string
+          client_id: string
+          context: Json | null
+          created_at: string | null
+          id: string
+          last_updated: string | null
+        }
+        Insert: {
+          bot_id: string
+          client_id: string
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+        }
+        Update: {
+          bot_id?: string
+          client_id?: string
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
