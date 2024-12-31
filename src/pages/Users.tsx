@@ -39,12 +39,14 @@ export default function Users() {
   const { data: profiles, isLoading, error } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
+      console.log("Fetching profiles...");
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) {
+        console.error("Error fetching profiles:", error);
         toast({
           title: "Error fetching users",
           description: error.message,
@@ -53,12 +55,14 @@ export default function Users() {
         throw error;
       }
 
+      console.log("Fetched profiles:", data);
       return data as Profile[];
     },
   });
 
   const handleRoleChange = async (userId: string, newRole: "admin" | "user") => {
     try {
+      console.log("Updating role for user:", userId, "to:", newRole);
       const { error } = await supabase
         .from("profiles")
         .update({ role: newRole })
@@ -71,6 +75,7 @@ export default function Users() {
         description: "User role has been updated successfully.",
       });
     } catch (error: any) {
+      console.error("Error updating role:", error);
       toast({
         title: "Error updating role",
         description: error.message,
