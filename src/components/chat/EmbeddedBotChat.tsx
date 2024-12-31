@@ -92,6 +92,7 @@ const EmbeddedBotChat = () => {
     if (!selectedBot || !botId) return;
     
     try {
+      // Create a new chat history entry
       const chatData = {
         bot_id: selectedBot.id,
         messages: newMessages.map(msg => ({
@@ -99,12 +100,36 @@ const EmbeddedBotChat = () => {
           content: msg.content,
           timestamp: msg.timestamp?.toISOString()
         })),
-        share_key: botId
+        share_key: botId,
+        // Set user_id to null for public chats
+        user_id: null
       };
 
-      const { error } = await supabase
+      // First try to update existing chat history
+      const { data: existingChat, error: fetchError } = await supabase
         .from('chat_history')
-        .insert(chatData);
+        .select('id')
+        .eq('share_key', botId)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error fetching existing chat:", fetchError);
+        throw fetchError;
+      }
+
+      let error;
+      if (existingChat) {
+        // Update existing chat
+        ({ error } = await supabase
+          .from('chat_history')
+          .update(chatData)
+          .eq('id', existingChat.id));
+      } else {
+        // Insert new chat
+        ({ error } = await supabase
+          .from('chat_history')
+          .insert(chatData));
+      }
 
       if (error) throw error;
       
