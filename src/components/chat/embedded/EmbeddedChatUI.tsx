@@ -39,14 +39,6 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
         console.warn("Could not get client IP, using anonymous:", error);
       }
 
-      // First, try to find existing chat history
-      const { data: existingChat } = await supabase
-        .from('chat_history')
-        .select('id')
-        .eq('bot_id', bot.id)
-        .eq('client_id', clientId)
-        .maybeSingle();
-
       const chatData = {
         bot_id: bot.id,
         messages: newMessages.map(msg => ({
@@ -58,14 +50,25 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
         share_key: bot.id
       };
 
+      // First, try to find existing chat history
+      const { data: existingChat } = await supabase
+        .from('chat_history')
+        .select('id')
+        .eq('bot_id', bot.id)
+        .eq('client_id', clientId)
+        .eq('share_key', bot.id)
+        .maybeSingle();
+
       let error;
       if (existingChat) {
+        console.log("Updating existing chat:", existingChat.id);
         // Update existing chat
         ({ error } = await supabase
           .from('chat_history')
           .update(chatData)
           .eq('id', existingChat.id));
       } else {
+        console.log("Creating new chat history");
         // Insert new chat
         ({ error } = await supabase
           .from('chat_history')
