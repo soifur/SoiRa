@@ -44,16 +44,23 @@ const Chat = ({ embeddedBotId }: ChatProps) => {
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
   const saveChatToHistory = (chatMessages: typeof messages) => {
-    const history = localStorage.getItem("chatHistory");
-    const existingHistory = history ? JSON.parse(history) : [];
+    const history = localStorage.getItem("chatHistory") || "[]";
+    const existingHistory = JSON.parse(history);
     
-    // Add new chat record
+    // Add new chat record with timestamp
     const newRecord = {
       botId: selectedBotId,
-      messages: chatMessages,
+      messages: chatMessages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp || new Date().toISOString()
+      })),
+      timestamp: new Date().toISOString()
     };
     
-    existingHistory.push(newRecord);
+    // Add to beginning of array to show newest first
+    existingHistory.unshift(newRecord);
+    
+    // Save back to localStorage
     localStorage.setItem("chatHistory", JSON.stringify(existingHistory));
   };
 
