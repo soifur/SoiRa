@@ -13,7 +13,7 @@ import { ChatControls } from "./ChatControls";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ChatListItem } from "../archive/ChatListItem";
-import { ChatRecord } from "../archive/types";
+import { ChatRecord, SupabaseChatRecord } from "../archive/types";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -41,6 +41,23 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     fetchChatHistory();
   }, [bot.id]);
 
+  const transformSupabaseChatRecord = (record: SupabaseChatRecord): ChatRecord => ({
+    id: record.id,
+    botId: record.bot_id,
+    messages: (record.messages as any[]).map(msg => ({
+      id: msg.id || createMessage(msg.role, msg.content).id,
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+      isBot: msg.role === 'assistant'
+    })),
+    timestamp: record.created_at,
+    shareKey: record.share_key,
+    type: record.share_key ? 'public' : 'private',
+    user_id: record.user_id,
+    client_id: record.client_id
+  });
+
   const fetchChatHistory = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -52,7 +69,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setChatHistory(data || []);
+      
+      const transformedData = (data || []).map(transformSupabaseChatRecord);
+      setChatHistory(transformedData);
     } catch (error) {
       console.error("Error fetching chat history:", error);
     }
