@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -17,6 +17,7 @@ const EmbeddedBotChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [userScrolled, setUserScrolled] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = () => {
     if (chatContainerRef.current) {
