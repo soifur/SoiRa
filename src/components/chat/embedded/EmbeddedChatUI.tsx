@@ -6,6 +6,7 @@ import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
+import { ChatService } from "@/services/ChatService";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -21,7 +22,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      // First try to find existing chat history for this bot and client
       const { data: existingChat, error: fetchError } = await supabase
         .from('chat_history')
         .select('id')
@@ -70,8 +70,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const handleStarterClick = (starter: string) => {
     setInput(starter);
-    const fakeEvent = new Event('submit') as unknown as React.FormEvent;
-    handleMessageSend(fakeEvent);
+    handleMessageSend(new Event('submit') as unknown as React.FormEvent);
   };
 
   const handleMessageSend = async (e: React.FormEvent) => {
@@ -80,13 +79,24 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
     try {
       setIsLoading(true);
-      const newMessages = [
-        ...messages,
-        createMessage("user", input)
-      ];
+      const userMessage = createMessage("user", input);
+      const newMessages = [...messages, userMessage];
       setMessages(newMessages);
       setInput("");
-      await updateChatHistory(newMessages);
+      
+      // Get bot response based on model
+      let botResponse = "";
+      if (bot.model === "gemini") {
+        botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
+      } else if (bot.model === "openrouter") {
+        botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
+      }
+
+      // Add bot response to messages
+      const botMessage = createMessage("assistant", botResponse);
+      const updatedMessages = [...newMessages, botMessage];
+      setMessages(updatedMessages);
+      await updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
