@@ -29,8 +29,8 @@ export const EmbeddedBotChat = () => {
         .eq('share_key', shareKey)
         .single();
 
-      if (historyData) {
-        setMessages(historyData.messages);
+      if (historyData && Array.isArray(historyData.messages)) {
+        setMessages(historyData.messages as Message[]);
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
@@ -47,11 +47,17 @@ export const EmbeddedBotChat = () => {
         .eq('share_key', shareKey)
         .single();
 
+      const messageData = newMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp?.toISOString()
+      }));
+
       if (existingChat) {
         await supabase
           .from('chat_history')
           .update({ 
-            messages: newMessages,
+            messages: messageData,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingChat.id);
@@ -61,7 +67,7 @@ export const EmbeddedBotChat = () => {
           .insert({
             bot_id: bot.id,
             share_key: shareKey,
-            messages: newMessages
+            messages: messageData
           });
       }
     } catch (error) {
@@ -162,13 +168,18 @@ export const EmbeddedBotChat = () => {
     handleSend(starter);
   };
 
+  const handleClearChat = async () => {
+    setMessages([]);
+    await saveChatHistory([]);
+  };
+
   if (!bot) {
     return null;
   }
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <EmbeddedChatHeader bot={bot} />
+      <EmbeddedChatHeader bot={bot} onClearChat={handleClearChat} />
       <EmbeddedChatMessages
         messages={messages}
         bot={bot}
