@@ -17,9 +17,21 @@ const EmbeddedBotChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [userScrolled, setUserScrolled] = useState(false);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!userScrolled && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 10;
+      setUserScrolled(!isAtBottom);
+    }
   };
 
   useEffect(() => {
@@ -71,7 +83,7 @@ const EmbeddedBotChat = () => {
       existingHistory = [];
     }
     
-    const chatSessionId = Date.now().toString();
+    const chatSessionId = `${Date.now()}_${selectedBot?.id}_embedded`;
     
     const newRecord = {
       id: chatSessionId,
@@ -82,7 +94,6 @@ const EmbeddedBotChat = () => {
     };
     
     existingHistory.unshift(newRecord);
-    
     const limitedHistory = existingHistory.slice(0, 100);
     
     try {
@@ -106,6 +117,7 @@ const EmbeddedBotChat = () => {
       timestamp: new Date()
     }];
     setMessages(initialMessages);
+    setUserScrolled(false);
     
     toast({
       title: "Chat Cleared",
@@ -125,6 +137,7 @@ const EmbeddedBotChat = () => {
       ];
       setMessages(newMessages);
       setInput("");
+      setUserScrolled(false);
 
       let response: string;
 
@@ -143,7 +156,6 @@ const EmbeddedBotChat = () => {
       
       setMessages(updatedMessages);
       updateChatHistory(updatedMessages);
-      scrollToBottom();
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -178,7 +190,11 @@ const EmbeddedBotChat = () => {
           Clear Chat
         </Button>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div 
+        className="flex-1 overflow-y-auto" 
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+      >
         <MessageList
           messages={messages.filter(msg => msg.role !== 'system')}
           selectedBot={selectedBot}
