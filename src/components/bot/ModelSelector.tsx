@@ -17,11 +17,11 @@ interface ModelSelectorProps {
 interface OpenRouterModel {
   id: string;
   name: string;
-  pricing: {
-    prompt: string;
-    completion: string;
+  pricing?: {
+    prompt?: string;
+    completion?: string;
   };
-  context_length: number;
+  context_length?: number;
 }
 
 export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: ModelSelectorProps) => {
@@ -36,16 +36,21 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
         const data = await response.json();
         
         // Filter, transform, and sort the models
-        const models = data.data
+        const models = (data.data || [])
           .filter((model: OpenRouterModel) => 
-            // Only include models that are fully operational
-            model.id && model.name && model.pricing
+            // Only include models that have required fields
+            model?.id && 
+            model?.name && 
+            typeof model?.pricing === 'object'
           )
           .map((model: OpenRouterModel) => ({
             id: model.id,
             name: model.name,
-            pricing: model.pricing,
-            context_length: model.context_length
+            pricing: {
+              prompt: model.pricing?.prompt || "N/A",
+              completion: model.pricing?.completion || "N/A"
+            },
+            context_length: model.context_length || 0
           }))
           .sort((a: OpenRouterModel, b: OpenRouterModel) => 
             a.name.localeCompare(b.name)
@@ -127,7 +132,7 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
             <SelectContent>
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
-                  {`${model.name} - ${model.pricing.prompt}/${model.pricing.completion} per 1M tokens - ${Math.floor(model.context_length/1000)}k ctx`}
+                  {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}
                 </SelectItem>
               ))}
             </SelectContent>
