@@ -12,12 +12,11 @@ const EmbeddedChatContainer = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get client IP for identification
     const getClientId = async () => {
       try {
-        const response = await fetch("https://api.ipify.org?format=json");
-        const data = await response.json();
-        setClientId(data.ip);
+        const { data: { user_ip }, error } = await supabase.functions.invoke('get-client-ip');
+        if (error) throw error;
+        setClientId(user_ip || Math.random().toString(36).substring(7));
       } catch (error) {
         console.error("Error fetching client IP:", error);
         // Fallback to a random ID if IP fetch fails
