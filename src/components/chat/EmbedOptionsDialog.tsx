@@ -19,11 +19,11 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
   
   useEffect(() => {
     if (bot && isOpen) {
-      // Generate a unique key for sharing
-      const newShareKey = `share_${bot.id}_${Date.now()}`;
+      // Generate a unique key for sharing without the 'share_' prefix
+      const newShareKey = `${bot.id}_${Date.now()}`;
       setShareKey(newShareKey);
       
-      // Store the bot configuration in localStorage with the share key
+      // Store the bot configuration in localStorage
       try {
         const shareConfig = {
           id: bot.id,

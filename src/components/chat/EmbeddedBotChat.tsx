@@ -17,11 +17,12 @@ const EmbeddedBotChat = () => {
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 
   useEffect(() => {
-    try {
-      if (!shareKey) {
-        throw new Error('No share key provided');
-      }
+    if (!shareKey) {
+      console.error('No share key provided');
+      return;
+    }
 
+    try {
       const storedConfig = localStorage.getItem(shareKey);
       if (!storedConfig) {
         throw new Error('Share configuration not found');
