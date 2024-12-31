@@ -27,45 +27,65 @@ export const updateChatHistory = async (
   sessionData: { session: { user: { id: string } } } | null
 ) => {
   try {
-    // First, try to find existing chat history
-    const { data: existingChat } = await supabase
-      .from('chat_history')
-      .select('id')
-      .eq('bot_id', botId)
-      .eq(
-        sessionData?.session ? 'user_id' : 'client_id',
-        sessionData?.session ? sessionData.session.user.id : 'anonymous'
-      )
-      .maybeSingle();
-
     const messageData = messages.map(msg => ({
       role: msg.role,
       content: msg.content,
       timestamp: msg.timestamp?.toISOString()
     }));
 
+    let clientId = 'anonymous';
+    try {
+      const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
+      if (user_ip) {
+        clientId = user_ip;
+      }
+    } catch (error) {
+      console.warn("Could not get client IP, using anonymous:", error);
+    }
+
+    // First, try to find existing chat history
+    const { data: existingChat, error: findError } = await supabase
+      .from('chat_history')
+      .select('id')
+      .eq('bot_id', botId)
+      .eq(sessionData?.session ? 'user_id' : 'client_id', sessionData?.session ? sessionData.session.user.id : clientId)
+      .maybeSingle();
+
+    if (findError) {
+      console.error("Error finding chat history:", findError);
+      throw findError;
+    }
+
+    let error;
+    const chatData = {
+      bot_id: botId,
+      messages: messageData,
+      ...(sessionData?.session 
+        ? { user_id: sessionData.session.user.id }
+        : { client_id: clientId })
+    };
+
     if (existingChat) {
+      // Update existing chat
       const { error: updateError } = await supabase
         .from('chat_history')
-        .update({ messages: messageData })
+        .update(chatData)
         .eq('id', existingChat.id);
-
-      if (updateError) throw updateError;
+      error = updateError;
     } else {
+      // Insert new chat
       const { error: insertError } = await supabase
         .from('chat_history')
-        .insert({
-          bot_id: botId,
-          messages: messageData,
-          ...(sessionData?.session
-            ? { user_id: sessionData.session.user.id }
-            : { client_id: 'anonymous' })
-        });
+        .insert(chatData);
+      error = insertError;
+    }
 
-      if (insertError) throw insertError;
+    if (error) {
+      console.error("Error updating chat history:", error);
+      throw error;
     }
   } catch (error) {
-    console.error("Error updating chat history:", error);
+    console.error("Error in updateChatHistory:", error);
     throw error;
   }
 };
