@@ -77,15 +77,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     }
   };
 
-  const clearChat = () => {
-    setMessages([]);
-    localStorage.removeItem(`dedicated_chat_${bot.id}`);
-    toast({
-      title: "Chat Cleared",
-      description: "The chat history has been cleared.",
-    });
-  };
-
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -113,13 +104,25 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         )
       };
 
+      // First, try to find existing chat history
+      const { data: existingChat } = await supabase
+        .from('chat_history')
+        .select('id')
+        .eq('bot_id', bot.id)
+        .eq(session.session ? 'user_id' : 'client_id', session.session ? session.session.user.id : clientId)
+        .maybeSingle();
+
       let error;
-      if (selectedChatId) {
+      if (existingChat) {
+        console.log("Updating existing chat:", existingChat.id);
+        // Update existing chat
         ({ error } = await supabase
           .from('chat_history')
           .update(chatData)
-          .eq('id', selectedChatId));
+          .eq('id', existingChat.id));
       } else {
+        console.log("Creating new chat history");
+        // Insert new chat
         ({ error } = await supabase
           .from('chat_history')
           .insert(chatData));
@@ -136,6 +139,15 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         variant: "destructive",
       });
     }
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    localStorage.removeItem(`dedicated_chat_${bot.id}`);
+    toast({
+      title: "Chat Cleared",
+      description: "The chat history has been cleared.",
+    });
   };
 
   const sendMessage = async (message: string) => {
