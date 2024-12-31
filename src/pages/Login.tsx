@@ -31,6 +31,9 @@ const Login = () => {
     <div className="container mx-auto max-w-md pt-20">
       <Card className="p-8">
         <h1 className="text-2xl font-bold mb-6 text-center">Welcome to SoiRa</h1>
+        <p className="text-sm text-muted-foreground mb-6 text-center">
+          Sign up with your email to get started. If you already have an account, sign in.
+        </p>
         <Auth
           supabaseClient={supabase}
           appearance={{
@@ -38,13 +41,19 @@ const Login = () => {
             variables: {
               default: {
                 colors: {
-                  brand: '#000000',
-                  brandAccent: '#333333',
+                  brand: 'hsl(var(--primary))',
+                  brandAccent: 'hsl(var(--primary))',
                 }
               }
+            },
+            className: {
+              container: 'flex flex-col gap-4',
+              button: 'bg-primary text-primary-foreground hover:bg-primary/90',
+              input: 'bg-background',
             }
           }}
           providers={[]}
+          redirectTo={window.location.origin}
         />
       </Card>
     </div>
