@@ -1,91 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { EmbeddedChatHeader } from "./embedded/EmbeddedChatHeader";
-import { EmbeddedChatMessages } from "./embedded/EmbeddedChatMessages";
-import { ChatInput } from "./ChatInput";
 import { Bot } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  sendGeminiMessage, 
-  sendOpenAIMessage, 
-  sendClaudeMessage, 
-  sendOpenRouterMessage 
-} from "@/services/ChatService";
-
-interface Message {
-  role: string;
-  content: string;
-  timestamp?: Date;
-}
+import { EmbeddedChatContainer } from "./embedded/EmbeddedChatContainer";
+import { useEmbeddedChatState } from "./embedded/EmbeddedChatState";
 
 export const EmbeddedBotChat = () => {
   const { shareKey } = useParams();
-  const [messages, setMessages] = useState<Message[]>([]);
   const [bot, setBot] = useState<Bot | null>(null);
-  const [userScrolled, setUserScrolled] = useState(false);
   const { toast } = useToast();
-
-  const loadChatHistory = useCallback(async (shareKey: string) => {
-    try {
-      const { data: historyData } = await supabase
-        .from('chat_history')
-        .select('messages')
-        .eq('share_key', shareKey)
-        .single();
-
-      if (historyData && Array.isArray(historyData.messages)) {
-        // Convert Json[] to Message[]
-        const convertedMessages = historyData.messages.map((msg: any) => ({
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined
-        }));
-        setMessages(convertedMessages);
-      }
-    } catch (error) {
-      console.error('Error loading chat history:', error);
-    }
-  }, []);
-
-  const saveChatHistory = useCallback(async (newMessages: Message[]) => {
-    if (!shareKey || !bot) return;
-
-    try {
-      const { data: existingChat } = await supabase
-        .from('chat_history')
-        .select('id')
-        .eq('share_key', shareKey)
-        .single();
-
-      // Convert Message[] to Json[]
-      const messageData = newMessages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-        timestamp: msg.timestamp?.toISOString()
-      }));
-
-      if (existingChat) {
-        await supabase
-          .from('chat_history')
-          .update({ 
-            messages: messageData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingChat.id);
-      } else {
-        await supabase
-          .from('chat_history')
-          .insert({
-            bot_id: bot.id,
-            share_key: shareKey,
-            messages: messageData
-          });
-      }
-    } catch (error) {
-      console.error('Error saving chat history:', error);
-    }
-  }, [shareKey, bot]);
 
   useEffect(() => {
     const loadBotConfig = async () => {
@@ -116,7 +40,6 @@ export const EmbeddedBotChat = () => {
         };
 
         setBot(botConfig);
-        await loadChatHistory(shareKey);
       } catch (error) {
         console.error("Error loading bot configuration:", error);
         toast({
@@ -128,79 +51,33 @@ export const EmbeddedBotChat = () => {
     };
 
     loadBotConfig();
-  }, [shareKey, toast, loadChatHistory]);
+  }, [shareKey, toast]);
 
-  const handleScroll = () => {
-    setUserScrolled(true);
-  };
-
-  const handleSend = async (message: string) => {
-    if (!bot) return;
-
-    const newMessage = { role: "user", content: message, timestamp: new Date() };
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-    await saveChatHistory(updatedMessages);
-
-    try {
-      let response: string;
-      switch (bot.model) {
-        case "gemini":
-          response = await sendGeminiMessage(updatedMessages, bot);
-          break;
-        case "claude":
-          response = await sendClaudeMessage(updatedMessages, bot);
-          break;
-        case "openai":
-          response = await sendOpenAIMessage(updatedMessages, bot);
-          break;
-        case "openrouter":
-          response = await sendOpenRouterMessage(updatedMessages, bot);
-          break;
-        default:
-          throw new Error("Invalid model selected");
-      }
-
-      const botResponse = { role: "assistant", content: response, timestamp: new Date() };
-      const newMessages = [...updatedMessages, botResponse];
-      setMessages(newMessages);
-      await saveChatHistory(newMessages);
-      setUserScrolled(false);
-    } catch (error) {
-      console.error("Chat error:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send message",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleStarterClick = (starter: string) => {
-    handleSend(starter);
-  };
-
-  const handleClearChat = async () => {
-    setMessages([]);
-    await saveChatHistory([]);
-  };
+  const {
+    messages,
+    isLoading,
+    userScrolled,
+    setUserScrolled,
+    handleSend,
+    handleClearChat,
+    handleStarterClick,
+  } = useEmbeddedChatState(bot as Bot, shareKey);
 
   if (!bot) {
     return null;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <EmbeddedChatHeader bot={bot} onClearChat={handleClearChat} />
-      <EmbeddedChatMessages
-        messages={messages}
-        bot={bot}
-        userScrolled={userScrolled}
-        onScroll={handleScroll}
-        onStarterClick={handleStarterClick}
-      />
-      <ChatInput onSend={handleSend} />
-    </div>
+    <EmbeddedChatContainer
+      bot={bot}
+      messages={messages}
+      userScrolled={userScrolled}
+      isLoading={isLoading}
+      onScroll={() => setUserScrolled(true)}
+      onSend={handleSend}
+      onClearChat={handleClearChat}
+      onStarterClick={handleStarterClick}
+    />
   );
 };
 
