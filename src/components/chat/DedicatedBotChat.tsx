@@ -47,10 +47,45 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const clearChat = () => {
     setMessages([]);
     localStorage.removeItem(`dedicated_chat_${bot.id}`);
+    // Also remove from chat history
+    const history = localStorage.getItem("chatHistory") || "[]";
+    let existingHistory = JSON.parse(history);
+    existingHistory = existingHistory.filter((record: any) => record.botId !== bot.id);
+    localStorage.setItem("chatHistory", JSON.stringify(existingHistory));
+    
     toast({
       title: "Chat Cleared",
       description: "The chat history has been cleared.",
     });
+  };
+
+  const updateChatHistory = (updatedMessages: typeof messages) => {
+    const history = localStorage.getItem("chatHistory") || "[]";
+    let existingHistory = JSON.parse(history);
+    
+    // Ensure existingHistory is an array
+    if (!Array.isArray(existingHistory)) {
+      existingHistory = [];
+    }
+    
+    // Remove old entries for this bot
+    existingHistory = existingHistory.filter((record: any) => record.botId !== bot.id);
+    
+    // Add new chat record
+    const newRecord = {
+      botId: bot.id,
+      messages: updatedMessages,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Add to beginning of array to show newest first
+    existingHistory.unshift(newRecord);
+    
+    // Limit history to prevent localStorage from getting too full
+    const limitedHistory = existingHistory.slice(0, 100);
+    
+    // Save back to localStorage
+    localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -86,6 +121,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       // Save to localStorage with unique bot ID and interface type key
       const chatKey = `dedicated_chat_${bot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+      
+      // Update chat history
+      updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
