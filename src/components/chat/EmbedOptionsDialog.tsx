@@ -44,6 +44,20 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
         const newShareKey = shortKeyData;
         setShareKey(newShareKey);
         
+        // Check if a share configuration already exists for this bot
+        const { data: existingShare } = await supabase
+          .from('shared_bots')
+          .select('short_key')
+          .eq('bot_id', bot.id)
+          .single();
+
+        if (existingShare) {
+          // Use existing share key
+          setShareKey(existingShare.short_key);
+          return;
+        }
+
+        // Create new share configuration
         const { error } = await supabase
           .from('shared_bots')
           .insert({
