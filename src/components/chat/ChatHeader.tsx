@@ -1,65 +1,50 @@
-import { Button } from "@/components/ui/button";
-import { Code } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
 import { Bot } from "@/hooks/useBots";
+import { Button } from "@/components/ui/button";
+import { Menu, Trash2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ChatHeaderProps {
-  bots: Bot[];
-  selectedBotId: string;
-  onBotSelect: (botId: string) => void;
+  bot: Bot;
+  onClearChat: () => void;
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
 }
 
-export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps) => {
+export const ChatHeader = ({ bot, onClearChat, sidebarOpen, onToggleSidebar }: ChatHeaderProps) => {
   const { toast } = useToast();
 
-  const handleEmbed = () => {
-    if (!selectedBotId) {
-      toast({
-        title: "No bot selected",
-        description: "Please select a bot first",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const embedCode = `<iframe
-      src="${window.location.origin}/embed/${selectedBotId}"
-      width="100%"
-      height="600px"
-      frameborder="0"
-    ></iframe>`;
-
-    navigator.clipboard.writeText(embedCode);
+  const handleClearChat = () => {
+    onClearChat();
     toast({
-      title: "Embed code copied!",
-      description: "The embed code has been copied to your clipboard",
+      title: "Chat Cleared",
+      description: "The chat history has been cleared.",
     });
   };
 
   return (
-    <div className="flex justify-between items-center">
-      <Select value={selectedBotId} onValueChange={onBotSelect}>
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Select a bot" />
-        </SelectTrigger>
-        <SelectContent>
-          {bots.map((bot) => (
-            <SelectItem key={bot.id} value={bot.id}>
-              {bot.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button variant="outline" onClick={handleEmbed} disabled={!selectedBotId}>
-        <Code className="mr-2 h-4 w-4" />
-        Embed
+    <div className="border-b border-border p-4 flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        {!sidebarOpen && (
+          <Button variant="ghost" size="sm" onClick={onToggleSidebar}>
+            <Menu className="h-4 w-4" />
+          </Button>
+        )}
+        <div className="flex items-center gap-2">
+          <img
+            src={bot.avatar || "/placeholder.svg"}
+            alt={bot.name}
+            className="w-8 h-8 rounded-full"
+          />
+          <h1 className="text-xl font-semibold">{bot.name}</h1>
+        </div>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleClearChat}
+        className="text-muted-foreground hover:text-foreground"
+      >
+        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   );
