@@ -113,7 +113,7 @@ const EmbeddedBotChat = () => {
         createMessage("user", input)
       ];
       setMessages(newMessages);
-      setInput("");
+      setInput(""); // Clear input immediately after sending
       setUserScrolled(false);
 
       let response: string;

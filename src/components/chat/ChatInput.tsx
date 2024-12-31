@@ -22,7 +22,10 @@ export const ChatInput = ({ onSend, disabled, placeholder, isLoading, onInputCha
     } else if (textareaRef.current?.value.trim()) {
       onSend(textareaRef.current.value);
       textareaRef.current.value = "";
-      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = "36px";
+      if (onInputChange) {
+        onInputChange("");
+      }
     }
   };
 

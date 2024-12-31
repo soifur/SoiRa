@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 export interface Message {
   id: string;
@@ -17,11 +18,11 @@ interface MessageListProps {
   onStarterClick?: (value: string) => void;
 }
 
-export const MessageList = ({ messages }: MessageListProps) => {
+export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottom = useRef(true);
   const lastUserInteraction = useRef<number>(Date.now());
-  const SCROLL_THRESHOLD = 100; // pixels from bottom
+  const SCROLL_THRESHOLD = 100;
 
   useEffect(() => {
     const scrollArea = scrollRef.current;
@@ -34,7 +35,6 @@ export const MessageList = ({ messages }: MessageListProps) => {
     const target = e.target as HTMLDivElement;
     const timeSinceLastInteraction = Date.now() - lastUserInteraction.current;
     
-    // Only update auto-scroll if user hasn't interacted in the last second
     if (timeSinceLastInteraction > 1000) {
       isNearBottom.current = 
         target.scrollHeight - target.scrollTop - target.clientHeight < SCROLL_THRESHOLD;
@@ -48,6 +48,23 @@ export const MessageList = ({ messages }: MessageListProps) => {
       className="flex-1 p-4"
       onScroll={handleScroll}
     >
+      {messages.length === 0 && selectedBot?.starters && selectedBot.starters.length > 0 && (
+        <div className="space-y-2 mb-4">
+          <h3 className="text-sm font-medium">Conversation Starters:</h3>
+          <div className="flex flex-col gap-2">
+            {selectedBot.starters.map((starter: string, index: number) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="text-left"
+                onClick={() => onStarterClick?.(starter)}
+              >
+                {starter}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="space-y-2">
         {messages.map((message) => (
           <ChatMessage

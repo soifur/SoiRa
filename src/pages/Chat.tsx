@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
@@ -7,18 +6,17 @@ import { useBots } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { createMessage } from "@/utils/messageUtils";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
-  const updateChatHistory = (updatedMessages: typeof messages) => {
+  const updateChatHistory = (updatedMessages: typeof messages, type: 'public' | 'bot' = 'public') => {
     const history = localStorage.getItem("chatHistory") || "[]";
     let existingHistory = JSON.parse(history);
     
@@ -26,13 +24,14 @@ const Chat = () => {
       existingHistory = [];
     }
     
-    const chatSessionId = Date.now().toString();
+    const chatSessionId = `${Date.now()}_${type === 'public' ? 'public' : selectedBot?.id}`;
     
     const newRecord = {
       id: chatSessionId,
-      botId: selectedBot?.id || 'public',
+      botId: type === 'public' ? 'public' : selectedBot?.id,
       messages: updatedMessages,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      type: type
     };
     
     existingHistory.unshift(newRecord);
@@ -40,22 +39,17 @@ const Chat = () => {
     
     try {
       localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
-      // Also save to public chat storage if no bot is selected
-      if (!selectedBot) {
-        localStorage.setItem(`public_chat_${chatSessionId}`, JSON.stringify(updatedMessages));
-      }
     } catch (error) {
       console.error("Error saving chat history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save chat history",
-        variant: "destructive",
-      });
     }
   };
 
+  const clearChat = () => {
+    setMessages([]);
+  };
+
   const handleMessageSend = async (message: string) => {
-    if (!message.trim() || !selectedBot) return;
+    if (!message.trim()) return;
 
     try {
       setIsLoading(true);
@@ -64,15 +58,21 @@ const Chat = () => {
         createMessage("user", message)
       ];
       setMessages(newMessages);
+      setInput(""); // Clear input
 
       let response: string;
 
-      if (selectedBot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(newMessages, selectedBot);
-      } else if (selectedBot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, selectedBot);
+      if (selectedBot) {
+        if (selectedBot.model === "openrouter") {
+          response = await ChatService.sendOpenRouterMessage(newMessages, selectedBot);
+        } else if (selectedBot.model === "gemini") {
+          response = await ChatService.sendGeminiMessage(newMessages, selectedBot);
+        } else {
+          throw new Error("Unsupported model type");
+        }
       } else {
-        throw new Error("Unsupported model type");
+        // Handle public chat
+        response = "This is a public chat. Messages are saved but not processed by AI.";
       }
 
       const updatedMessages = [
@@ -81,21 +81,12 @@ const Chat = () => {
       ];
       
       setMessages(updatedMessages);
-      updateChatHistory(updatedMessages);
+      updateChatHistory(updatedMessages, selectedBot ? 'bot' : 'public');
     } catch (error) {
       console.error("Chat error:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const loadChat = (chatMessages: Array<{ role: string; content: string }>) => {
-    setMessages(chatMessages);
   };
 
   return (
@@ -104,13 +95,13 @@ const Chat = () => {
         <div className="flex-1">
           <div className="flex flex-col gap-4 h-[calc(100vh-8rem)]">
             <MessageList
-              messages={formatMessages(messages)}
+              messages={messages}
               selectedBot={selectedBot}
               onStarterClick={setInput}
             />
             <ChatInput
               onSend={handleMessageSend}
-              disabled={!selectedBot}
+              disabled={isLoading}
               isLoading={isLoading}
               placeholder="Type your message..."
               onInputChange={setInput}
