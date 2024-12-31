@@ -68,9 +68,36 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     }
   };
 
-  const handleStarterClick = (starter: string) => {
+  const handleStarterClick = async (starter: string) => {
     setInput(starter);
-    handleMessageSend(new Event('submit') as unknown as React.FormEvent);
+    const userMessage = createMessage("user", starter);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    
+    try {
+      setIsLoading(true);
+      let botResponse = "";
+      if (bot.model === "gemini") {
+        botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
+      } else if (bot.model === "openrouter") {
+        botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
+      }
+
+      const botMessage = createMessage("assistant", botResponse);
+      const updatedMessages = [...newMessages, botMessage];
+      setMessages(updatedMessages);
+      await updateChatHistory(updatedMessages);
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setInput("");
+    }
   };
 
   const handleMessageSend = async (e: React.FormEvent) => {
@@ -113,13 +140,13 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         <MessageList
           messages={messages}
           selectedBot={bot}
-          starters={bot.starters}
+          starters={bot.starters || []}
           onStarterClick={handleStarterClick}
         />
       </div>
       <div className="p-4">
         <ChatInput
-          onSend={() => {}}
+          onSend={handleMessageSend}
           disabled={isLoading}
           isLoading={isLoading}
           placeholder="Type your message..."
