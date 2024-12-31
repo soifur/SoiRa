@@ -19,6 +19,7 @@ interface ChatRecord {
   timestamp: string;
   shareKey?: string;
   type: string;
+  user_id?: string;
 }
 
 const Archive = () => {
@@ -57,7 +58,8 @@ const Archive = () => {
         })),
         timestamp: record.created_at,
         shareKey: record.share_key,
-        type: 'dedicated'
+        type: 'dedicated',
+        user_id: record.user_id
       }));
 
       setChatHistory(transformedHistory);

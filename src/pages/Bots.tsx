@@ -29,6 +29,15 @@ const Bots = () => {
     setSelectedBot(bot);
   };
 
+  const truncateInstructions = (instructions: string, lines: number = 3) => {
+    if (!instructions) return "";
+    const splitInstructions = instructions.split('\n');
+    if (splitInstructions.length <= lines) return instructions;
+    
+    const truncated = splitInstructions.slice(0, lines).join('\n');
+    return `${truncated}...`;
+  };
+
   return (
     <div className="container mx-auto max-w-full pt-20 px-4">
       <div className="flex gap-6 h-[calc(100vh-8rem)]">
@@ -75,16 +84,16 @@ const Bots = () => {
                 onClick={() => setSelectedBot(bot)}
               >
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="flex-1 mr-4">
                     <h3 className="text-lg font-semibold">{bot.name}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       Model: {bot.model}
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {bot.instructions}
+                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
+                      {truncateInstructions(bot.instructions)}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
