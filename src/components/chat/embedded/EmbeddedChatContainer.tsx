@@ -8,7 +8,24 @@ import { useToast } from "@/components/ui/use-toast";
 const EmbeddedChatContainer = () => {
   const { shareKey } = useParams();
   const [bot, setBot] = useState<Bot | null>(null);
+  const [clientId, setClientId] = useState<string>("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Get client IP for identification
+    const getClientId = async () => {
+      try {
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        setClientId(data.ip);
+      } catch (error) {
+        console.error("Error fetching client IP:", error);
+        // Fallback to a random ID if IP fetch fails
+        setClientId(Math.random().toString(36).substring(7));
+      }
+    };
+    getClientId();
+  }, []);
 
   useEffect(() => {
     const fetchBotData = async () => {
@@ -47,11 +64,11 @@ const EmbeddedChatContainer = () => {
     fetchBotData();
   }, [shareKey, toast]);
 
-  if (!bot) {
+  if (!bot || !clientId) {
     return <div>Loading...</div>;
   }
 
-  return <EmbeddedChatUI bot={bot} />;
+  return <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={shareKey} />;
 };
 
 export default EmbeddedChatContainer;
