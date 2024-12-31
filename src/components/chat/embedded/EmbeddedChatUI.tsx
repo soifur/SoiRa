@@ -50,7 +50,6 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
         share_key: bot.id
       };
 
-      // First, try to find existing chat history
       const { data: existingChat } = await supabase
         .from('chat_history')
         .select('id')
@@ -61,26 +60,19 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
 
       let error;
       if (existingChat) {
-        console.log("Updating existing chat:", existingChat.id);
-        // Update existing chat
         ({ error } = await supabase
           .from('chat_history')
           .update(chatData)
           .eq('id', existingChat.id));
       } else {
-        console.log("Creating new chat history");
-        // Insert new chat
         ({ error } = await supabase
           .from('chat_history')
           .insert(chatData));
       }
 
       if (error) {
-        console.error("Error saving chat history:", error);
         throw error;
       }
-      
-      console.log("Chat history saved successfully");
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -143,15 +135,19 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col gap-4 p-4 max-w-3xl mx-auto">
+    <div className="flex h-[100dvh] flex-col bg-background">
       <EmbeddedChatHeader bot={bot} onClearChat={clearChat} />
-      <EmbeddedChatMessages
-        messages={messages}
-        bot={bot}
-        userScrolled={false}
-        onScroll={() => {}}
-        onStarterClick={handleStarterClick}
-      />
+      <div className="flex-1 overflow-hidden px-4 pb-24">
+        <div className="h-full max-w-3xl mx-auto">
+          <EmbeddedChatMessages
+            messages={messages}
+            bot={bot}
+            userScrolled={false}
+            onScroll={() => {}}
+            onStarterClick={handleStarterClick}
+          />
+        </div>
+      </div>
       <ChatInput
         onSend={() => {}}
         disabled={isLoading}

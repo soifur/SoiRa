@@ -76,18 +76,25 @@ export const ChatInput = ({
   }, [value]);
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-2 p-2 bg-background">
-      <Textarea
-        ref={textareaRef}
-        placeholder={placeholder || "Type a message..."}
-        disabled={disabled || isLoading}
-        className="min-h-[36px] max-h-[100px] resize-none py-1.5 px-3 text-sm"
-        onKeyDown={handleKeyDown}
-        onChange={handleChange}
-      />
-      <Button type="submit" size="icon" disabled={disabled || isLoading}>
-        <Send className="h-4 w-4" />
-      </Button>
+    <form onSubmit={handleSubmit} className="flex items-end gap-2 p-4 bg-background/80 backdrop-blur-sm border-t fixed bottom-0 left-0 right-0 max-w-3xl mx-auto">
+      <div className="relative flex-1">
+        <Textarea
+          ref={textareaRef}
+          placeholder={placeholder || "Type a message..."}
+          disabled={disabled || isLoading}
+          className="min-h-[36px] max-h-[100px] resize-none py-2 px-4 pr-12 text-sm rounded-xl bg-accent/50 focus:bg-accent border-accent-foreground/20 focus:border-accent-foreground/30 transition-colors"
+          onKeyDown={handleKeyDown}
+          onChange={handleChange}
+        />
+        <Button 
+          type="submit" 
+          size="icon" 
+          disabled={disabled || isLoading}
+          className="absolute right-2 bottom-1.5 h-8 w-8 bg-primary hover:bg-primary/90"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
     </form>
   );
 };

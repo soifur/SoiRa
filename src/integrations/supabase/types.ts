@@ -43,6 +43,7 @@ export type Database = {
           starters: string[] | null
           updated_at: string
           user_id: string
+          voice_enabled: boolean | null
         }
         Insert: {
           api_key: string
@@ -56,6 +57,7 @@ export type Database = {
           starters?: string[] | null
           updated_at?: string
           user_id: string
+          voice_enabled?: boolean | null
         }
         Update: {
           api_key?: string
@@ -69,6 +71,7 @@ export type Database = {
           starters?: string[] | null
           updated_at?: string
           user_id?: string
+          voice_enabled?: boolean | null
         }
         Relationships: []
       }
@@ -151,6 +154,7 @@ export type Database = {
           share_key: string
           short_key: string | null
           starters: string[] | null
+          voice_enabled: boolean | null
         }
         Insert: {
           api_key_id?: string | null
@@ -165,6 +169,7 @@ export type Database = {
           share_key: string
           short_key?: string | null
           starters?: string[] | null
+          voice_enabled?: boolean | null
         }
         Update: {
           api_key_id?: string | null
@@ -179,6 +184,7 @@ export type Database = {
           share_key?: string
           short_key?: string | null
           starters?: string[] | null
+          voice_enabled?: boolean | null
         }
         Relationships: [
           {
@@ -189,6 +195,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_context: {
+        Row: {
+          bot_id: string
+          client_id: string
+          context: Json | null
+          created_at: string | null
+          id: string
+          last_updated: string | null
+        }
+        Insert: {
+          bot_id: string
+          client_id: string
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+        }
+        Update: {
+          bot_id?: string
+          client_id?: string
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
