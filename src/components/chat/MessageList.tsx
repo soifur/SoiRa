@@ -75,7 +75,7 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
               {selectedBot.name}
             </h2>
           )}
-          <h1 className="text-4xl font-bold mb-12 text-foreground">What can I help with?</h1>
+          <h1 className="text-4xl font-bold mb-12 text-foreground text-center">What can I help with?</h1>
           <div className="grid grid-cols-1 gap-3 w-full max-w-2xl">
             {starters.map((starter, index) => {
               const Icon = getStarterIcon(starter);
