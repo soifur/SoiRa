@@ -35,7 +35,7 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
         const response = await fetch('https://openrouter.ai/api/v1/models');
         const data = await response.json();
         
-        // Filter and transform the models
+        // Filter, transform, and sort the models
         const models = data.data
           .filter((model: OpenRouterModel) => 
             // Only include models that are fully operational
@@ -46,22 +46,31 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
             name: model.name,
             pricing: model.pricing,
             context_length: model.context_length
-          }));
+          }))
+          .sort((a: OpenRouterModel, b: OpenRouterModel) => 
+            a.name.localeCompare(b.name)
+          );
 
+        // Add the auto router option at the beginning
         setOpenRouterModels([
-          ...models,
-          // Always include the auto router option
           {
             id: "auto",
             name: "Auto Router",
             pricing: { prompt: "Dynamic", completion: "Dynamic" },
             context_length: 200000
-          }
+          },
+          ...models
         ]);
       } catch (error) {
         console.error('Error fetching OpenRouter models:', error);
         // Fallback to a minimal set of reliable models if the API fails
         setOpenRouterModels([
+          {
+            id: "auto",
+            name: "Auto Router",
+            pricing: { prompt: "Dynamic", completion: "Dynamic" },
+            context_length: 200000
+          },
           {
             id: "anthropic/claude-3-opus",
             name: "Claude 3 Opus",
@@ -73,12 +82,6 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
             name: "GPT-4 Turbo Preview",
             pricing: { prompt: "$10", completion: "$30" },
             context_length: 128000
-          },
-          {
-            id: "auto",
-            name: "Auto Router",
-            pricing: { prompt: "Dynamic", completion: "Dynamic" },
-            context_length: 200000
           }
         ]);
       } finally {
