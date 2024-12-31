@@ -1,17 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const ELEVEN_LABS_API_KEY = Deno.env.get('ELEVEN_LABS_API_KEY')
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
+
   try {
-    // Get the bot ID from the request body
     const { botId } = await req.json()
     
     if (!botId) {
-      return new Response(
-        JSON.stringify({ error: 'Bot ID is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      )
+      throw new Error('Bot ID is required')
+    }
+
+    const ELEVEN_LABS_API_KEY = Deno.env.get('ELEVEN_LABS_API_KEY')
+    if (!ELEVEN_LABS_API_KEY) {
+      throw new Error('ELEVEN_LABS_API_KEY is not set')
     }
 
     // Make request to ElevenLabs API to get signed URL
@@ -20,8 +29,7 @@ serve(async (req) => {
       {
         method: 'GET',
         headers: {
-          'xi-api-key': ELEVEN_LABS_API_KEY || '',
-          'Content-Type': 'application/json',
+          'xi-api-key': ELEVEN_LABS_API_KEY,
         },
       }
     )
@@ -31,15 +39,27 @@ serve(async (req) => {
     }
 
     const data = await response.json()
-
+    
     return new Response(
       JSON.stringify({ signed_url: data.signed_url }),
-      { headers: { 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
+      }
     )
   } catch (error) {
+    console.error('Error:', error.message)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { 
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
     )
   }
 })

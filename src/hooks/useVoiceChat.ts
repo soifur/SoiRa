@@ -19,9 +19,17 @@ export const useVoiceChat = (botId: string) => {
       // Request microphone access
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Start the conversation with ElevenLabs using the agent ID
+      // Get a signed URL from our backend
+      const { data, error } = await supabase.functions.invoke('get-elevenlabs-url', {
+        body: { botId }
+      });
+      
+      if (error) throw error;
+      if (!data?.signed_url) throw new Error('Failed to get signed URL');
+      
+      // Start the conversation with ElevenLabs using the signed URL
       await conversation.startSession({
-        agentId: botId
+        url: data.signed_url
       });
       
       setIsListening(true);
