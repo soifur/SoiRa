@@ -4,19 +4,19 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
 import { useBots } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { useToast } from "@/components/ui/use-toast";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { bots } = useBots();
+  const { toast } = useToast();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
-  const updateChatHistory = (updatedMessages: typeof messages, type: 'public' | 'bot' = 'public') => {
+  const updateChatHistory = (updatedMessages: typeof messages) => {
     const history = localStorage.getItem("chatHistory") || "[]";
     let existingHistory = JSON.parse(history);
     
@@ -24,14 +24,14 @@ const Chat = () => {
       existingHistory = [];
     }
     
-    const chatSessionId = `${Date.now()}_${type === 'public' ? 'public' : selectedBot?.id}`;
+    const chatSessionId = `${Date.now()}_${selectedBot ? selectedBot.id : 'public'}`;
     
     const newRecord = {
       id: chatSessionId,
-      botId: type === 'public' ? 'public' : selectedBot?.id,
+      botId: selectedBot ? selectedBot.id : 'public',
       messages: updatedMessages,
       timestamp: new Date().toISOString(),
-      type: type
+      type: 'public'
     };
     
     existingHistory.unshift(newRecord);
@@ -41,11 +41,12 @@ const Chat = () => {
       localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
     } catch (error) {
       console.error("Error saving chat history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save chat history",
+        variant: "destructive",
+      });
     }
-  };
-
-  const clearChat = () => {
-    setMessages([]);
   };
 
   const handleMessageSend = async (message: string) => {
@@ -56,7 +57,7 @@ const Chat = () => {
       const newUserMessage = createMessage("user", message);
       const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
-      setInput(""); // Clear input
+      setInput(""); // Clear input immediately after sending
 
       let response: string;
 
@@ -76,9 +77,14 @@ const Chat = () => {
       const updatedMessages = [...newMessages, botResponse];
       
       setMessages(updatedMessages);
-      updateChatHistory(updatedMessages, selectedBot ? 'bot' : 'public');
+      updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to get response from AI",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
