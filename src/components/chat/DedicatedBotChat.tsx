@@ -5,11 +5,15 @@ import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Menu } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useVoiceChat } from "@/hooks/useVoiceChat";
 import { ChatControls } from "./ChatControls";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { ChatListItem } from "../archive/ChatListItem";
+import { ChatRecord } from "../archive/types";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -19,6 +23,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatRecord[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { isListening, startListening, stopListening, isSpeaking } = useVoiceChat(bot.id);
 
@@ -31,20 +38,25 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   }, [messages]);
 
   useEffect(() => {
-    const chatKey = `dedicated_chat_${bot.id}`;
-    const savedMessages = localStorage.getItem(chatKey);
-    if (savedMessages) {
-      try {
-        const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages);
-      } catch (error) {
-        console.error("Error parsing saved messages:", error);
-        setMessages([]);
-      }
-    } else {
-      setMessages([]); // Reset messages for new bot
-    }
+    fetchChatHistory();
   }, [bot.id]);
+
+  const fetchChatHistory = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const { data, error } = await supabase
+        .from('chat_history')
+        .select('*')
+        .eq('bot_id', bot.id)
+        .eq(session.session ? 'user_id' : 'client_id', session.session ? session.session.user.id : 'anonymous')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setChatHistory(data || []);
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+    }
+  };
 
   const clearChat = () => {
     setMessages([]);
@@ -69,19 +81,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         console.warn("Could not get client IP, using anonymous:", error);
       }
 
-      // First try to find existing chat history for this bot
-      const { data: existingChat, error: fetchError } = await supabase
-        .from('chat_history')
-        .select('id')
-        .eq('bot_id', bot.id)
-        .eq(session.session ? 'user_id' : 'client_id', session.session ? session.session.user.id : clientId)
-        .maybeSingle();
-
-      if (fetchError) {
-        console.error("Error fetching existing chat:", fetchError);
-        throw fetchError;
-      }
-
       const chatData = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
@@ -96,11 +95,11 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       };
 
       let error;
-      if (existingChat) {
+      if (selectedChatId) {
         ({ error } = await supabase
           .from('chat_history')
           .update(chatData)
-          .eq('id', existingChat.id));
+          .eq('id', selectedChatId));
       } else {
         ({ error } = await supabase
           .from('chat_history')
@@ -109,7 +108,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       if (error) throw error;
       
-      console.log("Chat history saved successfully");
+      await fetchChatHistory();
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -144,9 +143,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       
       setMessages(updatedMessages);
       await updateChatHistory(updatedMessages);
-      
-      const chatKey = `dedicated_chat_${bot.id}`;
-      localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -159,36 +155,90 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     }
   };
 
+  const loadChat = (chatRecord: ChatRecord) => {
+    setSelectedChatId(chatRecord.id);
+    setMessages(chatRecord.messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined
+    })));
+  };
+
   return (
-    <Card className="flex flex-col h-full p-4 bg-card">
-      <div className="flex justify-between mb-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={clearChat}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+    <div className="flex h-full">
+      {/* Sidebar */}
+      <div className={`border-r border-border ${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden`}>
+        <div className="p-4 h-full flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Chat History</h2>
+            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)}>
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
+          <ScrollArea className="flex-1">
+            <div className="space-y-2">
+              {chatHistory.map((chat) => (
+                <ChatListItem
+                  key={chat.id}
+                  record={chat}
+                  bot={bot}
+                  onClick={() => loadChat(chat)}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
-      
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <MessageList
-          messages={formatMessages(messages)}
-          selectedBot={bot}
-        />
-        <div ref={messagesEndRef} />
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col h-full">
+        <div className="border-b border-border p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {!sidebarOpen && (
+              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)}>
+                <Menu className="h-4 w-4" />
+              </Button>
+            )}
+            <div className="flex items-center gap-2">
+              <img
+                src={bot.avatar || "/placeholder.svg"}
+                alt={bot.name}
+                className="w-8 h-8 rounded-full"
+              />
+              <h1 className="text-xl font-semibold">{bot.name}</h1>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={clearChat}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <div className="flex-1 overflow-hidden flex flex-col p-4">
+          <MessageList
+            messages={formatMessages(messages)}
+            selectedBot={bot}
+          />
+          <div ref={messagesEndRef} />
+        </div>
+        
+        <div className="border-t border-border p-4">
+          <ChatControls
+            onSend={sendMessage}
+            isLoading={isLoading}
+            isSpeaking={isSpeaking}
+            isListening={isListening}
+            startListening={startListening}
+            stopListening={stopListening}
+            showVoiceControls={bot.voice_enabled}
+          />
+        </div>
       </div>
-      
-      <ChatControls
-        onSend={sendMessage}
-        isLoading={isLoading}
-        isSpeaking={isSpeaking}
-        isListening={isListening}
-        startListening={startListening}
-        stopListening={stopListening}
-      />
-    </Card>
+    </div>
   );
 };
 

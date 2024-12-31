@@ -12,6 +12,7 @@ export interface Bot {
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
+  voice_enabled?: boolean;
 }
 
 export const useBots = () => {

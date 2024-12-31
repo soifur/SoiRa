@@ -8,6 +8,7 @@ interface ChatControlsProps {
   isListening: boolean;
   startListening: () => void;
   stopListening: () => void;
+  showVoiceControls?: boolean;
 }
 
 export const ChatControls = ({
@@ -16,7 +17,8 @@ export const ChatControls = ({
   isSpeaking,
   isListening,
   startListening,
-  stopListening
+  stopListening,
+  showVoiceControls = false
 }: ChatControlsProps) => {
   return (
     <div className="mt-4">
@@ -27,12 +29,14 @@ export const ChatControls = ({
           isLoading={isLoading}
           placeholder={isListening ? "Listening..." : "Type your message..."}
         />
-        <VoiceChatControls
-          isListening={isListening}
-          isSpeaking={isSpeaking}
-          startListening={startListening}
-          stopListening={stopListening}
-        />
+        {showVoiceControls && (
+          <VoiceChatControls
+            isListening={isListening}
+            isSpeaking={isSpeaking}
+            startListening={startListening}
+            stopListening={stopListening}
+          />
+        )}
       </div>
       {isListening && (
         <p className="text-sm text-muted-foreground mt-2">
