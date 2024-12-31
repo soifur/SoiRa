@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { createMessage } from "@/utils/messageUtils";
+import { EmbeddedChatHeader } from "./embedded/EmbeddedChatHeader";
+import { EmbeddedChatMessages } from "./embedded/EmbeddedChatMessages";
 
 const EmbeddedBotChat = () => {
   const { botId } = useParams();
@@ -17,15 +16,7 @@ const EmbeddedBotChat = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
   const [userScrolled, setUserScrolled] = useState(false);
-
-  const scrollToBottom = () => {
-    if (!userScrolled && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   const handleScroll = () => {
     if (chatContainerRef.current) {
@@ -34,10 +25,6 @@ const EmbeddedBotChat = () => {
       setUserScrolled(!isAtBottom);
     }
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   useEffect(() => {
     try {
@@ -59,13 +46,7 @@ const EmbeddedBotChat = () => {
       }
       
       setSelectedBot(decodedConfig);
-
-      const initialMessages = [{
-        role: "system",
-        content: decodedConfig.instructions,
-        timestamp: new Date()
-      }];
-      setMessages(initialMessages);
+      setMessages([]);
     } catch (error) {
       console.error('Error loading bot configuration:', error);
       toast({
@@ -111,13 +92,7 @@ const EmbeddedBotChat = () => {
 
   const clearChat = () => {
     if (!selectedBot) return;
-    
-    const initialMessages = [{
-      role: "system",
-      content: selectedBot.instructions,
-      timestamp: new Date()
-    }];
-    setMessages(initialMessages);
+    setMessages([]);
     setUserScrolled(false);
     
     toast({
@@ -179,29 +154,13 @@ const EmbeddedBotChat = () => {
 
   return (
     <div className="flex h-screen flex-col gap-4 p-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">{selectedBot.name}</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={clearChat}
-          className="text-red-500 hover:text-red-700"
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Clear Chat
-        </Button>
-      </div>
-      <div 
-        className="flex-1 overflow-y-auto" 
-        ref={chatContainerRef}
+      <EmbeddedChatHeader bot={selectedBot} onClearChat={clearChat} />
+      <EmbeddedChatMessages
+        messages={messages}
+        bot={selectedBot}
+        userScrolled={userScrolled}
         onScroll={handleScroll}
-      >
-        <MessageList
-          messages={formatMessages(messages)}
-          selectedBot={selectedBot}
-        />
-        <div ref={messagesEndRef} />
-      </div>
+      />
       <ChatInput
         onSend={() => {}}
         disabled={isLoading}

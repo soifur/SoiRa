@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2 } from "lucide-react";
+import { Trash2, Upload, User } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bot } from "@/hooks/useBots";
+import { useToast } from "@/components/ui/use-toast";
 
 interface BotFormProps {
   bot: Bot;
@@ -21,6 +22,30 @@ interface BotFormProps {
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>(bot);
   const [newStarter, setNewStarter] = useState("");
+  const { toast } = useToast();
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Error",
+          description: "Avatar image must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditingBot({
+          ...editingBot,
+          avatar: reader.result as string,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const addStarter = () => {
     if (!newStarter.trim()) return;
@@ -64,14 +89,43 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Name</label>
-        <Input
-          value={editingBot.name}
-          onChange={(e) => setEditingBot({ ...editingBot, name: e.target.value })}
-          placeholder="Bot name"
-        />
+      <div className="flex items-center gap-4">
+        <div className="relative w-24 h-24">
+          <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+            {editingBot.avatar ? (
+              <img 
+                src={editingBot.avatar} 
+                alt="Bot avatar" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-12 h-12 text-muted-foreground" />
+            )}
+          </div>
+          <label 
+            htmlFor="avatar-upload" 
+            className="absolute bottom-0 right-0 p-1 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors"
+          >
+            <Upload className="w-4 h-4 text-primary-foreground" />
+          </label>
+          <input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            className="hidden"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium mb-1">Name</label>
+          <Input
+            value={editingBot.name}
+            onChange={(e) => setEditingBot({ ...editingBot, name: e.target.value })}
+            placeholder="Bot name"
+          />
+        </div>
       </div>
+
       <div>
         <label className="block text-sm font-medium mb-1">Model</label>
         <Select
@@ -128,7 +182,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           placeholder="Enter your API key"
         />
       </div>
-      <div>
+
+      <div className="hidden">
         <label className="block text-sm font-medium mb-1">Instructions</label>
         <Textarea
           value={editingBot.instructions}
@@ -137,6 +192,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           rows={4}
         />
       </div>
+
       <div>
         <label className="block text-sm font-medium mb-1">Conversation Starters</label>
         <div className="flex gap-2 mb-2">
@@ -162,6 +218,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           ))}
         </div>
       </div>
+
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel}>
           Cancel

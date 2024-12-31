@@ -8,7 +8,7 @@ export interface Bot {
   model: "gemini" | "claude" | "openai" | "openrouter";
   apiKey: string;
   openRouterModel?: string;
-  avatar?: string; // Added avatar property
+  avatar?: string;
 }
 
 export const useBots = () => {
