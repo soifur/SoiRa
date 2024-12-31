@@ -91,6 +91,13 @@ const EmbeddedBotChat = () => {
     }
   };
 
+  const handleStarterClick = async (starter: string) => {
+    if (!selectedBot || isLoading) return;
+    setInput(starter);
+    const fakeEvent = new Event('submit') as unknown as React.FormEvent;
+    await sendMessage(fakeEvent);
+  };
+
   const clearChat = () => {
     if (!selectedBot) return;
     setMessages([]);
@@ -161,6 +168,7 @@ const EmbeddedBotChat = () => {
         bot={selectedBot}
         userScrolled={userScrolled}
         onScroll={handleScroll}
+        onStarterClick={handleStarterClick}
       />
       <ChatInput
         onSend={() => {}}
@@ -168,6 +176,7 @@ const EmbeddedBotChat = () => {
         isLoading={isLoading}
         placeholder="Type your message..."
         onInputChange={setInput}
+        value={input}
         onSubmit={sendMessage}
       />
     </div>

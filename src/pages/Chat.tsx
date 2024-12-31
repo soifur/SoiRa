@@ -4,11 +4,16 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { Card } from "@/components/ui/card";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
+import { ChatHeader } from "@/components/chat/ChatHeader";
+import { useBots } from "@/hooks/useBots";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [input, setInput] = useState("");
   const { toast } = useToast();
+  const { bots } = useBots();
+  const [selectedBotId, setSelectedBotId] = useState<string>("");
 
   const updateChatHistory = (updatedMessages: typeof messages) => {
     try {
@@ -43,15 +48,25 @@ const Chat = () => {
     }
   };
 
-  const handleMessageSend = async (message: string) => {
-    if (!message.trim()) return;
+  const handleStarterClick = (starter: string) => {
+    setInput(starter);
+    const fakeEvent = new Event('submit') as unknown as React.FormEvent;
+    handleMessageSend(fakeEvent);
+  };
+
+  const handleMessageSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
 
     try {
       setIsLoading(true);
-      const newUserMessage = createMessage("user", message);
-      const updatedMessages = [...messages, newUserMessage];
-      setMessages(updatedMessages);
-      updateChatHistory(updatedMessages);
+      const newMessages = [
+        ...messages,
+        createMessage("user", input)
+      ];
+      setMessages(newMessages);
+      setInput("");
+      updateChatHistory(newMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -64,15 +79,18 @@ const Chat = () => {
     }
   };
 
-  const handleStarterClick = (starter: string) => {
-    handleMessageSend(starter);
-  };
-
   return (
     <div className="container mx-auto max-w-6xl pt-20">
       <div className="flex gap-4">
         <div className="flex-1">
           <Card className="flex flex-col h-[calc(100vh-8rem)]">
+            <div className="p-4">
+              <ChatHeader
+                bots={bots}
+                selectedBotId={selectedBotId}
+                onBotSelect={setSelectedBotId}
+              />
+            </div>
             <div className="flex-1 overflow-hidden">
               <MessageList
                 messages={formatMessages(messages)}
@@ -86,10 +104,13 @@ const Chat = () => {
             </div>
             <div className="p-4">
               <ChatInput
-                onSend={handleMessageSend}
+                onSend={() => {}}
                 disabled={isLoading}
                 isLoading={isLoading}
                 placeholder="Type your message..."
+                onInputChange={setInput}
+                value={input}
+                onSubmit={handleMessageSend}
               />
             </div>
           </Card>

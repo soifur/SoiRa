@@ -10,6 +10,7 @@ interface ChatInputProps {
   isLoading?: boolean;
   onInputChange?: (value: string) => void;
   onSubmit?: (e: React.FormEvent) => void;
+  value?: string;
 }
 
 export const ChatInput = ({ 
@@ -18,7 +19,8 @@ export const ChatInput = ({
   placeholder, 
   isLoading,
   onInputChange,
-  onSubmit 
+  onSubmit,
+  value 
 }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -67,8 +69,11 @@ export const ChatInput = ({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "36px";
+      if (value !== undefined) {
+        textareaRef.current.value = value;
+      }
     }
-  }, []);
+  }, [value]);
 
   return (
     <form onSubmit={handleSubmit} className="flex items-end gap-2 p-2 bg-background">

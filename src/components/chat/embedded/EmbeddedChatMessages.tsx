@@ -8,13 +8,15 @@ interface EmbeddedChatMessagesProps {
   bot: Bot;
   userScrolled: boolean;
   onScroll: () => void;
+  onStarterClick?: (starter: string) => void;
 }
 
 export const EmbeddedChatMessages = ({ 
   messages, 
   bot, 
   userScrolled, 
-  onScroll 
+  onScroll,
+  onStarterClick 
 }: EmbeddedChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -34,6 +36,8 @@ export const EmbeddedChatMessages = ({
       <MessageList
         messages={formatMessages(messages)}
         selectedBot={bot}
+        starters={bot.starters}
+        onStarterClick={onStarterClick}
       />
       <div ref={messagesEndRef} />
     </div>
