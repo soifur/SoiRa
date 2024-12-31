@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Image, Gift, Lightbulb, List } from "lucide-react";
+import { MessageCircle, HelpCircle, Lightbulb, List } from "lucide-react";
 
 export interface Message {
   id: string;
@@ -20,7 +20,7 @@ interface MessageListProps {
   onStarterClick?: (value: string) => void;
 }
 
-export const MessageList = ({ messages, selectedBot, starters, onStarterClick }: MessageListProps) => {
+export const MessageList = ({ messages, selectedBot, starters = [], onStarterClick }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottom = useRef(true);
   const lastUserInteraction = useRef<number>(Date.now());
@@ -44,12 +44,19 @@ export const MessageList = ({ messages, selectedBot, starters, onStarterClick }:
     lastUserInteraction.current = Date.now();
   };
 
-  const starterButtons = [
-    { text: "Create image", icon: Image },
-    { text: "Surprise me", icon: Gift },
-    { text: "Get advice", icon: Lightbulb },
-    { text: "Make a plan", icon: List },
-  ];
+  // Map starter types to icons
+  const getStarterIcon = (starter: string) => {
+    if (starter.toLowerCase().includes('help') || starter.toLowerCase().includes('how')) {
+      return HelpCircle;
+    }
+    if (starter.toLowerCase().includes('advice') || starter.toLowerCase().includes('suggest')) {
+      return Lightbulb;
+    }
+    if (starter.toLowerCase().includes('list') || starter.toLowerCase().includes('plan')) {
+      return List;
+    }
+    return MessageCircle;
+  };
 
   return (
     <ScrollArea 
@@ -57,21 +64,24 @@ export const MessageList = ({ messages, selectedBot, starters, onStarterClick }:
       className="flex-1 p-4 pb-32"
       onScroll={handleScroll}
     >
-      {messages.length === 0 && (
+      {messages.length === 0 && starters && starters.length > 0 && (
         <div className="h-full flex flex-col items-center justify-center">
           <h1 className="text-4xl font-bold mb-12">What can I help with?</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl px-4">
-            {starterButtons.map((button, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className="flex items-center justify-start gap-2 p-4 h-auto text-base rounded-2xl hover:bg-accent/50 transition-colors"
-                onClick={() => onStarterClick && onStarterClick(button.text)}
-              >
-                <button.icon className="h-5 w-5" />
-                {button.text}
-              </Button>
-            ))}
+            {starters.map((starter, index) => {
+              const Icon = getStarterIcon(starter);
+              return (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="flex items-center justify-start gap-2 p-4 h-auto text-base rounded-2xl hover:bg-accent/50 transition-colors"
+                  onClick={() => onStarterClick && onStarterClick(starter)}
+                >
+                  <Icon className="h-5 w-5" />
+                  {starter}
+                </Button>
+              );
+            })}
           </div>
         </div>
       )}
