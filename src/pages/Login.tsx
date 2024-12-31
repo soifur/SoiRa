@@ -12,7 +12,16 @@ const Login = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session check error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to check login status. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
       if (session) {
         navigate("/");
       }
@@ -25,7 +34,8 @@ const Login = () => {
       
       if (event === 'SIGNED_IN') {
         console.log("User signed in, redirecting to home");
-        navigate("/");
+        // Give a small delay to allow profile creation
+        setTimeout(() => navigate("/"), 1000);
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         toast({
