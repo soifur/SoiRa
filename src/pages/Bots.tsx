@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2, Code2 } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
-import Chat from "@/pages/Chat";
+import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
@@ -25,19 +25,6 @@ const Bots = () => {
   const handleEdit = (bot: Bot) => {
     setEditingBot(bot);
     setSelectedBot(bot); // Automatically select the bot when editing
-  };
-
-  const getEmbedCode = (botId: string) => {
-    const currentUrl = window.location.origin;
-    return `<iframe src="${currentUrl}/embed/${botId}" width="100%" height="600px" frameborder="0"></iframe>`;
-  };
-
-  const copyEmbedCode = (botId: string) => {
-    navigator.clipboard.writeText(getEmbedCode(botId));
-    toast({
-      title: "Success",
-      description: "Embed code copied to clipboard",
-    });
   };
 
   return (
@@ -101,16 +88,6 @@ const Bots = () => {
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
-                        copyEmbedCode(bot.id);
-                      }}
-                    >
-                      <Code2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
                         handleEdit(bot);
                       }}
                     >
@@ -133,10 +110,10 @@ const Bots = () => {
           </div>
         </div>
 
-        {/* Right side: Chat interface */}
+        {/* Right side: Dedicated chat interface */}
         <div className="w-1/2 border-l border-border">
           {selectedBot ? (
-            <Chat embeddedBotId={selectedBot.id} />
+            <DedicatedBotChat bot={selectedBot} />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               Select a bot to start chatting
