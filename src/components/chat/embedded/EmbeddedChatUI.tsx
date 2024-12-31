@@ -50,7 +50,8 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
         share_key: bot.id
       };
 
-      const { data: existingChat } = await supabase
+      // First try to find existing chat history
+      const { data: existingChat, error: fetchError } = await supabase
         .from('chat_history')
         .select('id')
         .eq('bot_id', bot.id)
@@ -58,21 +59,28 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
         .eq('share_key', bot.id)
         .maybeSingle();
 
+      if (fetchError) {
+        console.error("Error fetching existing chat:", fetchError);
+        throw fetchError;
+      }
+
       let error;
       if (existingChat) {
+        // Update existing chat
         ({ error } = await supabase
           .from('chat_history')
           .update(chatData)
           .eq('id', existingChat.id));
       } else {
+        // Insert new chat
         ({ error } = await supabase
           .from('chat_history')
           .insert(chatData));
       }
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+      
+      console.log("Chat history saved successfully");
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({

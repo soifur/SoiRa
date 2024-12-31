@@ -61,6 +61,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         throw new Error("No authenticated user");
       }
 
+      const chatData = {
+        bot_id: bot.id,
+        messages: updatedMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp?.toISOString()
+        })),
+        user_id: session.session.user.id
+      };
+
       // First try to find existing chat history for this bot
       const { data: existingChat, error: fetchError } = await supabase
         .from('chat_history')
@@ -73,16 +83,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         console.error("Error fetching existing chat:", fetchError);
         throw fetchError;
       }
-
-      const chatData = {
-        bot_id: bot.id,
-        messages: updatedMessages.map(msg => ({
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp?.toISOString()
-        })),
-        user_id: session.session.user.id
-      };
 
       let error;
       if (existingChat) {
