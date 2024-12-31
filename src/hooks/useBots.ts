@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@auth0/auth0-react";
 
 export interface Bot {
   id: string;
@@ -18,17 +17,17 @@ export interface Bot {
 export const useBots = () => {
   const { toast } = useToast();
   const [bots, setBots] = useState<Bot[]>([]);
-  const { user } = useAuth();
 
   // Fetch bots from Supabase on component mount
   useEffect(() => {
-    if (user) {
-      fetchBots();
-    }
-  }, [user]);
+    fetchBots();
+  }, []);
 
   const fetchBots = async () => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) return;
+
       const { data, error } = await supabase
         .from('bots')
         .select('*')
@@ -62,6 +61,11 @@ export const useBots = () => {
 
   const saveBot = async (bot: Bot) => {
     try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        throw new Error("No authenticated user");
+      }
+
       const botData = {
         name: bot.name,
         instructions: bot.instructions,
@@ -70,7 +74,7 @@ export const useBots = () => {
         api_key: bot.apiKey,
         open_router_model: bot.openRouterModel,
         avatar: bot.avatar,
-        user_id: user?.sub
+        user_id: session.session.user.id
       };
 
       let result;
