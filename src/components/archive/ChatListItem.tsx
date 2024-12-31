@@ -18,21 +18,24 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    if (isMobile) {
-      return date.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const options: Intl.DateTimeFormatOptions = isMobile 
+      ? {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        }
+      : {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        };
+    
+    return new Intl.DateTimeFormat(undefined, options).format(date);
   };
 
   const copyShareLink = () => {
@@ -84,7 +87,7 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
         </span>
         <span className="text-muted-foreground flex items-center gap-1">
           <Calendar className="w-4 h-4" />
-          {lastMessage?.timestamp ? formatDate(lastMessage.timestamp.toString()) : 'No messages'}
+          {lastMessage?.timestamp ? formatDate(lastMessage.timestamp) : 'No messages'}
         </span>
       </div>
       {!isMobile && (
