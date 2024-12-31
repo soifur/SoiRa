@@ -12,7 +12,9 @@ const Login = () => {
 
   useEffect(() => {
     const checkUser = async () => {
+      console.log("Checking user session...");
       const { data: { session }, error } = await supabase.auth.getSession();
+      
       if (error) {
         console.error("Session check error:", error);
         toast({
@@ -22,8 +24,14 @@ const Login = () => {
         });
         return;
       }
+
       if (session) {
+        console.log("Session found:", session);
+        console.log("User ID:", session.user.id);
+        console.log("User email:", session.user.email);
         navigate("/");
+      } else {
+        console.log("No session found");
       }
     };
     
@@ -33,9 +41,21 @@ const Login = () => {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN') {
-        console.log("User signed in, redirecting to home");
-        // Give a small delay to allow profile creation
-        setTimeout(() => navigate("/"), 1000);
+        console.log("User signed in, checking profile...");
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session?.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile check error:", profileError);
+          // Still redirect but with a delay to allow for profile creation
+          setTimeout(() => navigate("/"), 2000);
+        } else {
+          console.log("Profile found:", profile);
+          navigate("/");
+        }
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         toast({
