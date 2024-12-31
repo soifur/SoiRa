@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { MessageSquare, Calendar, Share2 } from "lucide-react";
+import { MessageSquare, Calendar, Share2, Network } from "lucide-react";
 import { Bot } from "@/hooks/useBots";
 import { ChatRecord } from "./types";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -35,7 +35,8 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
     });
   };
 
-  const copyShareLink = () => {
+  const copyShareLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!record.shareKey) return;
     
     const shortLink = `${window.location.origin}/embed/${record.shareKey}`;
@@ -58,18 +59,20 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
           <span className="font-semibold">
             {bot?.name || "Unknown Bot"}
           </span>
+          {record.client_id && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Network className="w-3 h-3" />
+              {record.client_id.slice(0, 8)}
+            </span>
+          )}
           {record.shareKey && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 px-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                copyShareLink();
-              }}
+              className="h-6 w-6 p-0"
+              onClick={copyShareLink}
             >
-              <Share2 className="w-4 h-4 mr-1" />
-              {isMobile ? "Share" : "Copy Link"}
+              <Share2 className="w-4 h-4" />
             </Button>
           )}
         </div>

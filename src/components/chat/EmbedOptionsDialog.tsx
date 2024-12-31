@@ -37,6 +37,20 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
         if (existingShare) {
           console.log("Using existing share key:", existingShare.short_key);
           setShareKey(existingShare.short_key);
+          
+          // Update the existing share configuration with latest bot data
+          const { error: updateError } = await supabase
+            .from('shared_bots')
+            .update({
+              bot_name: bot.name,
+              instructions: bot.instructions,
+              starters: bot.starters,
+              model: bot.model,
+              open_router_model: bot.openRouterModel,
+            })
+            .eq('short_key', existingShare.short_key);
+
+          if (updateError) throw updateError;
           return;
         }
 
