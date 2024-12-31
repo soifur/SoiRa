@@ -107,13 +107,54 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setMessages(updatedMessages);
       
       const { data: session } = await supabase.auth.getSession();
-      await updateChatHistory(
-        bot.id,
-        updatedMessages,
-        session.session?.user.id
-      );
       
-      await fetchChatHistory();
+      try {
+        // First, try to find existing chat history
+        const { data: existingChat } = await supabase
+          .from('chat_history')
+          .select('id')
+          .eq('bot_id', bot.id)
+          .eq(session.session ? 'user_id' : 'client_id', session.session ? session.session.user.id : 'anonymous')
+          .maybeSingle();
+
+        if (existingChat) {
+          // Update existing chat
+          const { error: updateError } = await supabase
+            .from('chat_history')
+            .update({
+              messages: updatedMessages.map(msg => ({
+                role: msg.role,
+                content: msg.content,
+                timestamp: msg.timestamp?.toISOString()
+              }))
+            })
+            .eq('id', existingChat.id);
+
+          if (updateError) throw updateError;
+        } else {
+          // Insert new chat
+          const { error: insertError } = await supabase
+            .from('chat_history')
+            .insert({
+              bot_id: bot.id,
+              messages: updatedMessages.map(msg => ({
+                role: msg.role,
+                content: msg.content,
+                timestamp: msg.timestamp?.toISOString()
+              })),
+              ...(session.session 
+                ? { user_id: session.session.user.id }
+                : { client_id: 'anonymous' })
+            });
+
+          if (insertError) throw insertError;
+        }
+        
+        await fetchChatHistory();
+      } catch (error) {
+        console.error("Error updating chat history:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Chat error:", error);
       toast({
