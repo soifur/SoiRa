@@ -45,7 +45,6 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
     lastUserInteraction.current = Date.now();
   };
 
-  // Map starter types to icons
   const getStarterIcon = (starter: string) => {
     const lowerStarter = starter.toLowerCase();
     if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
@@ -66,18 +65,18 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
   return (
     <ScrollArea 
       ref={scrollRef}
-      className="flex-1 p-4 pb-32"
+      className="flex-1 p-4"
       onScroll={handleScroll}
     >
       {messages.length === 0 && starters && starters.length > 0 && (
-        <div className="h-full flex flex-col items-center justify-center px-4 -mt-20">
+        <div className="h-full flex flex-col items-center justify-center px-4">
           {selectedBot && (
             <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
               {selectedBot.name}
             </h2>
           )}
           <h1 className="text-4xl font-bold mb-12 text-foreground">What can I help with?</h1>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
+          <div className="grid grid-cols-1 gap-3 w-full max-w-2xl">
             {starters.map((starter, index) => {
               const Icon = getStarterIcon(starter);
               return (
@@ -85,14 +84,15 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
                   key={index}
                   variant="outline"
                   className={cn(
-                    "flex items-center justify-start gap-3 p-4 h-auto text-base",
+                    "flex items-center justify-start gap-3 p-4 h-auto text-base w-full",
                     "rounded-2xl hover:bg-accent/50 transition-colors",
-                    "bg-background/50 backdrop-blur-sm border-muted-foreground/20"
+                    "bg-background/50 backdrop-blur-sm border-muted-foreground/20",
+                    "whitespace-normal text-left"
                   )}
                   onClick={() => onStarterClick && onStarterClick(starter)}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-left">{starter}</span>
+                  <span className="text-left break-words">{starter}</span>
                 </Button>
               );
             })}

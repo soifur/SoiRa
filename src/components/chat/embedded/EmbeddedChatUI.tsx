@@ -84,7 +84,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       setMessages(newMessages);
       setInput("");
       
-      // Get bot response based on model
       let botResponse = "";
       if (bot.model === "gemini") {
         botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
@@ -92,7 +91,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
       }
 
-      // Add bot response to messages
       const botMessage = createMessage("assistant", botResponse);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
