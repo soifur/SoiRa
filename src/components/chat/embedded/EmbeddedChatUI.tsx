@@ -69,35 +69,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   };
 
   const handleStarterClick = async (starter: string) => {
-    setInput(starter);
-    const userMessage = createMessage("user", starter);
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    
-    try {
-      setIsLoading(true);
-      let botResponse = "";
-      if (bot.model === "gemini") {
-        botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
-      } else if (bot.model === "openrouter") {
-        botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
-      }
-
-      const botMessage = createMessage("assistant", botResponse);
-      const updatedMessages = [...newMessages, botMessage];
-      setMessages(updatedMessages);
-      await updateChatHistory(updatedMessages);
-    } catch (error) {
-      console.error("Chat error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to process message",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      setInput("");
-    }
+    await sendMessage(starter);
   };
 
   const sendMessage = async (message: string) => {
