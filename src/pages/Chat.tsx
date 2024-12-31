@@ -69,7 +69,6 @@ const Chat = () => {
           throw new Error("Unsupported model type");
         }
       } else {
-        // Handle public chat
         response = "This is a public chat. Messages are saved but not processed by AI.";
       }
 
@@ -93,12 +92,14 @@ const Chat = () => {
             <MessageList
               messages={formatMessages(messages)}
               selectedBot={selectedBot}
+              onStarterClick={handleMessageSend}
             />
             <ChatInput
               onSend={handleMessageSend}
               disabled={isLoading}
               isLoading={isLoading}
               placeholder="Type your message..."
+              onInputChange={setInput}
             />
           </div>
         </div>

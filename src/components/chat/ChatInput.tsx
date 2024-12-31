@@ -20,7 +20,8 @@ export const ChatInput = ({ onSend, disabled, placeholder, isLoading, onInputCha
     if (onSubmit) {
       onSubmit(e);
     } else if (textareaRef.current?.value.trim()) {
-      onSend(textareaRef.current.value);
+      const message = textareaRef.current.value;
+      onSend(message);
       textareaRef.current.value = "";
       textareaRef.current.style.height = "36px";
       if (onInputChange) {

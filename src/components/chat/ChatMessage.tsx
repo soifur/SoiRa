@@ -29,12 +29,12 @@ export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
           isBot ? "bg-accent" : "bg-primary text-primary-foreground"
         )}
       >
-        <div className="prose prose-sm max-w-none [&>p]:mb-0">
+        <div className="prose prose-sm max-w-none space-y-2">
           <ReactMarkdown
             components={{
-              p: ({ children }) => <p className="mb-0.5 last:mb-0">{children}</p>,
+              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
               pre: ({ children }) => (
-                <pre className="p-2 bg-muted rounded-md my-1">{children}</pre>
+                <pre className="p-2 bg-muted rounded-md my-2">{children}</pre>
               ),
             }}
           >
