@@ -11,7 +11,7 @@ interface EmbedOptionsDialogProps {
 export const EmbedOptionsDialog = ({ bot }: EmbedOptionsDialogProps) => {
   const { toast } = useToast();
 
-  const generateConfig = (type: 'private' | 'public' | 'link') => {
+  const generateConfig = (type: 'public' | 'link') => {
     const config = {
       id: bot.id,
       name: bot.name,
@@ -26,7 +26,7 @@ export const EmbedOptionsDialog = ({ bot }: EmbedOptionsDialogProps) => {
   };
 
   const handleCopy = (type: string, isEmbed: boolean) => {
-    const config = generateConfig(type as 'private' | 'public' | 'link');
+    const config = generateConfig(type as 'public' | 'link');
     const baseUrl = `${window.location.origin}/embed/${bot.id}?config=${config}`;
     const content = isEmbed 
       ? `<iframe src="${baseUrl}" width="100%" height="600px" frameborder="0"></iframe>`
@@ -53,19 +53,6 @@ export const EmbedOptionsDialog = ({ bot }: EmbedOptionsDialogProps) => {
           <DialogTitle>Share Bot</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Private Link</h3>
-            <div className="flex gap-2">
-              <Button onClick={() => handleCopy('private', false)} variant="outline" className="flex-1">
-                <Link className="h-4 w-4 mr-2" />
-                Copy Link
-              </Button>
-              <Button onClick={() => handleCopy('private', true)} variant="outline" className="flex-1">
-                Copy Embed
-              </Button>
-            </div>
-          </div>
-          
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Public Link</h3>
             <div className="flex gap-2">

@@ -6,7 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 export const Navigation = () => {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
-  const isEmbedded = new URLSearchParams(location.search).get('bot') !== null;
+  const isEmbedded = location.pathname.startsWith('/embed/');
 
   // Don't show navigation in embedded mode
   if (isEmbedded) return null;
