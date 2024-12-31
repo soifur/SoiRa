@@ -89,13 +89,8 @@ export const useAuth = () => {
         await getProfile();
       } else {
         setProfile(null);
-        // Only navigate if we're not already on the login page and not in an iframe
-        if (location.pathname !== '/login' && window.top === window.self) {
-          try {
-            navigate('/login', { replace: true });
-          } catch (error) {
-            console.error("Navigation error:", error);
-          }
+        if (location.pathname !== '/login' && !location.pathname.startsWith('/embed/')) {
+          navigate('/login', { replace: true });
         }
       }
     });
@@ -109,8 +104,7 @@ export const useAuth = () => {
     try {
       await supabase.auth.signOut();
       setProfile(null);
-      // Only navigate if we're not already on the login page and not in an iframe
-      if (location.pathname !== '/login' && window.top === window.self) {
+      if (location.pathname !== '/login' && !location.pathname.startsWith('/embed/')) {
         navigate('/login', { replace: true });
       }
     } catch (error) {

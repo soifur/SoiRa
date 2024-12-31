@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: "super_admin" | "admin" }) => {
   const { profile, loading } = useAuth();
-  const isEmbedded = window.top !== window.self;
+  const isEmbedded = location.pathname.startsWith('/embed/');
 
   if (loading) {
     return <div>Loading...</div>;
@@ -22,10 +22,10 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole) {
+  if (requiredRole && profile) {
     const hasAccess = requiredRole === "super_admin" 
-      ? profile?.role === "super_admin"
-      : profile?.role === "super_admin" || profile?.role === "admin";
+      ? profile.role === "super_admin"
+      : profile.role === "super_admin" || profile.role === "admin";
 
     if (!hasAccess) {
       return <Navigate to="/" replace />;
