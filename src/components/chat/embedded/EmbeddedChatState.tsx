@@ -3,6 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/chat";
 import { Bot } from "@/hooks/useBots";
 import { useToast } from "@/components/ui/use-toast";
+import { 
+  sendGeminiMessage,
+  sendClaudeMessage,
+  sendOpenAIMessage,
+  sendOpenRouterMessage
+} from "@/services/ChatService";
 
 interface UseEmbeddedChatState {
   messages: Message[];
