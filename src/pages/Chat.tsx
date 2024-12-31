@@ -19,12 +19,22 @@ const Chat = () => {
   const embeddedBotId = new URLSearchParams(location.search).get('bot');
   const isEmbedded = embeddedBotId !== null;
 
-  // In embedded mode, set the bot ID from the URL
+  // Set the bot ID from URL parameter if in embedded mode
   useEffect(() => {
     if (embeddedBotId) {
-      setSelectedBotId(embeddedBotId);
+      const botExists = bots.some(bot => bot.id === embeddedBotId);
+      if (botExists) {
+        setSelectedBotId(embeddedBotId);
+      } else {
+        console.error('Embedded bot ID not found:', embeddedBotId);
+        toast({
+          title: "Error",
+          description: "The specified chatbot could not be found.",
+          variant: "destructive",
+        });
+      }
     }
-  }, [embeddedBotId]);
+  }, [embeddedBotId, bots, toast]);
 
   const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
