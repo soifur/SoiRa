@@ -28,7 +28,16 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (newMessages: typeof messages) => {
     try {
-      const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
+      let clientId = 'anonymous';
+      
+      try {
+        const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
+        if (user_ip) {
+          clientId = user_ip;
+        }
+      } catch (error) {
+        console.warn("Could not get client IP, using anonymous:", error);
+      }
       
       const chatData = {
         bot_id: bot.id,
@@ -37,7 +46,7 @@ export const EmbeddedChatUI = ({ bot }: EmbeddedChatUIProps) => {
           content: msg.content,
           timestamp: msg.timestamp?.toISOString()
         })),
-        client_id: user_ip,
+        client_id: clientId,
         share_key: bot.id
       };
 
