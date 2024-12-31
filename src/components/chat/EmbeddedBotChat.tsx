@@ -96,7 +96,26 @@ const EmbeddedBotChat = () => {
   const handleStarterClick = async (starter: string) => {
     if (!selectedBot || isLoading) return;
     setInput(starter);
-    await sendMessage(new Event('submit') as React.FormEvent);
+    
+    // Create a synthetic form event
+    const syntheticEvent = {
+      preventDefault: () => {},
+      target: null,
+      currentTarget: null,
+      bubbles: true,
+      cancelable: true,
+      defaultPrevented: false,
+      eventPhase: 0,
+      isTrusted: true,
+      nativeEvent: new Event('submit'),
+      stopPropagation: () => {},
+      isPropagationStopped: () => false,
+      persist: () => {},
+      isDefaultPrevented: () => false,
+      type: 'submit'
+    } as React.FormEvent<HTMLFormElement>;
+
+    await sendMessage(syntheticEvent);
   };
 
   const clearChat = () => {
