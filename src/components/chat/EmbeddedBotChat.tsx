@@ -30,9 +30,14 @@ const EmbeddedBotChat = () => {
       try {
         console.log("Fetching bot config for ID:", botId);
         
-        const { data, error: fetchError } = await supabase
+        const { data: sharedBot, error: fetchError } = await supabase
           .from('shared_bots')
-          .select('*')
+          .select(`
+            *,
+            bot_api_keys (
+              api_key
+            )
+          `)
           .eq('share_key', botId)
           .maybeSingle();
 
@@ -41,21 +46,21 @@ const EmbeddedBotChat = () => {
           throw fetchError;
         }
 
-        if (!data) {
+        if (!sharedBot) {
           console.log('No bot configuration found for ID:', botId);
           throw new Error('Bot configuration not found');
         }
 
-        console.log("Loaded shared bot config:", data);
+        console.log("Loaded shared bot config:", sharedBot);
         
         const botConfig: Bot = {
-          id: data.bot_id,
-          name: data.bot_name,
-          instructions: data.instructions || "",
-          starters: data.starters || [],
-          model: data.model as "gemini" | "claude" | "openai" | "openrouter",
-          apiKey: "", // API key is not shared for security
-          openRouterModel: data.open_router_model,
+          id: sharedBot.bot_id,
+          name: sharedBot.bot_name,
+          instructions: sharedBot.instructions || "",
+          starters: sharedBot.starters || [],
+          model: sharedBot.model as "gemini" | "claude" | "openai" | "openrouter",
+          apiKey: sharedBot.bot_api_keys?.api_key || "",
+          openRouterModel: sharedBot.open_router_model,
         };
 
         setSelectedBot(botConfig);

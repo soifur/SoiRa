@@ -9,8 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bot_api_keys: {
+        Row: {
+          api_key: string
+          bot_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          api_key: string
+          bot_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          api_key?: string
+          bot_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       shared_bots: {
         Row: {
+          api_key_id: string | null
           bot_id: string
           bot_name: string
           created_at: string | null
@@ -23,6 +45,7 @@ export type Database = {
           starters: string[] | null
         }
         Insert: {
+          api_key_id?: string | null
           bot_id: string
           bot_name: string
           created_at?: string | null
@@ -35,6 +58,7 @@ export type Database = {
           starters?: string[] | null
         }
         Update: {
+          api_key_id?: string | null
           bot_id?: string
           bot_name?: string
           created_at?: string | null
@@ -46,7 +70,15 @@ export type Database = {
           share_key?: string
           starters?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "shared_bots_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "bot_api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

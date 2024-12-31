@@ -25,6 +25,18 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
       
       setIsLoading(true);
       try {
+        // First store the API key
+        const { data: apiKeyData, error: apiKeyError } = await supabase
+          .from('bot_api_keys')
+          .insert({
+            bot_id: bot.id,
+            api_key: bot.apiKey,
+          })
+          .select()
+          .single();
+
+        if (apiKeyError) throw apiKeyError;
+
         const newShareKey = `${bot.id}_${Date.now()}`;
         setShareKey(newShareKey);
         
@@ -38,6 +50,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             starters: bot.starters,
             model: bot.model,
             open_router_model: bot.openRouterModel,
+            api_key_id: apiKeyData.id,
           });
 
         if (error) throw error;
