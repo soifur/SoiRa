@@ -6,7 +6,6 @@ export const transformChatHistory = (data: any[]): ChatRecord[] => {
   return data.map((record): ChatRecord => {
     console.log("Processing record:", record);
     
-    // Messages are already parsed from Supabase
     const messages = record.messages
       .filter((msg: any) => {
         const isValid = isDatabaseMessage(msg);
@@ -56,7 +55,7 @@ export const groupChatsByClient = (transformedHistory: ChatRecord[]): GroupedCha
     if (existingGroup) {
       existingGroup.chats.push(chat);
       
-      if (new Date(latestMessageTime) > new Date(existingGroup.latestTimestamp)) {
+      if (new Date(latestMessageTime).getTime() > new Date(existingGroup.latestTimestamp).getTime()) {
         existingGroup.latestTimestamp = latestMessageTime;
       }
     } else {
