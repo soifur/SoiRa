@@ -17,7 +17,7 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
+  const [messages, setMessages] = useState<Array<{ id: string; role: string; content: string; timestamp?: Date }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatRecord[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -115,6 +115,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const loadChat = (chatRecord: ChatRecord) => {
     setSelectedChatId(chatRecord.id);
     setMessages(chatRecord.messages.map(msg => ({
+      id: msg.id || createMessage(msg.role, msg.content).id,
       role: msg.role,
       content: msg.content,
       timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined
