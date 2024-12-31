@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Bots from "./pages/Bots";
+import Archive from "./pages/Archive";
 import { Navigation } from "./components/Navigation";
 import { useEffect } from "react";
 
@@ -30,6 +31,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/bots" element={<Bots />} />
+              <Route path="/archive" element={<Archive />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
