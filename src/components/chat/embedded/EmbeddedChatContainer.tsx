@@ -39,7 +39,7 @@ const EmbeddedChatContainer = () => {
             bot_api_keys(api_key)
           `)
           .eq("short_key", botId)
-          .single();
+          .maybeSingle();
 
         if (sharedBotError) throw sharedBotError;
         
@@ -60,7 +60,7 @@ const EmbeddedChatContainer = () => {
         const model = validModel(sharedBot.model) ? sharedBot.model : 'gemini';
 
         // Transform the data to match our Bot interface
-        setBot({
+        const transformedBot: Bot = {
           id: sharedBot.bot_id,
           name: sharedBot.bot_name,
           instructions: sharedBot.instructions || "",
@@ -69,7 +69,10 @@ const EmbeddedChatContainer = () => {
           apiKey: sharedBot.bot_api_keys?.api_key || "",
           openRouterModel: sharedBot.open_router_model,
           accessType: "public"
-        });
+        };
+
+        console.log("Fetched fresh bot data:", transformedBot);
+        setBot(transformedBot);
 
       } catch (error) {
         console.error("Error fetching bot:", error);
@@ -81,6 +84,7 @@ const EmbeddedChatContainer = () => {
       }
     };
 
+    // Fetch fresh data every time the component mounts or botId changes
     fetchBotData();
   }, [botId, toast]);
 
