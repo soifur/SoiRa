@@ -6,7 +6,12 @@ import { EmbeddedChatMessages } from "./embedded/EmbeddedChatMessages";
 import { ChatInput } from "./ChatInput";
 import { Bot } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
-import { sendGeminiMessage, sendOpenAIMessage, sendClaudeMessage, sendOpenRouterMessage } from "@/services/ChatService";
+import { 
+  sendGeminiMessage, 
+  sendOpenAIMessage, 
+  sendClaudeMessage, 
+  sendOpenRouterMessage 
+} from "@/services/ChatService";
 
 interface Message {
   role: string;
@@ -30,7 +35,13 @@ export const EmbeddedBotChat = () => {
         .single();
 
       if (historyData && Array.isArray(historyData.messages)) {
-        setMessages(historyData.messages as Message[]);
+        // Convert Json[] to Message[]
+        const convertedMessages = historyData.messages.map((msg: any) => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined
+        }));
+        setMessages(convertedMessages);
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
@@ -47,6 +58,7 @@ export const EmbeddedBotChat = () => {
         .eq('share_key', shareKey)
         .single();
 
+      // Convert Message[] to Json[]
       const messageData = newMessages.map(msg => ({
         role: msg.role,
         content: msg.content,
@@ -134,16 +146,16 @@ export const EmbeddedBotChat = () => {
       let response: string;
       switch (bot.model) {
         case "gemini":
-          response = await sendGeminiMessage(message, messages, bot);
+          response = await sendGeminiMessage(updatedMessages, bot);
           break;
         case "claude":
-          response = await sendClaudeMessage(message, messages, bot);
+          response = await sendClaudeMessage(updatedMessages, bot);
           break;
         case "openai":
-          response = await sendOpenAIMessage(message, messages, bot);
+          response = await sendOpenAIMessage(updatedMessages, bot);
           break;
         case "openrouter":
-          response = await sendOpenRouterMessage(message, messages, bot);
+          response = await sendOpenRouterMessage(updatedMessages, bot);
           break;
         default:
           throw new Error("Invalid model selected");
