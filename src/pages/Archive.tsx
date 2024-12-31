@@ -12,7 +12,7 @@ interface ChatRecord {
 
 const Archive = () => {
   const { bots } = useBots();
-  const [selectedBotId, setSelectedBotId] = useState<string>("");
+  const [selectedBotId, setSelectedBotId] = useState<string>("all");
 
   // Get chat history from localStorage
   const getChatHistory = (): ChatRecord[] => {
@@ -21,9 +21,9 @@ const Archive = () => {
   };
 
   const chatHistory = getChatHistory();
-  const filteredHistory = selectedBotId 
-    ? chatHistory.filter(record => record.botId === selectedBotId)
-    : chatHistory;
+  const filteredHistory = selectedBotId === "all"
+    ? chatHistory
+    : chatHistory.filter(record => record.botId === selectedBotId);
 
   return (
     <div className="container mx-auto max-w-6xl pt-20">
@@ -35,7 +35,7 @@ const Archive = () => {
               <SelectValue placeholder="Filter by bot" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Bots</SelectItem>
+              <SelectItem value="all">All Bots</SelectItem>
               {bots.map((bot) => (
                 <SelectItem key={bot.id} value={bot.id}>
                   {bot.name}
