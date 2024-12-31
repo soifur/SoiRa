@@ -10,3 +10,10 @@ export interface ChatRecord {
   user_id?: string;
   client_id?: string;
 }
+
+export interface GroupedChatRecord {
+  clientId: string;
+  botId: string;
+  chats: ChatRecord[];
+  latestTimestamp: string;
+}

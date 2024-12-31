@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatListItem } from "@/components/archive/ChatListItem";
 import { ChatDialog } from "@/components/archive/ChatDialog";
-import { ChatRecord } from "@/components/archive/types";
+import { ChatRecord, GroupedChatRecord } from "@/components/archive/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -16,7 +16,7 @@ const Archive = () => {
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("all");
   const [selectedChat, setSelectedChat] = useState<ChatRecord | null>(null);
-  const [chatHistory, setChatHistory] = useState<ChatRecord[]>([]);
+  const [chatHistory, setChatHistory] = useState<GroupedChatRecord[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -62,7 +62,34 @@ const Archive = () => {
         client_id: record.client_id
       }));
 
-      setChatHistory(transformedHistory);
+      // Group chats by client_id and bot_id
+      const groupedChats = transformedHistory.reduce((acc: GroupedChatRecord[], chat) => {
+        const existingGroup = acc.find(
+          group => group.clientId === chat.client_id && group.botId === chat.botId
+        );
+
+        if (existingGroup) {
+          existingGroup.chats.push(chat);
+          if (chat.timestamp > existingGroup.latestTimestamp) {
+            existingGroup.latestTimestamp = chat.timestamp;
+          }
+        } else {
+          acc.push({
+            clientId: chat.client_id || 'unknown',
+            botId: chat.botId,
+            chats: [chat],
+            latestTimestamp: chat.timestamp
+          });
+        }
+        return acc;
+      }, []);
+
+      // Sort groups by latest timestamp
+      groupedChats.sort((a, b) => 
+        new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime()
+      );
+
+      setChatHistory(groupedChats);
     } catch (error) {
       console.error("Error fetching chat history:", error);
       toast({
@@ -74,10 +101,12 @@ const Archive = () => {
   };
 
   const filteredHistory = chatHistory
-    .filter(record => {
-      const matchesBot = selectedBotId === "all" || record.botId === selectedBotId;
-      const matchesSearch = searchTerm === "" || record.messages.some(msg => 
-        msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+    .filter(group => {
+      const matchesBot = selectedBotId === "all" || group.botId === selectedBotId;
+      const matchesSearch = searchTerm === "" || group.chats.some(chat => 
+        chat.messages.some(msg => 
+          msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       );
       return matchesBot && matchesSearch;
     });
@@ -126,13 +155,20 @@ const Archive = () => {
                   : "No chat history available"}
               </div>
             ) : (
-              filteredHistory.map((record) => (
-                <ChatListItem
-                  key={record.id}
-                  record={record}
-                  bot={getSelectedBot(record.botId)}
-                  onClick={() => setSelectedChat(record)}
-                />
+              filteredHistory.map((group) => (
+                <div key={`${group.clientId}-${group.botId}`} className="space-y-2">
+                  <div className="font-medium text-sm text-muted-foreground">
+                    Client ID: {group.clientId}
+                  </div>
+                  {group.chats.map((record) => (
+                    <ChatListItem
+                      key={record.id}
+                      record={record}
+                      bot={getSelectedBot(record.botId)}
+                      onClick={() => setSelectedChat(record)}
+                    />
+                  ))}
+                </div>
               ))
             )}
           </div>
