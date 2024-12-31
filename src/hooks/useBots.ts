@@ -97,13 +97,25 @@ export const useBots = () => {
 
       if (result.error) throw result.error;
 
+      // Transform the saved bot data
+      const savedBot: Bot = {
+        id: result.data.id,
+        name: result.data.name,
+        instructions: result.data.instructions || "",
+        starters: result.data.starters || [],
+        model: result.data.model,
+        apiKey: result.data.api_key,
+        openRouterModel: result.data.open_router_model,
+        avatar: result.data.avatar,
+        accessType: "private"
+      };
+
       // Refresh the bots list
       await fetchBots();
 
-      toast({
-        title: "Success",
-        description: `Bot ${bot.id ? "updated" : "created"} successfully`,
-      });
+      // Return the saved bot
+      return savedBot;
+
     } catch (error) {
       console.error("Error saving bot:", error);
       toast({
@@ -111,6 +123,7 @@ export const useBots = () => {
         description: "Failed to save bot. Please try again.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 

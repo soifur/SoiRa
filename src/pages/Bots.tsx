@@ -16,15 +16,17 @@ const Bots = () => {
   const { bots, saveBot, deleteBot } = useBots();
 
   const handleSave = async (bot: Bot) => {
-    await saveBot({ ...bot, accessType: bot.accessType || "private" });
+    const updatedBot = await saveBot({ ...bot, accessType: bot.accessType || "private" });
     setEditingBot(null);
+    
     // Update the selected bot if it was being edited
     if (selectedBot && selectedBot.id === bot.id) {
-      setSelectedBot(bot);
+      setSelectedBot(updatedBot);
     }
+    
     toast({
       title: "Success",
-      description: `Bot ${editingBot ? "updated" : "created"} successfully`,
+      description: `Bot ${bot.id ? "updated" : "created"} successfully`,
     });
   };
 
@@ -78,22 +80,22 @@ const Bots = () => {
             </Card>
           )}
 
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             {bots.map((bot) => (
               <Card 
                 key={bot.id} 
-                className={`p-3 cursor-pointer transition-colors hover:bg-accent/50 ${
+                className={`p-2 cursor-pointer transition-colors hover:bg-accent/50 ${
                   selectedBot?.id === bot.id ? 'border-primary' : ''
                 }`}
                 onClick={() => setSelectedBot(bot)}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1 mr-4">
-                    <h3 className="text-base font-semibold mb-1">{bot.name}</h3>
+                    <h3 className="text-sm font-semibold">{bot.name}</h3>
                     <p className="text-xs text-muted-foreground">
-                      Model: {bot.model}
+                      {bot.model}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                       {truncateInstructions(bot.instructions)}
                     </p>
                   </div>
@@ -101,6 +103,7 @@ const Bots = () => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-7 px-2"
                       onClick={(e) => {
                         e.stopPropagation();
                         setEmbedDialogBot(bot);
@@ -111,22 +114,24 @@ const Bots = () => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-7 px-2"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEdit(bot);
                       }}
                     >
-                      <Edit2 className="h-4 w-4" />
+                      <Edit2 className="h-3 w-3" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-7 px-2"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteBot(bot.id);
                       }}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
@@ -137,7 +142,7 @@ const Bots = () => {
 
         <div className="w-1/2 border-l border-border">
           {selectedBot ? (
-            <DedicatedBotChat bot={selectedBot} />
+            <DedicatedBotChat key={selectedBot.id} bot={selectedBot} />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               Select a bot to start chatting
