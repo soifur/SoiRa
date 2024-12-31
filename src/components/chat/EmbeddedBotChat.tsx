@@ -30,16 +30,17 @@ const EmbeddedBotChat = () => {
       try {
         console.log("Fetching bot config for ID:", botId);
         
+        // First, get the shared bot configuration and its associated API key
         const { data: sharedBot, error: fetchError } = await supabase
           .from('shared_bots')
           .select(`
             *,
-            bot_api_keys (
+            bot_api_keys!inner (
               api_key
             )
           `)
           .eq('share_key', botId)
-          .maybeSingle();
+          .single();
 
         if (fetchError) {
           console.error('Supabase error:', fetchError);
@@ -53,13 +54,14 @@ const EmbeddedBotChat = () => {
 
         console.log("Loaded shared bot config:", sharedBot);
         
+        // Create bot configuration with the retrieved API key
         const botConfig: Bot = {
           id: sharedBot.bot_id,
           name: sharedBot.bot_name,
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
           model: sharedBot.model as "gemini" | "claude" | "openai" | "openrouter",
-          apiKey: sharedBot.bot_api_keys?.api_key || "",
+          apiKey: sharedBot.bot_api_keys.api_key,
           openRouterModel: sharedBot.open_router_model,
         };
 
