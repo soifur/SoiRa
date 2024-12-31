@@ -37,11 +37,11 @@ const Archive = () => {
     try {
       const { data: session } = await supabase.auth.getSession();
       
-      // Fetch both user's chats and public chats
+      // Fetch both user's chats and public chats using proper filter syntax
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
-        .or(`user_id.eq.${session.session?.user.id},share_key.is.not.null`)
+        .or('user_id.eq.' + session.session?.user.id + ',share_key.not.is.null')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
