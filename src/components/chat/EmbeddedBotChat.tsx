@@ -8,33 +8,42 @@ import { createMessage } from "@/utils/messageUtils";
 import { EmbeddedChatHeader } from "./embedded/EmbeddedChatHeader";
 import { EmbeddedChatMessages } from "./embedded/EmbeddedChatMessages";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const EmbeddedBotChat = () => {
-  const { shareKey } = useParams();
+  const { botId } = useParams();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 
   useEffect(() => {
     const fetchBotConfig = async () => {
-      if (!shareKey) {
-        console.error('No share key provided');
+      if (!botId) {
+        setError('No bot ID provided');
+        setIsLoading(false);
         return;
       }
 
       try {
-        const { data, error } = await supabase
+        console.log("Fetching bot config for ID:", botId);
+        
+        const { data, error: fetchError } = await supabase
           .from('shared_bots')
           .select('*')
-          .eq('share_key', shareKey)
-          .single();
+          .eq('share_key', botId)
+          .maybeSingle();
 
-        if (error) throw error;
+        if (fetchError) {
+          console.error('Supabase error:', fetchError);
+          throw fetchError;
+        }
 
         if (!data) {
-          throw new Error('Share configuration not found');
+          console.log('No bot configuration found for ID:', botId);
+          throw new Error('Bot configuration not found');
         }
 
         console.log("Loaded shared bot config:", data);
@@ -50,91 +59,38 @@ const EmbeddedBotChat = () => {
         };
 
         setSelectedBot(botConfig);
-        setMessages([]);
+        setError(null);
       } catch (error) {
         console.error('Error loading bot configuration:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load bot configuration",
-          variant: "destructive",
-        });
+        setError('Bot configuration not found. Please make sure the share link is correct.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchBotConfig();
-  }, [shareKey, toast]);
-
-  const updateChatHistory = (updatedMessages: typeof messages) => {
-    try {
-      const history = localStorage.getItem("chatHistory") || "[]";
-      let existingHistory = JSON.parse(history);
-      
-      if (!Array.isArray(existingHistory)) {
-        existingHistory = [];
-      }
-      
-      const chatSessionId = `${Date.now()}_${shareKey}_embedded`;
-      
-      const newRecord = {
-        id: chatSessionId,
-        botId: selectedBot?.id,
-        shareKey: shareKey,
-        messages: updatedMessages,
-        timestamp: new Date().toISOString(),
-        type: 'embedded'
-      };
-      
-      existingHistory.unshift(newRecord);
-      const limitedHistory = existingHistory.slice(0, 100);
-      
-      localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
-      console.log("Embedded chat history updated:", newRecord);
-    } catch (error) {
-      console.error("Error saving chat history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save chat history",
-        variant: "destructive",
-      });
-    }
-  };
+  }, [botId, toast]);
 
   const handleStarterClick = async (starter: string) => {
     if (!selectedBot || isLoading) return;
     setInput(starter);
-    
-    const syntheticEvent = {
-      preventDefault: () => {},
-      target: null,
-      currentTarget: null,
-      bubbles: true,
-      cancelable: true,
-      defaultPrevented: false,
-      eventPhase: 0,
-      isTrusted: true,
-      nativeEvent: new Event('submit'),
-      stopPropagation: () => {},
-      isPropagationStopped: () => false,
-      persist: () => {},
-      isDefaultPrevented: () => false,
-      type: 'submit'
-    } as React.FormEvent<HTMLFormElement>;
-
-    await sendMessage(syntheticEvent);
+    await sendMessage(new Event('submit') as any);
   };
 
   const clearChat = () => {
     if (!selectedBot) return;
     setMessages([]);
-    
     toast({
       title: "Chat Cleared",
       description: "The chat history has been cleared.",
     });
   };
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendMessage = async (e: React.FormEvent | Event) => {
+    if (e instanceof Event && 'preventDefault' in e) {
+      e.preventDefault();
+    }
+    
     if (!input.trim() || !selectedBot) return;
 
     try {
@@ -162,7 +118,6 @@ const EmbeddedBotChat = () => {
       ];
       
       setMessages(updatedMessages);
-      updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -175,10 +130,30 @@ const EmbeddedBotChat = () => {
     }
   };
 
-  if (!selectedBot) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-red-500">Bot configuration not found. Please make sure the share link is correct.</p>
+        <p>Loading bot configuration...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!selectedBot) {
+    return (
+      <div className="flex items-center justify-center h-screen p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertDescription>Invalid bot configuration</AlertDescription>
+        </Alert>
       </div>
     );
   }
