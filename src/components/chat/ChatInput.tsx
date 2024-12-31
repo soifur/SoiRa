@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Globe } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -79,41 +79,23 @@ export const ChatInput = ({
     <form onSubmit={handleSubmit} className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t">
       <div className="max-w-3xl mx-auto">
         <div className="relative flex items-end gap-2">
-          <div className="relative flex-1 overflow-hidden rounded-2xl bg-accent/50">
+          <div className="relative flex-1">
             <Textarea
               ref={textareaRef}
-              placeholder={placeholder || "Message ChatGPT..."}
+              placeholder={placeholder || "Type your message..."}
               disabled={disabled || isLoading}
-              className="min-h-[36px] max-h-[100px] resize-none py-3 px-4 pr-12 text-sm bg-transparent border-0 focus:ring-0"
+              className="min-h-[48px] max-h-[100px] resize-none py-3 px-4 text-sm bg-accent/50 border-0 rounded-2xl focus:ring-2 focus:ring-primary/50"
               onKeyDown={handleKeyDown}
               onChange={handleChange}
             />
-            <div className="absolute bottom-2 left-2 flex gap-2">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 rounded-xl opacity-50 hover:opacity-100 transition-opacity"
-              >
-                <Paperclip className="h-4 w-4" />
-              </Button>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 rounded-xl opacity-50 hover:opacity-100 transition-opacity"
-              >
-                <Globe className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
           <Button 
             type="submit" 
             size="icon" 
             disabled={disabled || isLoading}
-            className="h-10 w-10 rounded-xl bg-primary hover:bg-primary/90"
+            className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-5 w-5" />
           </Button>
         </div>
       </div>
