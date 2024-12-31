@@ -20,6 +20,8 @@ const Chat = () => {
   const [selectedBotId, setSelectedBotId] = useState<string>("");
   const { isListening, startListening, stopListening, isSpeaking } = useVoiceChat(selectedBotId);
 
+  const selectedBot = bots.find(bot => bot.id === selectedBotId);
+
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -89,11 +91,14 @@ const Chat = () => {
         <div className="flex-1">
           <Card className="flex flex-col h-[calc(100vh-8rem)]">
             <div className="p-4">
-              <ChatHeader
-                bots={bots}
-                selectedBotId={selectedBotId}
-                onBotSelect={setSelectedBotId}
-              />
+              {selectedBot && (
+                <ChatHeader
+                  bot={selectedBot}
+                  onClearChat={() => setMessages([])}
+                  sidebarOpen={false}
+                  onToggleSidebar={() => {}}
+                />
+              )}
             </div>
             <div className="flex-1 overflow-hidden">
               <MessageList
