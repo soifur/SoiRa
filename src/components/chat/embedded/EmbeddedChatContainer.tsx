@@ -26,18 +26,11 @@ export const EmbeddedChatContainer = ({
   onClearChat,
   onStarterClick,
 }: EmbeddedChatContainerProps) => {
-  const [parentOrigin, setParentOrigin] = useState<string>("");
-
   // Handle postMessage communication
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Store the origin of the parent window when receiving the first message
-      if (!parentOrigin && event.origin) {
-        setParentOrigin(event.origin);
-      }
-
-      // Only accept messages from the stored parent origin
-      if (event.origin === parentOrigin && event.data?.type === "CHAT_MESSAGE") {
+      // Accept messages from any origin for public embeds
+      if (event.data?.type === "CHAT_MESSAGE") {
         onSend(event.data.message);
       }
     };
@@ -52,24 +45,22 @@ export const EmbeddedChatContainer = ({
     }
 
     return () => window.removeEventListener("message", handleMessage);
-  }, [onSend, parentOrigin]);
+  }, [onSend]);
 
   // Send message updates to parent
   useEffect(() => {
-    if (parentOrigin) {
-      try {
-        window.parent.postMessage(
-          { 
-            type: "CHAT_UPDATE", 
-            messages: messages 
-          }, 
-          parentOrigin
-        );
-      } catch (error) {
-        console.error("Failed to send message update:", error);
-      }
+    try {
+      window.parent.postMessage(
+        { 
+          type: "CHAT_UPDATE", 
+          messages: messages 
+        }, 
+        "*"
+      );
+    } catch (error) {
+      console.error("Failed to send message update:", error);
     }
-  }, [messages, parentOrigin]);
+  }, [messages]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
