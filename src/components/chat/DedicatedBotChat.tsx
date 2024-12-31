@@ -6,9 +6,10 @@ import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Mic, MicOff } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { supabase } from "@/integrations/supabase/client";
+import { useVoiceChat } from "@/hooks/useVoiceChat";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -20,6 +21,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { isListening, startListening, stopListening, isSpeaking } = useVoiceChat(bot.id);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,8 +59,15 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
       const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        throw new Error("No authenticated user");
+      let clientId = 'anonymous';
+      
+      try {
+        const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
+        if (user_ip) {
+          clientId = user_ip;
+        }
+      } catch (error) {
+        console.warn("Could not get client IP, using anonymous:", error);
       }
 
       // First try to find existing chat history for this bot
@@ -66,7 +75,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         .from('chat_history')
         .select('id')
         .eq('bot_id', bot.id)
-        .eq('user_id', session.session.user.id)
+        .eq(session.session ? 'user_id' : 'client_id', session.session ? session.session.user.id : clientId)
         .maybeSingle();
 
       if (fetchError) {
@@ -81,18 +90,19 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           content: msg.content,
           timestamp: msg.timestamp?.toISOString()
         })),
-        user_id: session.session.user.id
+        ...(session.session 
+          ? { user_id: session.session.user.id }
+          : { client_id: clientId }
+        )
       };
 
       let error;
       if (existingChat) {
-        // Update existing chat
         ({ error } = await supabase
           .from('chat_history')
           .update(chatData)
           .eq('id', existingChat.id));
       } else {
-        // Insert new chat
         ({ error } = await supabase
           .from('chat_history')
           .insert(chatData));
@@ -152,7 +162,15 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
   return (
     <Card className="flex flex-col h-full p-4 bg-card">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between mb-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={isListening ? stopListening : startListening}
+          className={`text-muted-foreground hover:text-foreground ${isListening ? 'bg-red-100' : ''}`}
+        >
+          {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -174,9 +192,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       <div className="mt-4">
         <ChatInput
           onSend={sendMessage}
-          disabled={isLoading}
+          disabled={isLoading || isSpeaking}
           isLoading={isLoading}
-          placeholder="Type your message..."
+          placeholder={isListening ? "Listening..." : "Type your message..."}
         />
       </div>
     </Card>
