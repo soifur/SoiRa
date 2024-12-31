@@ -5,23 +5,14 @@ export class ChatService {
   private static sanitizeText(text: string): string {
     if (!text) return "";
     
+    // Replace smart quotes and other special characters with ASCII equivalents
     return text
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/\u2014/g, "--")
       .replace(/\u2013/g, "-")
       .replace(/\u2026/g, "...")
-      .replace(/[^\x00-\x7F]/g, " ");
-  }
-
-  private static summarizeContext(messages: Array<{ role: string; content: string }>) {
-    // Get last 10 messages for context
-    const recentMessages = messages.slice(-10);
-    
-    // Create a condensed context string
-    return recentMessages.map(msg => 
-      `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
-    ).join('\n');
+      .replace(/[^\x00-\x7F]/g, " "); // Replace any remaining non-ASCII chars with space
   }
 
   static async sendOpenRouterMessage(
@@ -37,9 +28,9 @@ export class ChatService {
       content: this.sanitizeText(msg.content)
     }));
 
-    const context = this.summarizeContext(sanitizedMessages);
     const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
 
+    // Create headers with ASCII-safe values
     const headers = {
       'Authorization': `Bearer ${this.sanitizeText(bot.apiKey)}`,
       'Content-Type': 'application/json',
@@ -53,12 +44,15 @@ export class ChatService {
       body: JSON.stringify({
         model: bot.openRouterModel,
         messages: [
-          {
-            role: "system",
-            content: `${sanitizedInstructions}\n\nPrevious context:\n${context}`,
-          },
-          // Only send the last message to save tokens
-          sanitizedMessages[sanitizedMessages.length - 1],
+          ...(sanitizedInstructions
+            ? [
+                {
+                  role: "system",
+                  content: sanitizedInstructions,
+                },
+              ]
+            : []),
+          ...sanitizedMessages,
         ],
       }),
     });
@@ -79,7 +73,7 @@ export class ChatService {
     bot: Bot
   ) {
     if (!bot.apiKey) {
-      throw new Error("Gemini API key is missing");
+      throw new Error("Gemini API key is missing. Please check your bot configuration.");
     }
 
     try {
@@ -92,8 +86,9 @@ export class ChatService {
         },
       });
 
-      const context = this.summarizeContext(messages);
-      const fullPrompt = `${bot.instructions}\n\nPrevious context:\n${context}\n\nCurrent message:\n${messages[messages.length - 1].content}`;
+      const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messages
+        .map((msg) => `${msg.role === "user" ? "User" : bot.name}: ${msg.content}`)
+        .join("\n")}`;
 
       const result = await chat.sendMessage(fullPrompt);
       const response = await result.response.text();
