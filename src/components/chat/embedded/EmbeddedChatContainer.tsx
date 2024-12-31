@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
-import { EmbeddedChatUI } from "./EmbeddedChatUI";
+import EmbeddedChatUI from "./EmbeddedChatUI";
 import { useToast } from "@/components/ui/use-toast";
 
 const EmbeddedChatContainer = () => {
