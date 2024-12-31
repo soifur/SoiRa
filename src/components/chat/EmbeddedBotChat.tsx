@@ -16,13 +16,19 @@ const EmbeddedBotChat = () => {
 
   const selectedBot = bots.find((bot) => bot.id === botId);
 
-  // Load chat history specific to this bot
+  // Load chat history specific to this bot and interface type
   useEffect(() => {
     if (selectedBot) {
-      const chatKey = `chat_history_${selectedBot.id}`;
+      const chatKey = `embedded_chat_${selectedBot.id}`;
       const savedMessages = localStorage.getItem(chatKey);
       if (savedMessages) {
-        setMessages(JSON.parse(savedMessages));
+        try {
+          const parsedMessages = JSON.parse(savedMessages);
+          setMessages(parsedMessages);
+        } catch (error) {
+          console.error("Error parsing saved messages:", error);
+          setMessages([]);
+        }
       } else {
         setMessages([]);
       }
@@ -67,8 +73,8 @@ const EmbeddedBotChat = () => {
       
       setMessages(updatedMessages);
       
-      // Save to localStorage with unique bot ID
-      const chatKey = `chat_history_${selectedBot.id}`;
+      // Save to localStorage with unique bot ID and interface type key
+      const chatKey = `embedded_chat_${selectedBot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
       console.error("Chat error:", error);

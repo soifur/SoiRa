@@ -27,16 +27,22 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     scrollToBottom();
   }, [messages]);
 
-  // Load chat history specific to this bot using a unique key
+  // Load chat history specific to this bot and interface type
   useEffect(() => {
-    const chatKey = `chat_history_${bot.id}`;
+    const chatKey = `dedicated_chat_${bot.id}`;
     const savedMessages = localStorage.getItem(chatKey);
     if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
+      try {
+        const parsedMessages = JSON.parse(savedMessages);
+        setMessages(parsedMessages);
+      } catch (error) {
+        console.error("Error parsing saved messages:", error);
+        setMessages([]);
+      }
     } else {
       setMessages([]); // Reset messages for new bot
     }
-  }, [bot.id]); // Reset messages when bot changes
+  }, [bot.id]);
 
   const handleEmbed = () => {
     const embedCode = `<iframe src="${window.location.origin}/embed/${bot.id}" width="100%" height="600px" frameborder="0"></iframe>`;
@@ -77,8 +83,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       
       setMessages(updatedMessages);
       
-      // Save to localStorage with unique bot ID key
-      const chatKey = `chat_history_${bot.id}`;
+      // Save to localStorage with unique bot ID and interface type key
+      const chatKey = `dedicated_chat_${bot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
       console.error("Chat error:", error);
