@@ -14,7 +14,11 @@ const EmbeddedBotChat = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  console.log("Available bots:", bots);
+  console.log("Current botId from params:", botId);
+
   const selectedBot = bots.find((bot) => bot.id === botId);
+  console.log("Selected bot:", selectedBot);
 
   useEffect(() => {
     if (!selectedBot) {
