@@ -9,7 +9,10 @@ interface ChatMessageProps {
   timestamp?: Date;
 }
 
-export const ChatMessage = ({ role, content, selectedBot, timestamp = new Date() }: ChatMessageProps) => {
+export const ChatMessage = ({ role, content, selectedBot, timestamp }: ChatMessageProps) => {
+  // Ensure timestamp is a valid Date object
+  const messageTime = timestamp instanceof Date ? timestamp : new Date();
+
   return (
     <div className={`flex ${role === "user" ? "justify-end" : "justify-start"}`}>
       <Card
@@ -24,7 +27,7 @@ export const ChatMessage = ({ role, content, selectedBot, timestamp = new Date()
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-sm">{selectedBot?.name}</span>
               <span className="text-xs text-muted-foreground">
-                {timestamp.toLocaleTimeString()}
+                {messageTime.toLocaleTimeString()}
               </span>
             </div>
           )}
