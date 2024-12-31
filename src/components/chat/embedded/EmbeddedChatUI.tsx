@@ -100,13 +100,12 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     }
   };
 
-  const handleMessageSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const sendMessage = async (message: string) => {
+    if (!message.trim()) return;
 
     try {
       setIsLoading(true);
-      const userMessage = createMessage("user", input);
+      const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
       setInput("");
@@ -146,13 +145,12 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       </div>
       <div className="p-4">
         <ChatInput
-          onSend={handleMessageSend}
+          onSend={sendMessage}
           disabled={isLoading}
           isLoading={isLoading}
           placeholder="Type your message..."
           onInputChange={setInput}
           value={input}
-          onSubmit={handleMessageSend}
         />
       </div>
     </Card>
