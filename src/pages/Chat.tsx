@@ -3,7 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatService } from "@/services/ChatService";
-import { Bot } from "@/hooks/useBots";
+import { useBots } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
@@ -54,18 +54,16 @@ const Chat = () => {
     }
   };
 
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || !selectedBot) return;
+  const handleMessageSend = async (message: string) => {
+    if (!message.trim() || !selectedBot) return;
 
     try {
       setIsLoading(true);
       const newMessages = [
         ...messages,
-        createMessage("user", input)
+        createMessage("user", message)
       ];
       setMessages(newMessages);
-      setInput("");
 
       let response: string;
 
@@ -111,7 +109,7 @@ const Chat = () => {
               onStarterClick={setInput}
             />
             <ChatInput
-              onSend={sendMessage}
+              onSend={handleMessageSend}
               disabled={!selectedBot}
               isLoading={isLoading}
               placeholder="Type your message..."
