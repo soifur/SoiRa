@@ -25,6 +25,24 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
       
       setIsLoading(true);
       try {
+        // First check if a share configuration already exists
+        const { data: existingShare } = await supabase
+          .from('shared_bots')
+          .select('short_key')
+          .eq('bot_id', bot.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (existingShare) {
+          console.log("Using existing share key:", existingShare.short_key);
+          setShareKey(existingShare.short_key);
+          return;
+        }
+
+        // If no existing share found, create new configuration
+        console.log("Creating new share configuration for bot:", bot.id);
+        
         // First store the API key
         const { data: apiKeyData, error: apiKeyError } = await supabase
           .from('bot_api_keys')
@@ -42,23 +60,10 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           .rpc('generate_short_key');
         
         const newShareKey = shortKeyData;
-        setShareKey(newShareKey);
+        console.log("Generated new share key:", newShareKey);
         
-        // Check if a share configuration already exists for this bot
-        const { data: existingShare } = await supabase
-          .from('shared_bots')
-          .select('short_key')
-          .eq('bot_id', bot.id)
-          .single();
-
-        if (existingShare) {
-          // Use existing share key
-          setShareKey(existingShare.short_key);
-          return;
-        }
-
         // Create new share configuration
-        const { error } = await supabase
+        const { error: shareError } = await supabase
           .from('shared_bots')
           .insert({
             share_key: bot.id,
@@ -72,9 +77,10 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             api_key_id: apiKeyData.id,
           });
 
-        if (error) throw error;
+        if (shareError) throw shareError;
 
-        console.log("Share configuration stored in Supabase");
+        setShareKey(newShareKey);
+        console.log("Share configuration stored successfully");
       } catch (error) {
         console.error("Error storing share configuration:", error);
         toast({
