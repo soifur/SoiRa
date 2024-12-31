@@ -15,10 +15,11 @@ export interface Message {
 interface MessageListProps {
   messages: Message[];
   selectedBot?: any;
+  starters?: string[];
   onStarterClick?: (value: string) => void;
 }
 
-export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageListProps) => {
+export const MessageList = ({ messages, selectedBot, starters, onStarterClick }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottom = useRef(true);
   const lastUserInteraction = useRef<number>(Date.now());
@@ -42,28 +43,22 @@ export const MessageList = ({ messages, selectedBot, onStarterClick }: MessageLi
     lastUserInteraction.current = Date.now();
   };
 
-  const handleStarterClick = (starter: string) => {
-    if (onStarterClick) {
-      onStarterClick(starter);
-    }
-  };
-
   return (
     <ScrollArea 
       ref={scrollRef}
       className="flex-1 p-4"
       onScroll={handleScroll}
     >
-      {messages.length === 0 && selectedBot?.starters && selectedBot.starters.length > 0 && (
+      {messages.length === 0 && starters && starters.length > 0 && (
         <div className="space-y-2 mb-4">
           <h3 className="text-sm font-medium">Conversation Starters:</h3>
           <div className="flex flex-col gap-2">
-            {selectedBot.starters.map((starter: string, index: number) => (
+            {starters.map((starter: string, index: number) => (
               <Button
                 key={index}
                 variant="outline"
                 className="text-left"
-                onClick={() => handleStarterClick(starter)}
+                onClick={() => onStarterClick && onStarterClick(starter)}
               >
                 {starter}
               </Button>

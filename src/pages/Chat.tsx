@@ -76,6 +76,11 @@ const Chat = () => {
             <div className="flex-1 overflow-hidden">
               <MessageList
                 messages={formatMessages(messages)}
+                starters={[
+                  "Tell me about yourself",
+                  "What can you help me with?",
+                  "How does this work?"
+                ]}
                 onStarterClick={handleStarterClick}
               />
             </div>
