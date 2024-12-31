@@ -71,12 +71,13 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         user_id: session.session.user.id
       };
 
-      // First try to find existing chat history for this bot
+      // First try to find existing chat history for this bot and user
       const { data: existingChat, error: fetchError } = await supabase
         .from('chat_history')
         .select('id')
         .eq('bot_id', bot.id)
         .eq('user_id', session.session.user.id)
+        .is('share_key', null)  // Make sure we're not updating a shared chat
         .maybeSingle();
 
       if (fetchError) {
