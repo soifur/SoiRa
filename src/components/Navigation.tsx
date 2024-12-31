@@ -1,12 +1,34 @@
 import { Button } from "./ui/button";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { MoonIcon, SunIcon, LogOutIcon, LogInIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export const Navigation = () => {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const isEmbedded = location.pathname.startsWith('/embed/');
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Don't show navigation in embedded mode
   if (isEmbedded) return null;
@@ -37,6 +59,15 @@ export const Navigation = () => {
             <SunIcon className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <MoonIcon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="text-muted-foreground hover:text-primary"
+          >
+            <LogOutIcon className="h-5 w-5" />
+            <span className="sr-only">Logout</span>
           </Button>
         </div>
       </div>

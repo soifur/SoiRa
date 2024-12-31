@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useBots, Bot } from "@/hooks/useBots";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { MessageSquare, Calendar, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChatMessage } from "@/components/chat/ChatMessage";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ChatRecord {
   id: string;
@@ -21,28 +23,46 @@ const Archive = () => {
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("all");
   const [selectedChat, setSelectedChat] = useState<ChatRecord | null>(null);
+  const [chatHistory, setChatHistory] = useState<ChatRecord[]>([]);
+  const { toast } = useToast();
 
-  const getChatHistory = (): ChatRecord[] => {
+  useEffect(() => {
+    fetchChatHistory();
+  }, []);
+
+  const fetchChatHistory = async () => {
     try {
-      const history = localStorage.getItem("chatHistory");
-      if (!history) return [];
-      
-      const parsedHistory = JSON.parse(history);
-      // Convert string timestamps to Date objects for messages
-      return parsedHistory.map((record: ChatRecord) => ({
-        ...record,
-        messages: record.messages.map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) return;
+
+      const { data, error } = await supabase
+        .from('chat_history')
+        .select('*')
+        .eq('user_id', session.session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const transformedHistory = data.map((record): ChatRecord => ({
+        id: record.id,
+        botId: record.bot_id,
+        messages: record.messages,
+        timestamp: record.created_at,
+        shareKey: record.share_key,
+        type: 'dedicated'
       }));
+
+      setChatHistory(transformedHistory);
     } catch (error) {
-      console.error("Error loading chat history:", error);
-      return [];
+      console.error("Error fetching chat history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch chat history",
+        variant: "destructive",
+      });
     }
   };
 
-  const chatHistory = getChatHistory();
   const filteredHistory = selectedBotId === "all"
     ? chatHistory
     : chatHistory.filter(record => record.botId === selectedBotId);

@@ -2,10 +2,11 @@ import { useState } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { Card } from "@/components/ui/card";
-import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { useBots } from "@/hooks/useBots";
+import { supabase } from "@/integrations/supabase/client";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
@@ -15,29 +16,24 @@ const Chat = () => {
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
 
-  const updateChatHistory = (updatedMessages: typeof messages) => {
+  const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      const history = localStorage.getItem("chatHistory") || "[]";
-      let existingHistory = JSON.parse(history);
-      
-      if (!Array.isArray(existingHistory)) {
-        existingHistory = [];
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        throw new Error("No authenticated user");
       }
-      
-      const chatSessionId = Date.now().toString();
-      
-      const newRecord = {
-        id: chatSessionId,
-        botId: selectedBotId,  // Use the selected bot ID instead of 'public'
+
+      const chatData = {
+        bot_id: selectedBotId,
         messages: updatedMessages,
-        timestamp: new Date().toISOString(),
-        type: 'dedicated'  // Changed from 'public' to 'dedicated' for personal chats
+        user_id: session.session.user.id
       };
-      
-      existingHistory.unshift(newRecord);
-      const limitedHistory = existingHistory.slice(0, 100);
-      
-      localStorage.setItem("chatHistory", JSON.stringify(limitedHistory));
+
+      const { error } = await supabase
+        .from('chat_history')
+        .insert(chatData);
+
+      if (error) throw error;
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -66,7 +62,7 @@ const Chat = () => {
       ];
       setMessages(newMessages);
       setInput("");
-      updateChatHistory(newMessages);
+      await updateChatHistory(newMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -93,7 +89,7 @@ const Chat = () => {
             </div>
             <div className="flex-1 overflow-hidden">
               <MessageList
-                messages={formatMessages(messages)}
+                messages={messages}
                 starters={[
                   "Tell me about yourself",
                   "What can you help me with?",
