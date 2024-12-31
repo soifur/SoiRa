@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { ChatService } from "@/services/ChatService";
-import { useBots } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
@@ -10,10 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { bots } = useBots();
   const { toast } = useToast();
-  const [selectedBotId, setSelectedBotId] = useState<string>("");
-  const selectedBot = bots.find((bot) => bot.id === selectedBotId);
 
   const updateChatHistory = (updatedMessages: typeof messages) => {
     try {
@@ -28,7 +23,7 @@ const Chat = () => {
       
       const newRecord = {
         id: chatSessionId,
-        botId: selectedBot?.id || 'public',
+        botId: 'public',
         messages: updatedMessages,
         timestamp: new Date().toISOString(),
         type: 'public'
@@ -54,33 +49,14 @@ const Chat = () => {
     try {
       setIsLoading(true);
       const newUserMessage = createMessage("user", message);
-      const newMessages = [...messages, newUserMessage];
-      setMessages(newMessages);
-
-      let response: string;
-
-      if (selectedBot) {
-        if (selectedBot.model === "openrouter") {
-          response = await ChatService.sendOpenRouterMessage(newMessages, selectedBot);
-        } else if (selectedBot.model === "gemini") {
-          response = await ChatService.sendGeminiMessage(newMessages, selectedBot);
-        } else {
-          throw new Error("Unsupported model type");
-        }
-      } else {
-        response = "This is a public chat. Messages are saved but not processed by AI.";
-      }
-
-      const botResponse = createMessage("assistant", response);
-      const updatedMessages = [...newMessages, botResponse];
-      
+      const updatedMessages = [...messages, newUserMessage];
       setMessages(updatedMessages);
       updateChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI",
+        description: "Failed to process message",
         variant: "destructive",
       });
     } finally {
@@ -100,7 +76,6 @@ const Chat = () => {
             <div className="flex-1 overflow-hidden">
               <MessageList
                 messages={formatMessages(messages)}
-                selectedBot={selectedBot}
                 onStarterClick={handleStarterClick}
               />
             </div>
