@@ -20,17 +20,21 @@ const Login = () => {
     
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/");
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
       
-      // Handle auth errors
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_IN') {
+        console.log("User signed in, redirecting to home");
+        navigate("/");
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         toast({
           title: "Signed out",
           description: "You have been signed out successfully."
         });
+      } else if (event === 'USER_UPDATED') {
+        console.log("User updated");
+        if (session) navigate("/");
       }
     });
 
@@ -42,7 +46,7 @@ const Login = () => {
       <Card className="p-8">
         <h1 className="text-2xl font-bold mb-6 text-center">Welcome to SoiRa</h1>
         <p className="text-sm text-muted-foreground mb-6 text-center">
-          Sign up with your email to get started. If you already have an account, sign in.
+          Sign in with your email to get started
         </p>
         <Auth
           supabaseClient={supabase}
@@ -60,11 +64,11 @@ const Login = () => {
               container: 'flex flex-col gap-4',
               button: 'bg-primary text-primary-foreground hover:bg-primary/90',
               input: 'bg-background',
+              label: 'text-foreground',
             }
           }}
           providers={[]}
           redirectTo={window.location.origin}
-          showLinks={true}
         />
       </Card>
     </div>
