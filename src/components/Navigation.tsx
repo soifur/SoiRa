@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { MoonIcon, SunIcon, LogOutIcon, LogInIcon } from "lucide-react";
+import { MoonIcon, SunIcon, LogOutIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,9 +43,6 @@ export const Navigation = () => {
           <Link to="/bots" className="text-sm font-medium transition-colors hover:text-primary">
             Bots
           </Link>
-          <Link to="/chat" className="text-sm font-medium transition-colors hover:text-primary">
-            Chat
-          </Link>
           <Link to="/archive" className="text-sm font-medium transition-colors hover:text-primary">
             Archive
           </Link>
@@ -54,7 +51,7 @@ export const Navigation = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             <SunIcon className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <MoonIcon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

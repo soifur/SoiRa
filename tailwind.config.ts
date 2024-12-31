@@ -22,8 +22,8 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: '#1a1a1a', // Darker gray background
-        foreground: '#ffffff', // White text
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))'
@@ -37,20 +37,20 @@ export default {
           foreground: 'hsl(var(--destructive-foreground))'
         },
         muted: {
-          DEFAULT: '#222222', // Slightly lighter dark gray
-          foreground: '#888888' // Muted text color
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))'
         },
         accent: {
-          DEFAULT: '#2a2a2a', // Accent dark gray
-          foreground: '#ffffff' // White text
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))'
         },
         popover: {
-          DEFAULT: '#1a1a1a', // Darker gray background
-          foreground: '#ffffff' // White text
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))'
         },
         card: {
-          DEFAULT: '#222222', // Slightly lighter dark gray
-          foreground: '#ffffff' // White text
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))'
         }
       },
       borderRadius: {

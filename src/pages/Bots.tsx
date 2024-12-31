@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
@@ -15,9 +15,13 @@ const Bots = () => {
   const { toast } = useToast();
   const { bots, saveBot, deleteBot } = useBots();
 
-  const handleSave = (bot: Bot) => {
-    saveBot({ ...bot, accessType: bot.accessType || "private" });
+  const handleSave = async (bot: Bot) => {
+    await saveBot({ ...bot, accessType: bot.accessType || "private" });
     setEditingBot(null);
+    // Update the selected bot if it was being edited
+    if (selectedBot && selectedBot.id === bot.id) {
+      setSelectedBot(bot);
+    }
     toast({
       title: "Success",
       description: `Bot ${editingBot ? "updated" : "created"} successfully`,
@@ -29,7 +33,7 @@ const Bots = () => {
     setSelectedBot(bot);
   };
 
-  const truncateInstructions = (instructions: string, lines: number = 3) => {
+  const truncateInstructions = (instructions: string, lines: number = 2) => {
     if (!instructions) return "";
     const splitInstructions = instructions.split('\n');
     if (splitInstructions.length <= lines) return instructions;
@@ -41,7 +45,7 @@ const Bots = () => {
   return (
     <div className="container mx-auto max-w-full pt-20 px-4">
       <div className="flex gap-6 h-[calc(100vh-8rem)]">
-        <div className="w-1/2 flex flex-col gap-6 overflow-y-auto">
+        <div className="w-1/2 flex flex-col gap-4 overflow-y-auto">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">My Chatbots</h1>
             <Button
@@ -62,7 +66,7 @@ const Bots = () => {
           </div>
 
           {editingBot && (
-            <Card className="p-6">
+            <Card className="p-4">
               <h2 className="text-xl font-semibold mb-4">
                 {editingBot.id ? "Edit Bot" : "Create New Bot"}
               </h2>
@@ -74,29 +78,29 @@ const Bots = () => {
             </Card>
           )}
 
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {bots.map((bot) => (
               <Card 
                 key={bot.id} 
-                className={`p-4 cursor-pointer transition-colors ${
+                className={`p-3 cursor-pointer transition-colors hover:bg-accent/50 ${
                   selectedBot?.id === bot.id ? 'border-primary' : ''
                 }`}
                 onClick={() => setSelectedBot(bot)}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1 mr-4">
-                    <h3 className="text-lg font-semibold">{bot.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <h3 className="text-base font-semibold mb-1">{bot.name}</h3>
+                    <p className="text-xs text-muted-foreground">
                       Model: {bot.model}
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                       {truncateInstructions(bot.instructions)}
                     </p>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
+                  <div className="flex gap-1 flex-shrink-0">
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         setEmbedDialogBot(bot);
@@ -106,7 +110,7 @@ const Bots = () => {
                     </Button>
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEdit(bot);
@@ -116,7 +120,7 @@ const Bots = () => {
                     </Button>
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteBot(bot.id);
