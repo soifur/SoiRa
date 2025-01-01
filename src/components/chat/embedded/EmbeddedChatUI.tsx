@@ -22,6 +22,18 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
+      const { data: existingChat, error: fetchError } = await supabase
+        .from('chat_history')
+        .select('id')
+        .eq('bot_id', bot.id)
+        .eq('client_id', clientId)
+        .eq('share_key', shareKey)
+        .maybeSingle();
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
       const chatData = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
@@ -33,16 +45,19 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         share_key: shareKey
       };
 
-      const { error } = await supabase
-        .from('chat_history')
-        .upsert(chatData, {
-          onConflict: 'bot_id,client_id,share_key',
-          ignoreDuplicates: false
-        });
+      let result;
+      if (existingChat) {
+        result = await supabase
+          .from('chat_history')
+          .update(chatData)
+          .eq('id', existingChat.id);
+      } else {
+        result = await supabase
+          .from('chat_history')
+          .insert(chatData);
+      }
 
-      if (error) throw error;
-      
-      console.log("Chat history updated successfully");
+      if (result.error) throw result.error;
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -71,9 +86,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       if (bot.model === "gemini") {
         botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
       } else if (bot.model === "openrouter") {
-        if (!bot.apiKey) {
-          throw new Error("Bot API key is missing");
-        }
         botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
       }
 
@@ -85,7 +97,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to process message",
+        description: "Failed to process message",
         variant: "destructive",
       });
     } finally {

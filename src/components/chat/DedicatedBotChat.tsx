@@ -17,6 +17,7 @@ interface DedicatedBotChatProps {
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -70,13 +71,33 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         user_id: session.session.user.id
       };
 
-      // Use upsert operation with on conflict do update
-      const { error } = await supabase
+      // First try to find existing chat history for this bot and user
+      const { data: existingChat, error: fetchError } = await supabase
         .from('chat_history')
-        .upsert(chatData, {
-          onConflict: 'bot_id,user_id',
-          ignoreDuplicates: false
-        });
+        .select('id')
+        .eq('bot_id', bot.id)
+        .eq('user_id', session.session.user.id)
+        .is('share_key', null)  // Make sure we're not updating a shared chat
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error fetching existing chat:", fetchError);
+        throw fetchError;
+      }
+
+      let error;
+      if (existingChat) {
+        // Update existing chat
+        ({ error } = await supabase
+          .from('chat_history')
+          .update(chatData)
+          .eq('id', existingChat.id));
+      } else {
+        // Insert new chat
+        ({ error } = await supabase
+          .from('chat_history')
+          .insert(chatData));
+      }
 
       if (error) throw error;
       
@@ -131,8 +152,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   return (
-    <Card className="flex flex-col h-full bg-card relative">
-      <div className="flex justify-end p-2">
+    <Card className="flex flex-col h-full p-4 bg-card">
+      <div className="flex justify-end mb-4">
         <Button
           variant="ghost"
           size="icon"
@@ -143,7 +164,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         </Button>
       </div>
       
-      <div className="flex-1 overflow-hidden flex flex-col pb-[80px]">
+      <div className="flex-1 overflow-hidden flex flex-col">
         <MessageList
           messages={formatMessages(messages)}
           selectedBot={bot}
@@ -153,7 +174,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t">
+      <div className="mt-4">
         <ChatInput
           onSend={sendMessage}
           disabled={isLoading}
