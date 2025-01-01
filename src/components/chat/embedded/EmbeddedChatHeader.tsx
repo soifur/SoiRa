@@ -1,42 +1,48 @@
+import { History, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { History, Plus } from "lucide-react";
 import { Bot } from "@/hooks/useBots";
 import { cn } from "@/lib/utils";
 
 interface EmbeddedChatHeaderProps {
   bot: Bot;
-  onNewChat: () => void;
+  onClearChat?: () => void;
   onToggleHistory: () => void;
+  onNewChat?: () => void;
   showHistory: boolean;
-  onClearChat: () => Promise<void>;  // Added this prop
 }
 
-export const EmbeddedChatHeader = ({ 
-  onNewChat, 
+export const EmbeddedChatHeader = ({
+  bot,
+  onClearChat,
   onToggleHistory,
-  showHistory 
+  onNewChat,
+  showHistory,
 }: EmbeddedChatHeaderProps) => {
   return (
-    <div className="flex items-center p-4 bg-card">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onToggleHistory}
-        className={cn(
-          "h-9 w-9",
-          showHistory && "text-primary"
+    <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={onToggleHistory}
+        >
+          <History className="h-5 w-5" />
+        </Button>
+        <span className="font-semibold text-sm">{bot.name}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {onNewChat && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onNewChat}
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
         )}
-      >
-        <History className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onNewChat}
-        className="h-9 w-9 ml-2"
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
+      </div>
     </div>
   );
 };

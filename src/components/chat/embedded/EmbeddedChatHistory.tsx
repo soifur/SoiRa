@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { History, X, Trash2 } from "lucide-react";
+import { History, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { ChatHistoryItem, ChatHistoryData, Message } from "../types/chatTypes";
 
 interface EmbeddedChatHistoryProps {
   sessionToken: string | null;
@@ -22,13 +20,13 @@ export const EmbeddedChatHistory = ({
   sessionToken,
   botId,
   onSelectChat,
+  onNewChat,
   currentChatId,
   isOpen,
-  onClose
+  onClose,
 }: EmbeddedChatHistoryProps) => {
-  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
+  const [chatHistory, setChatHistory] = useState<any[]>([]);
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (sessionToken) {
@@ -47,24 +45,7 @@ export const EmbeddedChatHistory = ({
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      const transformedData: ChatHistoryItem[] = (data || []).map((item: ChatHistoryData) => ({
-        id: item.id!,
-        messages: Array.isArray(item.messages) 
-          ? (item.messages as any[]).map((msg: any): Message => ({
-              id: msg.id || crypto.randomUUID(),
-              role: msg.role,
-              content: msg.content,
-              timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-              isBot: msg.isBot,
-              avatar: msg.avatar
-            }))
-          : [],
-        created_at: item.created_at || new Date().toISOString(),
-        sequence_number: item.sequence_number
-      }));
-
-      setChatHistory(transformedData);
+      setChatHistory(data || []);
     } catch (error) {
       console.error('Error fetching chat history:', error);
       toast({
@@ -75,39 +56,11 @@ export const EmbeddedChatHistory = ({
     }
   };
 
-  const handleDeleteChat = async (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const { error } = await supabase
-        .from('chat_history')
-        .update({ deleted: 'yes' })
-        .eq('id', chatId)
-        .eq('session_token', sessionToken);
-
-      if (error) throw error;
-
-      setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
-      toast({
-        title: "Success",
-        description: "Chat deleted successfully",
-      });
-    } catch (error) {
-      console.error('Error deleting chat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete chat",
-        variant: "destructive",
-      });
-    }
+  const getChatTitle = (messages: any[]) => {
+    const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
+    if (!firstUserMessage) return 'New Chat';
+    return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   };
-
-  const getChatTitle = (messages: Message[]) => {
-    const firstUserMessage = messages.find(msg => msg.role === 'user');
-    if (!firstUserMessage) return '';
-    return firstUserMessage.content;
-  };
-
-  if (!isOpen) return null;
 
   return (
     <div className="flex flex-col h-full bg-background border-r">
@@ -116,15 +69,24 @@ export const EmbeddedChatHistory = ({
           <History className="w-5 h-5" />
           <h2 className="font-semibold">Chat History</h2>
         </div>
-        {isMobile && (
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onNewChat}
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 md:hidden"
             onClick={onClose}
           >
-            <X className="w-4 h-4" />
+            <X className="h-5 w-5" />
           </Button>
-        )}
+        </div>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
@@ -132,22 +94,12 @@ export const EmbeddedChatHistory = ({
             <div
               key={chat.id}
               className={cn(
-                "p-3 rounded-lg cursor-pointer transition-colors group relative",
+                "p-3 rounded-lg cursor-pointer transition-colors",
                 "hover:bg-accent",
                 currentChatId === chat.id ? "bg-accent" : "bg-card"
               )}
               onClick={() => onSelectChat(chat.id)}
             >
-              <div className="flex items-center justify-between mb-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2"
-                  onClick={(e) => handleDeleteChat(chat.id, e)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {getChatTitle(chat.messages)}
               </p>
