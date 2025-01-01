@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
-import { v4 as uuidv4 } from 'uuid';
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -19,38 +18,8 @@ const Chat = () => {
   const { toast } = useToast();
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
-  const [currentChatId, setCurrentChatId] = useState<string>(() => {
-    const savedChatId = localStorage.getItem('currentChatId');
-    return savedChatId || uuidv4();
-  });
-
-  // Load messages from localStorage on component mount
-  useEffect(() => {
-    const savedMessages = localStorage.getItem(`chat_${currentChatId}`);
-    if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
-    }
-  }, [currentChatId]);
-
-  // Save messages to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem(`chat_${currentChatId}`, JSON.stringify(messages));
-  }, [messages, currentChatId]);
-
-  // Save current chat ID to localStorage
-  useEffect(() => {
-    localStorage.setItem('currentChatId', currentChatId);
-  }, [currentChatId]);
 
   const createNewChat = () => {
-    // Archive current chat if it has messages
-    if (messages.length > 0) {
-      updateChatHistory(messages);
-    }
-    
-    // Create new chat
-    const newChatId = uuidv4();
-    setCurrentChatId(newChatId);
     setMessages([]);
     setInput("");
     
@@ -60,7 +29,7 @@ const Chat = () => {
     });
   };
 
-  const updateChatHistory = async (updatedMessages: typeof messages) => {
+  const saveChatHistory = async (updatedMessages: typeof messages) => {
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) {
@@ -110,7 +79,7 @@ const Chat = () => {
       ];
       setMessages(newMessages);
       setInput("");
-      await updateChatHistory(newMessages);
+      await saveChatHistory(newMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({

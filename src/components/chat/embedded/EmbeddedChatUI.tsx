@@ -21,7 +21,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const [input, setInput] = useState("");
   const { toast } = useToast();
 
-  const updateChatHistory = async (updatedMessages: typeof messages) => {
+  const saveChatHistory = async (updatedMessages: typeof messages) => {
     try {
       const chatData = {
         bot_id: bot.id,
@@ -34,35 +34,11 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         share_key: shareKey
       } as Database['public']['Tables']['chat_history']['Insert'];
 
-      // First try to find existing chat history
-      const { data: existingChat, error: fetchError } = await supabase
+      const { error } = await supabase
         .from('chat_history')
-        .select('id')
-        .eq('bot_id', bot.id)
-        .eq('client_id', clientId)
-        .eq('share_key', shareKey)
-        .maybeSingle();
+        .insert(chatData);
 
-      if (fetchError) {
-        console.error("Error fetching chat history:", fetchError);
-        throw fetchError;
-      }
-
-      let result;
-      if (existingChat) {
-        // Update existing chat
-        result = await supabase
-          .from('chat_history')
-          .update(chatData)
-          .eq('id', existingChat.id);
-      } else {
-        // Insert new chat
-        result = await supabase
-          .from('chat_history')
-          .insert(chatData);
-      }
-
-      if (result.error) throw result.error;
+      if (error) throw error;
       
     } catch (error) {
       console.error("Error saving chat history:", error);
@@ -102,7 +78,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
-      await updateChatHistory(updatedMessages);
+      await saveChatHistory(updatedMessages);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
