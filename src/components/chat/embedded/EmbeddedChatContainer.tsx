@@ -97,9 +97,17 @@ const EmbeddedChatContainer = () => {
   return (
     <>
       <Helmet>
-        <title>{bot.name}</title>
-        <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
-        <meta name="description" content={`Chat with ${bot.name}`} />
+        <title>{`Chat with ${bot.name}`}</title>
+        <meta property="og:title" content={`Chat with ${bot.name}`} />
+        <meta property="og:description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
+        <meta property="og:image" content={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
+        <meta property="og:type" content="website" />
+        <meta name="description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`Chat with ${bot.name}`} />
+        <meta name="twitter:description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
+        <meta name="twitter:image" content={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
+        <link rel="icon" type="image/png" href={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
       </Helmet>
       <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />
     </>
