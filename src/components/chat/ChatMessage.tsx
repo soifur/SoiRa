@@ -88,11 +88,6 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
           </ReactMarkdown>
         </div>
       </Card>
-      {!isBot && (
-        <Avatar className="h-8 w-8 shrink-0">
-          <img src="/placeholder.svg" alt="User" />
-        </Avatar>
-      )}
     </div>
   );
 };
