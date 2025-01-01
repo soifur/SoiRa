@@ -26,21 +26,24 @@ export class ChatHistoryService {
   static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
     console.log("Creating new chat history with params:", { newChatId, botId, clientId, shareKey });
     
-    // First, try to delete any existing chat for this combination
+    // First, check if there's an existing chat with the same bot_id and share_key
     if (shareKey) {
-      console.log("Deleting existing chat history for bot/client/share combination");
-      const { error: deleteError } = await supabase
+      const { data: existingChat } = await supabase
         .from('chat_history')
-        .delete()
+        .select('id')
         .match({
           bot_id: botId,
           client_id: clientId,
           share_key: shareKey
-        });
+        })
+        .single();
 
-      if (deleteError) {
-        console.error("Error deleting existing chat:", deleteError);
+      if (existingChat) {
+        console.log("Found existing chat, will use that instead:", existingChat.id);
+        return; // Exit early, don't create a new chat
       }
+
+      console.log("No existing chat found, proceeding with creation");
     }
 
     const sequence_number = await this.getLatestSequenceNumber(botId);

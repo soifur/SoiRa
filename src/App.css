@@ -29,7 +29,8 @@
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  margin-bottom: 120px; /* Space for input */
+  padding-bottom: 160px; /* Increased space for input */
+  margin-bottom: 0; /* Remove margin since we use padding */
 }
 
 .chat-input {
@@ -57,5 +58,5 @@
 
 /* Prevent content from going under fixed elements */
 .scroll-area-viewport {
-  padding-bottom: 120px !important;
+  padding-bottom: 160px !important; /* Match message-list padding */
 }
