@@ -29,7 +29,7 @@ const Archive = () => {
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
-        .eq('deleted', 'no')  // Only fetch non-deleted chats
+        .eq('deleted', 'no')
         .or(`user_id.eq.${session.session?.user.id},share_key.not.is.null`)
         .order('created_at', { ascending: false });
 
@@ -66,10 +66,8 @@ const Archive = () => {
 
   const handleDeleteChat = async (chatId: string) => {
     try {
-      // Remove from UI immediately for better UX
       setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
       
-      // Update the deleted flag in the database
       const { error } = await supabase
         .from('chat_history')
         .update({ deleted: 'yes' })
@@ -83,7 +81,6 @@ const Archive = () => {
       });
     } catch (error) {
       console.error("Error deleting chat:", error);
-      // Revert UI change if deletion failed
       fetchChatHistory();
       toast({
         title: "Error",
@@ -102,8 +99,8 @@ const Archive = () => {
   };
 
   return (
-    <div className={`container mx-auto max-w-6xl ${isMobile ? 'pt-4 px-2' : 'pt-20'}`}>
-      <div className="space-y-4">
+    <div className="container mx-auto max-w-6xl h-[100dvh] flex flex-col">
+      <div className="flex-none p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Chat Archive</h1>
           <Select value={selectedBotId} onValueChange={setSelectedBotId}>
@@ -120,8 +117,10 @@ const Archive = () => {
             </SelectContent>
           </Select>
         </div>
-        <ScrollArea className={`${isMobile ? 'h-[calc(100vh-8rem)]' : 'h-[calc(100vh-10rem)]'}`}>
-          <div className="space-y-4">
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-4 p-4">
             {filteredHistory.map((record) => (
               <ChatListItem
                 key={record.id}
