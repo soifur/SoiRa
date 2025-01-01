@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { History, X, PlusCircle } from "lucide-react";
+import { History, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,7 +22,6 @@ export const EmbeddedChatHistory = ({
   sessionToken,
   botId,
   onSelectChat,
-  onNewChat,
   currentChatId,
   isOpen,
   onClose
@@ -49,7 +48,6 @@ export const EmbeddedChatHistory = ({
 
       if (error) throw error;
 
-      // Transform the data to match ChatHistoryItem type
       const transformedData: ChatHistoryItem[] = (data || []).map((item: ChatHistoryData) => ({
         id: item.id!,
         messages: Array.isArray(item.messages) 
@@ -77,20 +75,36 @@ export const EmbeddedChatHistory = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const handleDeleteChat = async (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ deleted: 'yes' })
+        .eq('id', chatId)
+        .eq('session_token', sessionToken);
+
+      if (error) throw error;
+
+      setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
+      toast({
+        title: "Success",
+        description: "Chat deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete chat",
+        variant: "destructive",
+      });
+    }
   };
 
-  const getLastMessage = (messages: any[]) => {
-    if (!messages || messages.length === 0) return 'No messages';
-    const lastMessage = messages[messages.length - 1];
-    return lastMessage.content.slice(0, 50) + (lastMessage.content.length > 50 ? '...' : '');
+  const getChatTitle = (messages: Message[]) => {
+    const firstUserMessage = messages.find(msg => msg.role === 'user');
+    if (!firstUserMessage) return 'New Chat';
+    return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   };
 
   if (!isOpen) return null;
@@ -105,26 +119,15 @@ export const EmbeddedChatHistory = ({
           <History className="w-5 h-5" />
           <h2 className="font-semibold">Chat History</h2>
         </div>
-        <div className="flex items-center gap-2">
+        {isMobile && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={onNewChat}
-            className="gap-2"
+            onClick={onClose}
           >
-            <PlusCircle className="w-4 h-4" />
-            New
+            <X className="w-4 h-4" />
           </Button>
-          {isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
+        )}
       </div>
       <ScrollArea className="h-[calc(100%-4rem)]">
         <div className="p-4 space-y-2">
@@ -132,7 +135,7 @@ export const EmbeddedChatHistory = ({
             <div
               key={chat.id}
               className={cn(
-                "p-3 rounded-lg cursor-pointer transition-colors",
+                "p-3 rounded-lg cursor-pointer transition-colors group relative",
                 "hover:bg-accent",
                 currentChatId === chat.id ? "bg-accent" : "bg-card"
               )}
@@ -142,12 +145,17 @@ export const EmbeddedChatHistory = ({
                 <span className="text-xs text-muted-foreground">
                   Chat #{chat.sequence_number}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  {formatDate(chat.created_at)}
-                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2"
+                  onClick={(e) => handleDeleteChat(chat.id, e)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-2">
-                {getLastMessage(chat.messages)}
+                {getChatTitle(chat.messages)}
               </p>
             </div>
           ))}

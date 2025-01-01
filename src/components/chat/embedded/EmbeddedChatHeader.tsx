@@ -1,43 +1,40 @@
 import { Button } from "@/components/ui/button";
-import { Trash2, History } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import { Bot } from "@/hooks/useBots";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface EmbeddedChatHeaderProps {
   bot: Bot;
-  onClearChat: () => void;
+  onNewChat: () => void;
   onToggleHistory: () => void;
   showHistory: boolean;
 }
 
 export const EmbeddedChatHeader = ({ 
-  bot, 
-  onClearChat, 
+  onNewChat, 
   onToggleHistory,
   showHistory 
 }: EmbeddedChatHeaderProps) => {
-  const isMobile = useIsMobile();
-
   return (
-    <div className="flex justify-between items-center p-4 bg-card">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggleHistory}
-          className={showHistory ? "text-primary" : ""}
-        >
-          <History className="h-4 w-4" />
-        </Button>
-        <h2 className="text-xl font-semibold">{bot.name}</h2>
-      </div>
+    <div className="flex items-center p-4 bg-card">
       <Button
         variant="ghost"
-        size="sm"
-        onClick={onClearChat}
-        className="text-destructive hover:text-destructive"
+        size="icon"
+        onClick={onToggleHistory}
+        className={cn(
+          "h-9 w-9",
+          showHistory && "text-primary"
+        )}
       >
-        <Trash2 className="h-4 w-4" />
+        <History className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onNewChat}
+        className="h-9 w-9 ml-2"
+      >
+        <Plus className="h-4 w-4" />
       </Button>
     </div>
   );

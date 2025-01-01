@@ -84,7 +84,7 @@ export class ChatHistoryService {
     const jsonMessages = messages.map(msg => ({
       role: msg.role,
       content: msg.content,
-      timestamp: msg.timestamp,
+      timestamp: msg.timestamp?.toISOString(),
       id: msg.id
     }));
 

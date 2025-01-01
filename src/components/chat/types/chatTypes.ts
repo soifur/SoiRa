@@ -12,11 +12,11 @@ export interface Message {
 export interface Bot {
   id: string;
   name: string;
-  instructions?: string;
+  instructions: string;
   avatar?: string;
   model: string;
   starters?: string[];
-  apiKey: string;  // Changed from api_key to match useBots.ts
+  apiKey: string;
   openRouterModel?: string;
   voice_enabled?: boolean;
   accessType?: "public" | "private";
