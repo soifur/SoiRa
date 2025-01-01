@@ -79,7 +79,7 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
 
   return (
     <Card 
-      className="p-4 hover:bg-accent cursor-pointer transition-colors relative"
+      className="p-4 hover:bg-accent cursor-pointer transition-colors relative group"
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">
@@ -130,7 +130,7 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-2 right-2 hover:bg-destructive/10"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10"
           onClick={handleDelete}
         >
           <Trash2 className="h-4 w-4 text-destructive" />
