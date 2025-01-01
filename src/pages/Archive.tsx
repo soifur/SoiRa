@@ -30,11 +30,11 @@ const Archive = () => {
         .from('chat_history')
         .select('*')
         .or(`user_id.eq.${session.session?.user.id},share_key.not.is.null`)
-        .order('sequence_number', { ascending: true });
+        .order('created_at', { ascending: false }); // Order by created_at descending
 
       if (error) throw error;
 
-      const transformedHistory = data.map((record): ChatRecord => ({
+      const transformedHistory = data.map((record, index): ChatRecord => ({
         id: record.id,
         botId: record.bot_id,
         messages: (record.messages as any[]).map(msg => ({
@@ -49,7 +49,7 @@ const Archive = () => {
         type: record.share_key ? 'public' : 'private',
         user_id: record.user_id,
         client_id: record.client_id,
-        sequence_number: record.sequence_number
+        sequence_number: data.length - index // Calculate display sequence number
       }));
 
       setChatHistory(transformedHistory);
