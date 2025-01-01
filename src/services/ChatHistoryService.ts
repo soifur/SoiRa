@@ -7,7 +7,7 @@ export class ChatHistoryService {
     
     const { data, error } = await supabase
       .from('chat_history')
-      .select('sequence_number, id')
+      .select('sequence_number')
       .eq('bot_id', botId)
       .order('sequence_number', { ascending: false })
       .limit(1);
@@ -26,18 +26,6 @@ export class ChatHistoryService {
   static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
     console.log("Creating new chat history with params:", { newChatId, botId, clientId, shareKey });
     
-    // Check if the specific ID already exists
-    const { data: existingChat } = await supabase
-      .from('chat_history')
-      .select('id')
-      .eq('id', newChatId)
-      .single();
-
-    if (existingChat) {
-      console.log("Chat with ID already exists:", existingChat.id);
-      throw new Error("Chat ID already exists");
-    }
-
     const sequence_number = await this.getLatestSequenceNumber(botId);
     console.log("Got sequence number for new chat:", sequence_number);
 
