@@ -31,7 +31,6 @@ const EmbeddedChatContainer = () => {
       try {
         if (!botId) return;
 
-        // First, get the shared bot data
         const { data: sharedBotData, error: sharedBotError } = await supabase
           .from("shared_bots")
           .select(`
@@ -67,19 +66,26 @@ const EmbeddedChatContainer = () => {
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
-        // Get the public URL for the avatar if it exists
-        let avatarUrl = botData?.avatar || "/placeholder.svg";
-        if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl !== "/placeholder.svg") {
-          try {
-            const { data } = await supabase.storage
-              .from('avatars')
-              .getPublicUrl(avatarUrl);
-            avatarUrl = data.publicUrl;
-          } catch (error) {
-            console.error("Error getting avatar URL:", error);
-            avatarUrl = "/placeholder.svg";
+        // Handle avatar URL
+        let avatarUrl = "/placeholder.svg";
+        if (botData?.avatar) {
+          if (botData.avatar.startsWith('data:')) {
+            avatarUrl = botData.avatar; // Use base64 data directly
+          } else if (!botData.avatar.startsWith('http')) {
+            try {
+              const { data } = await supabase.storage
+                .from('avatars')
+                .getPublicUrl(botData.avatar);
+              avatarUrl = data.publicUrl;
+            } catch (error) {
+              console.error("Error getting avatar URL:", error);
+            }
+          } else {
+            avatarUrl = botData.avatar;
           }
         }
+
+        console.log("Using avatar URL:", avatarUrl);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -93,7 +99,6 @@ const EmbeddedChatContainer = () => {
           accessType: "public"
         };
 
-        console.log("Fetched fresh bot data:", transformedBot);
         setBot(transformedBot);
 
       } catch (error) {
@@ -117,7 +122,7 @@ const EmbeddedChatContainer = () => {
     <>
       <Helmet>
         <title>{bot.name}</title>
-        <link rel="icon" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
+        <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
         <meta name="description" content={`Chat with ${bot.name}`} />
       </Helmet>
       <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />
