@@ -39,8 +39,9 @@ const Chat = () => {
 
         if (existingChat) {
           setChatId(existingChat.id);
-          // Explicitly cast messages as ChatMessage[]
-          const chatMessages = (existingChat.messages as ChatMessage[]).map((msg: ChatMessage) => ({
+          // First cast to unknown, then to ChatMessage[]
+          const rawMessages = existingChat.messages as unknown;
+          const chatMessages = (rawMessages as ChatMessage[]).map((msg: ChatMessage) => ({
             ...msg,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
             id: uuidv4()
