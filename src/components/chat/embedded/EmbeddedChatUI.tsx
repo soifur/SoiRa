@@ -178,7 +178,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         </Button>
       </div>
       
-      <div className="flex-1 overflow-hidden relative mb-[120px]">
+      <div className="flex-1 overflow-hidden relative mb-[76px]">
         <MessageList
           messages={messages}
           selectedBot={bot}
@@ -188,8 +188,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         />
       </div>
       
-      <div className="fixed bottom-[72px] left-0 right-0">
-        <div className="h-2 bg-muted/20 border-t border-b" />
+      <div className="fixed bottom-[60px] left-0 right-0">
+        <div className="h-[1px] bg-muted/20 border-t" />
       </div>
       
       <ChatInput
