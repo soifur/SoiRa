@@ -10,10 +10,9 @@ import { ChatHistoryService } from "@/services/ChatHistoryService";
 import { ChatService } from "@/services/ChatService";
 import { ChatMessage } from "../types/chatTypes";
 import { v4 as uuidv4 } from 'uuid';
-import { Button } from "@/components/ui/button";
-import { MessageSquarePlus } from "lucide-react";
 import CookieConsent from "./CookieConsent";
 import { useSessionToken } from "@/hooks/useSessionToken";
+import { ChatLayout } from "./ChatLayout";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -179,43 +178,32 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   return (
     <>
       <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />
-      <Card className="flex flex-col h-[100dvh] w-full mx-auto max-w-4xl">
-        <div className="sticky top-0 z-10 p-2 border-b bg-background">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClearChat}
-            className="text-muted-foreground hover:text-primary ml-auto flex"
-          >
-            <MessageSquarePlus className="h-5 w-5" />
-            <span className="ml-2">New Chat</span>
-          </Button>
-        </div>
-        
-        {/* Added pt-14 to ensure content starts below the sticky header on mobile */}
-        <div className="flex-1 overflow-hidden relative mb-[76px] pt-14">
-          <MessageList
-            messages={messages}
-            selectedBot={bot}
-            starters={bot.starters || []}
-            onStarterClick={handleStarterClick}
-            isLoading={isLoading}
-          />
-        </div>
-        
-        <div className="fixed bottom-0 left-0 right-0 bg-background">
-          <div className="h-[1px] bg-muted/20 border-t" />
-          <div className="max-w-4xl mx-auto">
-            <ChatInput
-              onSend={sendMessage}
-              disabled={isLoading || !hasConsent}
-              isLoading={isLoading}
-              placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
-              onInputChange={setInput}
-              value={input}
-            />
-          </div>
-        </div>
+      <Card className="w-full h-[100dvh] overflow-hidden">
+        <ChatLayout onNewChat={handleClearChat}>
+          {{
+            messages: (
+              <MessageList
+                messages={messages}
+                selectedBot={bot}
+                starters={bot.starters || []}
+                onStarterClick={handleStarterClick}
+                isLoading={isLoading}
+              />
+            ),
+            input: (
+              <div className="w-full px-4">
+                <ChatInput
+                  onSend={sendMessage}
+                  disabled={isLoading || !hasConsent}
+                  isLoading={isLoading}
+                  placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
+                  onInputChange={setInput}
+                  value={input}
+                />
+              </div>
+            )
+          }}
+        </ChatLayout>
       </Card>
     </>
   );
