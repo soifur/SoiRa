@@ -68,7 +68,7 @@ export const EmbeddedChatHistory = ({
     <div className="flex flex-col h-full bg-background border-r">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
-          <History className="w-5 h-5" onClick={onClose} className="cursor-pointer" />
+          <History className="w-5 h-5 cursor-pointer" onClick={onClose} />
         </div>
         <Button
           variant="ghost"

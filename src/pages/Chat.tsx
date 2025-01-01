@@ -22,6 +22,7 @@ const Chat = () => {
   const { botId: selectedBotId } = useParams();
   const { toast } = useToast();
   const [chatId, setChatId] = useState<string | null>(null);
+  const [selectedBot, setSelectedBot] = useState<any>(null);
 
   // Load existing chat on mount
   useEffect(() => {
@@ -163,6 +164,8 @@ const Chat = () => {
         <MessageList
           messages={messages}
           isLoading={isLoading}
+          selectedBot={selectedBot}
+          starters={selectedBot?.starters || []}
         />
       </div>
       <div className="p-4">

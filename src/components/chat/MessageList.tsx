@@ -2,9 +2,10 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChatMessage } from "./ChatMessage";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Message } from "./MessageList";
+import { Message } from "@/types/chat";
+import { cn } from "@/lib/utils";
 
-interface MessageListProps {
+export interface MessageListProps {
   messages: Message[];
   selectedBot: any;
   starters: string[];
@@ -43,8 +44,10 @@ export const MessageList = ({ messages, selectedBot, starters, onStarterClick, i
       {messages.map((message, index) => (
         <ChatMessage
           key={index}
-          message={message}
-          bot={selectedBot}
+          message={message.content}
+          isBot={message.role === 'assistant'}
+          avatar={message.avatar}
+          isLoading={isLoading}
         />
       ))}
       

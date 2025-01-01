@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { MessageList } from "@/components/chat/MessageList";
-import { Bot } from "@/hooks/useBots";
+import { Bot } from "@/types/chat";
 import { formatMessages } from "@/utils/messageUtils";
 
 interface EmbeddedChatMessagesProps {
@@ -9,6 +9,7 @@ interface EmbeddedChatMessagesProps {
   userScrolled: boolean;
   onScroll: () => void;
   onStarterClick?: (starter: string) => void;
+  isLoading?: boolean;
 }
 
 export const EmbeddedChatMessages = ({ 
@@ -16,7 +17,8 @@ export const EmbeddedChatMessages = ({
   bot, 
   userScrolled, 
   onScroll,
-  onStarterClick 
+  onStarterClick,
+  isLoading = false
 }: EmbeddedChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +40,7 @@ export const EmbeddedChatMessages = ({
         selectedBot={bot}
         starters={bot.starters}
         onStarterClick={onStarterClick}
+        isLoading={isLoading}
       />
       <div ref={messagesEndRef} />
     </div>
