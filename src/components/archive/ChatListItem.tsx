@@ -107,9 +107,21 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
             </Button>
           )}
         </div>
-        <span className="text-sm text-muted-foreground">
-          {formatDate(record.timestamp)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {formatDate(record.timestamp)}
+          </span>
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 p-1 hover:bg-destructive/10"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          )}
+        </div>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground flex items-center gap-1">
@@ -125,16 +137,6 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
         <div className="mt-2 text-sm text-muted-foreground">
           Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
         </div>
-      )}
-      {onDelete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
       )}
     </Card>
   );
