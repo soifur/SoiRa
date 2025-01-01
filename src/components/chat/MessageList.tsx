@@ -1,58 +1,131 @@
-import { Bot } from "@/hooks/useBots";
+import React, { useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
-import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export interface Message {
+  id: string;
+  role: string;
+  content: string;
+  timestamp?: Date;
+  isBot?: boolean;
+  avatar?: string;
+}
 
 interface MessageListProps {
-  messages: Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>;
-  selectedBot: Bot;
+  messages: Message[];
+  selectedBot?: any;
   starters?: string[];
-  onStarterClick?: (starter: string) => void;
+  onStarterClick?: (value: string) => void;
   isLoading?: boolean;
+  onClearChat?: () => void;
 }
 
 export const MessageList = ({ 
   messages, 
   selectedBot, 
   starters = [], 
-  onStarterClick,
-  isLoading = false 
+  onStarterClick, 
+  isLoading,
+  onClearChat 
 }: MessageListProps) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (lastMessageRef.current && !isLoading) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isLoading]);
+
+  const getStarterIcon = (starter: string) => {
+    const lowerStarter = starter.toLowerCase();
+    if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
+      return HelpCircle;
+    }
+    if (lowerStarter.includes('code') || lowerStarter.includes('program')) {
+      return Code;
+    }
+    if (lowerStarter.includes('explain') || lowerStarter.includes('learn')) {
+      return BookOpen;
+    }
+    if (lowerStarter.includes('idea') || lowerStarter.includes('suggest')) {
+      return Lightbulb;
+    }
+    return MessageCircle;
+  };
+
   return (
-    <div className="space-y-4 px-4">
-      {messages.length === 0 && starters.length > 0 && (
-        <Card className="p-4">
-          <h3 className="text-sm font-medium mb-2">Suggested messages:</h3>
-          <div className="flex flex-wrap gap-2">
-            {starters.map((starter, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => onStarterClick?.(starter)}
-                className="text-xs"
-              >
-                {starter}
-              </Button>
-            ))}
-          </div>
-        </Card>
-      )}
-      
-      {messages.map((message, index) => {
-        // Only show loading state for the last assistant message if isLoading is true
-        const isLastMessage = index === messages.length - 1;
-        const showLoading = isLoading && isLastMessage && message.role === "assistant";
-        
-        return (
-          <ChatMessage
-            key={message.id}
-            message={message}
-            bot={selectedBot}
-            isLoading={showLoading}
-          />
-        );
-      })}
+    <div className="relative flex-1 overflow-hidden" ref={containerRef}>
+      <ScrollArea className="h-[calc(100vh-6.5rem)] px-4">
+        <div className={cn(
+          "min-h-[calc(100vh-12rem)]",
+          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 pt-4 relative"
+        )}>
+          {messages.length === 0 && starters && starters.length > 0 ? (
+            <>
+              {selectedBot && (
+                <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+                  {selectedBot.name}
+                </h2>
+              )}
+              <h1 className="text-4xl font-bold mb-12 text-foreground text-center">
+                What can I help with?
+              </h1>
+              <div className="grid grid-cols-1 gap-3 w-full max-w-2xl px-4">
+                {starters.map((starter, index) => {
+                  const Icon = getStarterIcon(starter);
+                  return (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className={cn(
+                        "flex items-center justify-start gap-3 p-4 h-auto text-base w-full",
+                        "rounded-2xl hover:bg-accent/50 transition-colors",
+                        "bg-background/50 backdrop-blur-sm border-muted-foreground/20",
+                        "whitespace-normal text-left"
+                      )}
+                      onClick={() => onStarterClick && onStarterClick(starter)}
+                    >
+                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="text-left break-words">{starter}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={message.id}
+                  ref={index === messages.length - 1 ? lastMessageRef : null}
+                >
+                  <ChatMessage
+                    message={message.content}
+                    isBot={message.role === "assistant"}
+                    avatar={message.avatar || selectedBot?.avatar}
+                    isLoading={message.role === "assistant" && isLoading}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          {onClearChat && messages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClearChat}
+              className="absolute top-2 right-2 hover:bg-destructive/10"
+            >
+              <Trash2 className="h-5 w-5 text-destructive" />
+            </Button>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
