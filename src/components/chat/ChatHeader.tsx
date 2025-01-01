@@ -52,15 +52,16 @@ export const ChatHeader = ({
   };
 
   return (
-    <div className="flex justify-between items-center">
-      <div className="flex items-center gap-2">
+    <div className="flex justify-between items-center p-4 border-b">
+      <div className="flex items-center gap-4">
         <Button
-          variant="ghost"
-          size="icon"
+          variant={showHistory ? "default" : "outline"}
+          size="default"
           onClick={onToggleHistory}
-          className={showHistory ? "bg-accent" : ""}
+          className="flex items-center gap-2"
         >
           <History className="h-4 w-4" />
+          <span>History</span>
         </Button>
         <Select value={selectedBotId} onValueChange={onBotSelect}>
           <SelectTrigger className="w-[200px]">
