@@ -59,8 +59,8 @@ const EmbeddedChatContainer = () => {
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
-        // Construct the avatar URL directly using the bot_id
-        const avatarUrl = `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
+        // Construct the avatar URL using the environment variable
+        const avatarUrl = `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
         console.log("Constructed Avatar URL:", avatarUrl);
 
         const transformedBot: Bot = {
