@@ -23,8 +23,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      // Prepare chat data without sequence_number (it's set by trigger)
-      const chatData: Omit<Database["public"]["Tables"]["chat_history"]["Insert"], "sequence_number"> = {
+      const chatData = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
