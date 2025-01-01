@@ -55,34 +55,47 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           }));
           setMessages(chatMessages);
         } else {
-          console.log("No existing chat found, creating new chat");
-          const newChatId = uuidv4();
-          console.log("Generated new chat ID:", newChatId);
-          setChatId(newChatId);
-          await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
+          await createNewChat();
         }
       } catch (error) {
         console.error("Error loading chat:", error);
+        await createNewChat();
       }
     };
 
     loadExistingChat();
   }, [bot.id, clientId, shareKey]);
 
+  const createNewChat = async () => {
+    try {
+      console.log("Creating new chat");
+      const newChatId = uuidv4();
+      console.log("Generated new chat ID:", newChatId);
+      setChatId(newChatId);
+      setMessages([]);
+      await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
+      return newChatId;
+    } catch (error) {
+      console.error("Error creating new chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create new chat",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   const handleClearChat = async () => {
     try {
       console.log("Starting new chat creation process");
-      setMessages([]);
-      const newChatId = uuidv4();
-      console.log("Generated new chat ID for clear:", newChatId);
-      
-      setChatId(newChatId);
-      await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
-      
-      toast({
-        title: "Success",
-        description: "Started a new chat",
-      });
+      const newChatId = await createNewChat();
+      if (newChatId) {
+        toast({
+          title: "Success",
+          description: "Started a new chat",
+        });
+      }
     } catch (error) {
       console.error("Error creating new chat:", error);
       toast({
@@ -100,10 +113,17 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim() || !chatId) return;
+    if (!message.trim()) return;
 
     try {
       setIsLoading(true);
+      
+      // Create a new chat if there isn't one
+      if (!chatId) {
+        const newChatId = await createNewChat();
+        if (!newChatId) return;
+      }
+
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
@@ -131,7 +151,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         timestamp: msg.timestamp?.toISOString()
       }));
 
-      await ChatHistoryService.updateChatHistory(chatId, bot.id, messagesToSave, clientId, shareKey);
+      await ChatHistoryService.updateChatHistory(chatId!, bot.id, messagesToSave, clientId, shareKey);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
