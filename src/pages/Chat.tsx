@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,9 @@ import { ChatHeader } from "@/components/chat/ChatHeader";
 import { useBots } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { v4 as uuidv4 } from 'uuid';
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -16,6 +19,46 @@ const Chat = () => {
   const { toast } = useToast();
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("");
+  const [currentChatId, setCurrentChatId] = useState<string>(() => {
+    const savedChatId = localStorage.getItem('currentChatId');
+    return savedChatId || uuidv4();
+  });
+
+  // Load messages from localStorage on component mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem(`chat_${currentChatId}`);
+    if (savedMessages) {
+      setMessages(JSON.parse(savedMessages));
+    }
+  }, [currentChatId]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(`chat_${currentChatId}`, JSON.stringify(messages));
+  }, [messages, currentChatId]);
+
+  // Save current chat ID to localStorage
+  useEffect(() => {
+    localStorage.setItem('currentChatId', currentChatId);
+  }, [currentChatId]);
+
+  const createNewChat = () => {
+    // Archive current chat if it has messages
+    if (messages.length > 0) {
+      updateChatHistory(messages);
+    }
+    
+    // Create new chat
+    const newChatId = uuidv4();
+    setCurrentChatId(newChatId);
+    setMessages([]);
+    setInput("");
+    
+    toast({
+      title: "New Chat Created",
+      description: "Previous chat has been archived",
+    });
+  };
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
@@ -85,12 +128,20 @@ const Chat = () => {
       <div className="flex gap-4">
         <div className="flex-1">
           <Card className="flex flex-col h-[calc(100vh-8rem)]">
-            <div className="p-4">
+            <div className="p-4 flex justify-between items-center">
               <ChatHeader
                 bots={bots}
                 selectedBotId={selectedBotId}
                 onBotSelect={setSelectedBotId}
               />
+              <Button
+                onClick={createNewChat}
+                variant="outline"
+                className="gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                New Chat
+              </Button>
             </div>
             <div className="flex-1 overflow-hidden">
               <MessageList

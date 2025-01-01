@@ -6,27 +6,9 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      chat_history: {
-        Row: {
-          id: string
-          bot_id: string
-          share_key?: string | null
-          messages: Json
-          created_at?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          client_id?: string | null
-          sequence_number: number
-        }
-        Insert: Omit<Database['public']['Tables']['chat_history']['Row'], 'id' | 'sequence_number'> & {
-          id?: string
-          sequence_number?: number
-        }
-        Update: Partial<Database['public']['Tables']['chat_history']['Insert']>
-      }
       bot_api_keys: {
         Row: {
           api_key: string
@@ -92,6 +74,50 @@ export interface Database {
           voice_enabled?: boolean | null
         }
         Relationships: []
+      }
+      chat_history: {
+        Row: {
+          bot_id: string
+          client_id: string | null
+          created_at: string | null
+          id: string
+          messages: Json
+          sequence_number: number
+          share_key: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bot_id: string
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          messages?: Json
+          sequence_number: number
+          share_key?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bot_id?: string
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          messages?: Json
+          sequence_number?: number
+          share_key?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
