@@ -63,11 +63,14 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       if (existingChat) {
         console.log("Found existing chat for session:", sessionToken);
         setChatId(existingChat.id);
-        const chatMessages = existingChat.messages.map((msg: any) => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-          id: msg.id || uuidv4()
-        }));
+        // Ensure messages is an array before mapping
+        const chatMessages = Array.isArray(existingChat.messages) 
+          ? existingChat.messages.map((msg: any) => ({
+              ...msg,
+              timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+              id: msg.id || uuidv4()
+            }))
+          : [];
         setMessages(chatMessages);
       } else if (!specificChatId) {
         await createNewChat();
@@ -182,10 +185,16 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       let botResponse = "";
       if (bot.model === "gemini") {
         console.log("Sending message to Gemini API");
-        botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
+        botResponse = await ChatService.sendGeminiMessage(newMessages, {
+          ...bot,
+          starters: bot.starters || []  // Ensure starters is always an array
+        });
       } else if (bot.model === "openrouter") {
         console.log("Sending message to OpenRouter API");
-        botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
+        botResponse = await ChatService.sendOpenRouterMessage(newMessages, {
+          ...bot,
+          starters: bot.starters || []  // Ensure starters is always an array
+        });
       }
 
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
@@ -242,7 +251,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
             showHistory && !isMobile ? "w-[calc(100%-20rem)]" : "w-full"
           )}>
             <EmbeddedChatHeader
-              bot={bot}
+              bot={{...bot, starters: bot.starters || []}}  // Ensure starters is always an array
               onClearChat={handleClearChat}
               onToggleHistory={() => setShowHistory(!showHistory)}
               showHistory={showHistory}
@@ -251,7 +260,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
               messages={messages}
               isLoading={isLoading}
               onSend={sendMessage}
-              bot={bot}
+              bot={{...bot, starters: bot.starters || []}}  // Ensure starters is always an array
               onStarterClick={sendMessage}
             />
           </div>

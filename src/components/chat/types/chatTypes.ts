@@ -13,12 +13,11 @@ export interface Bot {
   id: string;
   name: string;
   instructions: string;
-  avatar?: string;
-  model: string;
-  starters?: string[];
-  apiKey: string;
+  starters: string[];  // Made required to match useBots
+  model: "gemini" | "claude" | "openai" | "openrouter";
+  apiKey: string;  // Added to match useBots
   openRouterModel?: string;
-  voice_enabled?: boolean;
+  avatar?: string;
   accessType?: "public" | "private";
 }
 
