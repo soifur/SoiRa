@@ -66,11 +66,11 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
     <div className="relative flex-1 overflow-hidden">
       <ScrollArea 
         ref={scrollRef}
-        className="h-[calc(100vh-8rem)] px-4 pb-32" 
+        className="h-[calc(100vh-12rem)] px-4 pb-24" 
         onScroll={handleScroll}
       >
         {messages.length === 0 && starters && starters.length > 0 ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
             {selectedBot && (
               <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                 {selectedBot.name}
@@ -102,7 +102,7 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
             </div>
           </div>
         ) : (
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4 mb-24">
             {messages.map((message) => (
               <ChatMessage
                 key={message.id}
