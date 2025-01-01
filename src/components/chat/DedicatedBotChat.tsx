@@ -17,7 +17,6 @@ interface DedicatedBotChatProps {
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -152,8 +151,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   return (
-    <Card className="flex flex-col h-full p-4 bg-card">
-      <div className="flex justify-end mb-4">
+    <Card className="flex flex-col h-full bg-card">
+      <div className="flex justify-end p-2">
         <Button
           variant="ghost"
           size="icon"
@@ -174,7 +173,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="mt-4">
+      <div className="mt-0.5">
         <ChatInput
           onSend={sendMessage}
           disabled={isLoading}
