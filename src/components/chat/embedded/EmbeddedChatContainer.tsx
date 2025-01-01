@@ -36,10 +36,12 @@ const EmbeddedChatContainer = () => {
           .from("shared_bots")
           .select(`
             *,
-            bot_api_keys!shared_bots_api_key_id_fkey(api_key)
+            bot_api_keys (
+              api_key
+            )
           `)
           .eq("short_key", botId)
-          .maybeSingle();
+          .single();
 
         if (sharedBotError) throw sharedBotError;
         

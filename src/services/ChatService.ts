@@ -42,7 +42,7 @@ export class ChatService {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          model: bot.openRouterModel,
+          model: bot.openRouterModel || "openai/gpt-3.5-turbo",
           messages: [
             ...(sanitizedInstructions
               ? [{ role: 'system', content: sanitizedInstructions }]
