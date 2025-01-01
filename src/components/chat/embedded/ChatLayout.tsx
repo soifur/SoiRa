@@ -14,8 +14,8 @@ interface ChatLayoutProps {
 export const ChatLayout = ({ onNewChat, children }: ChatLayoutProps) => {
   return (
     <div className="flex flex-col h-[100dvh] w-full">
-      {/* Header - Fixed height */}
-      <div className="h-[4dvh] md:h-[5dvh] min-h-[40px] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 fixed top-0 left-0 right-0 z-50">
+      {/* Header - Fixed 4% height */}
+      <div className="h-[4dvh] min-h-[40px] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 fixed top-0 left-0 right-0 z-50">
         <div className="h-full flex items-center justify-end px-4">
           <Button
             variant="ghost"
@@ -32,17 +32,14 @@ export const ChatLayout = ({ onNewChat, children }: ChatLayoutProps) => {
       {/* Messages Container - Flexible height with padding for header and input */}
       <div className={cn(
         "flex-1 overflow-y-auto",
-        "mt-[calc(4dvh+2dvh)] md:mt-[calc(5dvh+2dvh)]", // Header height + 2% padding
-        "mb-[calc(8dvh+2dvh)] md:mb-[calc(10dvh+2dvh)]", // Input height + 2% padding
-        "min-h-0 w-full max-w-4xl mx-auto"
+        "mt-[4dvh] mb-[8dvh] min-h-0",
+        "w-full max-w-4xl mx-auto"
       )}>
-        <div className="h-full">
-          {children.messages}
-        </div>
+        {children.messages}
       </div>
 
-      {/* Input Container - Fixed height */}
-      <div className="h-[8dvh] md:h-[10dvh] min-h-[60px] w-full fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+      {/* Input Container - Fixed 8% height */}
+      <div className="h-[8dvh] min-h-[60px] w-full fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
         <div className="h-full max-w-4xl mx-auto flex items-center">
           {children.input}
         </div>

@@ -34,6 +34,12 @@ export const MessageList = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   const getStarterIcon = (starter: string) => {
     const lowerStarter = starter.toLowerCase();
     if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
@@ -52,16 +58,16 @@ export const MessageList = ({
   };
 
   return (
-    <div className="relative flex-1">
+    <div className="relative flex-1 overflow-hidden">
       <ScrollArea className="h-[calc(100vh-6.5rem)] px-4">
         {messages.length === 0 && starters && starters.length > 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
             {selectedBot && (
-              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text animate-fade-in">
+              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                 {selectedBot.name}
               </h2>
             )}
-            <h1 className="text-4xl font-bold mb-12 text-foreground text-center animate-fade-in">
+            <h1 className="text-4xl font-bold mb-12 text-foreground text-center">
               What can I help with?
             </h1>
             <div className="grid grid-cols-1 gap-3 w-full max-w-2xl px-4">
@@ -75,13 +81,8 @@ export const MessageList = ({
                       "flex items-center justify-start gap-3 p-4 h-auto text-base w-full",
                       "rounded-2xl hover:bg-accent/50 transition-colors",
                       "bg-background/50 backdrop-blur-sm border-muted-foreground/20",
-                      "whitespace-normal text-left",
-                      "animate-fade-in",
-                      "hover:scale-[1.02] transition-transform duration-200"
+                      "whitespace-normal text-left"
                     )}
-                    style={{
-                      animationDelay: `${index * 100}ms`
-                    }}
                     onClick={() => onStarterClick && onStarterClick(starter)}
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
@@ -95,7 +96,7 @@ export const MessageList = ({
                 variant="ghost"
                 size="icon"
                 onClick={onClearChat}
-                className="absolute top-4 right-4 hover:bg-destructive/10 animate-fade-in"
+                className="absolute top-4 right-4 hover:bg-destructive/10"
               >
                 <Trash2 className="h-5 w-5 text-destructive" />
               </Button>
@@ -107,9 +108,6 @@ export const MessageList = ({
               <div
                 key={message.id}
                 ref={index === messages.length - 1 ? lastMessageRef : null}
-                style={{
-                  animationDelay: `${index * 100}ms`
-                }}
               >
                 <ChatMessage
                   message={message.content}

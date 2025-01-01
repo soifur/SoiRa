@@ -27,8 +27,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
     <div
       className={cn(
         "flex gap-3 max-w-3xl mx-auto",
-        isBot ? "justify-start" : "justify-end",
-        "animate-fade-in"
+        isBot ? "justify-start" : "justify-end"
       )}
     >
       {isBot && (
@@ -45,8 +44,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
       <Card
         className={cn(
           "px-6 py-4 rounded-2xl max-w-[85%] relative group",
-          isBot ? "bg-accent/50 backdrop-blur-sm" : "bg-primary text-primary-foreground",
-          "animate-scale-in"
+          isBot ? "bg-accent/50 backdrop-blur-sm" : "bg-primary text-primary-foreground"
         )}
       >
         {isBot && (
