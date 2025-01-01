@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
-import { supabase } from "@/integrations/supabase/client";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -54,64 +53,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     });
   };
 
-  const updateChatHistory = async (updatedMessages: typeof messages) => {
-    try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        throw new Error("No authenticated user");
-      }
-
-      const chatData = {
-        bot_id: bot.id,
-        messages: updatedMessages.map(msg => ({
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp?.toISOString()
-        })),
-        user_id: session.session.user.id
-      };
-
-      // First try to find existing chat history for this bot and user
-      const { data: existingChat, error: fetchError } = await supabase
-        .from('chat_history')
-        .select('id')
-        .eq('bot_id', bot.id)
-        .eq('user_id', session.session.user.id)
-        .is('share_key', null)  // Make sure we're not updating a shared chat
-        .maybeSingle();
-
-      if (fetchError) {
-        console.error("Error fetching existing chat:", fetchError);
-        throw fetchError;
-      }
-
-      let error;
-      if (existingChat) {
-        // Update existing chat
-        ({ error } = await supabase
-          .from('chat_history')
-          .update(chatData)
-          .eq('id', existingChat.id));
-      } else {
-        // Insert new chat
-        ({ error } = await supabase
-          .from('chat_history')
-          .insert(chatData));
-      }
-
-      if (error) throw error;
-      
-      console.log("Chat history saved successfully");
-    } catch (error) {
-      console.error("Error saving chat history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save chat history",
-        variant: "destructive",
-      });
-    }
-  };
-
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
 
@@ -135,8 +76,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const updatedMessages = [...newMessages, botResponse];
       
       setMessages(updatedMessages);
-      await updateChatHistory(updatedMessages);
       
+      // Save to localStorage only
       const chatKey = `dedicated_chat_${bot.id}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
@@ -165,7 +106,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       </div>
       
       <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto pb-8"> {/* Changed pb-24 to pb-8 */}
+        <div className="flex-1 overflow-y-auto pb-8">
           <MessageList
             messages={formatMessages(messages)}
             selectedBot={bot}
