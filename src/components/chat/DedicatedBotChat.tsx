@@ -38,6 +38,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         const parsedMessages = JSON.parse(savedMessages);
         setMessages(parsedMessages.map((msg: any) => ({
           ...msg,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
           avatar: msg.role === "assistant" ? (msg.avatar || bot.avatar) : undefined
         })));
       } catch (error) {
@@ -92,8 +93,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const chatKey = `chat_${bot.id}_${chatId}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
 
-      // Save to Supabase with avatar URL
-      const { data: chatData, error: chatError } = await supabase
+      // Get the next sequence number
+      const { data: chatData } = await supabase
         .from('chat_history')
         .select('sequence_number')
         .eq('bot_id', bot.id)
@@ -103,12 +104,19 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       const nextSequenceNumber = (chatData?.sequence_number || 0) + 1;
 
+      // Prepare messages for Supabase by converting Date objects to ISO strings
+      const supabaseMessages = updatedMessages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp?.toISOString(),
+      }));
+
+      // Save to Supabase with avatar URL and sequence number
       const { error } = await supabase
         .from('chat_history')
         .upsert({
           id: chatId,
           bot_id: bot.id,
-          messages: updatedMessages,
+          messages: supabaseMessages,
           avatar_url: bot.avatar,
           sequence_number: nextSequenceNumber,
           updated_at: new Date().toISOString()
@@ -116,6 +124,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       if (error) {
         console.error("Error saving chat history:", error);
+        throw error;
       }
     } catch (error) {
       console.error("Chat error:", error);
