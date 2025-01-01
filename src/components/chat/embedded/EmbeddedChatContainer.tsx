@@ -53,28 +53,15 @@ const EmbeddedChatContainer = () => {
           return;
         }
 
-        // Fetch the original bot's data to get the avatar
-        const { data: botData } = await supabase
-          .from("bots")
-          .select("avatar")
-          .eq("id", sharedBotData.bot_id)
-          .single();
-
         const validModel = (model: string): model is Bot['model'] => {
           return ['gemini', 'claude', 'openai', 'openrouter'].includes(model);
         };
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
-        // Get the avatar URL from storage using the bot's ID
-        let avatarUrl = "/placeholder.svg";
-        if (botData?.avatar) {
-          const { data } = await supabase.storage
-            .from('avatars')
-            .getPublicUrl(`${sharedBotData.bot_id}.png`);
-          avatarUrl = data?.publicUrl || "/placeholder.svg";
-          console.log("Avatar URL:", avatarUrl); // Debug log
-        }
+        // Construct the avatar URL directly using the bot_id
+        const avatarUrl = `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
+        console.log("Constructed Avatar URL:", avatarUrl);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
