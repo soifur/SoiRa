@@ -103,6 +103,7 @@ export const MessageList = ({
                 <div
                   key={message.id}
                   ref={index === messages.length - 1 ? lastMessageRef : null}
+                  className="relative group"
                 >
                   <ChatMessage
                     message={message.content}
