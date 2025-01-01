@@ -29,8 +29,8 @@ export const EmbeddedChatHeader = ({
         >
           <History className="h-5 w-5" />
         </Button>
-        <span className="font-semibold text-sm">{bot.name}</span>
       </div>
+      <span className="font-semibold text-sm">{bot.name}</span>
       <div className="flex items-center gap-2">
         {onNewChat && (
           <Button
