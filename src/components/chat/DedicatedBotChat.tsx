@@ -165,13 +165,15 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       </div>
       
       <div className="flex-1 overflow-hidden flex flex-col">
-        <MessageList
-          messages={formatMessages(messages)}
-          selectedBot={bot}
-          starters={bot.starters}
-          onStarterClick={sendMessage}
-        />
-        <div ref={messagesEndRef} />
+        <div className="flex-1 overflow-y-auto pb-24"> {/* Added pb-24 for bottom spacing */}
+          <MessageList
+            messages={formatMessages(messages)}
+            selectedBot={bot}
+            starters={bot.starters}
+            onStarterClick={sendMessage}
+          />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
       
       <div className="mt-4">
