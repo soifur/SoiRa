@@ -38,7 +38,7 @@ function App() {
     <ThemeProvider defaultTheme="dark" attribute="class">
       <Helmet>
         <title>SoiRa AI</title>
-        <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
+        <link rel="icon" type="image/png" href="/soira-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
         <meta name="description" content="SoiRa AI - Your AI Assistant" />
       </Helmet>
       <Router>
