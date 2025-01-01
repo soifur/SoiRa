@@ -56,8 +56,11 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-semibold">
+          <span className="font-semibold flex items-center gap-2">
             {bot?.name || "Unknown Bot"}
+            <span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded-full">
+              Chat #{record.sequence_number}
+            </span>
           </span>
           {record.client_id && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">

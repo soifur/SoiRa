@@ -9,4 +9,5 @@ export interface ChatRecord {
   type: string;
   user_id?: string;
   client_id?: string;
+  sequence_number: number;
 }

@@ -30,7 +30,7 @@ const Archive = () => {
         .from('chat_history')
         .select('*')
         .or(`user_id.eq.${session.session?.user.id},share_key.not.is.null`)
-        .order('created_at', { ascending: false });
+        .order('sequence_number', { ascending: true });
 
       if (error) throw error;
 
@@ -48,7 +48,8 @@ const Archive = () => {
         shareKey: record.share_key,
         type: record.share_key ? 'public' : 'private',
         user_id: record.user_id,
-        client_id: record.client_id
+        client_id: record.client_id,
+        sequence_number: record.sequence_number
       }));
 
       setChatHistory(transformedHistory);
