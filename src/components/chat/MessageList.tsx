@@ -31,7 +31,7 @@ export const MessageList = ({ messages, selectedBot, starters, onStarterClick, i
               <Button
                 key={index}
                 variant="outline"
-                className="justify-start"
+                className="justify-start text-left"
                 onClick={() => onStarterClick?.(starter)}
               >
                 {starter}
