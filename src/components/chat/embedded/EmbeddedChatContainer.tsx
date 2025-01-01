@@ -66,12 +66,14 @@ const EmbeddedChatContainer = () => {
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
+        // Get the avatar URL from storage using the bot's ID
         let avatarUrl = "/placeholder.svg";
         if (botData?.avatar) {
           const { data } = await supabase.storage
             .from('avatars')
-            .getPublicUrl(botData.avatar);
+            .getPublicUrl(`${sharedBotData.bot_id}.png`);
           avatarUrl = data?.publicUrl || "/placeholder.svg";
+          console.log("Avatar URL:", avatarUrl); // Debug log
         }
 
         const transformedBot: Bot = {

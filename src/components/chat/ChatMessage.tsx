@@ -23,13 +23,6 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
     });
   };
 
-  const getAvatarUrl = (avatarUrl?: string) => {
-    if (!avatarUrl) return "/placeholder.svg";
-    if (avatarUrl.startsWith('data:')) return avatarUrl;
-    if (avatarUrl.startsWith('http')) return avatarUrl;
-    return "/placeholder.svg";
-  };
-
   return (
     <div
       className={cn(
@@ -44,7 +37,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
               <LoaderCircle className="h-4 w-4" />
             </div>
           ) : (
-            <img src={getAvatarUrl(avatar)} alt="Bot" className="h-full w-full object-cover" />
+            <img src={avatar || "/placeholder.svg"} alt="Bot" className="h-full w-full object-cover" />
           )}
         </Avatar>
       )}
