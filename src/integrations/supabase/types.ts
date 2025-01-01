@@ -21,7 +21,8 @@ export interface Database {
           client_id?: string | null
           sequence_number: number
         }
-        Insert: Omit<Database['public']['Tables']['chat_history']['Row'], 'sequence_number'> & {
+        Insert: Omit<Database['public']['Tables']['chat_history']['Row'], 'id' | 'sequence_number'> & {
+          id?: string
           sequence_number?: number
         }
         Update: Partial<Database['public']['Tables']['chat_history']['Insert']>
