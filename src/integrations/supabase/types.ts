@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chat_history: {
+        Row: {
+          id: string
+          bot_id: string
+          share_key?: string | null
+          messages: Json
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          client_id?: string | null
+          sequence_number: number
+        }
+        Insert: {
+          id?: string
+          bot_id: string
+          share_key?: string | null
+          messages?: Json
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          client_id?: string | null
+          sequence_number?: number // Made optional for Insert
+        }
+        Update: {
+          id?: string
+          bot_id?: string
+          share_key?: string | null
+          messages?: Json
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          client_id?: string | null
+          sequence_number?: number
+        }
+      }
       bot_api_keys: {
         Row: {
           api_key: string
@@ -74,50 +109,6 @@ export type Database = {
           voice_enabled?: boolean | null
         }
         Relationships: []
-      }
-      chat_history: {
-        Row: {
-          bot_id: string
-          client_id: string | null
-          created_at: string | null
-          id: string
-          messages: Json
-          sequence_number: number
-          share_key: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          bot_id: string
-          client_id?: string | null
-          created_at?: string | null
-          id?: string
-          messages?: Json
-          sequence_number: number
-          share_key?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          bot_id?: string
-          client_id?: string | null
-          created_at?: string | null
-          id?: string
-          messages?: Json
-          sequence_number?: number
-          share_key?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       profiles: {
         Row: {
@@ -257,7 +248,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -269,10 +260,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
+      Row: infer R
+    }
+    ? R
+    : never
     : never
 
 export type TablesInsert<

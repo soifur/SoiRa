@@ -67,7 +67,7 @@ const Chat = () => {
         throw new Error("No authenticated user");
       }
 
-      const chatData: Database['public']['Tables']['chat_history']['Insert'] = {
+      const chatData = {
         bot_id: selectedBotId,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
@@ -75,7 +75,7 @@ const Chat = () => {
           timestamp: msg.timestamp?.toISOString()
         })),
         user_id: session.session.user.id
-      };
+      } as Database['public']['Tables']['chat_history']['Insert'];
 
       const { error } = await supabase
         .from('chat_history')

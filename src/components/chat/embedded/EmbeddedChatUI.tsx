@@ -23,7 +23,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      const chatData: Database['public']['Tables']['chat_history']['Insert'] = {
+      const chatData = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
@@ -32,7 +32,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         })),
         client_id: clientId,
         share_key: shareKey
-      };
+      } as Database['public']['Tables']['chat_history']['Insert'];
 
       // First try to find existing chat history
       const { data: existingChat, error: fetchError } = await supabase
