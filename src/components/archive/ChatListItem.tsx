@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { MessageSquare, Calendar, Share2, Network } from "lucide-react";
+import { MessageSquare, Calendar, Share2, Network, Trash2 } from "lucide-react";
 import { Bot } from "@/hooks/useBots";
 import { ChatRecord } from "./types";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -10,9 +10,10 @@ interface ChatListItemProps {
   record: ChatRecord;
   bot?: Bot;
   onClick: () => void;
+  onDelete?: () => void;
 }
 
-export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
+export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemProps) => {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   
@@ -47,11 +48,16 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
     });
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.();
+  };
+
   const lastMessage = record.messages[record.messages.length - 1];
 
   return (
     <Card 
-      className="p-4 hover:bg-accent cursor-pointer transition-colors"
+      className="p-4 hover:bg-accent cursor-pointer transition-colors relative group"
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">
@@ -97,6 +103,16 @@ export const ChatListItem = ({ record, bot, onClick }: ChatListItemProps) => {
         <div className="mt-2 text-sm text-muted-foreground">
           Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
         </div>
+      )}
+      {onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
       )}
     </Card>
   );
