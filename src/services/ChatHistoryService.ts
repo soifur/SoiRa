@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ChatHistoryData, ChatMessage } from "@/components/chat/types/chatTypes";
+import { ChatMessage } from "@/components/chat/types/chatTypes";
 
 export class ChatHistoryService {
   static async getLatestSequenceNumber(botId: string): Promise<number> {
@@ -26,30 +26,22 @@ export class ChatHistoryService {
   static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
     console.log("Creating new chat history with params:", { newChatId, botId, clientId, shareKey });
     
-    // First, check if there's an existing chat with the same bot_id and share_key
-    if (shareKey) {
-      const { data: existingChat } = await supabase
-        .from('chat_history')
-        .select('id')
-        .match({
-          bot_id: botId,
-          client_id: clientId,
-          share_key: shareKey
-        })
-        .single();
+    // Check if the specific ID already exists
+    const { data: existingChat } = await supabase
+      .from('chat_history')
+      .select('id')
+      .eq('id', newChatId)
+      .single();
 
-      if (existingChat) {
-        console.log("Found existing chat, will use that instead:", existingChat.id);
-        return; // Exit early, don't create a new chat
-      }
-
-      console.log("No existing chat found, proceeding with creation");
+    if (existingChat) {
+      console.log("Chat with ID already exists:", existingChat.id);
+      throw new Error("Chat ID already exists");
     }
 
     const sequence_number = await this.getLatestSequenceNumber(botId);
     console.log("Got sequence number for new chat:", sequence_number);
 
-    const chatData: ChatHistoryData = {
+    const chatData = {
       id: newChatId,
       bot_id: botId,
       messages: [],

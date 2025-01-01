@@ -29,7 +29,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  padding-bottom: 160px; /* Increased space for input */
+  padding-bottom: 200px; /* Increased space for input */
   margin-bottom: 0; /* Remove margin since we use padding */
 }
 
@@ -58,5 +58,5 @@
 
 /* Prevent content from going under fixed elements */
 .scroll-area-viewport {
-  padding-bottom: 160px !important; /* Match message-list padding */
+  padding-bottom: 200px !important; /* Match message-list padding */
 }
