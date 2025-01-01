@@ -26,12 +26,12 @@ export const MessageList = ({ messages, selectedBot, starters, onStarterClick, i
           <p className="text-sm text-muted-foreground mb-2">
             Start a conversation:
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 max-w-[600px] mx-auto w-full">
             {starters.map((starter, index) => (
               <Button
                 key={index}
                 variant="outline"
-                className="justify-start text-left"
+                className="w-full text-left h-auto whitespace-normal py-3"
                 onClick={() => onStarterClick?.(starter)}
               >
                 {starter}
