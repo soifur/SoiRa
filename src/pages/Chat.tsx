@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { useBots } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -31,7 +32,7 @@ const Chat = () => {
           timestamp: msg.timestamp?.toISOString()
         })),
         user_id: session.session.user.id
-      };
+      } as Database['public']['Tables']['chat_history']['Insert'];
 
       const { error } = await supabase
         .from('chat_history')
