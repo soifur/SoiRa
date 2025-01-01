@@ -9,6 +9,8 @@ import { Bot } from "@/hooks/useBots";
 import { ChatService } from "@/services/ChatService";
 import { Database } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -33,6 +35,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   useEffect(() => {
     const loadExistingChat = async () => {
       try {
+        if (!bot.id) return;
+
         const { data: existingChat } = await supabase
           .from('chat_history')
           .select('*')
@@ -120,6 +124,27 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     await sendMessage(starter);
   };
 
+  const handleClearChat = async () => {
+    try {
+      setMessages([]);
+      // Generate a new chat ID for the next conversation
+      const newChatId = uuidv4();
+      setChatId(newChatId);
+      
+      toast({
+        title: "Success",
+        description: "Chat history cleared",
+      });
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear chat history",
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
 
@@ -158,6 +183,16 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   return (
     <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl">
+      <div className="flex justify-end p-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClearChat}
+          className="hover:bg-destructive/10"
+        >
+          <Trash2 className="h-5 w-5 text-destructive" />
+        </Button>
+      </div>
       <div className="flex-1 overflow-hidden">
         <MessageList
           messages={messages}
