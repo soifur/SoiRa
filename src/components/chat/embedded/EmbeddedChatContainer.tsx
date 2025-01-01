@@ -65,21 +65,16 @@ const EmbeddedChatContainer = () => {
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
-        // Handle avatar URL
         let avatarUrl = "/placeholder.svg";
         if (botData?.avatar) {
           if (botData.avatar.startsWith('data:')) {
             avatarUrl = botData.avatar;
           } else {
-            try {
-              const { data } = await supabase.storage
-                .from('avatars')
-                .getPublicUrl(botData.avatar);
-              if (data?.publicUrl) {
-                avatarUrl = data.publicUrl;
-              }
-            } catch (error) {
-              console.error("Error getting avatar URL:", error);
+            const { data } = await supabase.storage
+              .from('avatars')
+              .getPublicUrl(botData.avatar);
+            if (data?.publicUrl) {
+              avatarUrl = data.publicUrl;
             }
           }
         }
