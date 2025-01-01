@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageList } from "../MessageList";
 import { ChatInput } from "../ChatInput";
 import { Card } from "@/components/ui/card";
@@ -21,10 +21,44 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const { toast } = useToast();
+  const [chatId, setChatId] = useState<string | null>(null);
+
+  // Load existing chat on mount
+  useEffect(() => {
+    const loadExistingChat = async () => {
+      try {
+        const { data: existingChat } = await supabase
+          .from('chat_history')
+          .select('*')
+          .eq('bot_id', bot.id)
+          .eq('client_id', clientId)
+          .eq('share_key', shareKey)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (existingChat) {
+          setChatId(existingChat.id);
+          setMessages(existingChat.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+            id: uuidv4()
+          })));
+        } else {
+          // Create a new chat if none exists
+          const newChatId = uuidv4();
+          setChatId(newChatId);
+        }
+      } catch (error) {
+        console.error("Error loading chat:", error);
+      }
+    };
+
+    loadExistingChat();
+  }, [bot.id, clientId, shareKey]);
 
   const saveChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      // Get the latest sequence number for this bot
       const { data: latestChat } = await supabase
         .from('chat_history')
         .select('sequence_number')
@@ -34,7 +68,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         .single();
 
       const chatData = {
-        id: uuidv4(), // Generate a new UUID for each chat
+        id: chatId || uuidv4(),
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
@@ -46,12 +80,23 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         sequence_number: (latestChat?.sequence_number || 0) + 1
       } as Database['public']['Tables']['chat_history']['Insert'];
 
-      const { error } = await supabase
-        .from('chat_history')
-        .insert(chatData);
+      if (chatId) {
+        // Update existing chat
+        const { error } = await supabase
+          .from('chat_history')
+          .update(chatData)
+          .eq('id', chatId);
 
-      if (error) throw error;
-      
+        if (error) throw error;
+      } else {
+        // Insert new chat
+        const { error } = await supabase
+          .from('chat_history')
+          .insert(chatData);
+
+        if (error) throw error;
+        setChatId(chatData.id);
+      }
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
@@ -76,7 +121,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       setMessages(newMessages);
       setInput("");
       
-      // Add temporary loading message
       const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
       setMessages([...newMessages, loadingMessage]);
 
