@@ -54,5 +54,5 @@
 
 /* Prevent content from going under fixed elements */
 .scroll-area-viewport {
-  padding-bottom: 6rem !important;
+  padding-bottom: 4rem !important;
 }
