@@ -1,9 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ChatHistoryData, ChatMessage } from "@/components/chat/types/chatTypes";
-import { v4 as uuidv4 } from 'uuid';
 
 export class ChatHistoryService {
   static async getLatestSequenceNumber(botId: string): Promise<number> {
+    console.log("Getting latest sequence number for bot:", botId);
     const { data: latestChat } = await supabase
       .from('chat_history')
       .select('sequence_number')
@@ -12,10 +12,26 @@ export class ChatHistoryService {
       .limit(1)
       .single();
 
-    return (latestChat?.sequence_number || 0) + 1;
+    const nextSequence = (latestChat?.sequence_number || 0) + 1;
+    console.log("Next sequence number:", nextSequence);
+    return nextSequence;
   }
 
   static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
+    console.log("Creating new chat history:", { newChatId, botId, clientId, shareKey });
+    
+    // Delete any existing chat history for this bot-client-share combination
+    const { error: deleteError } = await supabase
+      .from('chat_history')
+      .delete()
+      .eq('bot_id', botId)
+      .eq('client_id', clientId)
+      .eq('share_key', shareKey);
+
+    if (deleteError) {
+      console.error("Error deleting existing chat history:", deleteError);
+    }
+
     const sequence_number = await this.getLatestSequenceNumber(botId);
 
     const chatData: ChatHistoryData = {
@@ -31,18 +47,19 @@ export class ChatHistoryService {
       .from('chat_history')
       .insert(chatData);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating new chat history:", error);
+      throw error;
+    }
   }
 
   static async updateChatHistory(chatId: string, botId: string, messages: ChatMessage[], clientId: string, shareKey?: string): Promise<void> {
+    console.log("Updating chat history:", { chatId, botId, messages: messages.length });
+    
     const chatData: ChatHistoryData = {
       id: chatId,
       bot_id: botId,
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-        timestamp: msg.timestamp
-      })),
+      messages: messages,
       client_id: clientId,
       share_key: shareKey,
       sequence_number: await this.getLatestSequenceNumber(botId)
@@ -53,6 +70,9 @@ export class ChatHistoryService {
       .update(chatData)
       .eq('id', chatId);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error updating chat history:", error);
+      throw error;
+    }
   }
 }

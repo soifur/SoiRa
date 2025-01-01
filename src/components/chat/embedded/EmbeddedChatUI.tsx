@@ -10,6 +10,8 @@ import { ChatService } from "@/services/ChatService";
 import { ChatHistoryService } from "@/services/ChatHistoryService";
 import { ChatMessage } from "../types/chatTypes";
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from "@/components/ui/button";
+import { MessageSquarePlus } from "lucide-react";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -28,6 +30,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     const loadExistingChat = async () => {
       try {
         if (!bot.id) return;
+        console.log("Loading existing chat for bot:", bot.id, "clientId:", clientId);
 
         const { data: existingChat } = await supabase
           .from('chat_history')
@@ -39,6 +42,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           .limit(1)
           .single();
 
+        console.log("Existing chat data:", existingChat);
+
         if (existingChat) {
           setChatId(existingChat.id);
           const rawMessages = existingChat.messages as unknown;
@@ -49,6 +54,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           }));
           setMessages(chatMessages);
         } else {
+          console.log("No existing chat found, creating new chat");
           const newChatId = uuidv4();
           setChatId(newChatId);
           await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
@@ -67,8 +73,23 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const handleClearChat = async () => {
     try {
+      console.log("Clearing chat and creating new chat history");
       setMessages([]);
       const newChatId = uuidv4();
+      console.log("New chat ID:", newChatId);
+      
+      // Delete old chat history first
+      if (chatId) {
+        const { error: deleteError } = await supabase
+          .from('chat_history')
+          .delete()
+          .eq('id', chatId);
+        
+        if (deleteError) {
+          console.error("Error deleting old chat:", deleteError);
+        }
+      }
+
       setChatId(newChatId);
       await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
       
@@ -101,15 +122,24 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
       let botResponse = "";
       if (bot.model === "gemini") {
+        console.log("Sending message to Gemini API");
         botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
       } else if (bot.model === "openrouter") {
+        console.log("Sending message to OpenRouter API");
         botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
       }
 
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
-      await ChatHistoryService.updateChatHistory(chatId, bot.id, updatedMessages, clientId, shareKey);
+
+      // Convert messages to the correct format before saving
+      const messagesToSave = updatedMessages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp?.toISOString()
+      }));
+
+      await ChatHistoryService.updateChatHistory(chatId, bot.id, messagesToSave, clientId, shareKey);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -124,6 +154,17 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   return (
     <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl">
+      <div className="p-2 border-b flex justify-end">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClearChat}
+          className="text-muted-foreground hover:text-primary"
+        >
+          <MessageSquarePlus className="h-5 w-5" />
+          <span className="ml-2">New Chat</span>
+        </Button>
+      </div>
       <div className="flex-1 overflow-hidden">
         <MessageList
           messages={messages}
@@ -131,7 +172,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           starters={bot.starters || []}
           onStarterClick={handleStarterClick}
           isLoading={isLoading}
-          onClearChat={handleClearChat}
         />
       </div>
       <div className="p-4">
