@@ -15,19 +15,20 @@ const CookieConsent = ({ onAccept, onReject }: CookieConsentProps) => {
 
   useEffect(() => {
     const hasConsent = Cookies.get("chat_cookie_consent");
-    if (!hasConsent) {
+    // Only check for explicit acceptance, treat everything else as needing consent
+    if (hasConsent !== "accepted") {
       setIsVisible(true);
+      setIsRejected(false);
     }
   }, []);
 
   const handleAccept = () => {
-    Cookies.set("chat_cookie_consent", "accepted", { expires: 365 });
     setIsVisible(false);
+    setIsRejected(false);
     onAccept();
   };
 
   const handleReject = () => {
-    Cookies.set("chat_cookie_consent", "rejected", { expires: 365 });
     setIsVisible(false);
     setIsRejected(true);
     onReject();

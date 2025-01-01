@@ -8,7 +8,8 @@ export const useSessionToken = () => {
 
   useEffect(() => {
     const consent = Cookies.get('chat_cookie_consent');
-    setHasConsent(consent === 'accepted');
+    // Only set hasConsent if there's an explicit 'accepted' cookie
+    setHasConsent(consent === 'accepted' ? true : null);
 
     if (consent === 'accepted') {
       let token = Cookies.get('chat_session_token');
@@ -22,13 +23,18 @@ export const useSessionToken = () => {
 
   const handleCookieAccept = () => {
     const token = uuidv4();
+    Cookies.set('chat_cookie_consent', 'accepted', { expires: 365 });
     Cookies.set('chat_session_token', token, { expires: 365 });
     setSessionToken(token);
     setHasConsent(true);
   };
 
   const handleCookieReject = () => {
+    // Remove any existing cookies when rejected
+    Cookies.remove('chat_cookie_consent');
+    Cookies.remove('chat_session_token');
     setHasConsent(false);
+    setSessionToken(null);
   };
 
   return {
