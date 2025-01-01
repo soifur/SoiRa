@@ -24,27 +24,14 @@ interface MessageListProps {
 
 export const MessageList = ({ messages, selectedBot, starters = [], onStarterClick, isLoading }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isNearBottom = useRef(true);
-  const lastUserInteraction = useRef<number>(Date.now());
-  const SCROLL_THRESHOLD = 100;
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
+  // Scroll to bottom whenever messages change
   useEffect(() => {
-    const scrollArea = scrollRef.current;
-    if (scrollArea && isNearBottom.current) {
-      scrollArea.scrollTop = scrollArea.scrollHeight;
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    const timeSinceLastInteraction = Date.now() - lastUserInteraction.current;
-    
-    if (timeSinceLastInteraction > 1000) {
-      isNearBottom.current = 
-        target.scrollHeight - target.scrollTop - target.clientHeight < SCROLL_THRESHOLD;
-    }
-    lastUserInteraction.current = Date.now();
-  };
 
   const getStarterIcon = (starter: string) => {
     const lowerStarter = starter.toLowerCase();
@@ -68,7 +55,6 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
       <ScrollArea 
         ref={scrollRef}
         className="h-[calc(100vh-6.5rem)] px-4" 
-        onScroll={handleScroll}
       >
         {messages.length === 0 && starters && starters.length > 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
@@ -104,14 +90,18 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
           </div>
         ) : (
           <div className="space-y-4 pt-4">
-            {messages.map((message) => (
-              <ChatMessage
+            {messages.map((message, index) => (
+              <div
                 key={message.id}
-                message={message.content}
-                isBot={message.role === "assistant"}
-                avatar={message.avatar}
-                isLoading={message.role === "assistant" && isLoading}
-              />
+                ref={index === messages.length - 1 ? lastMessageRef : null}
+              >
+                <ChatMessage
+                  message={message.content}
+                  isBot={message.role === "assistant"}
+                  avatar={message.avatar}
+                  isLoading={message.role === "assistant" && isLoading}
+                />
+              </div>
             ))}
           </div>
         )}
