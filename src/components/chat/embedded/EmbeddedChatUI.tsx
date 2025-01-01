@@ -31,7 +31,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         })),
         client_id: clientId,
         share_key: shareKey
-      };
+      } as const;
 
       // First try to find existing chat history
       const { data: existingChat, error: fetchError } = await supabase

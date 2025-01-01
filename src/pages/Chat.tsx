@@ -31,7 +31,7 @@ const Chat = () => {
           timestamp: msg.timestamp?.toISOString()
         })),
         user_id: session.session.user.id
-      };
+      } as const;
 
       const { error } = await supabase
         .from('chat_history')
