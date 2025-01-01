@@ -38,7 +38,7 @@ const EmbeddedChatContainer = () => {
             bot_api_keys!shared_bots_api_key_id_fkey (
               api_key
             ),
-            bots!inner (
+            bot:bot_id (
               avatar
             )
           `)
@@ -70,7 +70,7 @@ const EmbeddedChatContainer = () => {
           model: model,
           apiKey: sharedBot.bot_api_keys?.api_key || "",
           openRouterModel: sharedBot.open_router_model,
-          avatar: sharedBot.bots?.avatar,
+          avatar: sharedBot.bot?.avatar,
           accessType: "public"
         };
 
