@@ -31,14 +31,15 @@ const EmbeddedChatContainer = () => {
       try {
         if (!botId) return;
 
+        // First, get the shared bot data
         const { data: sharedBot, error: sharedBotError } = await supabase
           .from("shared_bots")
           .select(`
             *,
-            bot_api_keys!shared_bots_api_key_id_fkey (
+            bot_api_keys (
               api_key
             ),
-            bots!shared_bots_bot_id_fkey (
+            bot:bots (
               avatar
             )
           `)
@@ -70,7 +71,7 @@ const EmbeddedChatContainer = () => {
           model: model,
           apiKey: sharedBot.bot_api_keys?.api_key || "",
           openRouterModel: sharedBot.open_router_model,
-          avatar: sharedBot.bots?.avatar,
+          avatar: sharedBot.bot?.avatar,
           accessType: "public"
         };
 
