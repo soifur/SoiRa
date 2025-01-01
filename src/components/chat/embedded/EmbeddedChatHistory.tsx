@@ -67,7 +67,6 @@ export const EmbeddedChatHistory = ({
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <History className="w-5 h-5" />
-          <h2 className="font-semibold">Chat History</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -81,7 +80,7 @@ export const EmbeddedChatHistory = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 md:hidden"
+            className="h-8 w-8"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
