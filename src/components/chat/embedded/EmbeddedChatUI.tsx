@@ -9,8 +9,6 @@ import { Bot } from "@/hooks/useBots";
 import { ChatService } from "@/services/ChatService";
 import { Database } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from 'uuid';
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -61,6 +59,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           // Create a new chat if none exists
           const newChatId = uuidv4();
           setChatId(newChatId);
+          await createNewChatHistory(newChatId);
         }
       } catch (error) {
         console.error("Error loading chat:", error);
@@ -70,7 +69,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     loadExistingChat();
   }, [bot.id, clientId, shareKey]);
 
-  const saveChatHistory = async (updatedMessages: typeof messages) => {
+  const createNewChatHistory = async (newChatId: string) => {
     try {
       const { data: latestChat } = await supabase
         .from('chat_history')
@@ -81,7 +80,28 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         .single();
 
       const chatData = {
-        id: chatId || uuidv4(),
+        id: newChatId,
+        bot_id: bot.id,
+        messages: [],
+        client_id: clientId,
+        share_key: shareKey,
+        sequence_number: (latestChat?.sequence_number || 0) + 1
+      } as Database['public']['Tables']['chat_history']['Insert'];
+
+      const { error } = await supabase
+        .from('chat_history')
+        .insert(chatData);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error creating new chat history:", error);
+    }
+  };
+
+  const saveChatHistory = async (updatedMessages: typeof messages) => {
+    try {
+      const chatData = {
+        id: chatId,
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
@@ -89,26 +109,16 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           timestamp: msg.timestamp?.toISOString()
         })),
         client_id: clientId,
-        share_key: shareKey,
-        sequence_number: (latestChat?.sequence_number || 0) + 1
+        share_key: shareKey
       } as Database['public']['Tables']['chat_history']['Insert'];
 
       if (chatId) {
-        // Update existing chat
         const { error } = await supabase
           .from('chat_history')
           .update(chatData)
           .eq('id', chatId);
 
         if (error) throw error;
-      } else {
-        // Insert new chat
-        const { error } = await supabase
-          .from('chat_history')
-          .insert(chatData);
-
-        if (error) throw error;
-        setChatId(chatData.id);
       }
     } catch (error) {
       console.error("Error saving chat history:", error);
@@ -127,9 +137,9 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const handleClearChat = async () => {
     try {
       setMessages([]);
-      // Generate a new chat ID for the next conversation
       const newChatId = uuidv4();
       setChatId(newChatId);
+      await createNewChatHistory(newChatId);
       
       toast({
         title: "Success",
@@ -183,16 +193,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   return (
     <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl">
-      <div className="flex justify-end p-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClearChat}
-          className="hover:bg-destructive/10"
-        >
-          <Trash2 className="h-5 w-5 text-destructive" />
-        </Button>
-      </div>
       <div className="flex-1 overflow-hidden">
         <MessageList
           messages={messages}
@@ -200,6 +200,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           starters={bot.starters || []}
           onStarterClick={handleStarterClick}
           isLoading={isLoading}
+          onClearChat={handleClearChat}
         />
       </div>
       <div className="p-4">

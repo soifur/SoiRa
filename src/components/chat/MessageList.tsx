@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
+import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Message {
@@ -20,13 +20,20 @@ interface MessageListProps {
   starters?: string[];
   onStarterClick?: (value: string) => void;
   isLoading?: boolean;
+  onClearChat?: () => void;
 }
 
-export const MessageList = ({ messages, selectedBot, starters = [], onStarterClick, isLoading }: MessageListProps) => {
+export const MessageList = ({ 
+  messages, 
+  selectedBot, 
+  starters = [], 
+  onStarterClick, 
+  isLoading,
+  onClearChat 
+}: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom whenever messages change
   useEffect(() => {
     if (lastMessageRef.current) {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
@@ -52,10 +59,7 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
 
   return (
     <div className="relative flex-1 overflow-hidden">
-      <ScrollArea 
-        ref={scrollRef}
-        className="h-[calc(100vh-6.5rem)] px-4" 
-      >
+      <ScrollArea className="h-[calc(100vh-6.5rem)] px-4">
         {messages.length === 0 && starters && starters.length > 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
             {selectedBot && (
@@ -87,9 +91,19 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
                 );
               })}
             </div>
+            {onClearChat && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClearChat}
+                className="absolute top-4 right-4 hover:bg-destructive/10"
+              >
+                <Trash2 className="h-5 w-5 text-destructive" />
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4 relative">
             {messages.map((message, index) => (
               <div
                 key={message.id}
@@ -103,6 +117,16 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
                 />
               </div>
             ))}
+            {onClearChat && messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClearChat}
+                className="absolute top-2 right-2 hover:bg-destructive/10"
+              >
+                <Trash2 className="h-5 w-5 text-destructive" />
+              </Button>
+            )}
           </div>
         )}
       </ScrollArea>
