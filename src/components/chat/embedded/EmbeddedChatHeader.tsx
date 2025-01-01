@@ -8,6 +8,7 @@ interface EmbeddedChatHeaderProps {
   onNewChat: () => void;
   onToggleHistory: () => void;
   showHistory: boolean;
+  onClearChat: () => Promise<void>;  // Added this prop
 }
 
 export const EmbeddedChatHeader = ({ 
