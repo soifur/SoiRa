@@ -87,6 +87,10 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       setMessages(newMessages);
       setInput("");
       
+      // Add temporary loading message
+      const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
+      setMessages([...newMessages, loadingMessage]);
+
       let botResponse = "";
       if (bot.model === "gemini") {
         botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
@@ -94,7 +98,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
       }
 
-      const botMessage = createMessage("assistant", botResponse);
+      const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
       await updateChatHistory(updatedMessages);
@@ -118,6 +122,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           selectedBot={bot}
           starters={bot.starters || []}
           onStarterClick={handleStarterClick}
+          isLoading={isLoading}
         />
       </div>
       <div className="p-4">

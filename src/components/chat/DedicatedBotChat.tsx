@@ -16,7 +16,6 @@ interface DedicatedBotChatProps {
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +61,10 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
 
+      // Add temporary loading message
+      const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
+      setMessages([...newMessages, loadingMessage]);
+
       let response: string;
 
       if (bot.model === "openrouter") {
@@ -72,6 +75,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         throw new Error("Unsupported model type");
       }
 
+      // Remove loading message and add actual response
       const botResponse = createMessage("assistant", response, true, bot.avatar);
       const updatedMessages = [...newMessages, botResponse];
       
@@ -112,6 +116,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
             selectedBot={bot}
             starters={bot.starters}
             onStarterClick={sendMessage}
+            isLoading={isLoading}
           />
           <div ref={messagesEndRef} />
         </div>

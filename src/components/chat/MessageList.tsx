@@ -19,9 +19,10 @@ interface MessageListProps {
   selectedBot?: any;
   starters?: string[];
   onStarterClick?: (value: string) => void;
+  isLoading?: boolean;
 }
 
-export const MessageList = ({ messages, selectedBot, starters = [], onStarterClick }: MessageListProps) => {
+export const MessageList = ({ messages, selectedBot, starters = [], onStarterClick, isLoading }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottom = useRef(true);
   const lastUserInteraction = useRef<number>(Date.now());
@@ -109,6 +110,7 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
                 message={message.content}
                 isBot={message.role === "assistant"}
                 avatar={message.avatar}
+                isLoading={message.role === "assistant" && isLoading}
               />
             ))}
           </div>

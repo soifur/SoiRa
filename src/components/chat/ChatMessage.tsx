@@ -2,15 +2,27 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Copy, LoaderCircle } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
+import { useToast } from "@/components/ui/use-toast";
 
 export interface ChatMessageProps {
   message: string;
   isBot?: boolean;
   avatar?: string;
+  isLoading?: boolean;
 }
 
-export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
+export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessageProps) => {
+  const { toast } = useToast();
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message);
+    toast({
+      description: "Message copied to clipboard",
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -20,15 +32,29 @@ export const ChatMessage = ({ message, isBot, avatar }: ChatMessageProps) => {
     >
       {isBot && (
         <Avatar className="h-8 w-8 shrink-0">
-          <img src={avatar || "/placeholder.svg"} alt="Bot" />
+          {isLoading ? (
+            <div className="animate-spin">
+              <LoaderCircle className="h-4 w-4" />
+            </div>
+          ) : (
+            <img src={avatar || "/placeholder.svg"} alt="Bot" className="h-full w-full object-cover" />
+          )}
         </Avatar>
       )}
       <Card
         className={cn(
-          "px-6 py-4 rounded-2xl max-w-[85%]",
+          "px-6 py-4 rounded-2xl max-w-[85%] relative group",
           isBot ? "bg-accent/50 backdrop-blur-sm" : "bg-primary text-primary-foreground"
         )}
       >
+        {isBot && (
+          <button
+            onClick={handleCopy}
+            className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </button>
+        )}
         <div className="prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown
             components={{
