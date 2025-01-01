@@ -12,6 +12,7 @@ import { EmbeddedChatContent } from "./EmbeddedChatContent";
 import { EmbeddedChatHistory } from "./EmbeddedChatHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { Bot, Message } from "../types/chatTypes";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
