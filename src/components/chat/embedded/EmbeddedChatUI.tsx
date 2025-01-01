@@ -175,11 +175,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   if (hasConsent === false) {
     return (
       <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl items-center justify-center p-4">
-        <h2 className="text-xl font-semibold mb-4">Cookie Consent Required</h2>
-        <p className="text-center text-muted-foreground mb-4">
-          To access this Chatbot, you must accept the required cookies.
-        </p>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
+        <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />
       </Card>
     );
   }
