@@ -31,27 +31,21 @@ export class ChatService {
     const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
 
     try {
-      // Create headers with ASCII-safe values
       const headers = {
-        'Authorization': `Bearer ${this.sanitizeText(bot.apiKey)}`,
+        'Authorization': `Bearer ${bot.apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': this.sanitizeText(window.location.origin),
-        'X-Title': 'SoiRa Chat Interface'
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Lovable Chat Interface'
       };
 
-      const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
-        method: "POST",
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
         headers,
         body: JSON.stringify({
           model: bot.openRouterModel,
           messages: [
             ...(sanitizedInstructions
-              ? [
-                  {
-                    role: "system",
-                    content: sanitizedInstructions,
-                  },
-                ]
+              ? [{ role: 'system', content: sanitizedInstructions }]
               : []),
             ...sanitizedMessages,
           ],
@@ -60,7 +54,7 @@ export class ChatService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("OpenRouter API error:", errorData);
+        console.error('OpenRouter API error:', errorData);
         throw new Error(
           `OpenRouter API error: ${errorData.error?.message || response.statusText}`
         );
@@ -69,7 +63,7 @@ export class ChatService {
       const data = await response.json();
       return data.choices[0].message.content;
     } catch (error) {
-      console.error("OpenRouter API error:", error);
+      console.error('OpenRouter API error:', error);
       throw error;
     }
   }
