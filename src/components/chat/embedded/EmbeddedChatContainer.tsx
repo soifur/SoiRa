@@ -32,15 +32,12 @@ const EmbeddedChatContainer = () => {
         if (!botId) return;
 
         // First, get the shared bot data
-        const { data: sharedBot, error: sharedBotError } = await supabase
+        const { data: sharedBotData, error: sharedBotError } = await supabase
           .from("shared_bots")
           .select(`
             *,
             bot_api_keys (
               api_key
-            ),
-            bots (
-              avatar
             )
           `)
           .eq("short_key", botId)
@@ -48,7 +45,7 @@ const EmbeddedChatContainer = () => {
 
         if (sharedBotError) throw sharedBotError;
         
-        if (!sharedBot) {
+        if (!sharedBotData) {
           toast({
             title: "Error",
             description: "Bot not found or sharing has expired",
@@ -57,21 +54,28 @@ const EmbeddedChatContainer = () => {
           return;
         }
 
+        // Get the bot's avatar from the bots table
+        const { data: botData } = await supabase
+          .from("bots")
+          .select("avatar")
+          .eq("id", sharedBotData.bot_id)
+          .single();
+
         const validModel = (model: string): model is Bot['model'] => {
           return ['gemini', 'claude', 'openai', 'openrouter'].includes(model);
         };
 
-        const model = validModel(sharedBot.model) ? sharedBot.model : 'gemini';
+        const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
         const transformedBot: Bot = {
-          id: sharedBot.bot_id,
-          name: sharedBot.bot_name,
-          instructions: sharedBot.instructions || "",
-          starters: sharedBot.starters || [],
+          id: sharedBotData.bot_id,
+          name: sharedBotData.bot_name,
+          instructions: sharedBotData.instructions || "",
+          starters: sharedBotData.starters || [],
           model: model,
-          apiKey: sharedBot.bot_api_keys?.api_key || "",
-          openRouterModel: sharedBot.open_router_model,
-          avatar: sharedBot.bots?.avatar,
+          apiKey: sharedBotData.bot_api_keys?.api_key || "",
+          openRouterModel: sharedBotData.open_router_model,
+          avatar: botData?.avatar,
           accessType: "public"
         };
 
