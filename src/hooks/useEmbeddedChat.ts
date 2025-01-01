@@ -5,6 +5,12 @@ import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { Bot, Message } from "@/components/chat/types/chatTypes";
+import { Json } from "@/integrations/supabase/types";
+
+interface ChatMessage {
+  role: string;
+  content: string;
+}
 
 export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, sessionToken?: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -80,6 +86,11 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     }
   };
 
+  const convertToServiceMessage = (msg: Message): ChatMessage => ({
+    role: msg.role,
+    content: msg.content
+  });
+
   const sendMessage = async (message: string) => {
     if (!message.trim() || !sessionToken) return;
 
@@ -105,7 +116,7 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       // Combine all previous messages for context
       const allPreviousMessages = previousChats?.flatMap(chat => 
         Array.isArray(chat.messages) ? chat.messages : []
-      ) || [];
+      ).map((msg: any) => convertToServiceMessage(msg)) || [];
 
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
@@ -115,7 +126,7 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       setMessages([...newMessages, loadingMessage]);
 
       let botResponse = "";
-      const contextMessages = [...allPreviousMessages, ...newMessages];
+      const contextMessages = [...allPreviousMessages, ...newMessages.map(convertToServiceMessage)];
 
       if (bot.model === "gemini") {
         console.log("Sending message to Gemini API with context");
