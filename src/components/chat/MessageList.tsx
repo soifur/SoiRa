@@ -33,7 +33,6 @@ export const MessageList = ({
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (lastMessageRef.current && !isLoading) {
@@ -59,11 +58,11 @@ export const MessageList = ({
   };
 
   return (
-    <div className="relative flex-1 overflow-hidden" ref={containerRef}>
-      <ScrollArea className="h-[calc(100vh-6.5rem)] px-4">
+    <div className="relative h-full flex flex-col overflow-hidden">
+      <ScrollArea className="flex-1">
         <div className={cn(
-          "min-h-[calc(100vh-12rem)]",
-          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 pt-4 relative"
+          "min-h-full p-4",
+          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
         )}>
           {messages.length === 0 && starters && starters.length > 0 ? (
             <>
@@ -108,7 +107,7 @@ export const MessageList = ({
                     message={message.content}
                     isBot={message.role === "assistant"}
                     avatar={message.avatar || selectedBot?.avatar}
-                    isLoading={message.role === "assistant" && isLoading}
+                    isLoading={index === messages.length - 1 && message.role === "assistant" && isLoading}
                   />
                 </div>
               ))}
