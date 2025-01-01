@@ -19,7 +19,6 @@ const EmbeddedChatContainer = () => {
         setClientId(user_ip || Math.random().toString(36).substring(7));
       } catch (error) {
         console.error("Error fetching client IP:", error);
-        // Fallback to a random ID if IP fetch fails
         setClientId(Math.random().toString(36).substring(7));
       }
     };
@@ -36,12 +35,12 @@ const EmbeddedChatContainer = () => {
           .from("shared_bots")
           .select(`
             *,
-            bot_api_keys (
+            bot_api_keys!shared_bots_api_key_id_fkey (
               api_key
             )
           `)
           .eq("short_key", botId)
-          .single();
+          .maybeSingle();
 
         if (sharedBotError) throw sharedBotError;
         
@@ -86,7 +85,6 @@ const EmbeddedChatContainer = () => {
       }
     };
 
-    // Fetch fresh data every time the component mounts or botId changes
     fetchBotData();
   }, [botId, toast]);
 
