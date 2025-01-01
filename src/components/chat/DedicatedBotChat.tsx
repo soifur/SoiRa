@@ -19,15 +19,21 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [chatId] = useState(() => uuidv4()); // Generate a unique ID for this chat session
+  const [chatId] = useState(() => uuidv4());
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldAutoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages, shouldAutoScroll]);
 
   useEffect(() => {
     const chatKey = `chat_${bot.id}_${chatId}`;
@@ -41,9 +47,17 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         setMessages([]);
       }
     } else {
-      setMessages([]); // Reset messages for new chat
+      setMessages([]);
     }
   }, [bot.id, chatId]);
+
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
+    
+    const { scrollHeight, scrollTop, clientHeight } = chatContainerRef.current;
+    const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+    setShouldAutoScroll(isAtBottom);
+  };
 
   const clearChat = () => {
     setMessages([]);
@@ -64,7 +78,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
 
-      // Add temporary loading message
       const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
       setMessages([...newMessages, loadingMessage]);
 
@@ -78,13 +91,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         throw new Error("Unsupported model type");
       }
 
-      // Remove loading message and add actual response
       const botResponse = createMessage("assistant", response, true, bot.avatar);
       const updatedMessages = [...newMessages, botResponse];
       
       setMessages(updatedMessages);
+      setShouldAutoScroll(true);
       
-      // Save to localStorage with unique chat ID
       const chatKey = `chat_${bot.id}_${chatId}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
@@ -112,7 +124,11 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         </Button>
       </div>
       
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div 
+        className="flex-1 overflow-hidden flex flex-col"
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+      >
         <div className="flex-1 overflow-y-auto pb-8">
           <MessageList
             messages={formatMessages(messages)}
