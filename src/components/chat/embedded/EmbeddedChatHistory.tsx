@@ -110,10 +110,7 @@ export const EmbeddedChatHistory = ({
   if (!isOpen) return null;
 
   return (
-    <div className={cn(
-      "bg-background border-r",
-      isMobile ? "fixed inset-0 z-50" : "w-80 h-full"
-    )}>
+    <div className="flex flex-col h-full bg-background border-r">
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <History className="w-5 h-5" />
@@ -129,7 +126,7 @@ export const EmbeddedChatHistory = ({
           </Button>
         )}
       </div>
-      <ScrollArea className="h-[calc(100%-4rem)]">
+      <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
           {chatHistory.map((chat) => (
             <div

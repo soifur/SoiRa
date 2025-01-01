@@ -19,22 +19,14 @@ export const EmbeddedChatContent = ({
   onStarterClick
 }: EmbeddedChatContentProps) => {
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-hidden">
+    <div className="h-full overflow-hidden relative">
+      <div className="h-full overflow-y-auto">
         <MessageList
           messages={messages}
           selectedBot={bot}
           starters={bot.starters}
           onStarterClick={onStarterClick}
           isLoading={isLoading}
-        />
-      </div>
-      <div className="p-4">
-        <ChatInput
-          onSend={onSend}
-          disabled={isLoading}
-          isLoading={isLoading}
-          placeholder="Type your message..."
         />
       </div>
     </div>
