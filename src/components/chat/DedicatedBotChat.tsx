@@ -173,7 +173,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="mt-0.5">
+      <div className="mt-[5px]">
         <ChatInput
           onSend={sendMessage}
           disabled={isLoading}

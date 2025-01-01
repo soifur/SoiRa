@@ -47,7 +47,7 @@ export const MessageList = ({ messages, selectedBot, starters = [], onStarterCli
     <div className="relative flex-1 overflow-hidden">
       <ScrollArea 
         ref={scrollRef}
-        className="h-[calc(100vh-4.5rem)] px-4 mb-0.5" 
+        className="h-[calc(100vh-4.5rem)] px-4 mb-[5px]" 
         onScroll={handleScroll}
       >
         {messages.length === 0 && starters && starters.length > 0 ? (
