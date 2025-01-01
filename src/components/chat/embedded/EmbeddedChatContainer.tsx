@@ -59,13 +59,22 @@ const EmbeddedChatContainer = () => {
           .from("bots")
           .select("avatar")
           .eq("id", sharedBotData.bot_id)
-          .single();
+          .maybeSingle();
 
         const validModel = (model: string): model is Bot['model'] => {
           return ['gemini', 'claude', 'openai', 'openrouter'].includes(model);
         };
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
+
+        // Get the public URL for the avatar if it exists
+        let avatarUrl = botData?.avatar;
+        if (avatarUrl && !avatarUrl.startsWith('http')) {
+          const { data } = await supabase.storage
+            .from('avatars')
+            .getPublicUrl(avatarUrl);
+          avatarUrl = data.publicUrl;
+        }
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -75,7 +84,7 @@ const EmbeddedChatContainer = () => {
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
           openRouterModel: sharedBotData.open_router_model,
-          avatar: botData?.avatar,
+          avatar: avatarUrl || "/placeholder.svg",
           accessType: "public"
         };
 
@@ -103,7 +112,7 @@ const EmbeddedChatContainer = () => {
     <>
       <Helmet>
         <title>{bot.name}</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
         <meta name="description" content={`Chat with ${bot.name}`} />
       </Helmet>
       <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />
