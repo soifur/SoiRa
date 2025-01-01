@@ -6,7 +6,6 @@ import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
-import { ChatService } from "@/services/ChatService";
 import { ChatHistoryService } from "@/services/ChatHistoryService";
 import { ChatMessage } from "../types/chatTypes";
 import { v4 as uuidv4 } from 'uuid';
@@ -45,6 +44,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         console.log("Existing chat data:", existingChat);
 
         if (existingChat) {
+          console.log("Found existing chat, setting chat ID:", existingChat.id);
           setChatId(existingChat.id);
           const rawMessages = existingChat.messages as unknown;
           const chatMessages = (rawMessages as ChatMessage[]).map(msg => ({
@@ -56,6 +56,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         } else {
           console.log("No existing chat found, creating new chat");
           const newChatId = uuidv4();
+          console.log("Generated new chat ID:", newChatId);
           setChatId(newChatId);
           await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
         }
@@ -67,41 +68,25 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     loadExistingChat();
   }, [bot.id, clientId, shareKey]);
 
-  const handleStarterClick = async (starter: string) => {
-    await sendMessage(starter);
-  };
-
   const handleClearChat = async () => {
     try {
-      console.log("Clearing chat and creating new chat history");
+      console.log("Starting new chat creation process");
       setMessages([]);
       const newChatId = uuidv4();
-      console.log("New chat ID:", newChatId);
+      console.log("Generated new chat ID for clear:", newChatId);
       
-      // Delete old chat history first
-      if (chatId) {
-        const { error: deleteError } = await supabase
-          .from('chat_history')
-          .delete()
-          .eq('id', chatId);
-        
-        if (deleteError) {
-          console.error("Error deleting old chat:", deleteError);
-        }
-      }
-
       setChatId(newChatId);
       await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
       
       toast({
         title: "Success",
-        description: "Chat history cleared",
+        description: "Started a new chat",
       });
     } catch (error) {
-      console.error("Error clearing chat:", error);
+      console.error("Error creating new chat:", error);
       toast({
         title: "Error",
-        description: "Failed to clear chat history",
+        description: "Failed to start new chat",
         variant: "destructive",
       });
     }

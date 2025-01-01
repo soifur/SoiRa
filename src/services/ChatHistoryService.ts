@@ -7,25 +7,27 @@ export class ChatHistoryService {
     
     const { data, error } = await supabase
       .from('chat_history')
-      .select('sequence_number')
+      .select('sequence_number, id')
       .eq('bot_id', botId)
       .order('sequence_number', { ascending: false })
       .limit(1);
 
     if (error) {
-      console.log("Error getting sequence number:", error);
+      console.error("Error getting sequence number:", error);
       return 1;
     }
 
+    console.log("Latest chat history entry:", data);
     const nextSequence = data && data.length > 0 ? data[0].sequence_number + 1 : 1;
-    console.log("Next sequence number:", nextSequence);
+    console.log("Next sequence number will be:", nextSequence);
     return nextSequence;
   }
 
   static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
-    console.log("Creating new chat history:", { newChatId, botId, clientId, shareKey });
+    console.log("Creating new chat history with params:", { newChatId, botId, clientId, shareKey });
     
     const sequence_number = await this.getLatestSequenceNumber(botId);
+    console.log("Got sequence number for new chat:", sequence_number);
 
     const chatData: ChatHistoryData = {
       id: newChatId,
@@ -36,6 +38,7 @@ export class ChatHistoryService {
       sequence_number
     };
 
+    console.log("Inserting new chat with data:", chatData);
     const { error } = await supabase
       .from('chat_history')
       .insert(chatData);
@@ -44,10 +47,18 @@ export class ChatHistoryService {
       console.error("Error creating new chat history:", error);
       throw error;
     }
+    
+    console.log("Successfully created new chat history with ID:", newChatId);
   }
 
   static async updateChatHistory(chatId: string, botId: string, messages: ChatMessage[], clientId: string, shareKey?: string): Promise<void> {
-    console.log("Updating chat history:", { chatId, botId, messages: messages.length });
+    console.log("Updating chat history:", { 
+      chatId, 
+      botId, 
+      messageCount: messages.length,
+      clientId,
+      shareKey 
+    });
     
     const jsonMessages = messages.map(msg => ({
       role: msg.role,
@@ -55,6 +66,8 @@ export class ChatHistoryService {
       timestamp: msg.timestamp,
       id: msg.id
     }));
+
+    console.log("Prepared messages for update:", jsonMessages);
 
     const { error } = await supabase
       .from('chat_history')
@@ -68,5 +81,7 @@ export class ChatHistoryService {
       console.error("Error updating chat history:", error);
       throw error;
     }
+
+    console.log("Successfully updated chat history for ID:", chatId);
   }
 }
