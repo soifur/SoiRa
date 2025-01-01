@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { Card } from "@/components/ui/card";
@@ -36,6 +36,15 @@ const Chat = () => {
         throw new Error("No authenticated user");
       }
 
+      // Get the latest sequence number for this bot
+      const { data: latestChat } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', selectedBotId)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .single();
+
       const chatData = {
         bot_id: selectedBotId,
         messages: updatedMessages.map(msg => ({
@@ -43,7 +52,8 @@ const Chat = () => {
           content: msg.content,
           timestamp: msg.timestamp?.toISOString()
         })),
-        user_id: session.session.user.id
+        user_id: session.session.user.id,
+        sequence_number: (latestChat?.sequence_number || 0) + 1
       } as Database['public']['Tables']['chat_history']['Insert'];
 
       const { error } = await supabase

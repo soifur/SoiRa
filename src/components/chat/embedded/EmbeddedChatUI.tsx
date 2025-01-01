@@ -23,6 +23,15 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const saveChatHistory = async (updatedMessages: typeof messages) => {
     try {
+      // Get the latest sequence number for this bot
+      const { data: latestChat } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', bot.id)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .single();
+
       const chatData = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
@@ -31,7 +40,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           timestamp: msg.timestamp?.toISOString()
         })),
         client_id: clientId,
-        share_key: shareKey
+        share_key: shareKey,
+        sequence_number: (latestChat?.sequence_number || 0) + 1
       } as Database['public']['Tables']['chat_history']['Insert'];
 
       const { error } = await supabase
