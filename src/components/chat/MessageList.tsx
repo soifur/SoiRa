@@ -67,14 +67,14 @@ export const MessageList = ({
           {messages.length === 0 && starters && starters.length > 0 ? (
             <div className="flex flex-col items-center justify-center h-full w-full max-w-2xl mx-auto px-4 mt-[20vh]">
               {selectedBot && (
-                <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                   {selectedBot.name}
                 </h2>
               )}
-              <h1 className="text-4xl font-bold mb-12 text-foreground text-center">
+              <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                 What can I help with?
               </h1>
-              <div className="grid grid-cols-1 gap-3 w-full">
+              <div className="grid grid-cols-1 gap-2 md:gap-3 w-full max-w-xl">
                 {starters.map((starter, index) => {
                   const Icon = getStarterIcon(starter);
                   return (
@@ -82,14 +82,15 @@ export const MessageList = ({
                       key={index}
                       variant="outline"
                       className={cn(
-                        "flex items-center justify-start gap-3 p-4 h-auto text-base w-full",
-                        "rounded-2xl hover:bg-accent/50 transition-colors",
+                        "flex items-center justify-start gap-2 md:gap-3 p-3 md:p-4 h-auto",
+                        "text-sm md:text-base w-full",
+                        "rounded-xl md:rounded-2xl hover:bg-accent/50 transition-colors",
                         "bg-background/50 backdrop-blur-sm border-muted-foreground/20",
                         "whitespace-normal text-left"
                       )}
                       onClick={() => onStarterClick && onStarterClick(starter)}
                     >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <Icon className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
                       <span className="text-left break-words">{starter}</span>
                     </Button>
                   );
