@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from "@/integrations/supabase/client";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -16,10 +17,10 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [chatId] = useState(() => uuidv4()); // Generate a unique ID for this chat session
+  const [chatId] = useState(() => uuidv4());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,7 +36,10 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     if (savedMessages) {
       try {
         const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages);
+        setMessages(parsedMessages.map((msg: any) => ({
+          ...msg,
+          avatar: msg.role === "assistant" ? (msg.avatar || bot.avatar) : undefined
+        })));
       } catch (error) {
         console.error("Error parsing saved messages:", error);
         setMessages([]);
@@ -43,7 +47,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     } else {
       setMessages([]); // Reset messages for new chat
     }
-  }, [bot.id, chatId]);
+  }, [bot.id, chatId, bot.avatar]);
 
   const clearChat = () => {
     setMessages([]);
@@ -87,6 +91,32 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       // Save to localStorage with unique chat ID
       const chatKey = `chat_${bot.id}_${chatId}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+
+      // Save to Supabase with avatar URL
+      const { data: chatData, error: chatError } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', bot.id)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      const nextSequenceNumber = (chatData?.sequence_number || 0) + 1;
+
+      const { error } = await supabase
+        .from('chat_history')
+        .upsert({
+          id: chatId,
+          bot_id: bot.id,
+          messages: updatedMessages,
+          avatar_url: bot.avatar,
+          sequence_number: nextSequenceNumber,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error("Error saving chat history:", error);
+      }
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -113,16 +143,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       </div>
       
       <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto pb-8">
-          <MessageList
-            messages={formatMessages(messages)}
-            selectedBot={bot}
-            starters={bot.starters}
-            onStarterClick={sendMessage}
-            isLoading={isLoading}
-          />
-          <div ref={messagesEndRef} />
-        </div>
+        <MessageList
+          messages={formatMessages(messages)}
+          selectedBot={bot}
+          starters={bot.starters}
+          onStarterClick={sendMessage}
+          isLoading={isLoading}
+        />
+        <div ref={messagesEndRef} />
       </div>
       
       <div className="mt-4">
