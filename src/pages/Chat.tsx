@@ -10,6 +10,12 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 
+interface ChatMessage {
+  role: string;
+  content: string;
+  timestamp?: string;
+}
+
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,11 +39,13 @@ const Chat = () => {
 
         if (existingChat) {
           setChatId(existingChat.id);
-          setMessages(existingChat.messages.map((msg: any) => ({
+          // Explicitly cast messages as ChatMessage[]
+          const chatMessages = (existingChat.messages as ChatMessage[]).map((msg: ChatMessage) => ({
             ...msg,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
             id: uuidv4()
-          })));
+          }));
+          setMessages(chatMessages);
         } else {
           // Create a new chat if none exists
           const newChatId = uuidv4();

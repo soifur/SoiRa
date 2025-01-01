@@ -16,6 +16,12 @@ interface EmbeddedChatUIProps {
   shareKey?: string;
 }
 
+interface ChatMessage {
+  role: string;
+  content: string;
+  timestamp?: string;
+}
+
 const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,11 +45,13 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
         if (existingChat) {
           setChatId(existingChat.id);
-          setMessages(existingChat.messages.map((msg: any) => ({
+          // Explicitly cast messages as ChatMessage[]
+          const chatMessages = (existingChat.messages as ChatMessage[]).map((msg: ChatMessage) => ({
             ...msg,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
             id: uuidv4()
-          })));
+          }));
+          setMessages(chatMessages);
         } else {
           // Create a new chat if none exists
           const newChatId = uuidv4();
