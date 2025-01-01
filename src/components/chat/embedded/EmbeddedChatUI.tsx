@@ -186,6 +186,10 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           isLoading={isLoading}
         />
       </div>
+      
+      {/* Added spacing container */}
+      <div className="h-[2%] bg-muted/20 border-t border-b" />
+      
       <div className="p-4">
         <ChatInput
           onSend={sendMessage}
