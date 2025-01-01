@@ -68,12 +68,17 @@ const EmbeddedChatContainer = () => {
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
         // Get the public URL for the avatar if it exists
-        let avatarUrl = botData?.avatar;
-        if (avatarUrl && !avatarUrl.startsWith('http')) {
-          const { data } = await supabase.storage
-            .from('avatars')
-            .getPublicUrl(avatarUrl);
-          avatarUrl = data.publicUrl;
+        let avatarUrl = botData?.avatar || "/placeholder.svg";
+        if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl !== "/placeholder.svg") {
+          try {
+            const { data } = await supabase.storage
+              .from('avatars')
+              .getPublicUrl(avatarUrl);
+            avatarUrl = data.publicUrl;
+          } catch (error) {
+            console.error("Error getting avatar URL:", error);
+            avatarUrl = "/placeholder.svg";
+          }
         }
 
         const transformedBot: Bot = {
@@ -84,7 +89,7 @@ const EmbeddedChatContainer = () => {
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
           openRouterModel: sharedBotData.open_router_model,
-          avatar: avatarUrl || "/placeholder.svg",
+          avatar: avatarUrl,
           accessType: "public"
         };
 
