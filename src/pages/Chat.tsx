@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { useBots } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -23,16 +24,15 @@ const Chat = () => {
         throw new Error("No authenticated user");
       }
 
-      // Omit sequence_number as it's handled by the database trigger
-      const chatData = {
+      // Prepare chat data without sequence_number (it's set by trigger)
+      const chatData: Omit<Database["public"]["Tables"]["chat_history"]["Insert"], "sequence_number"> = {
         bot_id: selectedBotId,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
           content: msg.content,
           timestamp: msg.timestamp?.toISOString()
         })),
-        user_id: session.session.user.id,
-        // sequence_number will be set by the database trigger
+        user_id: session.session.user.id
       };
 
       const { error } = await supabase

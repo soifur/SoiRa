@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 import { ChatService } from "@/services/ChatService";
+import { Database } from "@/integrations/supabase/types";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -22,8 +23,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      // Omit sequence_number as it's handled by the database trigger
-      const chatData = {
+      // Prepare chat data without sequence_number (it's set by trigger)
+      const chatData: Omit<Database["public"]["Tables"]["chat_history"]["Insert"], "sequence_number"> = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
@@ -31,8 +32,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           timestamp: msg.timestamp?.toISOString()
         })),
         client_id: clientId,
-        share_key: shareKey,
-        // sequence_number will be set by the database trigger
+        share_key: shareKey
       };
 
       // First try to find existing chat history
