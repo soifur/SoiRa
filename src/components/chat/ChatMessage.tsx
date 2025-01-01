@@ -17,11 +17,16 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
   const { toast } = useToast();
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(message);
+    // Remove any "Assistant:" prefix before copying
+    const cleanMessage = message.replace(/^(Assistant|Human):\s*/i, '');
+    navigator.clipboard.writeText(cleanMessage);
     toast({
       description: "Message copied to clipboard",
     });
   };
+
+  // Clean up the message by removing any "Assistant:" or "Human:" prefix
+  const cleanedMessage = message.replace(/^(Assistant|Human):\s*/i, '');
 
   return (
     <div
@@ -77,7 +82,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
               ),
             }}
           >
-            {message}
+            {cleanedMessage}
           </ReactMarkdown>
         </div>
       </Card>
