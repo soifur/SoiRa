@@ -173,23 +173,19 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   };
 
   if (hasConsent === false) {
-    return (
-      <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl items-center justify-center p-4">
-        <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />
-      </Card>
-    );
+    return <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />;
   }
 
   return (
     <>
       <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />
-      <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl">
-        <div className="p-2 border-b flex justify-end">
+      <Card className="flex flex-col h-[100dvh] w-full mx-auto max-w-4xl">
+        <div className="sticky top-0 z-10 p-2 border-b bg-background">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleClearChat}
-            className="text-muted-foreground hover:text-primary"
+            className="text-muted-foreground hover:text-primary ml-auto flex"
           >
             <MessageSquarePlus className="h-5 w-5" />
             <span className="ml-2">New Chat</span>
@@ -206,18 +202,19 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           />
         </div>
         
-        <div className="fixed bottom-[60px] left-0 right-0">
+        <div className="fixed bottom-0 left-0 right-0 bg-background">
           <div className="h-[1px] bg-muted/20 border-t" />
+          <div className="max-w-4xl mx-auto">
+            <ChatInput
+              onSend={sendMessage}
+              disabled={isLoading || !hasConsent}
+              isLoading={isLoading}
+              placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
+              onInputChange={setInput}
+              value={input}
+            />
+          </div>
         </div>
-        
-        <ChatInput
-          onSend={sendMessage}
-          disabled={isLoading || !hasConsent}
-          isLoading={isLoading}
-          placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
-          onInputChange={setInput}
-          value={input}
-        />
       </Card>
     </>
   );
