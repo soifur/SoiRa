@@ -53,7 +53,6 @@ const EmbeddedChatContainer = () => {
           return;
         }
 
-        // Get the bot's avatar from the bots table
         const { data: botData } = await supabase
           .from("bots")
           .select("avatar")
@@ -70,22 +69,20 @@ const EmbeddedChatContainer = () => {
         let avatarUrl = "/placeholder.svg";
         if (botData?.avatar) {
           if (botData.avatar.startsWith('data:')) {
-            avatarUrl = botData.avatar; // Use base64 data directly
-          } else if (!botData.avatar.startsWith('http')) {
+            avatarUrl = botData.avatar;
+          } else {
             try {
               const { data } = await supabase.storage
                 .from('avatars')
                 .getPublicUrl(botData.avatar);
-              avatarUrl = data.publicUrl;
+              if (data?.publicUrl) {
+                avatarUrl = data.publicUrl;
+              }
             } catch (error) {
               console.error("Error getting avatar URL:", error);
             }
-          } else {
-            avatarUrl = botData.avatar;
           }
         }
-
-        console.log("Using avatar URL:", avatarUrl);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
