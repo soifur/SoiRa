@@ -26,7 +26,6 @@
 .message-list {
   height: calc(100vh - 80px);
   overflow-y: auto;
-  padding: 1rem;
 }
 
 .chat-input {
@@ -52,7 +51,7 @@
   }
 }
 
-/* Prevent content from going under fixed elements */
+/* Remove any bottom padding from scroll viewport */
 .scroll-area-viewport {
   padding-bottom: 0 !important;
 }
