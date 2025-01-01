@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 import { ChatService } from "@/services/ChatService";
 import { Database } from "@/integrations/supabase/types";
+import { v4 as uuidv4 } from 'uuid';
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -33,6 +34,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         .single();
 
       const chatData = {
+        id: uuidv4(), // Generate a new UUID for each chat
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
           role: msg.role,

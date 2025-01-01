@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
+import { v4 as uuidv4 } from 'uuid';
 
 const Chat = () => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -46,6 +47,7 @@ const Chat = () => {
         .single();
 
       const chatData = {
+        id: uuidv4(), // Generate a new UUID for each chat
         bot_id: selectedBotId,
         messages: updatedMessages.map(msg => ({
           role: msg.role,
