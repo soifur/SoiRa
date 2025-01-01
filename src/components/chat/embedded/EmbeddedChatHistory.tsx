@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { History, Plus, X } from "lucide-react";
+import { History, Plus, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,32 @@ export const EmbeddedChatHistory = ({
     }
   };
 
+  const handleDelete = async (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ deleted: 'yes' })
+        .eq('id', chatId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Chat deleted successfully",
+      });
+      
+      fetchChatHistory();
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete chat",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getChatTitle = (messages: any[]) => {
     const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
     if (!firstUserMessage) return 'New Chat';
@@ -93,7 +119,7 @@ export const EmbeddedChatHistory = ({
             <div
               key={chat.id}
               className={cn(
-                "p-3 rounded-lg cursor-pointer transition-colors",
+                "p-3 rounded-lg cursor-pointer transition-colors group relative",
                 "hover:bg-accent",
                 currentChatId === chat.id ? "bg-accent" : "bg-card"
               )}
@@ -102,6 +128,14 @@ export const EmbeddedChatHistory = ({
               <p className="text-sm text-muted-foreground line-clamp-2">
                 {getChatTitle(chat.messages)}
               </p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => handleDelete(chat.id, e)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
             </div>
           ))}
         </div>
