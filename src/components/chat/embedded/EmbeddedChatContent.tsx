@@ -1,7 +1,6 @@
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { Bot } from "@/hooks/useBots";
-import { Message } from "@/components/chat/MessageList";
+import { Bot, Message } from "@/types/chat";
 
 interface EmbeddedChatContentProps {
   messages: Message[];
