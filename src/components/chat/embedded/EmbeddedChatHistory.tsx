@@ -5,6 +5,7 @@ import { History, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EmbeddedChatHistoryProps {
   sessionToken: string | null;
@@ -27,6 +28,7 @@ export const EmbeddedChatHistory = ({
 }: EmbeddedChatHistoryProps) => {
   const [chatHistory, setChatHistory] = useState<any[]>([]);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (sessionToken) {
@@ -64,28 +66,41 @@ export const EmbeddedChatHistory = ({
 
   return (
     <div className="flex flex-col h-full bg-background border-r">
-      <div className="flex items-center justify-between p-4 border-b">
+      <div 
+        className="flex items-center justify-between p-4 border-b cursor-pointer"
+        onClick={onClose}
+      >
         <div className="flex items-center gap-2">
           <History className="w-5 h-5" />
           <h2 className="font-semibold">Chat History</h2>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onNewChat}
-          >
-            <Plus className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 md:hidden"
-            onClick={onClose}
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          {isMobile && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNewChat();
+                }}
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
       <ScrollArea className="flex-1">
