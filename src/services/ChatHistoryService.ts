@@ -10,14 +10,14 @@ export class ChatHistoryService {
       .select('sequence_number')
       .eq('bot_id', botId)
       .order('sequence_number', { ascending: false })
-      .maybeSingle();  // Changed from single() to maybeSingle()
+      .limit(1);
 
     if (error) {
       console.log("Error getting sequence number:", error);
       return 1;
     }
 
-    const nextSequence = (data?.sequence_number || 0) + 1;
+    const nextSequence = data && data.length > 0 ? data[0].sequence_number + 1 : 1;
     console.log("Next sequence number:", nextSequence);
     return nextSequence;
   }
@@ -49,7 +49,6 @@ export class ChatHistoryService {
   static async updateChatHistory(chatId: string, botId: string, messages: ChatMessage[], clientId: string, shareKey?: string): Promise<void> {
     console.log("Updating chat history:", { chatId, botId, messages: messages.length });
     
-    // Convert ChatMessage[] to a plain object array for JSON compatibility
     const jsonMessages = messages.map(msg => ({
       role: msg.role,
       content: msg.content,
@@ -57,17 +56,12 @@ export class ChatHistoryService {
       id: msg.id
     }));
 
-    const chatData = {
-      id: chatId,
-      bot_id: botId,
-      messages: jsonMessages,
-      client_id: clientId,
-      share_key: shareKey
-    };
-
     const { error } = await supabase
       .from('chat_history')
-      .update(chatData)
+      .update({
+        messages: jsonMessages,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', chatId);
 
     if (error) {
