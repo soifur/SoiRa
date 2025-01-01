@@ -65,7 +65,7 @@ export const MessageList = ({
           messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
         )}>
           {messages.length === 0 && starters && starters.length > 0 ? (
-            <div className="flex flex-col items-center justify-center h-full w-full max-w-2xl mx-auto px-4 mt-[40vh]">
+            <div className="flex flex-col items-center justify-center h-full w-full max-w-2xl mx-auto px-4 mt-[20vh]">
               {selectedBot && (
                 <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                   {selectedBot.name}
