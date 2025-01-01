@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { History, Plus, X } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -66,42 +66,18 @@ export const EmbeddedChatHistory = ({
 
   return (
     <div className="flex flex-col h-full bg-background border-r">
-      <div 
-        className="flex items-center justify-between p-4 border-b cursor-pointer"
-        onClick={onClose}
-      >
+      <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
-          <History className="w-5 h-5" />
-          <h2 className="font-semibold">Chat History</h2>
+          <History className="w-5 h-5" onClick={onClose} className="cursor-pointer" />
         </div>
-        <div className="flex items-center gap-2">
-          {isMobile && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNewChat();
-                }}
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </>
-          )}
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={onNewChat}
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
