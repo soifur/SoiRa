@@ -73,9 +73,7 @@ const EmbeddedChatContainer = () => {
             const { data } = await supabase.storage
               .from('avatars')
               .getPublicUrl(botData.avatar);
-            if (data?.publicUrl) {
-              avatarUrl = data.publicUrl;
-            }
+            avatarUrl = data?.publicUrl || "/placeholder.svg";
           }
         }
 
