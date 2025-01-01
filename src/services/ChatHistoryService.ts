@@ -10,8 +10,7 @@ export class ChatHistoryService {
       .select('sequence_number')
       .eq('bot_id', botId)
       .order('sequence_number', { ascending: false })
-      .limit(1)
-      .single();
+      .maybeSingle();  // Changed from single() to maybeSingle()
 
     if (error) {
       console.log("Error getting sequence number:", error);
@@ -26,10 +25,9 @@ export class ChatHistoryService {
   static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
     console.log("Creating new chat history:", { newChatId, botId, clientId, shareKey });
     
-    // Get the next sequence number
     const sequence_number = await this.getLatestSequenceNumber(botId);
 
-    const chatData = {
+    const chatData: ChatHistoryData = {
       id: newChatId,
       bot_id: botId,
       messages: [],

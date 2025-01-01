@@ -31,6 +31,9 @@ const EmbeddedChatContainer = () => {
       try {
         if (!botId) return;
 
+        // Try to get avatar from localStorage first
+        const cachedAvatar = localStorage.getItem(`bot_avatar_${botId}`);
+
         const { data: sharedBotData, error: sharedBotError } = await supabase
           .from("shared_bots")
           .select(`
@@ -59,9 +62,9 @@ const EmbeddedChatContainer = () => {
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
-        // Store avatar URL in localStorage to persist across refreshes
-        const avatarUrl = `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
-        localStorage.setItem('botAvatar', avatarUrl);
+        // Construct and cache avatar URL
+        const avatarUrl = cachedAvatar || `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
+        localStorage.setItem(`bot_avatar_${botId}`, avatarUrl);
         console.log("Constructed Avatar URL:", avatarUrl);
 
         const transformedBot: Bot = {

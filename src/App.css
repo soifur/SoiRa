@@ -24,10 +24,11 @@
 }
 
 .message-list {
-  height: calc(100vh - 140px); /* Increased to account for banner */
+  height: calc(100vh - 180px); /* Increased to account for banner and input */
   overflow-y: auto;
   padding: 1rem;
-  padding-bottom: 80px; /* Added extra padding at bottom */
+  padding-bottom: 100px; /* Increased padding at bottom */
+  margin-bottom: 80px; /* Added margin to prevent overlap with input */
 }
 
 .chat-input {
