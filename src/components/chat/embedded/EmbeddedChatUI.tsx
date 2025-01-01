@@ -33,7 +33,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         share_key: shareKey
       };
 
-      // Use upsert operation with on conflict do update
       const { error } = await supabase
         .from('chat_history')
         .upsert(chatData, {
@@ -72,6 +71,9 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       if (bot.model === "gemini") {
         botResponse = await ChatService.sendGeminiMessage(newMessages, bot);
       } else if (bot.model === "openrouter") {
+        if (!bot.apiKey) {
+          throw new Error("Bot API key is missing");
+        }
         botResponse = await ChatService.sendOpenRouterMessage(newMessages, bot);
       }
 
@@ -83,7 +85,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: "Failed to process message",
+        description: error instanceof Error ? error.message : "Failed to process message",
         variant: "destructive",
       });
     } finally {
