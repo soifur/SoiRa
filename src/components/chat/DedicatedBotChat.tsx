@@ -16,10 +16,18 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; avatar?: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [chatId] = useState(() => uuidv4());
+  const [chatId] = useState(() => uuidv4()); // Generate a unique ID for this chat session
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     const chatKey = `chat_${bot.id}_${chatId}`;
@@ -32,6 +40,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         console.error("Error parsing saved messages:", error);
         setMessages([]);
       }
+    } else {
+      setMessages([]); // Reset messages for new chat
     }
   }, [bot.id, chatId]);
 
@@ -54,6 +64,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
 
+      // Add temporary loading message
       const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
       setMessages([...newMessages, loadingMessage]);
 
@@ -67,16 +78,15 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         throw new Error("Unsupported model type");
       }
 
+      // Remove loading message and add actual response
       const botResponse = createMessage("assistant", response, true, bot.avatar);
       const updatedMessages = [...newMessages, botResponse];
       
       setMessages(updatedMessages);
       
+      // Save to localStorage with unique chat ID
       const chatKey = `chat_${bot.id}_${chatId}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
-
-      // Save to Supabase with avatar URL
-      await ChatService.saveChatHistory(chatId, bot.id, updatedMessages, bot.avatar);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
