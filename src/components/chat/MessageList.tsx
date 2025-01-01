@@ -61,11 +61,11 @@ export const MessageList = ({
     <div className="relative h-full flex flex-col overflow-hidden">
       <ScrollArea className="flex-1">
         <div className={cn(
-          "min-h-full p-4",
+          "h-full p-4",
           messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
         )}>
           {messages.length === 0 && starters && starters.length > 0 ? (
-            <>
+            <div className="flex flex-col items-center justify-center h-full w-full max-w-2xl mx-auto px-4 -mt-20">
               {selectedBot && (
                 <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                   {selectedBot.name}
@@ -74,7 +74,7 @@ export const MessageList = ({
               <h1 className="text-4xl font-bold mb-12 text-foreground text-center">
                 What can I help with?
               </h1>
-              <div className="grid grid-cols-1 gap-3 w-full max-w-2xl px-4">
+              <div className="grid grid-cols-1 gap-3 w-full">
                 {starters.map((starter, index) => {
                   const Icon = getStarterIcon(starter);
                   return (
@@ -95,7 +95,7 @@ export const MessageList = ({
                   );
                 })}
               </div>
-            </>
+            </div>
           ) : (
             <div className="space-y-4">
               {messages.map((message, index) => (
