@@ -177,7 +177,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           <span className="ml-2">New Chat</span>
         </Button>
       </div>
-      <div className="flex-1 overflow-hidden">
+      
+      <div className="flex-1 overflow-hidden relative">
         <MessageList
           messages={messages}
           selectedBot={bot}
@@ -187,19 +188,17 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         />
       </div>
       
-      {/* Added spacing container */}
-      <div className="h-[2%] bg-muted/20 border-t border-b" />
+      {/* Spacing container */}
+      <div className="h-2 bg-muted/20 border-t border-b" />
       
-      <div className="p-4">
-        <ChatInput
-          onSend={sendMessage}
-          disabled={isLoading}
-          isLoading={isLoading}
-          placeholder="Type your message..."
-          onInputChange={setInput}
-          value={input}
-        />
-      </div>
+      <ChatInput
+        onSend={sendMessage}
+        disabled={isLoading}
+        isLoading={isLoading}
+        placeholder="Type your message..."
+        onInputChange={setInput}
+        value={input}
+      />
     </Card>
   );
 };
