@@ -192,7 +192,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           </Button>
         </div>
         
-        <div className="flex-1 overflow-hidden relative mb-[76px]">
+        {/* Added pt-14 to ensure content starts below the sticky header on mobile */}
+        <div className="flex-1 overflow-hidden relative mb-[76px] pt-14">
           <MessageList
             messages={messages}
             selectedBot={bot}
