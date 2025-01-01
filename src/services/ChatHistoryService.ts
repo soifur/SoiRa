@@ -81,7 +81,8 @@ export class ChatHistoryService {
         messages: jsonMessages,
         updated_at: new Date().toISOString()
       })
-      .eq('id', chatId);
+      .eq('id', chatId)
+      .eq('client_id', clientId); // Add client_id check for extra security
 
     if (error) {
       console.error("Error updating chat history:", error);

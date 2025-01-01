@@ -29,10 +29,10 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   useEffect(() => {
     const loadExistingChat = async () => {
       try {
-        if (!bot.id) return;
+        if (!bot.id || !clientId) return;
         console.log("Loading existing chat for bot:", bot.id, "clientId:", clientId);
 
-        const { data: existingChat } = await supabase
+        const { data: existingChat, error } = await supabase
           .from('chat_history')
           .select('*')
           .eq('bot_id', bot.id)
@@ -42,16 +42,20 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           .limit(1)
           .single();
 
-        console.log("Existing chat data:", existingChat);
+        if (error) {
+          console.log("No existing chat found, creating new one");
+          await createNewChat();
+          return;
+        }
 
         if (existingChat) {
-          console.log("Found existing chat, setting chat ID:", existingChat.id);
+          console.log("Found existing chat for client:", clientId);
           setChatId(existingChat.id);
           const rawMessages = existingChat.messages as unknown;
           const chatMessages = (rawMessages as ChatMessage[]).map(msg => ({
             ...msg,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-            id: uuidv4()
+            id: msg.id || uuidv4()
           }));
           setMessages(chatMessages);
         } else {
@@ -68,7 +72,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const createNewChat = async () => {
     try {
-      console.log("Creating new chat");
+      console.log("Creating new chat for client:", clientId);
       const newChatId = uuidv4();
       console.log("Generated new chat ID:", newChatId);
       setChatId(newChatId);
@@ -113,12 +117,11 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || !clientId) return;
 
     try {
       setIsLoading(true);
       
-      // Create a new chat if there isn't one
       if (!chatId) {
         const newChatId = await createNewChat();
         if (!newChatId) return;
@@ -145,7 +148,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
 
-      // Convert messages to the correct format before saving
       const messagesToSave = updatedMessages.map(msg => ({
         ...msg,
         timestamp: msg.timestamp?.toISOString()
