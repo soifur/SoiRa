@@ -83,6 +83,7 @@ export type Database = {
           id: string
           messages: Json
           sequence_number: number
+          session_token: string | null
           share_key: string | null
           updated_at: string | null
           user_id: string | null
@@ -94,6 +95,7 @@ export type Database = {
           id?: string
           messages?: Json
           sequence_number: number
+          session_token?: string | null
           share_key?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -105,6 +107,7 @@ export type Database = {
           id?: string
           messages?: Json
           sequence_number?: number
+          session_token?: string | null
           share_key?: string | null
           updated_at?: string | null
           user_id?: string | null

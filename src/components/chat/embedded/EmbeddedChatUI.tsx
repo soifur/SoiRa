@@ -12,6 +12,8 @@ import { ChatMessage } from "../types/chatTypes";
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/ui/button";
 import { MessageSquarePlus } from "lucide-react";
+import CookieConsent from "./CookieConsent";
+import { useSessionToken } from "@/hooks/useSessionToken";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -25,18 +27,18 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const [input, setInput] = useState("");
   const { toast } = useToast();
   const [chatId, setChatId] = useState<string | null>(null);
+  const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
 
   useEffect(() => {
     const loadExistingChat = async () => {
-      try {
-        if (!bot.id || !clientId) return;
-        console.log("Loading existing chat for bot:", bot.id, "clientId:", clientId);
+      if (!bot.id || !sessionToken) return;
 
+      try {
         const { data: existingChat, error } = await supabase
           .from('chat_history')
           .select('*')
           .eq('bot_id', bot.id)
-          .eq('client_id', clientId)
+          .eq('session_token', sessionToken)
           .eq('share_key', shareKey)
           .order('created_at', { ascending: false })
           .limit(1)
@@ -49,7 +51,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         }
 
         if (existingChat) {
-          console.log("Found existing chat for client:", clientId);
+          console.log("Found existing chat for session:", sessionToken);
           setChatId(existingChat.id);
           const rawMessages = existingChat.messages as unknown;
           const chatMessages = (rawMessages as ChatMessage[]).map(msg => ({
@@ -67,17 +69,21 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       }
     };
 
-    loadExistingChat();
-  }, [bot.id, clientId, shareKey]);
+    if (sessionToken) {
+      loadExistingChat();
+    }
+  }, [bot.id, sessionToken, shareKey]);
 
   const createNewChat = async () => {
+    if (!sessionToken) return null;
+    
     try {
-      console.log("Creating new chat for client:", clientId);
+      console.log("Creating new chat for session:", sessionToken);
       const newChatId = uuidv4();
       console.log("Generated new chat ID:", newChatId);
       setChatId(newChatId);
       setMessages([]);
-      await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
+      await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey, sessionToken);
       return newChatId;
     } catch (error) {
       console.error("Error creating new chat:", error);
@@ -111,13 +117,13 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   };
 
   const handleStarterClick = (starter: string) => {
-    if (!isLoading) {
+    if (!isLoading && hasConsent) {
       sendMessage(starter);
     }
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim() || !clientId) return;
+    if (!message.trim() || !sessionToken) return;
 
     try {
       setIsLoading(true);
@@ -153,7 +159,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         timestamp: msg.timestamp?.toISOString()
       }));
 
-      await ChatHistoryService.updateChatHistory(chatId!, bot.id, messagesToSave, clientId, shareKey);
+      await ChatHistoryService.updateChatHistory(chatId!, bot.id, messagesToSave, clientId, shareKey, sessionToken);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -166,43 +172,58 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     }
   };
 
+  if (hasConsent === false) {
+    return (
+      <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl items-center justify-center p-4">
+        <h2 className="text-xl font-semibold mb-4">Cookie Consent Required</h2>
+        <p className="text-center text-muted-foreground mb-4">
+          To access this Chatbot, you must accept the required cookies.
+        </p>
+        <Button onClick={() => window.location.reload()}>Try Again</Button>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl">
-      <div className="p-2 border-b flex justify-end">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleClearChat}
-          className="text-muted-foreground hover:text-primary"
-        >
-          <MessageSquarePlus className="h-5 w-5" />
-          <span className="ml-2">New Chat</span>
-        </Button>
-      </div>
-      
-      <div className="flex-1 overflow-hidden relative mb-[76px]">
-        <MessageList
-          messages={messages}
-          selectedBot={bot}
-          starters={bot.starters || []}
-          onStarterClick={handleStarterClick}
+    <>
+      <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />
+      <Card className="flex flex-col h-[calc(100vh-2rem)] mx-auto max-w-4xl">
+        <div className="p-2 border-b flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearChat}
+            className="text-muted-foreground hover:text-primary"
+          >
+            <MessageSquarePlus className="h-5 w-5" />
+            <span className="ml-2">New Chat</span>
+          </Button>
+        </div>
+        
+        <div className="flex-1 overflow-hidden relative mb-[76px]">
+          <MessageList
+            messages={messages}
+            selectedBot={bot}
+            starters={bot.starters || []}
+            onStarterClick={handleStarterClick}
+            isLoading={isLoading}
+          />
+        </div>
+        
+        <div className="fixed bottom-[60px] left-0 right-0">
+          <div className="h-[1px] bg-muted/20 border-t" />
+        </div>
+        
+        <ChatInput
+          onSend={sendMessage}
+          disabled={isLoading || !hasConsent}
           isLoading={isLoading}
+          placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
+          onInputChange={setInput}
+          value={input}
         />
-      </div>
-      
-      <div className="fixed bottom-[60px] left-0 right-0">
-        <div className="h-[1px] bg-muted/20 border-t" />
-      </div>
-      
-      <ChatInput
-        onSend={sendMessage}
-        disabled={isLoading}
-        isLoading={isLoading}
-        placeholder="Type your message..."
-        onInputChange={setInput}
-        value={input}
-      />
-    </Card>
+      </Card>
+    </>
   );
 };
 

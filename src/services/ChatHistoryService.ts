@@ -23,8 +23,20 @@ export class ChatHistoryService {
     return nextSequence;
   }
 
-  static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
-    console.log("Creating new chat history with params:", { newChatId, botId, clientId, shareKey });
+  static async createNewChatHistory(
+    newChatId: string, 
+    botId: string, 
+    clientId: string, 
+    shareKey?: string,
+    sessionToken?: string
+  ): Promise<void> {
+    console.log("Creating new chat history with params:", { 
+      newChatId, 
+      botId, 
+      clientId, 
+      shareKey,
+      sessionToken 
+    });
     
     const sequence_number = await this.getLatestSequenceNumber(botId);
     console.log("Got sequence number for new chat:", sequence_number);
@@ -35,6 +47,7 @@ export class ChatHistoryService {
       messages: [],
       client_id: clientId,
       share_key: shareKey,
+      session_token: sessionToken,
       sequence_number
     };
 
@@ -56,14 +69,16 @@ export class ChatHistoryService {
     botId: string,
     messages: ChatMessage[],
     clientId: string,
-    shareKey?: string
+    shareKey?: string,
+    sessionToken?: string
   ): Promise<void> {
     console.log("Updating chat history:", { 
       chatId, 
       botId, 
       messageCount: messages.length,
       clientId,
-      shareKey 
+      shareKey,
+      sessionToken
     });
     
     const jsonMessages = messages.map(msg => ({
@@ -82,7 +97,7 @@ export class ChatHistoryService {
         updated_at: new Date().toISOString()
       })
       .eq('id', chatId)
-      .eq('client_id', clientId); // Add client_id check for extra security
+      .eq('session_token', sessionToken); // Add session_token check for extra security
 
     if (error) {
       console.error("Error updating chat history:", error);
