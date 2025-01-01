@@ -10,6 +10,7 @@ import Chat from "@/pages/Chat";
 import Archive from "@/pages/Archive";
 import Login from "@/pages/Login";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
+import { Helmet } from "react-helmet";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -35,6 +36,11 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" attribute="class">
+      <Helmet>
+        <title>SoiRa AI</title>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="description" content="SoiRa AI - Your AI Assistant" />
+      </Helmet>
       <Router>
         {isAuthenticated && <Navigation />}
         <Routes>

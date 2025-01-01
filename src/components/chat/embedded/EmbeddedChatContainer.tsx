@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 import EmbeddedChatUI from "./EmbeddedChatUI";
 import { useToast } from "@/components/ui/use-toast";
+import { Helmet } from "react-helmet";
 
 const EmbeddedChatContainer = () => {
   const { botId } = useParams();
@@ -30,13 +31,15 @@ const EmbeddedChatContainer = () => {
       try {
         if (!botId) return;
 
-        // First fetch the shared bot data using the short_key
         const { data: sharedBot, error: sharedBotError } = await supabase
           .from("shared_bots")
           .select(`
             *,
             bot_api_keys!shared_bots_api_key_id_fkey (
               api_key
+            ),
+            bots!inner (
+              avatar
             )
           `)
           .eq("short_key", botId)
@@ -53,14 +56,12 @@ const EmbeddedChatContainer = () => {
           return;
         }
 
-        // Validate that the model is one of the allowed types
         const validModel = (model: string): model is Bot['model'] => {
           return ['gemini', 'claude', 'openai', 'openrouter'].includes(model);
         };
 
         const model = validModel(sharedBot.model) ? sharedBot.model : 'gemini';
 
-        // Transform the data to match our Bot interface
         const transformedBot: Bot = {
           id: sharedBot.bot_id,
           name: sharedBot.bot_name,
@@ -69,6 +70,7 @@ const EmbeddedChatContainer = () => {
           model: model,
           apiKey: sharedBot.bot_api_keys?.api_key || "",
           openRouterModel: sharedBot.open_router_model,
+          avatar: sharedBot.bots?.avatar,
           accessType: "public"
         };
 
@@ -92,7 +94,16 @@ const EmbeddedChatContainer = () => {
     return <div>Loading...</div>;
   }
 
-  return <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />;
+  return (
+    <>
+      <Helmet>
+        <title>{bot.name}</title>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="description" content={`Chat with ${bot.name}`} />
+      </Helmet>
+      <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />
+    </>
+  );
 };
 
 export default EmbeddedChatContainer;
