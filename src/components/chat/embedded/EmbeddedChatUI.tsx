@@ -103,6 +103,42 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     }
   };
 
+  const handleClearChat = async () => {
+    if (!chatId || !sessionToken) return;
+
+    try {
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ deleted: 'yes' })
+        .eq('id', chatId)
+        .eq('session_token', sessionToken);
+
+      if (error) throw error;
+
+      const newChatId = await createNewChat();
+      if (newChatId) {
+        toast({
+          title: "Success",
+          description: "Started a new chat",
+        });
+      }
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear chat",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSelectChat = (selectedChatId: string) => {
+    loadExistingChat(selectedChatId);
+    if (isMobile) {
+      setShowHistory(false);
+    }
+  };
+
   const sendMessage = async (message: string) => {
     if (!message.trim() || !sessionToken) return;
 
@@ -147,6 +183,17 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         timestamp: msg.timestamp?.toISOString()
       }));
 
+      // Get the next sequence number
+      const { data: latestChat } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', bot.id)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      const nextSequence = (latestChat?.sequence_number || 0) + 1;
+
       const { error } = await supabase
         .from('chat_history')
         .upsert({
@@ -156,6 +203,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           client_id: clientId,
           share_key: shareKey,
           session_token: sessionToken,
+          sequence_number: nextSequence,
           updated_at: new Date().toISOString()
         });
 
