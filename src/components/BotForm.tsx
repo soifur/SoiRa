@@ -29,6 +29,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       <div className="flex items-center gap-4">
         <AvatarUploader 
           avatar={editingBot.avatar}
+          botId={editingBot.id}
           onAvatarChange={(avatar) => setEditingBot({ ...editingBot, avatar })}
         />
         <div className="flex-1">

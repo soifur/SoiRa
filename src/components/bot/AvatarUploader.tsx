@@ -1,32 +1,66 @@
 import React from "react";
 import { Upload, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AvatarUploaderProps {
   avatar?: string;
+  botId?: string;
   onAvatarChange: (avatar: string) => void;
 }
 
-export const AvatarUploader = ({ avatar, onAvatarChange }: AvatarUploaderProps) => {
+export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploaderProps) => {
   const { toast } = useToast();
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          title: "Error",
-          description: "Avatar image must be less than 5MB",
-          variant: "destructive",
-        });
-        return;
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "Error",
+        description: "Avatar image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // If there's an existing avatar in storage, delete it
+      if (avatar && !avatar.startsWith('data:') && botId) {
+        const fileName = avatar.split('/').pop();
+        if (fileName) {
+          await supabase.storage
+            .from('avatars')
+            .remove([fileName]);
+        }
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onAvatarChange(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Upload new avatar
+      const fileExt = file.name.split('.').pop();
+      const fileName = botId ? `${botId}.${fileExt}` : `${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, {
+          upsert: true
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      onAvatarChange(publicUrl);
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload avatar",
+        variant: "destructive",
+      });
     }
   };
 
