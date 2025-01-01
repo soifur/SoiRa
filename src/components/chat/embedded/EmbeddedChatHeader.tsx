@@ -1,28 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { History } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { Bot } from "@/hooks/useBots";
 
 interface EmbeddedChatHeaderProps {
-  onToggleHistory: () => void;
-  showHistory: boolean;
+  bot: Bot;
+  onClearChat: () => void;
 }
 
-export const EmbeddedChatHeader = ({
-  onToggleHistory,
-  showHistory,
-}: EmbeddedChatHeaderProps) => {
+export const EmbeddedChatHeader = ({ bot, onClearChat }: EmbeddedChatHeaderProps) => {
   return (
-    <div className="flex justify-between items-center p-4 border-b">
-      <div className="flex items-center gap-4">
-        <Button
-          variant={showHistory ? "default" : "outline"}
-          size="default"
-          onClick={onToggleHistory}
-          className="flex items-center gap-2"
-        >
-          <History className="h-4 w-4" />
-          <span>History</span>
-        </Button>
-      </div>
+    <div className="flex justify-between items-center">
+      <h2 className="text-xl font-semibold">{bot.name}</h2>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClearChat}
+        className="text-red-500 hover:text-red-700"
+      >
+        <Trash2 className="h-4 w-4 mr-2" />
+        Clear Chat
+      </Button>
     </div>
   );
 };

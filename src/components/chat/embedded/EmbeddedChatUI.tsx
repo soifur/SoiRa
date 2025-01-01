@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { MessageList } from "../MessageList";
+import { ChatInput } from "../ChatInput";
 import { Card } from "@/components/ui/card";
 import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
@@ -6,13 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 import { ChatHistoryService } from "@/services/ChatHistoryService";
 import { ChatService } from "@/services/ChatService";
+import { ChatMessage } from "../types/chatTypes";
 import { v4 as uuidv4 } from 'uuid';
 import CookieConsent from "./CookieConsent";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { ChatLayout } from "./ChatLayout";
-import { EmbeddedChatHeader } from "./EmbeddedChatHeader";
-import { EmbeddedChatContent } from "./EmbeddedChatContent";
-import { EmbeddedChatHistory } from "./EmbeddedChatHistory";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -27,7 +27,51 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const { toast } = useToast();
   const [chatId, setChatId] = useState<string | null>(null);
   const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
-  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    const loadExistingChat = async () => {
+      if (!bot.id || !sessionToken) return;
+
+      try {
+        const { data: existingChat, error } = await supabase
+          .from('chat_history')
+          .select('*')
+          .eq('bot_id', bot.id)
+          .eq('session_token', sessionToken)
+          .eq('share_key', shareKey)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error) {
+          console.log("No existing chat found, creating new one");
+          await createNewChat();
+          return;
+        }
+
+        if (existingChat) {
+          console.log("Found existing chat for session:", sessionToken);
+          setChatId(existingChat.id);
+          const rawMessages = existingChat.messages as unknown;
+          const chatMessages = (rawMessages as ChatMessage[]).map(msg => ({
+            ...msg,
+            timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+            id: msg.id || uuidv4()
+          }));
+          setMessages(chatMessages);
+        } else {
+          await createNewChat();
+        }
+      } catch (error) {
+        console.error("Error loading chat:", error);
+        await createNewChat();
+      }
+    };
+
+    if (sessionToken) {
+      loadExistingChat();
+    }
+  }, [bot.id, sessionToken, shareKey]);
 
   const createNewChat = async () => {
     if (!sessionToken) return null;
@@ -71,23 +115,10 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     }
   };
 
-  const handleToggleHistory = () => {
-    setShowHistory(!showHistory);
-  };
-
   const handleStarterClick = (starter: string) => {
     if (!isLoading && hasConsent) {
       sendMessage(starter);
     }
-  };
-
-  const handleLoadChat = (chatMessages: Array<{ role: string; content: string }>) => {
-    setMessages(chatMessages.map(msg => ({
-      ...msg,
-      id: uuidv4(),
-      timestamp: new Date()
-    })));
-    setShowHistory(false);
   };
 
   const sendMessage = async (message: string) => {
@@ -148,37 +179,31 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     <>
       <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />
       <Card className="w-full h-[100dvh] overflow-hidden">
-        <div className="flex flex-col h-full relative">
-          <EmbeddedChatHeader 
-            onToggleHistory={handleToggleHistory}
-            showHistory={showHistory}
-          />
-          <ChatLayout onNewChat={handleClearChat}>
-            {{
-              messages: (
-                <>
-                  <EmbeddedChatHistory
-                    messages={messages}
-                    bot={bot}
-                    onLoadChat={handleLoadChat}
-                    show={showHistory}
-                  />
-                  <EmbeddedChatContent
-                    messages={messages}
-                    bot={bot}
-                    isLoading={isLoading}
-                    hasConsent={hasConsent}
-                    input={input}
-                    onInputChange={setInput}
-                    onSend={sendMessage}
-                    onStarterClick={handleStarterClick}
-                  />
-                </>
-              ),
-              input: null
-            }}
-          </ChatLayout>
-        </div>
+        <ChatLayout onNewChat={handleClearChat}>
+          {{
+            messages: (
+              <MessageList
+                messages={messages}
+                selectedBot={bot}
+                starters={bot.starters || []}
+                onStarterClick={handleStarterClick}
+                isLoading={isLoading}
+              />
+            ),
+            input: (
+              <div className="w-full px-4">
+                <ChatInput
+                  onSend={sendMessage}
+                  disabled={isLoading || !hasConsent}
+                  isLoading={isLoading}
+                  placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
+                  onInputChange={setInput}
+                  value={input}
+                />
+              </div>
+            )
+          }}
+        </ChatLayout>
       </Card>
     </>
   );

@@ -81,7 +81,6 @@ export type Database = {
           bot_id: string
           client_id: string | null
           created_at: string | null
-          deleted: string | null
           id: string
           messages: Json
           sequence_number: number
@@ -95,7 +94,6 @@ export type Database = {
           bot_id: string
           client_id?: string | null
           created_at?: string | null
-          deleted?: string | null
           id?: string
           messages?: Json
           sequence_number: number
@@ -109,7 +107,6 @@ export type Database = {
           bot_id?: string
           client_id?: string | null
           created_at?: string | null
-          deleted?: string | null
           id?: string
           messages?: Json
           sequence_number?: number
