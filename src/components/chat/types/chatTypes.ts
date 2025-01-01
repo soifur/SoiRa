@@ -16,9 +16,10 @@ export interface Bot {
   avatar?: string;
   model: string;
   starters?: string[];
-  api_key: string;
-  open_router_model?: string;
+  apiKey: string;  // Changed from api_key to match useBots.ts
+  openRouterModel?: string;
   voice_enabled?: boolean;
+  accessType?: "public" | "private";
 }
 
 export interface ChatHistoryItem {
@@ -38,4 +39,7 @@ export interface ChatHistoryData {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  session_token?: string;
+  avatar_url?: string;
+  deleted?: string;
 }

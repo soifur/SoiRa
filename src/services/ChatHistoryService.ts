@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ChatMessage } from "@/components/chat/types/chatTypes";
+import { Message, ChatHistoryData } from "@/components/chat/types/chatTypes";
 
 export class ChatHistoryService {
   static async getLatestSequenceNumber(botId: string): Promise<number> {
@@ -67,7 +67,7 @@ export class ChatHistoryService {
   static async updateChatHistory(
     chatId: string,
     botId: string,
-    messages: ChatMessage[],
+    messages: Message[],
     clientId: string,
     shareKey?: string,
     sessionToken?: string
@@ -97,7 +97,7 @@ export class ChatHistoryService {
         updated_at: new Date().toISOString()
       })
       .eq('id', chatId)
-      .eq('session_token', sessionToken); // Add session_token check for extra security
+      .eq('session_token', sessionToken);
 
     if (error) {
       console.error("Error updating chat history:", error);

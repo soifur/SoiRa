@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { ChatHistoryItem, ChatHistoryData } from "../types/chatTypes";
+import { ChatHistoryItem, ChatHistoryData, Message } from "../types/chatTypes";
 
 interface EmbeddedChatHistoryProps {
   sessionToken: string | null;
@@ -52,7 +52,16 @@ export const EmbeddedChatHistory = ({
       // Transform the data to match ChatHistoryItem type
       const transformedData: ChatHistoryItem[] = (data || []).map((item: ChatHistoryData) => ({
         id: item.id!,
-        messages: Array.isArray(item.messages) ? item.messages : [],
+        messages: Array.isArray(item.messages) 
+          ? (item.messages as any[]).map((msg: any): Message => ({
+              id: msg.id || crypto.randomUUID(),
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+              isBot: msg.isBot,
+              avatar: msg.avatar
+            }))
+          : [],
         created_at: item.created_at || new Date().toISOString(),
         sequence_number: item.sequence_number
       }));
