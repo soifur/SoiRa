@@ -20,21 +20,10 @@ export class ChatHistoryService {
   static async createNewChatHistory(newChatId: string, botId: string, clientId: string, shareKey?: string): Promise<void> {
     console.log("Creating new chat history:", { newChatId, botId, clientId, shareKey });
     
-    // Delete any existing chat history for this bot-client-share combination
-    const { error: deleteError } = await supabase
-      .from('chat_history')
-      .delete()
-      .eq('bot_id', botId)
-      .eq('client_id', clientId)
-      .eq('share_key', shareKey);
-
-    if (deleteError) {
-      console.error("Error deleting existing chat history:", deleteError);
-    }
-
+    // Get the next sequence number
     const sequence_number = await this.getLatestSequenceNumber(botId);
 
-    const chatData: ChatHistoryData = {
+    const chatData = {
       id: newChatId,
       bot_id: botId,
       messages: [],
@@ -64,13 +53,15 @@ export class ChatHistoryService {
       id: msg.id
     }));
 
-    const chatData: ChatHistoryData = {
+    const sequence_number = await this.getLatestSequenceNumber(botId);
+    
+    const chatData = {
       id: chatId,
       bot_id: botId,
       messages: jsonMessages,
       client_id: clientId,
       share_key: shareKey,
-      sequence_number: await this.getLatestSequenceNumber(botId)
+      sequence_number
     };
 
     const { error } = await supabase
