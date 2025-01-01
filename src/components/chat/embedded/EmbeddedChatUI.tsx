@@ -7,19 +7,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 import { ChatService } from "@/services/ChatService";
-import { Database } from "@/integrations/supabase/types";
+import { ChatHistoryService } from "@/services/ChatHistoryService";
+import { ChatMessage } from "../types/chatTypes";
 import { v4 as uuidv4 } from 'uuid';
 
 interface EmbeddedChatUIProps {
   bot: Bot;
   clientId: string;
   shareKey?: string;
-}
-
-interface ChatMessage {
-  role: string;
-  content: string;
-  timestamp?: string;
 }
 
 const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
@@ -29,7 +24,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const { toast } = useToast();
   const [chatId, setChatId] = useState<string | null>(null);
 
-  // Load existing chat on mount
   useEffect(() => {
     const loadExistingChat = async () => {
       try {
@@ -47,7 +41,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
         if (existingChat) {
           setChatId(existingChat.id);
-          // First cast to unknown, then to ChatMessage[]
           const rawMessages = existingChat.messages as unknown;
           const chatMessages = (rawMessages as ChatMessage[]).map(msg => ({
             ...msg,
@@ -56,10 +49,9 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           }));
           setMessages(chatMessages);
         } else {
-          // Create a new chat if none exists
           const newChatId = uuidv4();
           setChatId(newChatId);
-          await createNewChatHistory(newChatId);
+          await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
         }
       } catch (error) {
         console.error("Error loading chat:", error);
@@ -68,68 +60,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
     loadExistingChat();
   }, [bot.id, clientId, shareKey]);
-
-  const createNewChatHistory = async (newChatId: string) => {
-    try {
-      // Get the latest sequence number for this bot
-      const { data: latestChat } = await supabase
-        .from('chat_history')
-        .select('sequence_number')
-        .eq('bot_id', bot.id)
-        .order('sequence_number', { ascending: false })
-        .limit(1)
-        .single();
-
-      const chatData = {
-        id: newChatId,
-        bot_id: bot.id,
-        messages: [],
-        client_id: clientId,
-        share_key: shareKey,
-        sequence_number: (latestChat?.sequence_number || 0) + 1
-      } as Database['public']['Tables']['chat_history']['Insert'];
-
-      const { error } = await supabase
-        .from('chat_history')
-        .insert(chatData);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error creating new chat history:", error);
-    }
-  };
-
-  const saveChatHistory = async (updatedMessages: typeof messages) => {
-    try {
-      const chatData = {
-        id: chatId,
-        bot_id: bot.id,
-        messages: updatedMessages.map(msg => ({
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp?.toISOString()
-        })),
-        client_id: clientId,
-        share_key: shareKey
-      } as Database['public']['Tables']['chat_history']['Insert'];
-
-      if (chatId) {
-        const { error } = await supabase
-          .from('chat_history')
-          .update(chatData)
-          .eq('id', chatId);
-
-        if (error) throw error;
-      }
-    } catch (error) {
-      console.error("Error saving chat history:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save chat history",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleStarterClick = async (starter: string) => {
     await sendMessage(starter);
@@ -140,7 +70,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       setMessages([]);
       const newChatId = uuidv4();
       setChatId(newChatId);
-      await createNewChatHistory(newChatId);
+      await ChatHistoryService.createNewChatHistory(newChatId, bot.id, clientId, shareKey);
       
       toast({
         title: "Success",
@@ -157,7 +87,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || !chatId) return;
 
     try {
       setIsLoading(true);
@@ -179,7 +109,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
-      await saveChatHistory(updatedMessages);
+      await ChatHistoryService.updateChatHistory(chatId, bot.id, updatedMessages, clientId, shareKey);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
