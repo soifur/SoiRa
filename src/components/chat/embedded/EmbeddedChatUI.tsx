@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import CookieConsent from "./CookieConsent";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { ChatLayout } from "./ChatLayout";
+import { EmbeddedChatHeader } from "./EmbeddedChatHeader";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
@@ -27,6 +28,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const { toast } = useToast();
   const [chatId, setChatId] = useState<string | null>(null);
   const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     const loadExistingChat = async () => {
@@ -115,6 +117,10 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     }
   };
 
+  const handleToggleHistory = () => {
+    setShowHistory(!showHistory);
+  };
+
   const handleStarterClick = (starter: string) => {
     if (!isLoading && hasConsent) {
       sendMessage(starter);
@@ -179,31 +185,37 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     <>
       <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />
       <Card className="w-full h-[100dvh] overflow-hidden">
-        <ChatLayout onNewChat={handleClearChat}>
-          {{
-            messages: (
-              <MessageList
-                messages={messages}
-                selectedBot={bot}
-                starters={bot.starters || []}
-                onStarterClick={handleStarterClick}
-                isLoading={isLoading}
-              />
-            ),
-            input: (
-              <div className="w-full px-4">
-                <ChatInput
-                  onSend={sendMessage}
-                  disabled={isLoading || !hasConsent}
+        <div className="flex flex-col h-full">
+          <EmbeddedChatHeader 
+            onToggleHistory={handleToggleHistory}
+            showHistory={showHistory}
+          />
+          <ChatLayout onNewChat={handleClearChat}>
+            {{
+              messages: (
+                <MessageList
+                  messages={messages}
+                  selectedBot={bot}
+                  starters={bot.starters || []}
+                  onStarterClick={handleStarterClick}
                   isLoading={isLoading}
-                  placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
-                  onInputChange={setInput}
-                  value={input}
                 />
-              </div>
-            )
-          }}
-        </ChatLayout>
+              ),
+              input: (
+                <div className="w-full px-4">
+                  <ChatInput
+                    onSend={sendMessage}
+                    disabled={isLoading || !hasConsent}
+                    isLoading={isLoading}
+                    placeholder={hasConsent === null ? "Accepting cookies..." : "Type your message..."}
+                    onInputChange={setInput}
+                    value={input}
+                  />
+                </div>
+              )
+            }}
+          </ChatLayout>
+        </div>
       </Card>
     </>
   );
