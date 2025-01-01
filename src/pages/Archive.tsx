@@ -29,8 +29,9 @@ const Archive = () => {
       const { data, error } = await supabase
         .from('chat_history')
         .select('*')
+        .eq('deleted', 'no')  // Only fetch non-deleted chats
         .or(`user_id.eq.${session.session?.user.id},share_key.not.is.null`)
-        .order('created_at', { ascending: false }); // Order by created_at descending
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -49,7 +50,7 @@ const Archive = () => {
         type: record.share_key ? 'public' : 'private',
         user_id: record.user_id,
         client_id: record.client_id,
-        sequence_number: data.length - index // Calculate display sequence number
+        sequence_number: data.length - index
       }));
 
       setChatHistory(transformedHistory);
@@ -58,6 +59,35 @@ const Archive = () => {
       toast({
         title: "Error",
         description: "Failed to fetch chat history",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      // Remove from UI immediately for better UX
+      setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
+      
+      // Update the deleted flag in the database
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ deleted: 'yes' })
+        .eq('id', chatId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Chat deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      // Revert UI change if deletion failed
+      fetchChatHistory();
+      toast({
+        title: "Error",
+        description: "Failed to delete chat",
         variant: "destructive",
       });
     }
@@ -98,6 +128,7 @@ const Archive = () => {
                 record={record}
                 bot={getSelectedBot(record.botId)}
                 onClick={() => setSelectedChat(record)}
+                onDelete={() => handleDeleteChat(record.id)}
               />
             ))}
           </div>
