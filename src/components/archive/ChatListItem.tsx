@@ -121,28 +121,16 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
           {lastMessage?.timestamp ? formatDate(lastMessage.timestamp.toString()) : 'No messages'}
         </span>
       </div>
-      {!isMobile && (
-        <div className="mt-2 text-sm text-muted-foreground flex justify-between items-center">
-          <span>
-            Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
-          </span>
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-1 hover:bg-destructive/10 ml-2"
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
-          )}
-        </div>
-      )}
-      {isMobile && onDelete && (
+      <div className="mt-2 text-sm text-muted-foreground">
+        <span>
+          Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
+        </span>
+      </div>
+      {onDelete && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 p-1 hover:bg-destructive/10 absolute top-2 right-2"
+          className="absolute top-2 right-2 h-8 w-8 p-1 hover:bg-destructive/10"
           onClick={handleDelete}
         >
           <Trash2 className="h-4 w-4 text-destructive" />

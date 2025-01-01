@@ -99,9 +99,9 @@ const Archive = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl h-[100dvh] flex flex-col">
-      <div className="flex-none p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="flex items-center justify-between">
+    <div className="h-[100dvh] flex flex-col bg-background">
+      <div className="flex-none p-4 bg-card border-b">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
           <h1 className="text-2xl font-bold">Chat Archive</h1>
           <Select value={selectedBotId} onValueChange={setSelectedBotId}>
             <SelectTrigger className={`${isMobile ? 'w-[140px]' : 'w-[200px]'}`}>
@@ -120,7 +120,7 @@ const Archive = () => {
       </div>
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 p-4 max-w-6xl mx-auto">
             {filteredHistory.map((record) => (
               <ChatListItem
                 key={record.id}
