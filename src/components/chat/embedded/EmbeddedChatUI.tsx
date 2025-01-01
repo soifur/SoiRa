@@ -251,16 +251,17 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
             showHistory && !isMobile ? "w-[calc(100%-20rem)]" : "w-full"
           )}>
             <EmbeddedChatHeader
-              bot={{...bot, starters: bot.starters || []}}  // Ensure starters is always an array
+              bot={{...bot, starters: bot.starters || []}}
               onClearChat={handleClearChat}
               onToggleHistory={() => setShowHistory(!showHistory)}
               showHistory={showHistory}
+              onNewChat={createNewChat}
             />
             <EmbeddedChatContent
               messages={messages}
               isLoading={isLoading}
               onSend={sendMessage}
-              bot={{...bot, starters: bot.starters || []}}  // Ensure starters is always an array
+              bot={{...bot, starters: bot.starters || []}}
               onStarterClick={sendMessage}
             />
           </div>
