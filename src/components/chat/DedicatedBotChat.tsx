@@ -152,8 +152,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   return (
-    <Card className="flex flex-col h-full p-4 bg-card">
-      <div className="flex justify-end mb-4">
+    <Card className="flex flex-col h-[calc(100vh-5rem)] bg-card">
+      <div className="flex justify-end p-2">
         <Button
           variant="ghost"
           size="icon"
@@ -164,7 +164,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         </Button>
       </div>
       
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-hidden flex flex-col px-4">
         <MessageList
           messages={formatMessages(messages)}
           selectedBot={bot}
@@ -174,7 +174,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="mt-4">
+      <div className="p-4 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
         <ChatInput
           onSend={sendMessage}
           disabled={isLoading}
