@@ -45,9 +45,9 @@ const Bots = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-full h-[calc(100vh-4rem)] pt-4">
-      <div className="flex gap-6 h-full">
-        <div className="w-1/2 flex flex-col gap-4 overflow-y-auto px-4">
+    <div className="container mx-auto max-w-full pt-20 px-4">
+      <div className="flex gap-6 h-[calc(100vh-8rem)]">
+        <div className="w-1/2 flex flex-col gap-4 overflow-y-auto">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">My Chatbots</h1>
             <Button
@@ -140,7 +140,7 @@ const Bots = () => {
           </div>
         </div>
 
-        <div className="w-1/2 border-l border-border px-4">
+        <div className="w-1/2 border-l border-border">
           {selectedBot ? (
             <DedicatedBotChat key={selectedBot.id} bot={selectedBot} />
           ) : (
