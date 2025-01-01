@@ -5,6 +5,7 @@ import { ChatRecord } from "./types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatListItemProps {
   record: ChatRecord;
@@ -48,9 +49,30 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
     });
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDelete?.();
+    try {
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ deleted: 'yes' })
+        .eq('id', record.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Chat Deleted",
+        description: "The chat has been successfully deleted",
+      });
+
+      onDelete?.();
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete chat. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const lastMessage = record.messages[record.messages.length - 1];
