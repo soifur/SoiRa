@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 import { ChatHistoryService } from "@/services/ChatHistoryService";
+import { ChatService } from "@/services/ChatService";
 import { ChatMessage } from "../types/chatTypes";
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,12 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         description: "Failed to start new chat",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleStarterClick = (starter: string) => {
+    if (!isLoading) {
+      sendMessage(starter);
     }
   };
 
