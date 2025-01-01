@@ -48,7 +48,8 @@ export class ChatHistoryService {
       client_id: clientId,
       share_key: shareKey,
       session_token: sessionToken,
-      sequence_number
+      sequence_number,
+      deleted: 'no'
     };
 
     console.log("Inserting new chat with data:", chatData);
@@ -97,7 +98,7 @@ export class ChatHistoryService {
         updated_at: new Date().toISOString()
       })
       .eq('id', chatId)
-      .eq('session_token', sessionToken); // Add session_token check for extra security
+      .eq('session_token', sessionToken);
 
     if (error) {
       console.error("Error updating chat history:", error);
@@ -105,5 +106,35 @@ export class ChatHistoryService {
     }
 
     console.log("Successfully updated chat history for ID:", chatId);
+  }
+
+  static async deleteChat(chatId: string, sessionToken: string): Promise<void> {
+    const { error } = await supabase
+      .from('chat_history')
+      .update({ deleted: 'yes' })
+      .eq('id', chatId)
+      .eq('session_token', sessionToken);
+
+    if (error) {
+      console.error("Error deleting chat history:", error);
+      throw error;
+    }
+  }
+
+  static async getUserChatHistory(sessionToken: string, botId: string) {
+    const { data, error } = await supabase
+      .from('chat_history')
+      .select('*')
+      .eq('session_token', sessionToken)
+      .eq('bot_id', botId)
+      .eq('deleted', 'no')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching chat history:", error);
+      throw error;
+    }
+
+    return data;
   }
 }

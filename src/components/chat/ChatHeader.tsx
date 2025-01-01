@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Code } from "lucide-react";
+import { Code, History } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,9 +14,17 @@ interface ChatHeaderProps {
   bots: Bot[];
   selectedBotId: string;
   onBotSelect: (botId: string) => void;
+  onToggleHistory: () => void;
+  showHistory: boolean;
 }
 
-export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps) => {
+export const ChatHeader = ({ 
+  bots, 
+  selectedBotId, 
+  onBotSelect, 
+  onToggleHistory,
+  showHistory 
+}: ChatHeaderProps) => {
   const { toast } = useToast();
 
   const handleEmbed = () => {
@@ -45,18 +53,28 @@ export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps
 
   return (
     <div className="flex justify-between items-center">
-      <Select value={selectedBotId} onValueChange={onBotSelect}>
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Select a bot" />
-        </SelectTrigger>
-        <SelectContent>
-          {bots.map((bot) => (
-            <SelectItem key={bot.id} value={bot.id}>
-              {bot.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleHistory}
+          className={showHistory ? "bg-accent" : ""}
+        >
+          <History className="h-4 w-4" />
+        </Button>
+        <Select value={selectedBotId} onValueChange={onBotSelect}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Select a bot" />
+          </SelectTrigger>
+          <SelectContent>
+            {bots.map((bot) => (
+              <SelectItem key={bot.id} value={bot.id}>
+                {bot.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <Button variant="outline" onClick={handleEmbed} disabled={!selectedBotId}>
         <Code className="mr-2 h-4 w-4" />
         Embed
