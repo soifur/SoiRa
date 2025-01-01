@@ -33,12 +33,19 @@ export const MessageList = ({
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = React.useState(true);
 
   useEffect(() => {
-    if (lastMessageRef.current) {
+    if (lastMessageRef.current && shouldAutoScroll) {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, shouldAutoScroll]);
+
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setShouldAutoScroll(isNearBottom);
+  };
 
   const getStarterIcon = (starter: string) => {
     const lowerStarter = starter.toLowerCase();
@@ -57,9 +64,19 @@ export const MessageList = ({
     return MessageCircle;
   };
 
+  const hasOverflow = messages.length > 0 && scrollRef.current && 
+    scrollRef.current.scrollHeight > scrollRef.current.clientHeight;
+
   return (
     <div className="relative flex-1 overflow-hidden">
-      <ScrollArea className="h-[calc(100vh-6.5rem)] px-4">
+      <ScrollArea 
+        className="h-[calc(100vh-6.5rem)] px-4"
+        onScroll={handleScroll}
+        ref={scrollRef}
+        style={{ 
+          overflowY: hasOverflow ? 'auto' : 'hidden' 
+        }}
+      >
         {messages.length === 0 && starters && starters.length > 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
             {selectedBot && (
@@ -113,7 +130,7 @@ export const MessageList = ({
                   message={message.content}
                   isBot={message.role === "assistant"}
                   avatar={message.avatar}
-                  isLoading={message.role === "assistant" && isLoading}
+                  isLoading={index === messages.length - 1 && message.role === "assistant" && isLoading}
                 />
               </div>
             ))}

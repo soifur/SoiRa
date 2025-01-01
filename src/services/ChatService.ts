@@ -1,103 +1,108 @@
+import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export class ChatService {
-  private static sanitizeText(text: string): string {
-    if (!text) return "";
-    
-    // Replace smart quotes and other special characters with ASCII equivalents
-    return text
-      .replace(/[\u2018\u2019]/g, "'")
-      .replace(/[\u201C\u201D]/g, '"')
-      .replace(/\u2014/g, "--")
-      .replace(/\u2013/g, "-")
-      .replace(/\u2026/g, "...")
-      .replace(/[^\x00-\x7F]/g, " "); // Replace any remaining non-ASCII chars with space
-  }
-
-  static async sendOpenRouterMessage(
-    messages: Array<{ role: string; content: string }>,
-    bot: Bot
-  ) {
-    if (!bot.apiKey) {
-      throw new Error("OpenRouter API key is missing");
-    }
-
-    const sanitizedMessages = messages.map(msg => ({
-      ...msg,
-      content: this.sanitizeText(msg.content)
-    }));
-
-    const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
-
-    try {
-      const headers = {
-        'Authorization': `Bearer ${bot.apiKey}`,
+  static async sendOpenRouterMessage(messages: any[], bot: Bot) {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${bot.apiKey}`,
         'HTTP-Referer': window.location.origin,
-        'X-Title': 'Lovable Chat Interface'
-      };
+        'X-Title': 'Lovbots Chat'
+      },
+      body: JSON.stringify({
+        model: bot.openRouterModel || 'mistralai/mistral-7b-instruct',
+        messages: messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        })),
+      })
+    });
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          model: bot.openRouterModel,
-          messages: [
-            ...(sanitizedInstructions
-              ? [{ role: 'system', content: sanitizedInstructions }]
-              : []),
-            ...sanitizedMessages,
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('OpenRouter API error:', errorData);
-        throw new Error(
-          `OpenRouter API error: ${errorData.error?.message || response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      console.error('OpenRouter API error:', error);
-      throw error;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get response from OpenRouter');
     }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
   }
 
-  static async sendGeminiMessage(
-    messages: Array<{ role: string; content: string }>,
-    bot: Bot
-  ) {
-    if (!bot.apiKey) {
-      throw new Error("Gemini API key is missing. Please check your bot configuration.");
+  static async sendGeminiMessage(messages: any[], bot: Bot) {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': bot.apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: messages.map(msg => 
+              `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+            ).join('\n\n')
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.9,
+          topK: 1,
+          topP: 1,
+          maxOutputTokens: 2048,
+          stopSequences: []
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to get response from Gemini');
     }
 
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+  }
+
+  static async saveChatHistory(chatId: string, botId: string, messages: any[], avatarUrl?: string) {
     try {
-      const genAI = new GoogleGenerativeAI(bot.apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const chat = model.startChat({
-        history: [],
-        generationConfig: {
-          maxOutputTokens: 1000,
-        },
-      });
+      const { data: existingChat } = await supabase
+        .from('chat_history')
+        .select('avatar_url')
+        .eq('id', chatId)
+        .single();
 
-      const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messages
-        .map((msg) => `${msg.role === "user" ? "User" : bot.name}: ${msg.content}`)
-        .join("\n")}`;
+      const { error } = await supabase
+        .from('chat_history')
+        .upsert({
+          id: chatId,
+          bot_id: botId,
+          messages: messages,
+          avatar_url: existingChat?.avatar_url || avatarUrl, // Keep existing avatar URL if it exists
+          updated_at: new Date().toISOString()
+        });
 
-      const result = await chat.sendMessage(fullPrompt);
-      const response = await result.response.text();
-      return response;
+      if (error) throw error;
     } catch (error) {
-      console.error("Gemini API error:", error);
-      throw new Error(
-        `Gemini API error: ${error instanceof Error ? error.message : "Unknown error occurred"}`
-      );
+      console.error("Error saving chat history:", error);
+      throw error;
     }
   }
 }
