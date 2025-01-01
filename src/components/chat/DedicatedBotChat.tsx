@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { v4 as uuidv4 } from 'uuid';
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -18,6 +19,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [chatId] = useState(() => uuidv4()); // Generate a unique ID for this chat session
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -28,7 +30,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   }, [messages]);
 
   useEffect(() => {
-    const chatKey = `dedicated_chat_${bot.id}`;
+    const chatKey = `chat_${bot.id}_${chatId}`;
     const savedMessages = localStorage.getItem(chatKey);
     if (savedMessages) {
       try {
@@ -39,13 +41,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         setMessages([]);
       }
     } else {
-      setMessages([]); // Reset messages for new bot
+      setMessages([]); // Reset messages for new chat
     }
-  }, [bot.id]);
+  }, [bot.id, chatId]);
 
   const clearChat = () => {
     setMessages([]);
-    localStorage.removeItem(`dedicated_chat_${bot.id}`);
+    const chatKey = `chat_${bot.id}_${chatId}`;
+    localStorage.removeItem(chatKey);
     toast({
       title: "Chat Cleared",
       description: "The chat history has been cleared.",
@@ -81,8 +84,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       
       setMessages(updatedMessages);
       
-      // Save to localStorage only
-      const chatKey = `dedicated_chat_${bot.id}`;
+      // Save to localStorage with unique chat ID
+      const chatKey = `chat_${bot.id}_${chatId}`;
       localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     } catch (error) {
       console.error("Chat error:", error);
