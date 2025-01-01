@@ -26,7 +26,7 @@
 .message-list {
   height: calc(100vh - 80px);
   overflow-y: auto;
-  padding-bottom: 80px; /* Add space for the input field */
+  padding: 1rem;
 }
 
 .chat-input {
@@ -52,7 +52,7 @@
   }
 }
 
-/* Remove any bottom padding from scroll viewport */
+/* Prevent content from going under fixed elements */
 .scroll-area-viewport {
   padding-bottom: 0 !important;
 }
