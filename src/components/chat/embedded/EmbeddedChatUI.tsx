@@ -11,6 +11,7 @@ import { Bot } from "../types/chatTypes";
 import { useEmbeddedChat } from "@/hooks/useEmbeddedChat";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { ChatInput } from "@/components/chat/ChatInput";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
