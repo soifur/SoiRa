@@ -56,10 +56,18 @@ export class ChatHistoryService {
   static async updateChatHistory(chatId: string, botId: string, messages: ChatMessage[], clientId: string, shareKey?: string): Promise<void> {
     console.log("Updating chat history:", { chatId, botId, messages: messages.length });
     
+    // Convert ChatMessage[] to a plain object array for JSON compatibility
+    const jsonMessages = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      id: msg.id
+    }));
+
     const chatData: ChatHistoryData = {
       id: chatId,
       bot_id: botId,
-      messages: messages,
+      messages: jsonMessages,
       client_id: clientId,
       share_key: shareKey,
       sequence_number: await this.getLatestSequenceNumber(botId)
