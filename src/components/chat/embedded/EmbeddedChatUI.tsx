@@ -22,6 +22,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
+      // Omit sequence_number as it's handled by the database trigger
       const chatData = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
@@ -30,8 +31,9 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           timestamp: msg.timestamp?.toISOString()
         })),
         client_id: clientId,
-        share_key: shareKey
-      } as const;
+        share_key: shareKey,
+        // sequence_number will be set by the database trigger
+      };
 
       // First try to find existing chat history
       const { data: existingChat, error: fetchError } = await supabase

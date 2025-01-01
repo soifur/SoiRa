@@ -23,6 +23,7 @@ const Chat = () => {
         throw new Error("No authenticated user");
       }
 
+      // Omit sequence_number as it's handled by the database trigger
       const chatData = {
         bot_id: selectedBotId,
         messages: updatedMessages.map(msg => ({
@@ -30,8 +31,9 @@ const Chat = () => {
           content: msg.content,
           timestamp: msg.timestamp?.toISOString()
         })),
-        user_id: session.session.user.id
-      } as const;
+        user_id: session.session.user.id,
+        // sequence_number will be set by the database trigger
+      };
 
       const { error } = await supabase
         .from('chat_history')
