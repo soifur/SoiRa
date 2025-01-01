@@ -83,6 +83,20 @@ export class ChatService {
 
   static async saveChatHistory(chatId: string, botId: string, messages: any[], avatarUrl?: string) {
     try {
+      // First, get the current max sequence number for this bot
+      const { data: maxSeqData, error: seqError } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', botId)
+        .order('sequence_number', { ascending: false })
+        .limit(1);
+
+      if (seqError) throw seqError;
+
+      const nextSequenceNumber = maxSeqData && maxSeqData.length > 0 
+        ? maxSeqData[0].sequence_number + 1 
+        : 1;
+
       const { data: existingChat } = await supabase
         .from('chat_history')
         .select('avatar_url')
@@ -95,8 +109,9 @@ export class ChatService {
           id: chatId,
           bot_id: botId,
           messages: messages,
-          avatar_url: existingChat?.avatar_url || avatarUrl, // Keep existing avatar URL if it exists
-          updated_at: new Date().toISOString()
+          avatar_url: existingChat?.avatar_url || avatarUrl,
+          updated_at: new Date().toISOString(),
+          sequence_number: nextSequenceNumber
         });
 
       if (error) throw error;
