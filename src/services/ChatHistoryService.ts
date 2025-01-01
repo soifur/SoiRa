@@ -4,7 +4,8 @@ import { ChatHistoryData, ChatMessage } from "@/components/chat/types/chatTypes"
 export class ChatHistoryService {
   static async getLatestSequenceNumber(botId: string): Promise<number> {
     console.log("Getting latest sequence number for bot:", botId);
-    const { data: latestChat } = await supabase
+    
+    const { data, error } = await supabase
       .from('chat_history')
       .select('sequence_number')
       .eq('bot_id', botId)
@@ -12,7 +13,12 @@ export class ChatHistoryService {
       .limit(1)
       .single();
 
-    const nextSequence = (latestChat?.sequence_number || 0) + 1;
+    if (error) {
+      console.log("Error getting sequence number:", error);
+      return 1;
+    }
+
+    const nextSequence = (data?.sequence_number || 0) + 1;
     console.log("Next sequence number:", nextSequence);
     return nextSequence;
   }
@@ -53,15 +59,12 @@ export class ChatHistoryService {
       id: msg.id
     }));
 
-    const sequence_number = await this.getLatestSequenceNumber(botId);
-    
     const chatData = {
       id: chatId,
       bot_id: botId,
       messages: jsonMessages,
       client_id: clientId,
-      share_key: shareKey,
-      sequence_number
+      share_key: shareKey
     };
 
     const { error } = await supabase
