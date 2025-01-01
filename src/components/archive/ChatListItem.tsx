@@ -79,7 +79,7 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
 
   return (
     <Card 
-      className="p-4 hover:bg-accent cursor-pointer transition-colors relative group"
+      className="p-4 hover:bg-accent cursor-pointer transition-colors relative"
       onClick={onClick}
     >
       <div className="flex items-center justify-between mb-2">
@@ -107,21 +107,9 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
             </Button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            {formatDate(record.timestamp)}
-          </span>
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-1 hover:bg-destructive/10"
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4 text-destructive" />
-            </Button>
-          )}
-        </div>
+        <span className="text-sm text-muted-foreground">
+          {formatDate(record.timestamp)}
+        </span>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground flex items-center gap-1">
@@ -134,9 +122,31 @@ export const ChatListItem = ({ record, bot, onClick, onDelete }: ChatListItemPro
         </span>
       </div>
       {!isMobile && (
-        <div className="mt-2 text-sm text-muted-foreground">
-          Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
+        <div className="mt-2 text-sm text-muted-foreground flex justify-between items-center">
+          <span>
+            Latest message: {lastMessage?.content ? `${lastMessage.content.slice(0, 100)}...` : 'No messages'}
+          </span>
+          {onDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 p-1 hover:bg-destructive/10 ml-2"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          )}
         </div>
+      )}
+      {isMobile && onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 p-1 hover:bg-destructive/10 absolute top-2 right-2"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
       )}
     </Card>
   );
