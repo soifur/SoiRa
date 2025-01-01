@@ -22,18 +22,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const updateChatHistory = async (updatedMessages: typeof messages) => {
     try {
-      const { data: existingChat, error: fetchError } = await supabase
-        .from('chat_history')
-        .select('id')
-        .eq('bot_id', bot.id)
-        .eq('client_id', clientId)
-        .eq('share_key', shareKey)
-        .maybeSingle();
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
       const chatData = {
         bot_id: bot.id,
         messages: updatedMessages.map(msg => ({
@@ -45,19 +33,36 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         share_key: shareKey
       };
 
+      // First try to find existing chat history
+      const { data: existingChat, error: fetchError } = await supabase
+        .from('chat_history')
+        .select('id')
+        .eq('bot_id', bot.id)
+        .eq('client_id', clientId)
+        .eq('share_key', shareKey)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error("Error fetching chat history:", fetchError);
+        throw fetchError;
+      }
+
       let result;
       if (existingChat) {
+        // Update existing chat
         result = await supabase
           .from('chat_history')
           .update(chatData)
           .eq('id', existingChat.id);
       } else {
+        // Insert new chat
         result = await supabase
           .from('chat_history')
           .insert(chatData);
       }
 
       if (result.error) throw result.error;
+      
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({
