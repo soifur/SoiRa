@@ -103,8 +103,8 @@ export const EmbeddedChatHistory = ({
 
   const getChatTitle = (messages: Message[]) => {
     const firstUserMessage = messages.find(msg => msg.role === 'user');
-    if (!firstUserMessage) return 'New Chat';
-    return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
+    if (!firstUserMessage) return '';
+    return firstUserMessage.content;
   };
 
   if (!isOpen) return null;
@@ -142,9 +142,6 @@ export const EmbeddedChatHistory = ({
               onClick={() => onSelectChat(chat.id)}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">
-                  Chat #{chat.sequence_number}
-                </span>
                 <Button
                   variant="ghost"
                   size="icon"

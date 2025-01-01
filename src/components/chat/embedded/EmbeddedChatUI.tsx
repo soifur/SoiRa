@@ -63,7 +63,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       if (existingChat) {
         console.log("Found existing chat for session:", sessionToken);
         setChatId(existingChat.id);
-        // Ensure messages is an array before mapping
         const chatMessages = Array.isArray(existingChat.messages) 
           ? existingChat.messages.map((msg: any) => ({
               ...msg,
@@ -92,30 +91,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
       console.log("Generated new chat ID:", newChatId);
       setChatId(newChatId);
       setMessages([]);
-
-      const { data: latestChat } = await supabase
-        .from('chat_history')
-        .select('sequence_number')
-        .eq('bot_id', bot.id)
-        .order('sequence_number', { ascending: false })
-        .limit(1)
-        .single();
-
-      const nextSequence = (latestChat?.sequence_number || 0) + 1;
-
-      const { error } = await supabase
-        .from('chat_history')
-        .insert({
-          id: newChatId,
-          bot_id: bot.id,
-          messages: [],
-          client_id: clientId,
-          share_key: shareKey,
-          session_token: sessionToken,
-          sequence_number: nextSequence
-        });
-
-      if (error) throw error;
       return newChatId;
     } catch (error) {
       console.error("Error creating new chat:", error);
@@ -128,51 +103,17 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     }
   };
 
-  const handleClearChat = async () => {
-    if (!chatId || !sessionToken) return;
-
-    try {
-      const { error } = await supabase
-        .from('chat_history')
-        .update({ deleted: 'yes' })
-        .eq('id', chatId)
-        .eq('session_token', sessionToken);
-
-      if (error) throw error;
-
-      const newChatId = await createNewChat();
-      if (newChatId) {
-        toast({
-          title: "Success",
-          description: "Started a new chat",
-        });
-      }
-    } catch (error) {
-      console.error("Error clearing chat:", error);
-      toast({
-        title: "Error",
-        description: "Failed to clear chat",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSelectChat = (selectedChatId: string) => {
-    loadExistingChat(selectedChatId);
-    if (isMobile) {
-      setShowHistory(false);
-    }
-  };
-
   const sendMessage = async (message: string) => {
     if (!message.trim() || !sessionToken) return;
 
     try {
       setIsLoading(true);
       
-      if (!chatId) {
-        const newChatId = await createNewChat();
-        if (!newChatId) return;
+      let currentChatId = chatId;
+      if (!currentChatId) {
+        currentChatId = await createNewChat();
+        if (!currentChatId) return;
+        setChatId(currentChatId);
       }
 
       const userMessage = createMessage("user", message);
@@ -187,13 +128,13 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
         console.log("Sending message to Gemini API");
         botResponse = await ChatService.sendGeminiMessage(newMessages, {
           ...bot,
-          starters: bot.starters || []  // Ensure starters is always an array
+          starters: bot.starters || []
         });
       } else if (bot.model === "openrouter") {
         console.log("Sending message to OpenRouter API");
         botResponse = await ChatService.sendOpenRouterMessage(newMessages, {
           ...bot,
-          starters: bot.starters || []  // Ensure starters is always an array
+          starters: bot.starters || []
         });
       }
 
@@ -208,12 +149,15 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
       const { error } = await supabase
         .from('chat_history')
-        .update({
+        .upsert({
+          id: currentChatId,
+          bot_id: bot.id,
           messages: messagesToSave,
+          client_id: clientId,
+          share_key: shareKey,
+          session_token: sessionToken,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', chatId)
-        .eq('session_token', sessionToken);
+        });
 
       if (error) throw error;
     } catch (error) {
