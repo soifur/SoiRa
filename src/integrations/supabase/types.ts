@@ -75,6 +75,69 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_bots: {
+        Row: {
+          api_key_id: string | null
+          bot_id: string
+          bot_name: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          instructions: string | null
+          model: string
+          open_router_model: string | null
+          share_key: string
+          short_key: string | null
+          starters: string[] | null
+          voice_enabled: boolean | null
+        }
+        Insert: {
+          api_key_id?: string | null
+          bot_id: string
+          bot_name: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          instructions?: string | null
+          model: string
+          open_router_model?: string | null
+          share_key: string
+          short_key?: string | null
+          starters?: string[] | null
+          voice_enabled?: boolean | null
+        }
+        Update: {
+          api_key_id?: string | null
+          bot_id?: string
+          bot_name?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          instructions?: string | null
+          model?: string
+          open_router_model?: string | null
+          share_key?: string
+          short_key?: string | null
+          starters?: string[] | null
+          voice_enabled?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_bots_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "bot_api_keys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_bots_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       chat_history: {
         Row: {
           bot_id: string
@@ -140,89 +203,6 @@ export type Database = {
         }
         Relationships: []
       }
-      shared_bots: {
-        Row: {
-          api_key_id: string | null
-          bot_id: string
-          bot_name: string
-          created_at: string | null
-          expires_at: string | null
-          id: string
-          instructions: string | null
-          model: string
-          open_router_model: string | null
-          share_key: string
-          short_key: string | null
-          starters: string[] | null
-          voice_enabled: boolean | null
-        }
-        Insert: {
-          api_key_id?: string | null
-          bot_id: string
-          bot_name: string
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          instructions?: string | null
-          model: string
-          open_router_model?: string | null
-          share_key: string
-          short_key?: string | null
-          starters?: string[] | null
-          voice_enabled?: boolean | null
-        }
-        Update: {
-          api_key_id?: string | null
-          bot_id?: string
-          bot_name?: string
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          instructions?: string | null
-          model?: string
-          open_router_model?: string | null
-          share_key?: string
-          short_key?: string | null
-          starters?: string[] | null
-          voice_enabled?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shared_bots_api_key_id_fkey"
-            columns: ["api_key_id"]
-            isOneToOne: false
-            referencedRelation: "bot_api_keys"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_context: {
-        Row: {
-          bot_id: string
-          client_id: string
-          context: Json | null
-          created_at: string | null
-          id: string
-          last_updated: string | null
-        }
-        Insert: {
-          bot_id: string
-          client_id: string
-          context?: Json | null
-          created_at?: string | null
-          id?: string
-          last_updated?: string | null
-        }
-        Update: {
-          bot_id?: string
-          client_id?: string
-          context?: Json | null
-          created_at?: string | null
-          id?: string
-          last_updated?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -266,10 +246,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
+      Row: infer R
+    }
+    ? R
+    : never
     : never
 
 export type TablesInsert<
@@ -287,10 +267,10 @@ export type TablesInsert<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
+      Insert: infer I
+    }
+    ? I
+    : never
     : never
 
 export type TablesUpdate<
@@ -308,10 +288,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
+      Update: infer U
+    }
+    ? U
+    : never
     : never
 
 export type Enums<
