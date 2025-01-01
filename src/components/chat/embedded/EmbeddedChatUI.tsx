@@ -49,7 +49,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           setChatId(existingChat.id);
           // First cast to unknown, then to ChatMessage[]
           const rawMessages = existingChat.messages as unknown;
-          const chatMessages = (rawMessages as ChatMessage[]).map((msg: ChatMessage) => ({
+          const chatMessages = (rawMessages as ChatMessage[]).map(msg => ({
             ...msg,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
             id: uuidv4()
@@ -71,6 +71,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
   const createNewChatHistory = async (newChatId: string) => {
     try {
+      // Get the latest sequence number for this bot
       const { data: latestChat } = await supabase
         .from('chat_history')
         .select('sequence_number')
