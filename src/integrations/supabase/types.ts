@@ -537,6 +537,7 @@ export type Database = {
       bot_model: "gemini" | "claude" | "openai" | "openrouter"
       learning_style: "visual" | "auditory" | "reading" | "kinesthetic"
       question_type: "text" | "single_choice" | "multiple_choice"
+      quiz_question_type: "text" | "checkbox"
       quiz_status: "not_started" | "in_progress" | "completed"
       user_role: "super_admin" | "admin" | "user"
     }
