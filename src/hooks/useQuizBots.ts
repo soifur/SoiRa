@@ -8,6 +8,7 @@ interface QuizBot {
   description?: string;
   passing_score: number;
   instructions?: string;
+  user_id?: string;
 }
 
 export const useQuizBots = () => {
@@ -17,9 +18,13 @@ export const useQuizBots = () => {
 
   const fetchQuizBots = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
       const { data, error } = await supabase
         .from("quiz_bots")
         .select("*")
+        .eq('user_id', user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -38,9 +43,12 @@ export const useQuizBots = () => {
 
   const saveQuizBot = async (bot: Omit<QuizBot, "id">) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
       const { data, error } = await supabase
         .from("quiz_bots")
-        .insert([bot])
+        .insert([{ ...bot, user_id: user.id }])
         .select()
         .single();
 
@@ -64,10 +72,14 @@ export const useQuizBots = () => {
 
   const updateQuizBot = async (id: string, updates: Partial<QuizBot>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
       const { data, error } = await supabase
         .from("quiz_bots")
         .update(updates)
         .eq("id", id)
+        .eq("user_id", user.id)
         .select()
         .single();
 
@@ -91,7 +103,15 @@ export const useQuizBots = () => {
 
   const deleteQuizBot = async (id: string) => {
     try {
-      const { error } = await supabase.from("quiz_bots").delete().eq("id", id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const { error } = await supabase
+        .from("quiz_bots")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
       if (error) throw error;
       setQuizBots(quizBots.filter((bot) => bot.id !== id));
       toast({
