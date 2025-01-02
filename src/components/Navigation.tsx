@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { MoonIcon, SunIcon, LogOutIcon } from "lucide-react";
+import { MoonIcon, SunIcon, LogOutIcon, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +48,16 @@ export const Navigation = () => {
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+          >
+            <Link to="/settings" className="text-muted-foreground hover:text-primary">
+              <Settings className="h-5 w-5" />
+              <span className="sr-only">Settings</span>
+            </Link>
+          </Button>
           <Button
             variant="ghost"
             size="icon"

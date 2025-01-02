@@ -445,6 +445,8 @@ export type Database = {
           created_at: string | null
           id: string
           last_updated: string | null
+          session_token: string | null
+          user_id: string | null
         }
         Insert: {
           bot_id: string
@@ -453,6 +455,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_updated?: string | null
+          session_token?: string | null
+          user_id?: string | null
         }
         Update: {
           bot_id?: string
@@ -461,6 +465,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_updated?: string | null
+          session_token?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
