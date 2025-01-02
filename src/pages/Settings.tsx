@@ -20,32 +20,34 @@ const Settings = () => {
   const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
-    const fetchBots = async () => {
-      const { data: botsData, error } = await supabase
-        .from('bots')
-        .select('*');
-      
-      if (error) {
-        console.error('Error fetching bots:', error);
-        return;
+    const fetchMemoryConfig = async () => {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (!session.session) return;
+
+        const { data, error } = await supabase
+          .from('user_context')
+          .select('context')
+          .eq('user_id', session.session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching memory config:', error);
+          return;
+        }
+
+        if (data?.context) {
+          setInstructions(data.context.instructions || "");
+          setModel(data.context.model || "openrouter");
+          setOpenRouterModel(data.context.openRouterModel || "auto");
+          setApiKey(data.context.apiKey || "");
+        }
+      } catch (error) {
+        console.error('Error:', error);
       }
-
-      const transformedBots: Bot[] = botsData.map(bot => ({
-        id: bot.id,
-        name: bot.name,
-        instructions: bot.instructions || "",
-        starters: bot.starters || [],
-        model: bot.model,
-        apiKey: bot.api_key,
-        openRouterModel: bot.open_router_model,
-        avatar: bot.avatar,
-        accessType: "private"
-      }));
-
-      setBots(transformedBots);
     };
 
-    fetchBots();
+    fetchMemoryConfig();
   }, []);
 
   const handleSave = async () => {
