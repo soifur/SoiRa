@@ -2,7 +2,7 @@ import { Bot, Message } from "@/components/chat/types/chatTypes";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatService } from "@/services/ChatService";
 import { UserContextService } from "@/services/UserContextService";
-import { createMessage } from "@/utils/messageUtils";
+import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { useChatState } from "./chat/useChatState";
 import { useChatPersistence } from "./chat/useChatPersistence";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,9 +41,9 @@ export const useEmbeddedChat = (
 
       if (error) throw error;
 
-      if (chatData) {
+      if (chatData && Array.isArray(chatData.messages)) {
         setChatId(chatData.id);
-        setMessages(chatData.messages || []);
+        setMessages(formatMessages(chatData.messages));
       }
     } catch (error) {
       console.error("Error loading chat:", error);
