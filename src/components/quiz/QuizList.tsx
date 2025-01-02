@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuizConfiguration } from "@/types/quiz";
-import { Trash2, GraduationCap } from "lucide-react";
+import { Trash2, GraduationCap, Play } from "lucide-react";
+import { QuizTaker } from "./QuizTaker";
 
 interface QuizListProps {
   configurations: QuizConfiguration[];
@@ -11,8 +12,19 @@ interface QuizListProps {
 }
 
 export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps) => {
+  const [selectedQuiz, setSelectedQuiz] = useState<QuizConfiguration | null>(null);
+
   if (isLoading) {
     return <div className="text-center text-muted-foreground py-8">Loading...</div>;
+  }
+
+  if (selectedQuiz) {
+    return (
+      <QuizTaker
+        quiz={selectedQuiz}
+        onComplete={() => setSelectedQuiz(null)}
+      />
+    );
   }
 
   return (
@@ -35,13 +47,23 @@ export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps)
                 <span>Passing score: {quiz.passingScore}%</span>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(quiz.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedQuiz(quiz)}
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Take Quiz
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(quiz.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </Card>
       ))}
