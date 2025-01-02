@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QuizConfiguration } from "@/types/quiz";
-import { Trash2, GraduationCap, Play } from "lucide-react";
+import { Trash2, GraduationCap, Play, History } from "lucide-react";
 import { QuizTaker } from "./QuizTaker";
+import { QuizReview } from "./QuizReview";
 
 interface QuizListProps {
   configurations: QuizConfiguration[];
@@ -13,12 +14,24 @@ interface QuizListProps {
 
 export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps) => {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizConfiguration | null>(null);
+  const [reviewMode, setReviewMode] = useState(false);
 
   if (isLoading) {
     return <div className="text-center text-muted-foreground py-8">Loading...</div>;
   }
 
   if (selectedQuiz) {
+    if (reviewMode) {
+      return (
+        <QuizReview
+          quiz={selectedQuiz}
+          onClose={() => {
+            setSelectedQuiz(null);
+            setReviewMode(false);
+          }}
+        />
+      );
+    }
     return (
       <QuizTaker
         quiz={selectedQuiz}
@@ -51,7 +64,21 @@ export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps)
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setSelectedQuiz(quiz)}
+                onClick={() => {
+                  setSelectedQuiz(quiz);
+                  setReviewMode(true);
+                }}
+              >
+                <History className="h-4 w-4 mr-2" />
+                Review
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedQuiz(quiz);
+                  setReviewMode(false);
+                }}
               >
                 <Play className="h-4 w-4 mr-2" />
                 Take Quiz
