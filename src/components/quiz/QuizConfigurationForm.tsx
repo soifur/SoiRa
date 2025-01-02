@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
+import { Plus } from "lucide-react";
 import { QuizConfiguration, QuizQuestion } from "@/types/quiz";
-import { Plus, Trash2 } from "lucide-react";
+import { QuestionForm } from "./QuestionForm";
+import { QuizMetadata } from "./QuizMetadata";
 
 interface QuizConfigurationFormProps {
   botId: string;
@@ -118,36 +117,14 @@ export const QuizConfigurationForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Title</label>
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Quiz title"
-          required
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <Textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Quiz description"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Passing Score (%)</label>
-        <Input
-          type="number"
-          min="0"
-          max="100"
-          value={passingScore}
-          onChange={(e) => setPassingScore(Number(e.target.value))}
-          required
-        />
-      </div>
+      <QuizMetadata
+        title={title}
+        description={description}
+        passingScore={passingScore}
+        onTitleChange={setTitle}
+        onDescriptionChange={setDescription}
+        onPassingScoreChange={setPassingScore}
+      />
 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -158,68 +135,16 @@ export const QuizConfigurationForm = ({
         </div>
 
         {questions.map((question, qIndex) => (
-          <Card key={question.id} className="p-4 space-y-4">
-            <div className="flex items-start gap-2">
-              <div className="flex-1">
-                <Input
-                  value={question.text}
-                  onChange={(e) => updateQuestion(question.id, e.target.value)}
-                  placeholder={`Question ${qIndex + 1}`}
-                  required
-                />
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeQuestion(question.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="pl-4 space-y-2">
-              {question.options.map((option) => (
-                <div key={option.id} className="flex items-center gap-2">
-                  <Input
-                    value={option.text}
-                    onChange={(e) =>
-                      updateOption(question.id, option.id, e.target.value, option.isCorrect)
-                    }
-                    placeholder="Option text"
-                    className="flex-1"
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant={option.isCorrect ? "default" : "outline"}
-                    size="sm"
-                    onClick={() =>
-                      updateOption(question.id, option.id, option.text, !option.isCorrect)
-                    }
-                  >
-                    Correct
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeOption(question.id, option.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => addOption(question.id)}
-              >
-                <Plus className="h-4 w-4 mr-2" /> Add Option
-              </Button>
-            </div>
-          </Card>
+          <QuestionForm
+            key={question.id}
+            question={question}
+            questionIndex={qIndex}
+            onQuestionUpdate={updateQuestion}
+            onQuestionRemove={removeQuestion}
+            onOptionAdd={addOption}
+            onOptionUpdate={updateOption}
+            onOptionRemove={removeOption}
+          />
         ))}
       </div>
 
