@@ -24,8 +24,8 @@ export const useQuizConfigurations = (botId: string) => {
         title: config.title,
         description: config.description,
         passingScore: config.passing_score,
-        questions: config.questions,
-        branchingLogic: config.branching_logic,
+        questions: config.questions as QuizQuestion[],
+        branchingLogic: config.branching_logic as Record<string, any>,
         createdAt: config.created_at,
         updatedAt: config.updated_at,
       })));
@@ -45,14 +45,14 @@ export const useQuizConfigurations = (botId: string) => {
     try {
       const { data, error } = await supabase
         .from('quiz_configurations')
-        .insert([{
+        .insert({
           bot_id: config.botId,
           title: config.title,
           description: config.description,
           passing_score: config.passingScore,
           questions: config.questions,
-          branching_logic: config.branchingLogic,
-        }])
+          branching_logic: config.branchingLogic || {},
+        })
         .select()
         .single();
 
@@ -64,8 +64,8 @@ export const useQuizConfigurations = (botId: string) => {
         title: data.title,
         description: data.description,
         passingScore: data.passing_score,
-        questions: data.questions,
-        branchingLogic: data.branching_logic,
+        questions: data.questions as QuizQuestion[],
+        branchingLogic: data.branching_logic as Record<string, any>,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
