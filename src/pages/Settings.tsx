@@ -34,7 +34,20 @@ const Settings = () => {
         return;
       }
 
-      setBots(botsData);
+      // Transform the data to match our Bot interface
+      const transformedBots: Bot[] = botsData.map(bot => ({
+        id: bot.id,
+        name: bot.name,
+        instructions: bot.instructions || "",
+        starters: bot.starters || [],
+        model: bot.model,
+        apiKey: bot.api_key,
+        openRouterModel: bot.open_router_model,
+        avatar: bot.avatar,
+        accessType: "private"
+      }));
+
+      setBots(transformedBots);
     };
 
     fetchBots();
@@ -44,14 +57,19 @@ const Settings = () => {
     try {
       setIsLoading(true);
       
+      const { data: { session } } = await supabase.auth.getSession();
+      const clientId = crypto.randomUUID(); // Generate a unique client ID
+
       // Update or insert memory bot configuration
       const { error } = await supabase
         .from('user_context')
         .upsert({
           bot_id: selectedBotId,
-          api_key: apiKey,
+          client_id: clientId,
           context: { instructions },
           last_updated: new Date().toISOString(),
+          session_token: session?.access_token,
+          user_id: session?.user?.id
         });
 
       if (error) throw error;
