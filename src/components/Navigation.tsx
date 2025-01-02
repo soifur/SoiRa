@@ -43,6 +43,9 @@ export const Navigation = () => {
           <Link to="/bots" className="text-sm font-medium transition-colors hover:text-primary">
             Bots
           </Link>
+          <Link to="/quiz" className="text-sm font-medium transition-colors hover:text-primary">
+            Quiz
+          </Link>
           <Link to="/archive" className="text-sm font-medium transition-colors hover:text-primary">
             Archive
           </Link>
