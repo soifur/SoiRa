@@ -91,10 +91,13 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         />
       </div>
 
-      <StartersInput value={starters} onChange={setStarters} />
+      <StartersInput
+        starters={starters}
+        onStartersChange={setStarters}
+      />
 
       <AvatarUploader
-        currentAvatar={avatar}
+        avatar={avatar}
         onAvatarChange={setAvatar}
       />
 
