@@ -17,6 +17,7 @@ const Settings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [model, setModel] = useState<"gemini" | "claude" | "openai" | "openrouter">("openrouter");
   const [openRouterModel, setOpenRouterModel] = useState("auto");
+  const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
     const fetchBots = async () => {
@@ -62,6 +63,7 @@ const Settings = () => {
           context: { 
             instructions,
             model,
+            apiKey,
             openRouterModel: model === 'openrouter' ? openRouterModel : undefined
           },
           last_updated: new Date().toISOString(),
@@ -100,13 +102,24 @@ const Settings = () => {
               instructions: "",
               starters: [],
               model: model,
-              apiKey: "",
+              apiKey: apiKey,
               openRouterModel: openRouterModel,
               memoryEnabled: true
             }}
             onModelChange={(newModel) => setModel(newModel)}
             onOpenRouterModelChange={(newModel) => setOpenRouterModel(newModel)}
           />
+
+          <div className="space-y-2">
+            <Label htmlFor="api-key">API Key</Label>
+            <Input
+              id="api-key"
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter API key for the selected model"
+            />
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="instructions">Memory Instructions</Label>
@@ -121,7 +134,7 @@ const Settings = () => {
 
           <Button 
             onClick={handleSave} 
-            disabled={!instructions || isLoading}
+            disabled={!instructions || !apiKey || isLoading}
             className="w-full"
           >
             {isLoading ? "Saving..." : "Save Configuration"}
