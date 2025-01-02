@@ -6,14 +6,13 @@ export class ChatService {
   private static sanitizeText(text: string): string {
     if (!text) return "";
     
-    // Replace smart quotes and other special characters with ASCII equivalents
     return text
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/\u2014/g, "--")
       .replace(/\u2013/g, "-")
       .replace(/\u2026/g, "...")
-      .replace(/[^\x00-\x7F]/g, " "); // Replace any remaining non-ASCII chars with space
+      .replace(/[^\x00-\x7F]/g, " ");
   }
 
   static async sendOpenRouterMessage(
@@ -26,7 +25,7 @@ export class ChatService {
       throw new Error("OpenRouter API key is missing");
     }
 
-    // Inject memory context if enabled
+    console.log('Processing OpenRouter message with memory context');
     const messagesWithContext = await MemoryService.injectMemoryContext(
       messages.map(m => ({ ...m, id: Math.random().toString() })),
       bot,
@@ -89,7 +88,7 @@ export class ChatService {
       throw new Error("Gemini API key is missing. Please check your bot configuration.");
     }
 
-    // Inject memory context if enabled
+    console.log('Processing Gemini message with memory context');
     const messagesWithContext = await MemoryService.injectMemoryContext(
       messages.map(m => ({ ...m, id: Math.random().toString() })),
       bot,

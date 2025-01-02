@@ -19,7 +19,7 @@ export interface Bot {
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
-  memory_enabled?: boolean;  // Added this property
+  memory_enabled?: boolean;
 }
 
 export interface ChatHistoryItem {
@@ -44,8 +44,12 @@ export interface ChatHistoryData {
   deleted?: string;
 }
 
-// Added new interface for context
 export interface UserContext {
   summary: string;
+  lastInteraction?: string;
+  topics?: string[];
+  preferences?: {
+    [key: string]: any;
+  };
   [key: string]: any;
 }
