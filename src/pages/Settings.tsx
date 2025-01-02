@@ -20,58 +20,89 @@ const Settings = () => {
   const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
-    const fetchMemoryConfig = async () => {
+    const fetchBots = async () => {
       try {
         const { data: session } = await supabase.auth.getSession();
         if (!session.session) return;
 
-        const { data, error } = await supabase
-          .from('user_context')
-          .select('context')
-          .eq('user_id', session.session.user.id)
-          .single();
+        const { data: botsData, error } = await supabase
+          .from('bots')
+          .select('*')
+          .eq('user_id', session.session.user.id);
 
         if (error) {
-          console.error('Error fetching memory config:', error);
+          console.error('Error fetching bots:', error);
           return;
         }
 
-        if (data?.context) {
-          setInstructions(data.context.instructions || "");
-          setModel(data.context.model || "openrouter");
-          setOpenRouterModel(data.context.openRouterModel || "auto");
-          setApiKey(data.context.apiKey || "");
-        }
+        const transformedBots = botsData.map((bot): Bot => ({
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private",
+          memoryEnabled: bot.memory_enabled
+        }));
+
+        setBots(transformedBots);
       } catch (error) {
         console.error('Error:', error);
       }
     };
 
-    fetchMemoryConfig();
+    fetchBots();
   }, []);
+
+  // Load bot's memory configuration when selected
+  useEffect(() => {
+    if (!selectedBotId) return;
+
+    const selectedBot = bots.find(bot => bot.id === selectedBotId);
+    if (selectedBot) {
+      setInstructions(selectedBot.instructions || "");
+      setModel(selectedBot.model);
+      setOpenRouterModel(selectedBot.openRouterModel || "auto");
+      setApiKey(selectedBot.apiKey || "");
+    }
+  }, [selectedBotId, bots]);
 
   const handleSave = async () => {
     try {
       setIsLoading(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
-      const clientId = crypto.randomUUID();
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save memory configuration",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!selectedBotId) {
+        toast({
+          title: "Error",
+          description: "Please select a bot",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const { error } = await supabase
-        .from('user_context')
-        .upsert({
-          bot_id: selectedBotId,
-          client_id: clientId,
-          context: { 
-            instructions,
-            model,
-            apiKey,
-            openRouterModel: model === 'openrouter' ? openRouterModel : undefined
-          },
-          last_updated: new Date().toISOString(),
-          session_token: session?.access_token,
-          user_id: session?.user?.id
-        });
+        .from('bots')
+        .update({
+          instructions,
+          model,
+          api_key: apiKey,
+          open_router_model: model === 'openrouter' ? openRouterModel : null,
+          memory_enabled: true
+        })
+        .eq('id', selectedBotId);
 
       if (error) throw error;
 
@@ -94,9 +125,26 @@ const Settings = () => {
   return (
     <div className="container mx-auto max-w-2xl pt-20 px-4">
       <Card className="p-6">
-        <h2 className="text-2xl font-bold mb-6">Memory Configuration</h2>
+        <h2 className="text-2xl font-bold mb-6">Bot Memory Configuration</h2>
         
         <div className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="bot-select">Select Bot</Label>
+            <select
+              id="bot-select"
+              value={selectedBotId}
+              onChange={(e) => setSelectedBotId(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Select a bot</option>
+              {bots.map((bot) => (
+                <option key={bot.id} value={bot.id}>
+                  {bot.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <ModelSelector 
             bot={{
               id: selectedBotId,
@@ -136,7 +184,7 @@ const Settings = () => {
 
           <Button 
             onClick={handleSave} 
-            disabled={!instructions || !apiKey || isLoading}
+            disabled={!selectedBotId || !instructions || !apiKey || isLoading}
             className="w-full"
           >
             {isLoading ? "Saving..." : "Save Configuration"}
