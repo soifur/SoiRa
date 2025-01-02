@@ -1,9 +1,28 @@
-import React, { useState } from "react";
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+
+const quizBotSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  passing_score: z.number().min(0).max(100).default(75),
+  instructions: z.string().optional(),
+});
+
+type QuizBotFormValues = z.infer<typeof quizBotSchema>;
 
 interface QuizBot {
   id?: string;
@@ -20,20 +39,28 @@ interface QuizBotFormProps {
 }
 
 export const QuizBotForm = ({ onSave, onCancel, initialData }: QuizBotFormProps) => {
-  const [quizBot, setQuizBot] = useState<QuizBot>(
-    initialData || {
-      title: "",
-      description: "",
-      passing_score: 75,
-      instructions: "",
-    }
-  );
   const { toast } = useToast();
+  
+  const form = useForm<QuizBotFormValues>({
+    resolver: zodResolver(quizBotSchema),
+    defaultValues: {
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      passing_score: initialData?.passing_score || 75,
+      instructions: initialData?.instructions || "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: QuizBotFormValues) => {
     try {
-      onSave(quizBot);
+      await onSave({
+        ...initialData,
+        ...values,
+      });
+      toast({
+        title: "Success",
+        description: `Quiz bot ${initialData ? "updated" : "created"} successfully`,
+      });
     } catch (error) {
       console.error("Error saving quiz bot:", error);
       toast({
@@ -45,55 +72,85 @@ export const QuizBotForm = ({ onSave, onCancel, initialData }: QuizBotFormProps)
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Title</label>
-        <Input
-          value={quizBot.title}
-          onChange={(e) => setQuizBot({ ...quizBot, title: e.target.value })}
-          placeholder="Enter quiz title"
-          required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Enter quiz title" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <Textarea
-          value={quizBot.description}
-          onChange={(e) => setQuizBot({ ...quizBot, description: e.target.value })}
-          placeholder="Enter quiz description"
-          rows={3}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Enter quiz description"
+                  rows={3}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Passing Score (%)</label>
-        <Input
-          type="number"
-          min={0}
-          max={100}
-          value={quizBot.passing_score}
-          onChange={(e) => setQuizBot({ ...quizBot, passing_score: parseInt(e.target.value) })}
-          required
+        <FormField
+          control={form.control}
+          name="passing_score"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Passing Score (%)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Instructions</label>
-        <Textarea
-          value={quizBot.instructions}
-          onChange={(e) => setQuizBot({ ...quizBot, instructions: e.target.value })}
-          placeholder="Enter quiz instructions"
-          rows={4}
+        <FormField
+          control={form.control}
+          name="instructions"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Instructions</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Enter quiz instructions"
+                  rows={4}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel} type="button">
-          Cancel
-        </Button>
-        <Button type="submit">Save</Button>
-      </div>
-    </form>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onCancel} type="button">
+            Cancel
+          </Button>
+          <Button type="submit">Save</Button>
+        </div>
+      </form>
+    </Form>
   );
 };
