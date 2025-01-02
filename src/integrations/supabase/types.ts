@@ -37,6 +37,7 @@ export type Database = {
           created_at: string
           id: string
           instructions: string | null
+          memory_enabled: boolean | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model: string | null
@@ -51,6 +52,7 @@ export type Database = {
           created_at?: string
           id?: string
           instructions?: string | null
+          memory_enabled?: boolean | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model?: string | null
@@ -65,6 +67,7 @@ export type Database = {
           created_at?: string
           id?: string
           instructions?: string | null
+          memory_enabled?: boolean | null
           model?: Database["public"]["Enums"]["bot_model"]
           name?: string
           open_router_model?: string | null

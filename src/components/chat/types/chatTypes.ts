@@ -13,12 +13,13 @@ export interface Bot {
   id: string;
   name: string;
   instructions: string;
-  starters: string[];  // Made required to match useBots
+  starters: string[];
   model: "gemini" | "claude" | "openai" | "openrouter";
-  apiKey: string;  // Added to match useBots
+  apiKey: string;
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
+  memoryEnabled?: boolean;
 }
 
 export interface ChatHistoryItem {
