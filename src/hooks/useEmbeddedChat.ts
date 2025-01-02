@@ -91,7 +91,7 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     content: msg.content
   });
 
-  const sendMessage = async (message: string) => {
+  const sendMessage = async (message: string, clientId: string) => {
     if (!message.trim() || !sessionToken) return;
 
     try {
@@ -130,16 +130,22 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
 
       if (bot.model === "gemini") {
         console.log("Sending message to Gemini API with context");
-        botResponse = await ChatService.sendGeminiMessage(contextMessages, {
-          ...bot,
-          starters: bot.starters || []
-        });
+        botResponse = await ChatService.sendGeminiMessage(
+          contextMessages, 
+          bot,
+          sessionToken,
+          undefined,
+          clientId
+        );
       } else if (bot.model === "openrouter") {
         console.log("Sending message to OpenRouter API with context");
-        botResponse = await ChatService.sendOpenRouterMessage(contextMessages, {
-          ...bot,
-          starters: bot.starters || []
-        });
+        botResponse = await ChatService.sendOpenRouterMessage(
+          contextMessages, 
+          bot,
+          sessionToken,
+          undefined,
+          clientId
+        );
       }
 
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
