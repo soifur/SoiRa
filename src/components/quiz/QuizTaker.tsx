@@ -2,20 +2,24 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { QuizConfiguration, QuizQuestion } from "@/types/quiz";
+import { QuizConfiguration, QuizHistory } from "@/types/quiz";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { QuizResultsSummary } from "./QuizResultsSummary";
+import { QuizProgressTracker } from "./QuizProgressTracker";
 
 interface QuizTakerProps {
   quiz: QuizConfiguration;
   onComplete: () => void;
+  previousAttempts?: QuizHistory[];
 }
 
-export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
+export const QuizTaker = ({ quiz, onComplete, previousAttempts = [] }: QuizTakerProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
+  const [quizHistory, setQuizHistory] = useState<QuizHistory | null>(null);
   const { toast } = useToast();
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
@@ -51,15 +55,35 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
     const passed = score >= quiz.passingScore;
 
     try {
-      await supabase.from("quiz_history").insert({
-        quiz_id: quiz.id,
-        answers: Object.entries(selectedAnswers).map(([questionId, optionId]) => ({
-          questionId,
-          selectedOptionId: optionId,
-        })),
-        score,
-        status: "completed",
-      });
+      const { data: historyData, error } = await supabase
+        .from("quiz_history")
+        .insert({
+          quiz_id: quiz.id,
+          answers: Object.entries(selectedAnswers).map(([questionId, optionId]) => ({
+            questionId,
+            selectedOptionId: optionId,
+          })),
+          score,
+          status: "completed",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const history: QuizHistory = {
+        id: historyData.id,
+        quizId: historyData.quiz_id,
+        answers: historyData.answers,
+        score: historyData.score,
+        status: historyData.status,
+        sessionToken: historyData.session_token,
+        userId: historyData.user_id,
+        createdAt: historyData.created_at,
+        updatedAt: historyData.updated_at,
+      };
+
+      setQuizHistory(history);
 
       toast({
         title: passed ? "Congratulations!" : "Quiz Completed",
@@ -67,8 +91,6 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
           passed ? "You passed!" : "Keep practicing!"
         }`,
       });
-
-      onComplete();
     } catch (error) {
       console.error("Error saving quiz results:", error);
       toast({
@@ -79,22 +101,30 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
     }
   };
 
-  const handleNext = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setShowFeedback(false);
-    }
+  const handleRetake = () => {
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setShowFeedback(false);
+    setQuizHistory(null);
   };
 
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-      setShowFeedback(true);
-    }
-  };
-
-  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
-  const canSubmit = Object.keys(selectedAnswers).length === totalQuestions;
+  if (quizHistory) {
+    return (
+      <div className="space-y-6">
+        <QuizResultsSummary
+          quiz={quiz}
+          history={quizHistory}
+          onRetake={handleRetake}
+        />
+        {previousAttempts.length > 0 && (
+          <QuizProgressTracker
+            attempts={[...previousAttempts, quizHistory]}
+            passingScore={quiz.passingScore}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -160,21 +190,27 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
       <div className="flex justify-between">
         <Button
           variant="outline"
-          onClick={handlePrevious}
+          onClick={() => {
+            setCurrentQuestionIndex(currentQuestionIndex - 1);
+            setShowFeedback(true);
+          }}
           disabled={currentQuestionIndex === 0}
         >
           Previous
         </Button>
-        {isLastQuestion ? (
+        {currentQuestionIndex === totalQuestions - 1 ? (
           <Button 
             onClick={handleSubmit} 
-            disabled={!canSubmit || !showFeedback}
+            disabled={!selectedAnswers[currentQuestion.id] || !showFeedback}
           >
             Submit Quiz
           </Button>
         ) : (
           <Button
-            onClick={handleNext}
+            onClick={() => {
+              setCurrentQuestionIndex(currentQuestionIndex + 1);
+              setShowFeedback(false);
+            }}
             disabled={!selectedAnswers[currentQuestion.id] || !showFeedback}
           >
             Next
