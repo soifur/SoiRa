@@ -43,7 +43,12 @@ export const useEmbeddedChat = (
 
       if (chatData && Array.isArray(chatData.messages)) {
         setChatId(chatData.id);
-        setMessages(formatMessages(chatData.messages));
+        const typedMessages = chatData.messages.map((msg: any) => ({
+          role: msg.role as string,
+          content: msg.content as string,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined
+        }));
+        setMessages(formatMessages(typedMessages));
       }
     } catch (error) {
       console.error("Error loading chat:", error);
