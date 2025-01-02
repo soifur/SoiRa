@@ -6,6 +6,8 @@ import { Bot } from "@/hooks/useBots";
 import { ModelSelector } from "./bot/ModelSelector";
 import { AvatarUploader } from "./bot/AvatarUploader";
 import { StartersInput } from "./bot/StartersInput";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface BotFormProps {
   bot: Bot;
@@ -72,6 +74,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         starters={editingBot.starters}
         onStartersChange={(starters) => setEditingBot({ ...editingBot, starters })}
       />
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="memory-mode"
+          checked={editingBot.memoryEnabled}
+          onCheckedChange={(checked) => setEditingBot({ ...editingBot, memoryEnabled: checked })}
+        />
+        <Label htmlFor="memory-mode">Enable Memory</Label>
+      </div>
 
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onCancel}>
