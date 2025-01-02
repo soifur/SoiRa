@@ -20,7 +20,7 @@ interface BotFormProps {
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>(bot);
   const [isAddingQuiz, setIsAddingQuiz] = useState(false);
-  const { configurations, saveConfiguration, deleteConfiguration } = useQuizConfigurations(bot.id);
+  const { configurations, isLoading, saveConfiguration, deleteConfiguration } = useQuizConfigurations(bot.id);
 
   const handleModelChange = (model: "gemini" | "claude" | "openai" | "openrouter") => {
     setEditingBot({ 
@@ -103,7 +103,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                 Add Quiz
               </Button>
               <QuizList
-                quizzes={configurations}
+                configurations={configurations}
+                isLoading={isLoading}
                 onDelete={deleteConfiguration}
               />
             </>
