@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatService } from "@/services/ChatService";
+import { UserContextService } from "@/services/UserContextService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { Bot, Message } from "@/components/chat/types/chatTypes";
-import { Json } from "@/integrations/supabase/types";
 
 interface ChatMessage {
   role: string;
@@ -35,7 +35,7 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
         query = query.order('created_at', { ascending: false }).limit(1);
       }
 
-      const { data: existingChat, error } = await query.single();
+      const { data: existingChat, error } = await query.maybeSingle();
 
       if (error && !specificChatId) {
         console.log("No existing chat found, creating new one");
@@ -86,68 +86,6 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     }
   };
 
-  const convertToServiceMessage = (msg: Message): ChatMessage => ({
-    role: msg.role,
-    content: msg.content
-  });
-
-  const updateUserContext = async (messages: Message[]) => {
-    if (!bot.memory_enabled) {
-      console.log('Memory is disabled for this bot, skipping context update');
-      return;
-    }
-
-    try {
-      // Get last few messages for context
-      const recentMessages = messages.slice(-5);
-      const summary = recentMessages.map(msg => 
-        `${msg.role}: ${msg.content.substring(0, 100)}...`
-      ).join('\n');
-
-      // Extract topics (simple implementation - could be enhanced with NLP)
-      const topics = new Set<string>();
-      recentMessages.forEach(msg => {
-        const words = msg.content.toLowerCase().split(/\W+/);
-        words.forEach(word => {
-          if (word.length > 4) topics.add(word);
-        });
-      });
-
-      const context = {
-        summary,
-        lastInteraction: new Date().toISOString(),
-        topics: Array.from(topics).slice(0, 5),
-        preferences: {}
-      };
-
-      console.log('Updating user context with:', {
-        bot_id: bot.id,
-        client_id: clientId,
-        session_token: sessionToken,
-        context
-      });
-
-      const { error } = await supabase
-        .from('user_context')
-        .upsert({
-          bot_id: bot.id,
-          client_id: clientId,
-          session_token: sessionToken,
-          context,
-          last_updated: new Date().toISOString()
-        });
-
-      if (error) {
-        console.error('Error updating context:', error);
-        throw error;
-      }
-
-      console.log('Successfully updated user context');
-    } catch (error) {
-      console.error('Error in updateUserContext:', error);
-    }
-  };
-
   const sendMessage = async (message: string, clientId: string) => {
     if (!message.trim() || !sessionToken) return;
 
@@ -170,10 +108,12 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
         .eq('deleted', 'no')
         .order('created_at', { ascending: true });
 
-      // Combine all previous messages for context
       const allPreviousMessages = previousChats?.flatMap(chat => 
         Array.isArray(chat.messages) ? chat.messages : []
-      ).map((msg: any) => convertToServiceMessage(msg)) || [];
+      ).map((msg: any) => ({
+        role: msg.role,
+        content: msg.content
+      })) || [];
 
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
@@ -183,7 +123,10 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       setMessages([...newMessages, loadingMessage]);
 
       let botResponse = "";
-      const contextMessages = [...allPreviousMessages, ...newMessages.map(convertToServiceMessage)];
+      const contextMessages = [...allPreviousMessages, ...newMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))];
 
       if (bot.model === "gemini") {
         console.log("Sending message to Gemini API with context");
@@ -210,7 +153,8 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       setMessages(updatedMessages);
 
       // Update user context after getting bot response
-      await updateUserContext(updatedMessages);
+      console.log('Updating user context after bot response');
+      await UserContextService.updateContext(updatedMessages, bot, clientId, sessionToken);
 
       const messagesToSave = updatedMessages.map(msg => ({
         ...msg,
