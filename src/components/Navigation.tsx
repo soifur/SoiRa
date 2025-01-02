@@ -66,7 +66,7 @@ export const Navigation = () => {
             onClick={handleLogout}
             className="text-muted-foreground hover:text-primary"
           >
-            <LogOutIcon className="h-5 w-5" />
+            <LogOutIcon className="h-5 w-4" />
             <span className="sr-only">Logout</span>
           </Button>
         </div>
