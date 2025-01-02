@@ -30,6 +30,7 @@ export const Navigation = () => {
     }
   };
 
+  // Don't show navigation in embedded mode
   if (isEmbedded) return null;
 
   return (
@@ -41,9 +42,6 @@ export const Navigation = () => {
           </Link>
           <Link to="/bots" className="text-sm font-medium transition-colors hover:text-primary">
             Bots
-          </Link>
-          <Link to="/quiz" className="text-sm font-medium transition-colors hover:text-primary">
-            Quiz
           </Link>
           <Link to="/archive" className="text-sm font-medium transition-colors hover:text-primary">
             Archive
@@ -65,7 +63,7 @@ export const Navigation = () => {
             onClick={handleLogout}
             className="text-muted-foreground hover:text-primary"
           >
-            <LogOutIcon className="h-5 w-4" />
+            <LogOutIcon className="h-5 w-5" />
             <span className="sr-only">Logout</span>
           </Button>
         </div>

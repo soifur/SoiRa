@@ -9,7 +9,6 @@ import Bots from "@/pages/Bots";
 import Chat from "@/pages/Chat";
 import Archive from "@/pages/Archive";
 import Login from "@/pages/Login";
-import Quiz from "@/pages/Quiz";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { Helmet } from "react-helmet";
 
@@ -60,10 +59,6 @@ function App() {
           <Route
             path="/archive"
             element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/quiz"
-            element={isAuthenticated ? <Quiz /> : <Navigate to="/login" />}
           />
           <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
           <Route
