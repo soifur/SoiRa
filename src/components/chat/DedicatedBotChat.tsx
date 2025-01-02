@@ -21,6 +21,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
+  const sessionToken = ""; // Add logic to retrieve session token
+  const userId = ""; // Add logic to retrieve user ID
+  const clientId = ""; // Add logic to retrieve client ID
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,9 +79,21 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       let response: string;
 
       if (bot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(newMessages, bot);
+        response = await ChatService.sendOpenRouterMessage(
+          newMessages, 
+          bot, 
+          sessionToken, 
+          userId, 
+          clientId
+        );
       } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, bot);
+        response = await ChatService.sendGeminiMessage(
+          newMessages, 
+          bot, 
+          sessionToken, 
+          userId, 
+          clientId
+        );
       } else {
         throw new Error("Unsupported model type");
       }
