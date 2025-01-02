@@ -8,7 +8,7 @@ interface QuizBot {
   description?: string;
   passing_score: number;
   instructions?: string;
-  user_id?: string;
+  user_id: string;
 }
 
 export const useQuizBots = () => {
@@ -41,7 +41,7 @@ export const useQuizBots = () => {
     }
   };
 
-  const saveQuizBot = async (bot: Omit<QuizBot, "id">) => {
+  const saveQuizBot = async (bot: Omit<QuizBot, "id" | "user_id">) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
@@ -70,7 +70,7 @@ export const useQuizBots = () => {
     }
   };
 
-  const updateQuizBot = async (id: string, updates: Partial<QuizBot>) => {
+  const updateQuizBot = async (id: string, updates: Partial<Omit<QuizBot, "id" | "user_id">>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
