@@ -1,26 +1,29 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { Trophy, Award, X } from "lucide-react";
+import { Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { QuizConfiguration, QuizHistory } from "@/types/quiz";
 
 interface QuizResultsSummaryProps {
-  score: number;
-  passingScore: number;
-  totalQuestions: number;
-  correctAnswers: number;
-  onRetry?: () => void;
+  quiz: QuizConfiguration;
+  history: QuizHistory;
+  onRetake?: () => void;
   onReview: () => void;
 }
 
 export const QuizResultsSummary = ({
-  score,
-  passingScore,
-  totalQuestions,
-  correctAnswers,
-  onRetry,
+  quiz,
+  history,
+  onRetake,
   onReview,
 }: QuizResultsSummaryProps) => {
-  const passed = score >= passingScore;
+  const score = history.score || 0;
+  const passed = score >= quiz.passingScore;
+  const totalQuestions = quiz.questions.length;
+  const correctAnswers = history.answers.filter(answer => {
+    const question = quiz.questions.find(q => q.id === answer.questionId);
+    return question?.options.find(o => o.id === answer.selectedOptionId)?.isCorrect;
+  }).length;
 
   return (
     <Card className="p-6 space-y-6">
@@ -42,7 +45,7 @@ export const QuizResultsSummary = ({
               Keep Practicing
             </h2>
             <p className="text-muted-foreground">
-              You scored {score}%. The passing score is {passingScore}%.
+              You scored {score}%. The passing score is {quiz.passingScore}%.
             </p>
           </>
         )}
@@ -60,8 +63,8 @@ export const QuizResultsSummary = ({
       </div>
 
       <div className="flex gap-4">
-        {onRetry && (
-          <Button onClick={onRetry} variant="outline" className="flex-1">
+        {onRetake && (
+          <Button onClick={onRetake} variant="outline" className="flex-1">
             Try Again
           </Button>
         )}

@@ -1,19 +1,24 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Check, X } from "lucide-react";
-import { QuizHistory, QuizConfiguration } from "@/types/quiz";
+import { QuizConfiguration } from "@/types/quiz";
+import { Button } from "@/components/ui/button";
 
 interface QuizReviewProps {
   quiz: QuizConfiguration;
-  history: QuizHistory;
+  history: { questionId: string; selectedOptionId: string; }[];
+  onClose: () => void;
 }
 
-export const QuizReview = ({ quiz, history }: QuizReviewProps) => {
+export const QuizReview = ({ quiz, history, onClose }: QuizReviewProps) => {
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Quiz Review</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Quiz Review</h2>
+        <Button variant="outline" onClick={onClose}>Close Review</Button>
+      </div>
       {quiz.questions.map((question, index) => {
-        const userAnswer = history.answers.find(
+        const userAnswer = history.find(
           (a) => a.questionId === question.id
         );
         const selectedOption = question.options.find(

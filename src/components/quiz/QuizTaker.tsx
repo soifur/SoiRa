@@ -10,11 +10,10 @@ import { QuizNavigation } from "./QuizNavigation";
 
 interface QuizTakerProps {
   quiz: QuizConfiguration;
-  onComplete: () => void;
-  previousAttempts?: QuizHistory[];
+  onComplete: (history: QuizHistory) => void;
 }
 
-export const QuizTaker = ({ quiz, onComplete, previousAttempts = [] }: QuizTakerProps) => {
+export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [showFeedback, setShowFeedback] = useState(false);
@@ -23,7 +22,7 @@ export const QuizTaker = ({ quiz, onComplete, previousAttempts = [] }: QuizTaker
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const totalQuestions = quiz.questions.length;
-  const progress = (currentQuestionIndex / totalQuestions) * 100;
+  const answeredQuestions = Object.keys(selectedAnswers).length;
 
   const handleOptionSelect = (questionId: string, optionId: string) => {
     setSelectedAnswers({
@@ -73,7 +72,7 @@ export const QuizTaker = ({ quiz, onComplete, previousAttempts = [] }: QuizTaker
       const history: QuizHistory = {
         id: historyData.id,
         quizId: historyData.quiz_id,
-        answers: historyData.answers as { questionId: string; selectedOptionId: string; }[],
+        answers: historyData.answers,
         score: historyData.score,
         status: historyData.status,
         sessionToken: historyData.session_token,
@@ -83,6 +82,7 @@ export const QuizTaker = ({ quiz, onComplete, previousAttempts = [] }: QuizTaker
       };
 
       setQuizHistory(history);
+      onComplete(history);
 
       toast({
         title: passed ? "Congratulations!" : "Quiz Completed",
@@ -114,13 +114,16 @@ export const QuizTaker = ({ quiz, onComplete, previousAttempts = [] }: QuizTaker
           quiz={quiz}
           history={quizHistory}
           onRetake={handleRetake}
+          onReview={() => {
+            // Handle review
+          }}
         />
-        {previousAttempts.length > 0 && (
-          <QuizProgressTracker
-            attempts={[...previousAttempts, quizHistory]}
-            passingScore={quiz.passingScore}
-          />
-        )}
+        <QuizProgressTracker
+          totalQuestions={totalQuestions}
+          answeredQuestions={answeredQuestions}
+          score={quizHistory.score}
+          passingScore={quiz.passingScore}
+        />
       </div>
     );
   }
@@ -129,12 +132,13 @@ export const QuizTaker = ({ quiz, onComplete, previousAttempts = [] }: QuizTaker
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">{quiz.title}</h2>
-        <span className="text-sm text-muted-foreground">
-          Question {currentQuestionIndex + 1} of {totalQuestions}
-        </span>
       </div>
 
-      <Progress value={progress} className="h-2" />
+      <QuizProgressTracker
+        totalQuestions={totalQuestions}
+        answeredQuestions={answeredQuestions}
+        passingScore={quiz.passingScore}
+      />
 
       {currentQuestion && (
         <QuizQuestion

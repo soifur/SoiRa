@@ -15,6 +15,7 @@ interface QuizListProps {
 export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps) => {
   const [selectedQuiz, setSelectedQuiz] = useState<QuizConfiguration | null>(null);
   const [reviewMode, setReviewMode] = useState(false);
+  const [quizHistory, setQuizHistory] = useState<{ questionId: string; selectedOptionId: string; }[]>([]);
 
   if (isLoading) {
     return <div className="text-center text-muted-foreground py-8">Loading...</div>;
@@ -25,6 +26,7 @@ export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps)
       return (
         <QuizReview
           quiz={selectedQuiz}
+          history={quizHistory}
           onClose={() => {
             setSelectedQuiz(null);
             setReviewMode(false);
@@ -35,7 +37,10 @@ export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps)
     return (
       <QuizTaker
         quiz={selectedQuiz}
-        onComplete={() => setSelectedQuiz(null)}
+        onComplete={(history) => {
+          setQuizHistory(history.answers);
+          setSelectedQuiz(null);
+        }}
       />
     );
   }
