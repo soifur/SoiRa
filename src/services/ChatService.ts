@@ -1,4 +1,4 @@
-import { Bot } from "@/hooks/useBots";
+import { Bot } from "@/components/chat/types/chatTypes";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { MemoryService } from "./MemoryService";
 

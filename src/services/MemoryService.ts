@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Message } from "@/components/chat/types/chatTypes";
+import { Message, Bot, UserContext } from "@/components/chat/types/chatTypes";
 
 export class MemoryService {
   static async getContextForUser(sessionToken: string | null, userId: string | null): Promise<string | null> {
@@ -15,14 +15,15 @@ export class MemoryService {
         return null;
       }
 
-      return data?.context?.summary || null;
+      const context = data?.context as UserContext;
+      return context?.summary || null;
     } catch (error) {
       console.error('Error in getContextForUser:', error);
       return null;
     }
   }
 
-  static async injectMemoryContext(messages: Message[], bot: { memory_enabled?: boolean }, sessionToken: string | null, userId: string | null): Promise<Message[]> {
+  static async injectMemoryContext(messages: Message[], bot: Bot, sessionToken: string | null, userId: string | null): Promise<Message[]> {
     if (!bot.memory_enabled) {
       return messages;
     }
@@ -32,7 +33,6 @@ export class MemoryService {
       return messages;
     }
 
-    // Insert the context as a system message at the start of the conversation
     return [
       {
         id: 'context-message',

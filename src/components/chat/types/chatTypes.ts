@@ -13,12 +13,13 @@ export interface Bot {
   id: string;
   name: string;
   instructions: string;
-  starters: string[];  // Made required to match useBots
+  starters: string[];
   model: "gemini" | "claude" | "openai" | "openrouter";
-  apiKey: string;  // Added to match useBots
+  apiKey: string;
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
+  memory_enabled?: boolean;  // Added this property
 }
 
 export interface ChatHistoryItem {
@@ -41,4 +42,10 @@ export interface ChatHistoryData {
   session_token?: string;
   avatar_url?: string;
   deleted?: string;
+}
+
+// Added new interface for context
+export interface UserContext {
+  summary: string;
+  [key: string]: any;
 }
