@@ -60,6 +60,30 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     });
   };
 
+  const processMemory = async (sessionToken: string | null, userId: string | null) => {
+    try {
+      console.log('Processing memory for bot:', bot.id);
+      const response = await supabase.functions.invoke('process-memory', {
+        body: {
+          botId: bot.id,
+          sessionToken,
+          userId,
+          clientId: chatId
+        }
+      });
+
+      if (response.error) {
+        throw new response.error;
+      }
+
+      console.log('Memory processed:', response.data);
+      return response.data.context;
+    } catch (error) {
+      console.error('Error processing memory:', error);
+      return null;
+    }
+  };
+
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
 
@@ -73,7 +97,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
       setMessages([...newMessages, loadingMessage]);
 
+      // Get session information
+      const { data: { session } } = await supabase.auth.getSession();
+      const sessionToken = session?.access_token || null;
+      const userId = session?.user?.id || null;
+
+      // Process memory before sending message
+      const context = await processMemory(sessionToken, userId);
+
       let response: string;
+      const messageContext = context ? `Context from previous conversations:\n${context}\n\nCurrent message: ${message}` : message;
 
       if (bot.model === "openrouter") {
         response = await ChatService.sendOpenRouterMessage(newMessages, bot);
@@ -119,7 +152,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           messages: supabaseMessages,
           avatar_url: bot.avatar,
           sequence_number: nextSequenceNumber,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          session_token: sessionToken,
+          user_id: userId
         });
 
       if (error) {
