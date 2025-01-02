@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { QuizConfiguration, QuizQuestion } from "@/types/quiz";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 interface QuizTakerProps {
   quiz: QuizConfiguration;
@@ -13,24 +15,31 @@ interface QuizTakerProps {
 export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [showFeedback, setShowFeedback] = useState(false);
   const { toast } = useToast();
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const totalQuestions = quiz.questions.length;
+  const progress = (currentQuestionIndex / totalQuestions) * 100;
 
   const handleOptionSelect = (questionId: string, optionId: string) => {
     setSelectedAnswers({
       ...selectedAnswers,
       [questionId]: optionId,
     });
+    setShowFeedback(true);
+  };
+
+  const isCorrectAnswer = (questionId: string, selectedOptionId: string) => {
+    const question = quiz.questions.find(q => q.id === questionId);
+    return question?.options.find(o => o.id === selectedOptionId)?.isCorrect || false;
   };
 
   const calculateScore = () => {
     let correctAnswers = 0;
     quiz.questions.forEach((question) => {
       const selectedOptionId = selectedAnswers[question.id];
-      const correctOption = question.options.find((o) => o.isCorrect);
-      if (selectedOptionId && correctOption && selectedOptionId === correctOption.id) {
+      if (selectedOptionId && isCorrectAnswer(question.id, selectedOptionId)) {
         correctAnswers++;
       }
     });
@@ -73,12 +82,14 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const handleNext = () => {
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setShowFeedback(false);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setShowFeedback(true);
     }
   };
 
@@ -94,25 +105,55 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
         </span>
       </div>
 
+      <Progress value={progress} className="h-2" />
+
       {currentQuestion && (
         <Card className="p-4 space-y-4">
           <p className="font-medium">{currentQuestion.text}</p>
           <div className="space-y-2">
-            {currentQuestion.options.map((option) => (
-              <Button
-                key={option.id}
-                variant={
-                  selectedAnswers[currentQuestion.id] === option.id
-                    ? "default"
-                    : "outline"
-                }
-                className="w-full justify-start"
-                onClick={() => handleOptionSelect(currentQuestion.id, option.id)}
-              >
-                {option.text}
-              </Button>
-            ))}
+            {currentQuestion.options.map((option) => {
+              const isSelected = selectedAnswers[currentQuestion.id] === option.id;
+              const showCorrectness = showFeedback && isSelected;
+              const isCorrect = option.isCorrect;
+
+              return (
+                <div key={option.id} className="relative">
+                  <Button
+                    variant={isSelected ? "default" : "outline"}
+                    className={`w-full justify-start ${
+                      showCorrectness && isCorrect ? "bg-green-100" : ""
+                    } ${showCorrectness && !isCorrect ? "bg-red-100" : ""}`}
+                    onClick={() => handleOptionSelect(currentQuestion.id, option.id)}
+                    disabled={showFeedback}
+                  >
+                    {option.text}
+                    {showCorrectness && (
+                      <span className="absolute right-2">
+                        {isCorrect ? (
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        )}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
           </div>
+          {showFeedback && (
+            <div className="text-sm mt-2">
+              {isCorrectAnswer(currentQuestion.id, selectedAnswers[currentQuestion.id]) ? (
+                <p className="text-green-600">Correct! Well done!</p>
+              ) : (
+                <p className="text-red-600">
+                  Incorrect. The correct answer is: {
+                    currentQuestion.options.find(o => o.isCorrect)?.text
+                  }
+                </p>
+              )}
+            </div>
+          )}
         </Card>
       )}
 
@@ -125,13 +166,16 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
           Previous
         </Button>
         {isLastQuestion ? (
-          <Button onClick={handleSubmit} disabled={!canSubmit}>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={!canSubmit || !showFeedback}
+          >
             Submit Quiz
           </Button>
         ) : (
           <Button
             onClick={handleNext}
-            disabled={!selectedAnswers[currentQuestion.id]}
+            disabled={!selectedAnswers[currentQuestion.id] || !showFeedback}
           >
             Next
           </Button>
