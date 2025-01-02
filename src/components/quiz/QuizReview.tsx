@@ -32,7 +32,7 @@ export const QuizReview = ({ quiz, onClose }: QuizReviewProps) => {
           quizId: item.quiz_id,
           sessionToken: item.session_token,
           userId: item.user_id,
-          answers: item.answers,
+          answers: (item.answers as { questionId: string; selectedOptionId: string; }[]) || [],
           score: item.score || 0,
           status: item.status || 'completed',
           createdAt: item.created_at,
