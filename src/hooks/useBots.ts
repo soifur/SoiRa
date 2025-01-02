@@ -12,7 +12,6 @@ export interface Bot {
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
-  memoryEnabled?: boolean;
 }
 
 export const useBots = () => {
