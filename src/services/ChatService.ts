@@ -19,7 +19,8 @@ export class ChatService {
     messages: Array<{ role: string; content: string }>,
     bot: Bot,
     sessionToken?: string | null,
-    userId?: string | null
+    userId?: string | null,
+    clientId?: string | null
   ) {
     if (!bot.apiKey) {
       throw new Error("OpenRouter API key is missing");
@@ -31,6 +32,15 @@ export class ChatService {
       bot,
       sessionToken,
       userId
+    );
+
+    // Update context storage with new messages
+    await MemoryService.updateContext(
+      messages.map(m => ({ ...m, id: Math.random().toString() })),
+      bot,
+      sessionToken,
+      userId,
+      clientId
     );
 
     const sanitizedMessages = messagesWithContext.map(msg => ({
@@ -82,7 +92,8 @@ export class ChatService {
     messages: Array<{ role: string; content: string }>,
     bot: Bot,
     sessionToken?: string | null,
-    userId?: string | null
+    userId?: string | null,
+    clientId?: string | null
   ) {
     if (!bot.apiKey) {
       throw new Error("Gemini API key is missing. Please check your bot configuration.");
@@ -94,6 +105,15 @@ export class ChatService {
       bot,
       sessionToken,
       userId
+    );
+
+    // Update context storage with new messages
+    await MemoryService.updateContext(
+      messages.map(m => ({ ...m, id: Math.random().toString() })),
+      bot,
+      sessionToken,
+      userId,
+      clientId
     );
 
     try {

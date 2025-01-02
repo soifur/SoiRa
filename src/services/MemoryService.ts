@@ -50,6 +50,57 @@ export class MemoryService {
     }
   }
 
+  static async updateContext(messages: Message[], bot: Bot, sessionToken: string | null, userId: string | null, clientId: string | null): Promise<void> {
+    if (!bot.memory_enabled) {
+      console.log('Memory is disabled for this bot, skipping context update');
+      return;
+    }
+
+    try {
+      // Get last few messages for context
+      const recentMessages = messages.slice(-5);
+      const summary = recentMessages.map(msg => 
+        `${msg.role}: ${msg.content.substring(0, 100)}...`
+      ).join('\n');
+
+      // Extract topics (simple implementation - could be enhanced with NLP)
+      const topics = new Set<string>();
+      recentMessages.forEach(msg => {
+        const words = msg.content.toLowerCase().split(/\W+/);
+        words.forEach(word => {
+          if (word.length > 4) topics.add(word);
+        });
+      });
+
+      const context: UserContext = {
+        summary,
+        lastInteraction: new Date().toISOString(),
+        topics: Array.from(topics).slice(0, 5),
+        preferences: {}
+      };
+
+      const { error } = await supabase
+        .from('user_context')
+        .upsert({
+          bot_id: bot.id,
+          client_id: clientId,
+          session_token: sessionToken,
+          user_id: userId,
+          context,
+          last_updated: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error updating context:', error);
+        throw error;
+      }
+
+      console.log('Successfully updated user context');
+    } catch (error) {
+      console.error('Error in updateContext:', error);
+    }
+  }
+
   static async injectMemoryContext(messages: Message[], bot: Bot, sessionToken: string | null, userId: string | null): Promise<Message[]> {
     if (!bot.memory_enabled) {
       console.log('Memory is disabled for this bot, skipping context injection');
