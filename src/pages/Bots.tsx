@@ -7,9 +7,6 @@ import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
 import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
-import { QuizBotForm } from "@/components/quiz/QuizBotForm";
-import { QuizBotList } from "@/components/quiz/QuizBotList";
-import { useQuizBots } from "@/hooks/useQuizBots";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
@@ -47,44 +44,27 @@ const Bots = () => {
     return `${truncated}...`;
   };
 
-  const [showQuizForm, setShowQuizForm] = useState(false);
-  const { quizBots, saveQuizBot, updateQuizBot, deleteQuizBot } = useQuizBots();
-  const [selectedQuizBot, setSelectedQuizBot] = useState<any>(null);
-
-  const handleQuizBotSave = async (quizBot: any) => {
-    await saveQuizBot(quizBot);
-    setShowQuizForm(false);
-  };
-
   return (
     <div className="container mx-auto max-w-full pt-20 px-4">
       <div className="flex gap-6 h-[calc(100vh-8rem)]">
         <div className="w-1/2 flex flex-col gap-4 overflow-y-auto">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">My Chatbots</h1>
-            <div className="flex gap-2">
-              <Button
-                onClick={() =>
-                  setEditingBot({
-                    id: "",
-                    name: "",
-                    instructions: "",
-                    starters: [],
-                    model: "gemini",
-                    apiKey: "",
-                    accessType: "private",
-                  })
-                }
-              >
-                <Plus className="mr-2 h-4 w-4" /> New Bot
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowQuizForm(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" /> New Quiz Bot
-              </Button>
-            </div>
+            <Button
+              onClick={() =>
+                setEditingBot({
+                  id: "",
+                  name: "",
+                  instructions: "",
+                  starters: [],
+                  model: "gemini",
+                  apiKey: "",
+                  accessType: "private",
+                })
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" /> New Bot
+            </Button>
           </div>
 
           {editingBot && (
@@ -100,19 +80,8 @@ const Bots = () => {
             </Card>
           )}
 
-          {showQuizForm && (
-            <Card className="p-4">
-              <h2 className="text-xl font-semibold mb-4">Create Quiz Bot</h2>
-              <QuizBotForm
-                onSave={handleQuizBotSave}
-                onCancel={() => setShowQuizForm(false)}
-              />
-            </Card>
-          )}
-
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              {bots.map((bot) => (
+          <div className="grid gap-2">
+            {bots.map((bot) => (
               <Card 
                 key={bot.id} 
                 className={`p-2 cursor-pointer transition-colors hover:bg-accent/50 ${
@@ -167,20 +136,7 @@ const Bots = () => {
                   </div>
                 </div>
               </Card>
-              ))}
-            </div>
-
-            {quizBots.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Quiz Bots</h2>
-                <QuizBotList
-                  quizBots={quizBots}
-                  onEdit={(bot) => setSelectedQuizBot(bot)}
-                  onDelete={deleteQuizBot}
-                  onSelect={(bot) => setSelectedQuizBot(bot)}
-                />
-              </div>
-            )}
+            ))}
           </div>
         </div>
 
