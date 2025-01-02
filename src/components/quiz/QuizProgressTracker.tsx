@@ -1,6 +1,6 @@
 import React from "react";
 import { Progress } from "@/components/ui/progress";
-import { Trophy } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 interface QuizProgressTrackerProps {
   totalQuestions: number;
@@ -19,20 +19,24 @@ export const QuizProgressTracker = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <span className="text-sm text-muted-foreground">
-          Question {answeredQuestions} of {totalQuestions}
-        </span>
-        {score !== undefined && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Score: {score}%</span>
-            {score >= passingScore && (
-              <Trophy className="h-4 w-4 text-yellow-500" />
-            )}
-          </div>
-        )}
+      <div className="flex justify-between text-sm text-muted-foreground">
+        <span>Progress</span>
+        <span>{Math.round(progress)}%</span>
       </div>
       <Progress value={progress} className="h-2" />
+      
+      {score !== undefined && (
+        <div className="flex items-center gap-2 mt-4">
+          {score >= passingScore ? (
+            <CheckCircle2 className="text-green-500 h-5 w-5" />
+          ) : (
+            <XCircle className="text-red-500 h-5 w-5" />
+          )}
+          <span className="text-sm">
+            Score: {score}% (Passing: {passingScore}%)
+          </span>
+        </div>
+      )}
     </div>
   );
 };

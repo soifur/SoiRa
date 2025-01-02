@@ -7,6 +7,7 @@ import { QuizResultsSummary } from "./QuizResultsSummary";
 import { QuizProgressTracker } from "./QuizProgressTracker";
 import { QuizQuestion } from "./QuizQuestion";
 import { QuizNavigation } from "./QuizNavigation";
+import { QuizTimer } from "./QuizTimer";
 
 interface QuizTakerProps {
   quiz: QuizConfiguration;
@@ -23,6 +24,7 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const totalQuestions = quiz.questions.length;
   const answeredQuestions = Object.keys(selectedAnswers).length;
+  const progress = (answeredQuestions / totalQuestions) * 100;
 
   const handleOptionSelect = (questionId: string, optionId: string) => {
     setSelectedAnswers({
@@ -30,11 +32,24 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
       [questionId]: optionId,
     });
     setShowFeedback(true);
+
+    const isCorrect = currentQuestion.options.find(o => o.id === optionId)?.isCorrect;
+    toast({
+      title: isCorrect ? "Correct!" : "Incorrect",
+      description: isCorrect 
+        ? "Great job! Keep going!" 
+        : "Don't worry, keep trying!",
+      variant: isCorrect ? "default" : "destructive",
+    });
   };
 
-  const isCorrectAnswer = (questionId: string, selectedOptionId: string) => {
-    const question = quiz.questions.find(q => q.id === questionId);
-    return question?.options.find(o => o.id === selectedOptionId)?.isCorrect || false;
+  const handleTimeUp = () => {
+    toast({
+      title: "Time's up!",
+      description: "Your quiz will be submitted automatically.",
+      variant: "destructive",
+    });
+    handleSubmit();
   };
 
   const calculateScore = () => {
@@ -46,6 +61,11 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
       }
     });
     return Math.round((correctAnswers / totalQuestions) * 100);
+  };
+
+  const isCorrectAnswer = (questionId: string, selectedOptionId: string) => {
+    const question = quiz.questions.find(q => q.id === questionId);
+    return question?.options.find(o => o.id === selectedOptionId)?.isCorrect || false;
   };
 
   const handleSubmit = async () => {
@@ -72,7 +92,7 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
       const history: QuizHistory = {
         id: historyData.id,
         quizId: historyData.quiz_id,
-        answers: historyData.answers,
+        answers: historyData.answers as { questionId: string; selectedOptionId: string; }[],
         score: historyData.score,
         status: historyData.status,
         sessionToken: historyData.session_token,
@@ -132,13 +152,14 @@ export const QuizTaker = ({ quiz, onComplete }: QuizTakerProps) => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">{quiz.title}</h2>
+        <QuizTimer onTimeUp={handleTimeUp} />
       </div>
 
-      <QuizProgressTracker
-        totalQuestions={totalQuestions}
-        answeredQuestions={answeredQuestions}
-        passingScore={quiz.passingScore}
-      />
+      <Progress value={progress} className="w-full" />
+
+      <div className="text-sm text-muted-foreground">
+        Question {currentQuestionIndex + 1} of {totalQuestions}
+      </div>
 
       {currentQuestion && (
         <QuizQuestion
