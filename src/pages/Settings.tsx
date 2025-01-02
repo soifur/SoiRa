@@ -6,12 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Bot } from "@/hooks/useBots";
 import { ModelSelector } from "@/components/bot/ModelSelector";
 
 const Settings = () => {
-  const [bots, setBots] = useState<Bot[]>([]);
-  const [selectedBotId, setSelectedBotId] = useState("");
   const [instructions, setInstructions] = useState("");
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -19,56 +16,38 @@ const Settings = () => {
   const [openRouterModel, setOpenRouterModel] = useState("auto");
   const [apiKey, setApiKey] = useState("");
 
+  // Load existing memory configuration
   useEffect(() => {
-    const fetchBots = async () => {
+    const loadMemoryConfig = async () => {
       try {
         const { data: session } = await supabase.auth.getSession();
         if (!session.session) return;
 
         const { data: botsData, error } = await supabase
           .from('bots')
-          .select('*')
-          .eq('user_id', session.session.user.id);
+          .select('instructions, model, api_key, open_router_model')
+          .eq('memory_enabled', true)
+          .limit(1);
 
         if (error) {
-          console.error('Error fetching bots:', error);
+          console.error('Error fetching memory config:', error);
           return;
         }
 
-        const transformedBots = botsData.map((bot): Bot => ({
-          id: bot.id,
-          name: bot.name,
-          instructions: bot.instructions || "",
-          starters: bot.starters || [],
-          model: bot.model,
-          apiKey: bot.api_key,
-          openRouterModel: bot.open_router_model,
-          avatar: bot.avatar,
-          accessType: "private",
-          memoryEnabled: bot.memory_enabled
-        }));
-
-        setBots(transformedBots);
+        if (botsData && botsData.length > 0) {
+          const bot = botsData[0];
+          setInstructions(bot.instructions || "");
+          setModel(bot.model);
+          setOpenRouterModel(bot.open_router_model || "auto");
+          setApiKey(bot.api_key || "");
+        }
       } catch (error) {
         console.error('Error:', error);
       }
     };
 
-    fetchBots();
+    loadMemoryConfig();
   }, []);
-
-  // Load bot's memory configuration when selected
-  useEffect(() => {
-    if (!selectedBotId) return;
-
-    const selectedBot = bots.find(bot => bot.id === selectedBotId);
-    if (selectedBot) {
-      setInstructions(selectedBot.instructions || "");
-      setModel(selectedBot.model);
-      setOpenRouterModel(selectedBot.openRouterModel || "auto");
-      setApiKey(selectedBot.apiKey || "");
-    }
-  }, [selectedBotId, bots]);
 
   const handleSave = async () => {
     try {
@@ -84,31 +63,23 @@ const Settings = () => {
         return;
       }
 
-      if (!selectedBotId) {
-        toast({
-          title: "Error",
-          description: "Please select a bot",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      // Update all bots where memory is enabled
       const { error } = await supabase
         .from('bots')
         .update({
           instructions,
           model,
           api_key: apiKey,
-          open_router_model: model === 'openrouter' ? openRouterModel : null,
-          memory_enabled: true
+          open_router_model: model === 'openrouter' ? openRouterModel : null
         })
-        .eq('id', selectedBotId);
+        .eq('memory_enabled', true)
+        .eq('user_id', session.session.user.id);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Memory configuration saved successfully",
+        description: "Memory configuration saved successfully for all memory-enabled bots",
       });
     } catch (error) {
       console.error('Error saving memory config:', error);
@@ -125,29 +96,12 @@ const Settings = () => {
   return (
     <div className="container mx-auto max-w-2xl pt-20 px-4">
       <Card className="p-6">
-        <h2 className="text-2xl font-bold mb-6">Bot Memory Configuration</h2>
+        <h2 className="text-2xl font-bold mb-6">Global Memory Configuration</h2>
         
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="bot-select">Select Bot</Label>
-            <select
-              id="bot-select"
-              value={selectedBotId}
-              onChange={(e) => setSelectedBotId(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="">Select a bot</option>
-              {bots.map((bot) => (
-                <option key={bot.id} value={bot.id}>
-                  {bot.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <ModelSelector 
             bot={{
-              id: selectedBotId,
+              id: "",
               name: "",
               instructions: "",
               starters: [],
@@ -184,7 +138,7 @@ const Settings = () => {
 
           <Button 
             onClick={handleSave} 
-            disabled={!selectedBotId || !instructions || !apiKey || isLoading}
+            disabled={!instructions || !apiKey || isLoading}
             className="w-full"
           >
             {isLoading ? "Saving..." : "Save Configuration"}
