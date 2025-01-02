@@ -75,7 +75,17 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       </div>
 
       <ModelSelector
-        bot={{ model, openRouterModel }}
+        bot={{
+          id: bot.id,
+          name,
+          instructions,
+          model,
+          apiKey,
+          openRouterModel,
+          starters,
+          avatar,
+          memoryEnabled
+        }}
         onModelChange={setModel}
         onOpenRouterModelChange={setOpenRouterModel}
       />
