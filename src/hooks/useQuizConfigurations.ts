@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { QuizConfiguration } from "@/types/quiz";
+import { QuizConfiguration, QuizQuestion } from "@/types/quiz";
+import { Json } from "@/integrations/supabase/types";
 
 export const useQuizConfigurations = (botId: string) => {
   const [configurations, setConfigurations] = useState<QuizConfiguration[]>([]);
@@ -24,7 +25,7 @@ export const useQuizConfigurations = (botId: string) => {
         title: config.title,
         description: config.description,
         passingScore: config.passing_score,
-        questions: config.questions as QuizQuestion[],
+        questions: config.questions as unknown as QuizQuestion[],
         branchingLogic: config.branching_logic as Record<string, any>,
         createdAt: config.created_at,
         updatedAt: config.updated_at,
@@ -50,8 +51,8 @@ export const useQuizConfigurations = (botId: string) => {
           title: config.title,
           description: config.description,
           passing_score: config.passingScore,
-          questions: config.questions,
-          branching_logic: config.branchingLogic || {},
+          questions: config.questions as unknown as Json,
+          branching_logic: config.branchingLogic as unknown as Json || {},
         })
         .select()
         .single();
@@ -64,7 +65,7 @@ export const useQuizConfigurations = (botId: string) => {
         title: data.title,
         description: data.description,
         passingScore: data.passing_score,
-        questions: data.questions as QuizQuestion[],
+        questions: data.questions as unknown as QuizQuestion[],
         branchingLogic: data.branching_logic as Record<string, any>,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
