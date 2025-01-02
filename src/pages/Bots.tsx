@@ -2,18 +2,25 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2, Share2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Share2, GraduationCap } from "lucide-react";
 import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
 import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QuizConfigurationForm } from "@/components/quiz/QuizConfigurationForm";
+import { QuizList } from "@/components/quiz/QuizList";
+import { useQuizConfigurations } from "@/hooks/useQuizConfigurations";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [embedDialogBot, setEmbedDialogBot] = useState<Bot | null>(null);
+  const [isAddingQuiz, setIsAddingQuiz] = useState(false);
   const { toast } = useToast();
   const { bots, saveBot, deleteBot } = useBots();
+  const { configurations, isLoading: isLoadingQuizzes, saveConfiguration, deleteConfiguration, refreshConfigurations } = 
+    useQuizConfigurations(selectedBot?.id || "");
 
   const handleSave = async (bot: Bot) => {
     const updatedBot = await saveBot({ ...bot, accessType: bot.accessType || "private" });
@@ -142,7 +149,47 @@ const Bots = () => {
 
         <div className="w-1/2 border-l border-border">
           {selectedBot ? (
-            <DedicatedBotChat key={selectedBot.id} bot={selectedBot} />
+            <Tabs defaultValue="chat" className="h-full">
+              <TabsList>
+                <TabsTrigger value="chat">Chat</TabsTrigger>
+                <TabsTrigger value="quizzes">
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  Quizzes
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="chat" className="h-[calc(100%-40px)]">
+                <DedicatedBotChat key={selectedBot.id} bot={selectedBot} />
+              </TabsContent>
+              
+              <TabsContent value="quizzes" className="p-4 space-y-4">
+                {isAddingQuiz ? (
+                  <QuizConfigurationForm
+                    botId={selectedBot.id}
+                    onSave={async (config) => {
+                      await saveConfiguration(config);
+                      setIsAddingQuiz(false);
+                      refreshConfigurations();
+                    }}
+                    onCancel={() => setIsAddingQuiz(false)}
+                  />
+                ) : (
+                  <>
+                    <Button onClick={() => setIsAddingQuiz(true)}>
+                      <Plus className="h-4 w-4 mr-2" /> Add Quiz
+                    </Button>
+                    <QuizList
+                      configurations={configurations}
+                      isLoading={isLoadingQuizzes}
+                      onDelete={async (id) => {
+                        await deleteConfiguration(id);
+                        refreshConfigurations();
+                      }}
+                    />
+                  </>
+                )}
+              </TabsContent>
+            </Tabs>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               Select a bot to start chatting
