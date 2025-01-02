@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelSelector } from "@/components/bot/ModelSelector";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface MemoryBot {
   id: string;
@@ -14,7 +16,8 @@ interface MemoryBot {
   model: "gemini" | "claude" | "openai" | "openrouter";
   apiKey: string;
   openRouterModel?: string;
-  starters: string[]; // Added this line to fix the build error
+  starters: string[];
+  memory_enabled?: boolean;
 }
 
 const Settings = () => {
@@ -42,7 +45,8 @@ const Settings = () => {
         model: data.model,
         apiKey: data.api_key,
         openRouterModel: data.open_router_model,
-        starters: data.starters || [], // Initialize with empty array if null
+        starters: data.starters || [],
+        memory_enabled: data.memory_enabled
       });
     } catch (error) {
       console.error('Error fetching Memory Bot:', error);
@@ -65,6 +69,7 @@ const Settings = () => {
           model: memoryBot.model,
           api_key: memoryBot.apiKey,
           open_router_model: memoryBot.openRouterModel,
+          memory_enabled: memoryBot.memory_enabled
         })
         .eq('id', memoryBot.id);
 
@@ -127,6 +132,15 @@ const Settings = () => {
               placeholder="Enter instructions for the Memory Bot..."
               rows={4}
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="memory-enabled"
+              checked={memoryBot.memory_enabled}
+              onCheckedChange={(checked) => setMemoryBot({ ...memoryBot, memory_enabled: checked })}
+            />
+            <Label htmlFor="memory-enabled">Enable Memory</Label>
           </div>
 
           <Button onClick={handleSave}>Save Configuration</Button>
