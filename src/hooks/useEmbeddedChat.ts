@@ -91,6 +91,63 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     content: msg.content
   });
 
+  const updateUserContext = async (messages: Message[]) => {
+    if (!bot.memory_enabled) {
+      console.log('Memory is disabled for this bot, skipping context update');
+      return;
+    }
+
+    try {
+      // Get last few messages for context
+      const recentMessages = messages.slice(-5);
+      const summary = recentMessages.map(msg => 
+        `${msg.role}: ${msg.content.substring(0, 100)}...`
+      ).join('\n');
+
+      // Extract topics (simple implementation - could be enhanced with NLP)
+      const topics = new Set<string>();
+      recentMessages.forEach(msg => {
+        const words = msg.content.toLowerCase().split(/\W+/);
+        words.forEach(word => {
+          if (word.length > 4) topics.add(word);
+        });
+      });
+
+      const context = {
+        summary,
+        lastInteraction: new Date().toISOString(),
+        topics: Array.from(topics).slice(0, 5),
+        preferences: {}
+      };
+
+      console.log('Updating user context with:', {
+        bot_id: bot.id,
+        client_id: clientId,
+        session_token: sessionToken,
+        context
+      });
+
+      const { error } = await supabase
+        .from('user_context')
+        .upsert({
+          bot_id: bot.id,
+          client_id: clientId,
+          session_token: sessionToken,
+          context,
+          last_updated: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error updating context:', error);
+        throw error;
+      }
+
+      console.log('Successfully updated user context');
+    } catch (error) {
+      console.error('Error in updateUserContext:', error);
+    }
+  };
+
   const sendMessage = async (message: string, clientId: string) => {
     if (!message.trim() || !sessionToken) return;
 
@@ -151,6 +208,9 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
+
+      // Update user context after getting bot response
+      await updateUserContext(updatedMessages);
 
       const messagesToSave = updatedMessages.map(msg => ({
         ...msg,
