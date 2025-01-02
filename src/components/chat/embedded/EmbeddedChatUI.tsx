@@ -109,15 +109,15 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
               <EmbeddedChatContent
                 messages={messages}
                 isLoading={isLoading}
-                onSend={(message) => sendMessage(message, clientId)}
+                onSend={sendMessage}
                 bot={{...bot, starters: bot.starters || []}}
-                onStarterClick={(starter) => sendMessage(starter, clientId)}
+                onStarterClick={sendMessage}
               />
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
               <div className="max-w-3xl mx-auto">
                 <ChatInput
-                  onSend={(message) => sendMessage(message, clientId)}
+                  onSend={sendMessage}
                   disabled={isLoading}
                   isLoading={isLoading}
                   placeholder="Type your message..."

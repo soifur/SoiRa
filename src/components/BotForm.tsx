@@ -1,25 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ModelSelector } from "@/components/bot/ModelSelector";
-import { StartersInput } from "@/components/bot/StartersInput";
-import { AvatarUploader } from "@/components/bot/AvatarUploader";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-
-interface Bot {
-  id: string;
-  name: string;
-  instructions: string;
-  model: "gemini" | "claude" | "openai" | "openrouter";
-  apiKey: string;
-  openRouterModel?: string;
-  starters: string[];
-  avatar?: string;
-  accessType?: "public" | "private";
-  memoryEnabled?: boolean;
-}
+import { Bot } from "@/hooks/useBots";
+import { ModelSelector } from "./bot/ModelSelector";
+import { AvatarUploader } from "./bot/AvatarUploader";
+import { StartersInput } from "./bot/StartersInput";
 
 interface BotFormProps {
   bot: Bot;
@@ -28,105 +14,71 @@ interface BotFormProps {
 }
 
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
-  const [name, setName] = useState(bot.name);
-  const [instructions, setInstructions] = useState(bot.instructions);
-  const [model, setModel] = useState<"gemini" | "claude" | "openai" | "openrouter">(bot.model);
-  const [apiKey, setApiKey] = useState(bot.apiKey);
-  const [openRouterModel, setOpenRouterModel] = useState(bot.openRouterModel);
-  const [starters, setStarters] = useState<string[]>(bot.starters || []);
-  const [avatar, setAvatar] = useState<string | undefined>(bot.avatar);
-  const [memoryEnabled, setMemoryEnabled] = useState<boolean>(bot.memoryEnabled || false);
+  const [editingBot, setEditingBot] = useState<Bot>(bot);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      ...bot,
-      name,
-      instructions,
-      model,
-      apiKey,
-      openRouterModel,
-      starters,
-      avatar,
-      memoryEnabled,
+  const handleModelChange = (model: "gemini" | "claude" | "openai" | "openrouter") => {
+    setEditingBot({ 
+      ...editingBot, 
+      model: model,
+      openRouterModel: model === "openrouter" ? editingBot.openRouterModel : undefined 
     });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-1">Name</label>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter bot name"
-          required
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <AvatarUploader 
+          avatar={editingBot.avatar}
+          botId={editingBot.id}
+          onAvatarChange={(avatar) => setEditingBot({ ...editingBot, avatar })}
         />
+        <div className="flex-1">
+          <label className="block text-sm font-medium mb-1">Name</label>
+          <Input
+            value={editingBot.name}
+            onChange={(e) => setEditingBot({ ...editingBot, name: e.target.value })}
+            placeholder="Bot name"
+          />
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Instructions</label>
-        <Textarea
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          placeholder="Enter instructions for the bot..."
-          rows={4}
-        />
-      </div>
-
-      <ModelSelector
-        bot={{
-          id: bot.id,
-          name,
-          instructions,
-          model,
-          apiKey,
-          openRouterModel,
-          starters,
-          avatar,
-          memoryEnabled,
-          accessType: bot.accessType || "private"
-        }}
-        onModelChange={setModel}
-        onOpenRouterModelChange={setOpenRouterModel}
+      <ModelSelector 
+        bot={editingBot}
+        onModelChange={handleModelChange}
+        onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, openRouterModel: model })}
       />
 
       <div>
         <label className="block text-sm font-medium mb-1">API Key</label>
         <Input
           type="password"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          value={editingBot.apiKey}
+          onChange={(e) => setEditingBot({ ...editingBot, apiKey: e.target.value })}
           placeholder="Enter your API key"
-          required
         />
       </div>
 
-      <StartersInput
-        starters={starters}
-        onStartersChange={setStarters}
-      />
-
-      <AvatarUploader
-        avatar={avatar}
-        onAvatarChange={setAvatar}
-      />
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="memory-enabled"
-          checked={memoryEnabled}
-          onCheckedChange={setMemoryEnabled}
+      <div>
+        <label className="block text-sm font-medium mb-1">Instructions</label>
+        <Textarea
+          value={editingBot.instructions}
+          onChange={(e) => setEditingBot({ ...editingBot, instructions: e.target.value })}
+          placeholder="Enter instructions for the bot..."
+          rows={4}
         />
-        <Label htmlFor="memory-enabled">Enable Memory</Label>
       </div>
 
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <StartersInput 
+        starters={editingBot.starters}
+        onStartersChange={(starters) => setEditingBot({ ...editingBot, starters })}
+      />
+
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">Save</Button>
+        <Button onClick={() => onSave(editingBot)}>Save</Button>
       </div>
-    </form>
+    </div>
   );
 };

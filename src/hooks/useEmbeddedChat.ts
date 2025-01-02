@@ -1,66 +1,97 @@
-import { Bot, Message } from "@/components/chat/types/chatTypes";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { ChatService } from "@/services/ChatService";
-import { UserContextService } from "@/services/UserContextService";
-import { createMessage, formatMessages } from "@/utils/messageUtils";
-import { useChatState } from "./chat/useChatState";
-import { useChatPersistence } from "./chat/useChatPersistence";
 import { supabase } from "@/integrations/supabase/client";
+import { ChatService } from "@/services/ChatService";
+import { createMessage } from "@/utils/messageUtils";
+import { v4 as uuidv4 } from 'uuid';
+import { Bot, Message } from "@/components/chat/types/chatTypes";
+import { Json } from "@/integrations/supabase/types";
 
-export const useEmbeddedChat = (
-  bot: Bot, 
-  clientId: string, 
-  shareKey?: string, 
-  sessionToken?: string | null
-) => {
+interface ChatMessage {
+  role: string;
+  content: string;
+}
+
+export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, sessionToken?: string | null) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [chatId, setChatId] = useState<string | null>(null);
   const { toast } = useToast();
-  const { 
-    messages, 
-    setMessages, 
-    isLoading, 
-    setIsLoading, 
-    chatId, 
-    setChatId,
-    createNewChat: createNewChatState 
-  } = useChatState();
-  const { saveChatHistory } = useChatPersistence();
 
-  const createNewChat = async () => {
-    if (!sessionToken) return null;
-    const newChatId = await createNewChatState(sessionToken);
-    return newChatId;
-  };
+  const loadExistingChat = async (specificChatId?: string) => {
+    if (!bot.id || !sessionToken) return;
 
-  const loadExistingChat = async (selectedChatId: string) => {
     try {
-      const { data: chatData, error } = await supabase
+      let query = supabase
         .from('chat_history')
         .select('*')
-        .eq('id', selectedChatId)
-        .single();
+        .eq('bot_id', bot.id)
+        .eq('session_token', sessionToken)
+        .eq('deleted', 'no');
 
-      if (error) throw error;
+      if (specificChatId) {
+        query = query.eq('id', specificChatId);
+      } else {
+        query = query.order('created_at', { ascending: false }).limit(1);
+      }
 
-      if (chatData && Array.isArray(chatData.messages)) {
-        setChatId(chatData.id);
-        const typedMessages = chatData.messages.map((msg: any) => ({
-          role: msg.role as string,
-          content: msg.content as string,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined
-        }));
-        setMessages(formatMessages(typedMessages));
+      const { data: existingChat, error } = await query.single();
+
+      if (error && !specificChatId) {
+        console.log("No existing chat found, creating new one");
+        await createNewChat();
+        return;
+      }
+
+      if (existingChat) {
+        console.log("Found existing chat for session:", sessionToken);
+        setChatId(existingChat.id);
+        const chatMessages = Array.isArray(existingChat.messages) 
+          ? existingChat.messages.map((msg: any) => ({
+              ...msg,
+              timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+              id: msg.id || uuidv4()
+            }))
+          : [];
+        setMessages(chatMessages);
+      } else if (!specificChatId) {
+        await createNewChat();
       }
     } catch (error) {
       console.error("Error loading chat:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load chat history",
-        variant: "destructive",
-      });
+      if (!specificChatId) {
+        await createNewChat();
+      }
     }
   };
 
-  const sendMessage = async (message: string, clientId: string) => {
+  const createNewChat = async () => {
+    if (!sessionToken) return null;
+    
+    try {
+      console.log("Creating new chat for session:", sessionToken);
+      const newChatId = uuidv4();
+      console.log("Generated new chat ID:", newChatId);
+      setChatId(newChatId);
+      setMessages([]);
+      return newChatId;
+    } catch (error) {
+      console.error("Error creating new chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create new chat",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const convertToServiceMessage = (msg: Message): ChatMessage => ({
+    role: msg.role,
+    content: msg.content
+  });
+
+  const sendMessage = async (message: string) => {
     if (!message.trim() || !sessionToken) return;
 
     try {
@@ -70,7 +101,22 @@ export const useEmbeddedChat = (
       if (!currentChatId) {
         currentChatId = await createNewChat();
         if (!currentChatId) return;
+        setChatId(currentChatId);
       }
+
+      // Get all previous messages for context
+      const { data: previousChats } = await supabase
+        .from('chat_history')
+        .select('messages')
+        .eq('bot_id', bot.id)
+        .eq('session_token', sessionToken)
+        .eq('deleted', 'no')
+        .order('created_at', { ascending: true });
+
+      // Combine all previous messages for context
+      const allPreviousMessages = previousChats?.flatMap(chat => 
+        Array.isArray(chat.messages) ? chat.messages : []
+      ).map((msg: any) => convertToServiceMessage(msg)) || [];
 
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
@@ -80,44 +126,56 @@ export const useEmbeddedChat = (
       setMessages([...newMessages, loadingMessage]);
 
       let botResponse = "";
+      const contextMessages = [...allPreviousMessages, ...newMessages.map(convertToServiceMessage)];
+
       if (bot.model === "gemini") {
         console.log("Sending message to Gemini API with context");
-        botResponse = await ChatService.sendGeminiMessage(
-          newMessages, 
-          bot,
-          sessionToken,
-          undefined,
-          clientId
-        );
+        botResponse = await ChatService.sendGeminiMessage(contextMessages, {
+          ...bot,
+          starters: bot.starters || []
+        });
       } else if (bot.model === "openrouter") {
         console.log("Sending message to OpenRouter API with context");
-        botResponse = await ChatService.sendOpenRouterMessage(
-          newMessages, 
-          bot,
-          sessionToken,
-          undefined,
-          clientId
-        );
+        botResponse = await ChatService.sendOpenRouterMessage(contextMessages, {
+          ...bot,
+          starters: bot.starters || []
+        });
       }
 
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
 
-      // Only update context if memory is enabled
-      if (bot.memory_enabled) {
-        await UserContextService.updateContext(updatedMessages, bot, clientId, sessionToken);
-      }
+      const messagesToSave = updatedMessages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp?.toISOString()
+      }));
 
-      await saveChatHistory(
-        updatedMessages,
-        currentChatId,
-        bot.id,
-        sessionToken,
-        undefined,
-        clientId
-      );
+      // Get the next sequence number
+      const { data: latestChat } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', bot.id)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .single();
 
+      const nextSequence = (latestChat?.sequence_number || 0) + 1;
+
+      const { error } = await supabase
+        .from('chat_history')
+        .upsert({
+          id: currentChatId,
+          bot_id: bot.id,
+          messages: messagesToSave,
+          client_id: clientId,
+          share_key: shareKey,
+          session_token: sessionToken,
+          sequence_number: nextSequence,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
     } catch (error) {
       console.error("Chat error:", error);
       toast({
