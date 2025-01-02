@@ -84,7 +84,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           openRouterModel,
           starters,
           avatar,
-          memoryEnabled
+          memoryEnabled,
+          accessType: bot.accessType || "private"
         }}
         onModelChange={setModel}
         onOpenRouterModelChange={setOpenRouterModel}
