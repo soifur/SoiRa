@@ -152,6 +152,101 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_configurations: {
+        Row: {
+          bot_id: string
+          branching_logic: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          passing_score: number
+          questions: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          bot_id: string
+          branching_logic?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          passing_score?: number
+          questions?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          bot_id?: string
+          branching_logic?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          passing_score?: number
+          questions?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_configurations_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_history: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          quiz_id: string
+          score: number | null
+          session_token: string | null
+          status: Database["public"]["Enums"]["quiz_status"] | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          quiz_id: string
+          score?: number | null
+          session_token?: string | null
+          status?: Database["public"]["Enums"]["quiz_status"] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          quiz_id?: string
+          score?: number | null
+          session_token?: string | null
+          status?: Database["public"]["Enums"]["quiz_status"] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_history_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_configurations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shared_bots: {
         Row: {
           api_key_id: string | null
@@ -249,6 +344,7 @@ export type Database = {
     }
     Enums: {
       bot_model: "gemini" | "claude" | "openai" | "openrouter"
+      quiz_status: "not_started" | "in_progress" | "completed"
       user_role: "super_admin" | "admin" | "user"
     }
     CompositeTypes: {
