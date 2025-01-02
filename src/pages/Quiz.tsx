@@ -1,62 +1,45 @@
-import { useParams } from "react-router-dom";
-import { QuizConfigurationForm } from "@/components/quiz/QuizConfigurationForm";
-import { QuizList } from "@/components/quiz/QuizList";
-import { useQuizConfigurations } from "@/hooks/useQuizConfigurations";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
 import { Plus } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const Quiz = () => {
-  const { botId } = useParams();
-  const {
-    configurations,
-    isLoading,
-    saveConfiguration,
-    deleteConfiguration,
-    refreshConfigurations,
-  } = useQuizConfigurations(botId || "");
+  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
 
-  if (!botId) {
-    return <div className="container mt-20">Please select a bot first.</div>;
-  }
+  const handleCreateQuiz = () => {
+    setIsCreating(true);
+    toast({
+      title: "Coming soon",
+      description: "Quiz creation functionality will be implemented soon.",
+    });
+  };
 
   return (
-    <div className="container mt-20">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Quiz Management</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Quiz
+    <div className="container mx-auto max-w-full pt-20 px-4">
+      <div className="flex gap-6 h-[calc(100vh-8rem)]">
+        <div className="w-1/2 flex flex-col gap-4 overflow-y-auto">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Quiz Management</h1>
+            <Button onClick={handleCreateQuiz}>
+              <Plus className="mr-2 h-4 w-4" /> Create Quiz
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Quiz</DialogTitle>
-            </DialogHeader>
-            <QuizConfigurationForm
-              botId={botId}
-              onSave={async (config) => {
-                await saveConfiguration(config);
-                refreshConfigurations();
-              }}
-              onCancel={() => {
-                // Dialog will close automatically
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
 
-      <QuizList
-        configurations={configurations}
-        isLoading={isLoading}
-        onDelete={async (id) => {
-          await deleteConfiguration(id);
-          refreshConfigurations();
-        }}
-      />
+          <Card className="p-4">
+            <p className="text-muted-foreground">
+              No quizzes created yet. Click the button above to create your first quiz.
+            </p>
+          </Card>
+        </div>
+
+        <div className="w-1/2 border-l border-border">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            Select a quiz to view details
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

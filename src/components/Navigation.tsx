@@ -30,7 +30,6 @@ export const Navigation = () => {
     }
   };
 
-  // Don't show navigation in embedded mode
   if (isEmbedded) return null;
 
   return (

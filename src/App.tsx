@@ -62,7 +62,7 @@ function App() {
             element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
           />
           <Route
-            path="/quiz/:botId"
+            path="/quiz"
             element={isAuthenticated ? <Quiz /> : <Navigate to="/login" />}
           />
           <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
