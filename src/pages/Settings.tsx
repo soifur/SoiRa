@@ -14,6 +14,7 @@ interface MemoryBot {
   model: "gemini" | "claude" | "openai" | "openrouter";
   apiKey: string;
   openRouterModel?: string;
+  starters: string[]; // Added this line to fix the build error
 }
 
 const Settings = () => {
@@ -41,6 +42,7 @@ const Settings = () => {
         model: data.model,
         apiKey: data.api_key,
         openRouterModel: data.open_router_model,
+        starters: data.starters || [], // Initialize with empty array if null
       });
     } catch (error) {
       console.error('Error fetching Memory Bot:', error);

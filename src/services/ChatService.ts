@@ -1,5 +1,6 @@
 import { Bot } from "@/hooks/useBots";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { MemoryService } from "./MemoryService";
 
 export class ChatService {
   private static sanitizeText(text: string): string {
@@ -17,13 +18,23 @@ export class ChatService {
 
   static async sendOpenRouterMessage(
     messages: Array<{ role: string; content: string }>,
-    bot: Bot
+    bot: Bot,
+    sessionToken?: string | null,
+    userId?: string | null
   ) {
     if (!bot.apiKey) {
       throw new Error("OpenRouter API key is missing");
     }
 
-    const sanitizedMessages = messages.map(msg => ({
+    // Inject memory context if enabled
+    const messagesWithContext = await MemoryService.injectMemoryContext(
+      messages.map(m => ({ ...m, id: Math.random().toString() })),
+      bot,
+      sessionToken,
+      userId
+    );
+
+    const sanitizedMessages = messagesWithContext.map(msg => ({
       ...msg,
       content: this.sanitizeText(msg.content)
     }));
@@ -70,11 +81,21 @@ export class ChatService {
 
   static async sendGeminiMessage(
     messages: Array<{ role: string; content: string }>,
-    bot: Bot
+    bot: Bot,
+    sessionToken?: string | null,
+    userId?: string | null
   ) {
     if (!bot.apiKey) {
       throw new Error("Gemini API key is missing. Please check your bot configuration.");
     }
+
+    // Inject memory context if enabled
+    const messagesWithContext = await MemoryService.injectMemoryContext(
+      messages.map(m => ({ ...m, id: Math.random().toString() })),
+      bot,
+      sessionToken,
+      userId
+    );
 
     try {
       const genAI = new GoogleGenerativeAI(bot.apiKey);
@@ -86,7 +107,7 @@ export class ChatService {
         },
       });
 
-      const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messages
+      const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messagesWithContext
         .map((msg) => `${msg.role === "user" ? "User" : bot.name}: ${msg.content}`)
         .join("\n")}`;
 
