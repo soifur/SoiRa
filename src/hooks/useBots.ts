@@ -19,11 +19,6 @@ export const useBots = () => {
   const { toast } = useToast();
   const [bots, setBots] = useState<Bot[]>([]);
 
-  // Fetch bots from Supabase on component mount
-  useEffect(() => {
-    fetchBots();
-  }, []);
-
   const fetchBots = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -36,7 +31,6 @@ export const useBots = () => {
 
       if (error) throw error;
 
-      // Transform the data to match our Bot interface
       const transformedBots = data.map((bot): Bot => ({
         id: bot.id,
         name: bot.name,
@@ -46,7 +40,8 @@ export const useBots = () => {
         apiKey: bot.api_key,
         openRouterModel: bot.open_router_model,
         avatar: bot.avatar,
-        accessType: "private"
+        accessType: "private",
+        memoryEnabled: bot.memory_enabled
       }));
 
       setBots(transformedBots);
@@ -59,6 +54,10 @@ export const useBots = () => {
       });
     }
   };
+
+  useEffect(() => {
+    fetchBots();
+  }, []);
 
   const saveBot = async (bot: Bot) => {
     try {
@@ -75,7 +74,8 @@ export const useBots = () => {
         api_key: bot.apiKey,
         open_router_model: bot.openRouterModel,
         avatar: bot.avatar,
-        user_id: session.session.user.id
+        user_id: session.session.user.id,
+        memory_enabled: bot.memoryEnabled
       };
 
       let result;
@@ -108,7 +108,8 @@ export const useBots = () => {
         apiKey: result.data.api_key,
         openRouterModel: result.data.open_router_model,
         avatar: result.data.avatar,
-        accessType: "private"
+        accessType: "private",
+        memoryEnabled: result.data.memory_enabled
       };
 
       // Refresh the bots list
