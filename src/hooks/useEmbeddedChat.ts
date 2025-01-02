@@ -5,6 +5,7 @@ import { UserContextService } from "@/services/UserContextService";
 import { createMessage } from "@/utils/messageUtils";
 import { useChatState } from "./chat/useChatState";
 import { useChatPersistence } from "./chat/useChatPersistence";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useEmbeddedChat = (
   bot: Bot, 
@@ -19,9 +20,40 @@ export const useEmbeddedChat = (
     isLoading, 
     setIsLoading, 
     chatId, 
-    createNewChat 
+    setChatId,
+    createNewChat: createNewChatState 
   } = useChatState();
   const { saveChatHistory } = useChatPersistence();
+
+  const createNewChat = async () => {
+    if (!sessionToken) return null;
+    const newChatId = await createNewChatState(sessionToken);
+    return newChatId;
+  };
+
+  const loadExistingChat = async (selectedChatId: string) => {
+    try {
+      const { data: chatData, error } = await supabase
+        .from('chat_history')
+        .select('*')
+        .eq('id', selectedChatId)
+        .single();
+
+      if (error) throw error;
+
+      if (chatData) {
+        setChatId(chatData.id);
+        setMessages(chatData.messages || []);
+      }
+    } catch (error) {
+      console.error("Error loading chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat history",
+        variant: "destructive",
+      });
+    }
+  };
 
   const sendMessage = async (message: string, clientId: string) => {
     if (!message.trim() || !sessionToken) return;
@@ -31,7 +63,7 @@ export const useEmbeddedChat = (
       
       let currentChatId = chatId;
       if (!currentChatId) {
-        currentChatId = await createNewChat(sessionToken);
+        currentChatId = await createNewChat();
         if (!currentChatId) return;
       }
 
@@ -69,7 +101,6 @@ export const useEmbeddedChat = (
 
       // Only update context if memory is enabled
       if (bot.memory_enabled) {
-        console.log('Updating user context after bot response');
         await UserContextService.updateContext(updatedMessages, bot, clientId, sessionToken);
       }
 
@@ -99,5 +130,7 @@ export const useEmbeddedChat = (
     isLoading,
     chatId,
     sendMessage,
+    loadExistingChat,
+    createNewChat
   };
 };
