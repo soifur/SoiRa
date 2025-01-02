@@ -26,9 +26,22 @@ export const QuizReview = ({ quiz, onClose }: QuizReviewProps) => {
 
         if (error) throw error;
 
-        setHistory(data);
-        if (data.length > 0) {
-          setSelectedAttempt(data[0]);
+        // Map the database response to match our TypeScript interface
+        const mappedData: QuizHistory[] = data.map((item) => ({
+          id: item.id,
+          quizId: item.quiz_id,
+          sessionToken: item.session_token,
+          userId: item.user_id,
+          answers: item.answers,
+          score: item.score || 0,
+          status: item.status || 'completed',
+          createdAt: item.created_at,
+          updatedAt: item.updated_at
+        }));
+
+        setHistory(mappedData);
+        if (mappedData.length > 0) {
+          setSelectedAttempt(mappedData[0]);
         }
       } catch (error) {
         console.error("Error fetching quiz history:", error);
