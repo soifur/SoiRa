@@ -5,14 +5,19 @@ import { QuizConfiguration } from "@/types/quiz";
 import { Trash2, GraduationCap } from "lucide-react";
 
 interface QuizListProps {
-  quizzes: QuizConfiguration[];
+  configurations: QuizConfiguration[];
+  isLoading: boolean;
   onDelete: (id: string) => void;
 }
 
-export const QuizList = ({ quizzes, onDelete }: QuizListProps) => {
+export const QuizList = ({ configurations, isLoading, onDelete }: QuizListProps) => {
+  if (isLoading) {
+    return <div className="text-center text-muted-foreground py-8">Loading...</div>;
+  }
+
   return (
     <div className="space-y-4">
-      {quizzes.map((quiz) => (
+      {configurations.map((quiz) => (
         <Card key={quiz.id} className="p-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -40,7 +45,7 @@ export const QuizList = ({ quizzes, onDelete }: QuizListProps) => {
           </div>
         </Card>
       ))}
-      {quizzes.length === 0 && (
+      {configurations.length === 0 && (
         <div className="text-center text-muted-foreground py-8">
           No quizzes created yet
         </div>
