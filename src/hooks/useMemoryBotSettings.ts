@@ -11,27 +11,31 @@ export const useMemoryBotSettings = () => {
     const fetchSettings = async () => {
       try {
         console.log("Fetching memory bot settings");
-        const { data, error } = await supabase
+        const { data: memoryBotData, error: memoryBotError } = await supabase
           .from('memory_bot_settings')
           .select('*')
-          .maybeSingle();
+          .limit(1)
+          .single();
 
-        if (error) throw error;
+        if (memoryBotError) {
+          console.error("Error fetching memory bot settings:", memoryBotError);
+          return;
+        }
         
-        if (data) {
-          console.log("Found memory bot settings:", data);
+        if (memoryBotData) {
+          console.log("Found memory bot settings:", memoryBotData);
           setSettings({
-            id: data.id,
-            model: data.model as "gemini" | "openrouter",
-            open_router_model: data.open_router_model,
-            api_key: data.api_key,
-            instructions: data.instructions
+            id: memoryBotData.id,
+            model: memoryBotData.model as "gemini" | "openrouter",
+            open_router_model: memoryBotData.open_router_model,
+            api_key: memoryBotData.api_key,
+            instructions: memoryBotData.instructions
           });
         } else {
           console.log("No memory bot settings found");
         }
       } catch (err) {
-        console.error("Error fetching memory settings:", err);
+        console.error("Error in fetchSettings:", err);
         setError(err instanceof Error ? err : new Error('Failed to fetch memory settings'));
       } finally {
         setIsLoading(false);

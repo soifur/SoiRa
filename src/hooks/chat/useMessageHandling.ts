@@ -14,13 +14,18 @@ export const useMessageHandling = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { settings: memorySettings } = useMemoryBotSettings();
+  const { settings: memorySettings, isLoading: isMemorySettingsLoading } = useMemoryBotSettings();
   const { toast } = useToast();
   const abortControllerRef = { current: null as AbortController | null };
 
   const handleMemoryUpdate = async (updatedMessages: Message[]) => {
-    if (!bot.memory_enabled || !memorySettings?.instructions) {
-      console.log("Memory not enabled or no instructions available");
+    if (!bot.memory_enabled) {
+      console.log("Memory not enabled for bot:", bot.id);
+      return;
+    }
+
+    if (!memorySettings?.instructions) {
+      console.log("No memory instructions available");
       return;
     }
 
@@ -61,6 +66,8 @@ Return ONLY a valid JSON object with the merged context.`;
         console.error("No memory API key provided");
         return;
       }
+
+      console.log("Memory bot configuration:", memoryBot);
 
       if (memoryBot.model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage(
