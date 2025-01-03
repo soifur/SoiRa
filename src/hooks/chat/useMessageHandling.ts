@@ -14,7 +14,7 @@ export const useMessageHandling = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { settings: memorySettings, isLoading: isMemorySettingsLoading } = useMemoryBotSettings();
+  const { settings: memorySettings } = useMemoryBotSettings();
   const { toast } = useToast();
   const abortControllerRef = { current: null as AbortController | null };
 
@@ -24,19 +24,16 @@ export const useMessageHandling = (
       return;
     }
 
-    if (!memorySettings?.instructions) {
-      console.log("No memory instructions available");
+    if (!memorySettings) {
+      console.log("No memory settings available");
       return;
     }
 
     try {
       console.log("Updating memory with context:", userContext);
-      console.log("Using memory instructions:", memorySettings.instructions);
-      console.log("Using memory model:", memorySettings.model);
       
       const contextUpdatePrompt = `
-Instructions for context extraction:
-${memorySettings.instructions}
+${memorySettings.instructions || 'Please analyze the conversation and maintain context about the user, including their preferences, background, and any important details they share. Update the context with new information while preserving existing knowledge unless it\'s explicitly contradicted.'}
 
 Previous context: ${JSON.stringify(userContext || {})}
 
@@ -49,11 +46,11 @@ Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
 
-      // Create a memory-specific bot configuration
+      // Create a memory-specific bot configuration using user settings
       const memoryBot: Bot = {
         id: bot.id,
         name: bot.name,
-        instructions: memorySettings.instructions,
+        instructions: memorySettings.instructions || '',
         starters: [],
         model: memorySettings.model,
         apiKey: memorySettings.api_key,
@@ -67,7 +64,10 @@ Return ONLY a valid JSON object with the merged context.`;
         return;
       }
 
-      console.log("Memory bot configuration:", memoryBot);
+      console.log("Memory bot configuration:", {
+        ...memoryBot,
+        apiKey: '[REDACTED]'
+      });
 
       if (memoryBot.model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage(
