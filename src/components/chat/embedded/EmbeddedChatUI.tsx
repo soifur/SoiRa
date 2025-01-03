@@ -39,14 +39,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     if (!chatId || !sessionToken) return;
 
     try {
-      const { error } = await supabase
-        .from('chat_history')
-        .update({ deleted: 'yes' })
-        .eq('id', chatId)
-        .eq('session_token', sessionToken);
-
-      if (error) throw error;
-
       clearMessages();
       const newChatId = await createNewChat();
       if (newChatId) {
