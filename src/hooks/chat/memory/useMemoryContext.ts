@@ -7,7 +7,7 @@ export const useMemoryContext = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
-    if (!bot.memory_enabled || !memorySettings?.api_key || !memorySettings?.instructions) {
+    if (!bot.memory_enabled || !bot.apiKey || !bot.instructions) {
       return;
     }
 
@@ -15,7 +15,7 @@ export const useMemoryContext = (
       const userMessages = messages.filter(msg => msg.role === "user");
       
       const contextUpdatePrompt = `
-${memorySettings.instructions}
+${bot.instructions}
 
 Previous context: ${JSON.stringify(userContext || {})}
 
@@ -26,30 +26,22 @@ Based on the above instructions, analyze these messages and update the user cont
 IMPORTANT: Merge any new information with the existing context, don't replace it unless explicitly contradicted.
 Return ONLY a valid JSON object with the merged context.`;
 
-      const memoryBot: Bot = {
-        id: bot.id,
-        name: bot.name,
-        instructions: memorySettings.instructions,
-        starters: [],
-        model: memorySettings.model,
-        apiKey: memorySettings.api_key,
-        openRouterModel: memorySettings.open_router_model,
-        avatar: bot.avatar,
-        memory_enabled: true
-      };
+      console.log("Memory bot configuration:", bot);
 
       let newContextResponse;
-      if (memoryBot.model === "gemini") {
+      if (bot.model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage(
           [{ role: "user", content: contextUpdatePrompt }],
-          memoryBot
+          bot
         );
       } else {
         newContextResponse = await ChatService.sendOpenRouterMessage(
           [{ role: "user", content: contextUpdatePrompt }],
-          memoryBot
+          bot
         );
       }
+
+      console.log("Memory bot raw response:", newContextResponse);
 
       // Extract JSON from the response
       const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
@@ -81,6 +73,9 @@ Return ONLY a valid JSON object with the merged context.`;
         likes: [...new Set([...(userContext?.likes || []), ...newContext.likes])].filter(item => item !== " "),
         topics: [...new Set([...(userContext?.topics || []), ...newContext.topics])].filter(item => item !== " ")
       };
+
+      console.log("New context extracted:", newContext);
+      console.log("Merged context:", mergedContext);
 
       await updateUserContext(mergedContext);
     } catch (error) {
