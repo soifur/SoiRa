@@ -30,7 +30,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     setEditingBot({ 
       ...editingBot, 
       model: model,
-      openRouterModel: model === "openrouter" ? editingBot.openRouterModel : undefined 
+      open_router_model: model === "openrouter" ? editingBot.open_router_model : undefined 
     });
   };
 
@@ -38,15 +38,14 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     setEditingBot({ 
       ...editingBot, 
       memory_model: model,
-      // If memory model is OpenRouter, keep the existing OpenRouter model ID or use the main OpenRouter model ID as default
-      memory_api_key: model === "openrouter" ? (editingBot.memory_api_key || editingBot.apiKey) : editingBot.memory_api_key
+      memory_api_key: model === "openrouter" ? (editingBot.memory_api_key || editingBot.api_key) : editingBot.memory_api_key
     });
   };
 
   const handleMemoryOpenRouterModelChange = (modelId: string) => {
     setEditingBot({
       ...editingBot,
-      memory_model: modelId // For OpenRouter, we store the specific model ID
+      memory_model: modelId
     });
   };
 
@@ -81,15 +80,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       <ModelSelector 
         bot={editingBot}
         onModelChange={handleModelChange}
-        onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, openRouterModel: model })}
+        onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, open_router_model: model })}
       />
 
       <div>
         <label className="block text-sm font-medium mb-1">API Key</label>
         <Input
           type="password"
-          value={editingBot.apiKey}
-          onChange={(e) => setEditingBot({ ...editingBot, apiKey: e.target.value })}
+          value={editingBot.api_key}
+          onChange={(e) => setEditingBot({ ...editingBot, api_key: e.target.value })}
           placeholder="Enter your API key"
         />
       </div>
@@ -133,7 +132,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                        ['gemini', 'claude', 'openai', 'openrouter'].includes(editingBot.memory_model)
                        ? editingBot.memory_model as BotModel
                        : 'openrouter',
-                openRouterModel: typeof editingBot.memory_model === 'string' && 
+                open_router_model: typeof editingBot.memory_model === 'string' && 
                                 !['gemini', 'claude', 'openai', 'openrouter'].includes(editingBot.memory_model)
                                 ? editingBot.memory_model
                                 : undefined

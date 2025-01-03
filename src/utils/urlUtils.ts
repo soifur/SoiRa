@@ -11,9 +11,9 @@ export const createShortBotConfig = (bot: Bot) => {
     instructions: bot.instructions,
     starters: bot.starters,
     model: bot.model,
-    apiKey: bot.apiKey,
+    api_key: bot.api_key,
     accessType: bot.accessType || "public",
-    openRouterModel: bot.openRouterModel
+    open_router_model: bot.open_router_model
   };
   
   return encodeURIComponent(JSON.stringify(minimalConfig));

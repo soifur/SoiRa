@@ -42,15 +42,15 @@ Return ONLY a valid JSON object with the merged context.`;
       let newContextResponse;
       const memoryBot: Bot = {
         ...bot,
-        apiKey: bot.memory_api_key || bot.apiKey,
+        api_key: bot.memory_api_key || bot.api_key,
         model: bot.memory_model === "gemini" ? "gemini" : "openrouter",
-        openRouterMemoryModel: bot.memory_model !== "gemini" ? bot.memory_model : undefined
+        open_router_model: bot.memory_model !== "gemini" ? bot.memory_model : undefined
       };
 
       console.log("Memory bot configuration:", {
         model: memoryBot.model,
         memory_model: memoryBot.memory_model,
-        openRouterMemoryModel: memoryBot.openRouterMemoryModel
+        open_router_model: memoryBot.open_router_model
       });
       
       if (memoryBot.model === "gemini") {

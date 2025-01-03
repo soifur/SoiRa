@@ -128,7 +128,7 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
             {isMemorySelector ? "OpenRouter Memory Model" : "OpenRouter Model"}
           </label>
           <Select
-            value={bot.openRouterModel}
+            value={bot.open_router_model}
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
           >
             <SelectTrigger>
