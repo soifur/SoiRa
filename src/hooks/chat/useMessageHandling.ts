@@ -94,11 +94,19 @@ export const useMessageHandling = (
       setMessages(updatedMessages);
 
       if (bot.memory_enabled) {
-        const memoryBot = {
-          ...bot,
-          model: bot.memory_model || "openrouter",
-          apiKey: bot.memory_api_key || "",
+        const memoryBot: Bot = {
+          id: bot.id,
+          name: bot.name,
           instructions: bot.memory_instructions || "You are a context extraction bot. Extract and update the user context based on the conversation. Return ONLY a JSON object with the updated context.",
+          starters: bot.starters,
+          model: isValidBotModel(bot.memory_model || "") ? bot.memory_model as Bot["model"] : "openrouter",
+          apiKey: bot.memory_api_key || "",
+          avatar: bot.avatar,
+          accessType: bot.accessType,
+          memory_enabled: bot.memory_enabled,
+          memory_instructions: bot.memory_instructions,
+          memory_model: bot.memory_model,
+          memory_api_key: bot.memory_api_key
         };
         await handleMemoryUpdate(updatedMessages, memoryBot);
       }
