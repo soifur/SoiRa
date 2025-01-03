@@ -5,6 +5,7 @@ import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { Bot, Message } from "@/components/chat/types/chatTypes";
+import { UserContextService } from "@/services/UserContextService";
 
 interface ChatMessage {
   role: string;
@@ -17,6 +18,32 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
   const [chatId, setChatId] = useState<string | null>(null);
   const { toast } = useToast();
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [userContext, setUserContext] = useState<any>(null);
+
+  useEffect(() => {
+    fetchUserContext();
+  }, [bot.id, clientId, sessionToken]);
+
+  const fetchUserContext = async () => {
+    try {
+      console.log("Fetching user context for bot:", bot.id, "client:", clientId);
+      const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
+      console.log("Fetched user context:", context);
+      setUserContext(context);
+    } catch (error) {
+      console.error("Error fetching user context:", error);
+    }
+  };
+
+  const updateUserContext = async (newContext: any) => {
+    try {
+      console.log("Updating user context:", newContext);
+      await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
+      setUserContext(newContext);
+    } catch (error) {
+      console.error("Error updating user context:", error);
+    }
+  };
 
   const loadExistingChat = async (specificChatId?: string) => {
     if (!bot.id || !sessionToken) return;
@@ -97,12 +124,10 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     try {
       setIsLoading(true);
       
-      // Cancel any existing request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
       
-      // Create new abort controller for this request
       abortControllerRef.current = new AbortController();
       
       let currentChatId = chatId;
@@ -112,20 +137,6 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
         setChatId(currentChatId);
       }
 
-      // Get all previous messages for context
-      const { data: previousChats } = await supabase
-        .from('chat_history')
-        .select('messages')
-        .eq('bot_id', bot.id)
-        .eq('session_token', sessionToken)
-        .eq('deleted', 'no')
-        .order('created_at', { ascending: true });
-
-      // Combine all previous messages for context
-      const allPreviousMessages = previousChats?.flatMap(chat => 
-        Array.isArray(chat.messages) ? chat.messages : []
-      ).map((msg: any) => convertToServiceMessage(msg)) || [];
-
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
@@ -134,7 +145,16 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       setMessages([...newMessages, loadingMessage]);
 
       let botResponse = "";
-      const contextMessages = [...allPreviousMessages, ...newMessages.map(convertToServiceMessage)];
+      const contextMessages = newMessages.map(convertToServiceMessage);
+
+      // Include user context in the conversation
+      if (bot.memory_enabled && userContext) {
+        const contextPrompt = `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`;
+        contextMessages.unshift({
+          role: "system",
+          content: contextPrompt
+        });
+      }
 
       if (bot.model === "gemini") {
         console.log("Sending message to Gemini API with context");
@@ -152,12 +172,42 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
 
+      // Update user context if memory is enabled
+      if (bot.memory_enabled) {
+        const memoryBot = {
+          ...bot,
+          model: bot.memory_model || "openrouter",
+          apiKey: bot.memory_api_key || "",
+          instructions: bot.memory_instructions || "You are a context extraction bot. Extract and update the user context based on the conversation. Return ONLY a JSON object with the updated context.",
+        };
+
+        try {
+          const contextUpdatePrompt = `Previous context: ${JSON.stringify(userContext)}\n\nConversation to analyze:\n${updatedMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nExtract and update the user context based on this conversation. Return ONLY a JSON object with the updated context.`;
+          
+          let newContextResponse;
+          if (memoryBot.model === "gemini") {
+            newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], memoryBot);
+          } else {
+            newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], memoryBot);
+          }
+
+          try {
+            const newContext = JSON.parse(newContextResponse);
+            console.log("New context extracted:", newContext);
+            await updateUserContext(newContext);
+          } catch (parseError) {
+            console.error("Error parsing context response:", parseError);
+          }
+        } catch (memoryError) {
+          console.error("Error updating memory:", memoryError);
+        }
+      }
+
       const messagesToSave = updatedMessages.map(msg => ({
         ...msg,
         timestamp: msg.timestamp?.toISOString()
       }));
 
-      // Get the next sequence number
       const { data: latestChat } = await supabase
         .from('chat_history')
         .select('sequence_number')
@@ -199,7 +249,6 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     }
   };
 
-  // Cleanup abort controller on unmount
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -214,6 +263,7 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     chatId,
     sendMessage,
     loadExistingChat,
-    createNewChat
+    createNewChat,
+    userContext
   };
 };
