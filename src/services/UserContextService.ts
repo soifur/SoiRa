@@ -44,12 +44,10 @@ export class UserContextService {
         throw fetchError;
       }
 
-      // Ensure existing context is an object, default to empty object if null or invalid
       const existingContext = (existingData?.context && typeof existingData.context === 'object') 
         ? existingData.context as Record<string, any>
         : {};
 
-      // Merge existing context with new context
       const mergedContext = {
         ...existingContext,
         ...newContext

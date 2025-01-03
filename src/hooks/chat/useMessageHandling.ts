@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Message } from "@/components/chat/types/chatTypes";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { MemorySettings, MemoryModel } from "@/hooks/useMemorySettings";
+import { useMemoryBotSettings } from "@/hooks/useMemoryBotSettings";
 
 export const useMessageHandling = (
   bot: Bot,
@@ -15,32 +14,9 @@ export const useMessageHandling = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [memorySettings, setMemorySettings] = useState<MemorySettings | null>(null);
+  const { settings: memorySettings } = useMemoryBotSettings();
   const { toast } = useToast();
   const abortControllerRef = { current: null as AbortController | null };
-
-  useEffect(() => {
-    const fetchMemorySettings = async () => {
-      const { data, error } = await supabase
-        .from('memory_bot_settings')
-        .select('*')
-        .single();
-      
-      if (data) {
-        // Ensure the model is of type MemoryModel
-        const model = data.model as MemoryModel;
-        setMemorySettings({
-          id: data.id,
-          model,
-          open_router_model: data.open_router_model,
-          api_key: data.api_key,
-          instructions: data.instructions
-        });
-      }
-    };
-
-    fetchMemorySettings();
-  }, []);
 
   const handleMemoryUpdate = async (updatedMessages: Message[]) => {
     if (!bot.memory_enabled || !memorySettings?.instructions) {
@@ -81,13 +57,6 @@ Return ONLY a valid JSON object with the merged context.`;
         memory_enabled: true
       };
 
-      console.log("Memory bot configuration:", {
-        model: memoryBot.model,
-        memory_model: memorySettings.model,
-        api_key: memorySettings.api_key,
-        instructions: memorySettings.instructions
-      });
-
       if (!memorySettings.api_key) {
         console.error("No memory API key provided");
         return;
@@ -101,8 +70,7 @@ Return ONLY a valid JSON object with the merged context.`;
       } else {
         newContextResponse = await ChatService.sendOpenRouterMessage(
           [{ role: "user", content: contextUpdatePrompt }],
-          memoryBot,
-          undefined
+          memoryBot
         );
       }
 
