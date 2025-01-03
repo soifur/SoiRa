@@ -26,7 +26,7 @@ export class UserContextService {
     }
   }
 
-  static async updateUserContext(botId: string, clientId: string, newContext: any, sessionToken?: string | null) {
+  static async updateUserContext(botId: string, clientId: string, newContext: Record<string, any>, sessionToken?: string | null) {
     try {
       console.log("Updating context for:", { botId, clientId, sessionToken });
       console.log("New context:", newContext);
@@ -44,9 +44,14 @@ export class UserContextService {
         throw fetchError;
       }
 
+      // Ensure existing context is an object, default to empty object if null or invalid
+      const existingContext = (existingData?.context && typeof existingData.context === 'object') 
+        ? existingData.context as Record<string, any>
+        : {};
+
       // Merge existing context with new context
       const mergedContext = {
-        ...(existingData?.context || {}),
+        ...existingContext,
         ...newContext
       };
 
