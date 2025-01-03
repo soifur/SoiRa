@@ -5,6 +5,15 @@ import { UserContextService } from "@/services/UserContextService";
 import { useMessageHandling } from "./chat/useMessageHandling";
 import { useChatHistory } from "./chat/useChatHistory";
 
+// Debounce function
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 export const useEmbeddedChat = (
   bot: Bot,
   clientId: string,
@@ -83,15 +92,18 @@ export const useEmbeddedChat = (
     initializeChat();
   }, [chatId]);
 
-  useEffect(() => {
-    const saveMessages = async () => {
-      if (chatId && messages.length > 0) {
-        console.log("Saving chat history for chat:", chatId);
-        await saveChatHistory(messages, chatId);
-      }
-    };
+  // Create a debounced version of saveChatHistory
+  const debouncedSave = debounce(async (msgs: Message[], cId: string) => {
+    if (cId && msgs.length > 0) {
+      console.log("Saving chat history for chat:", cId);
+      await saveChatHistory(msgs, cId);
+    }
+  }, 1000); // 1 second debounce
 
-    saveMessages();
+  useEffect(() => {
+    if (chatId && messages.length > 0) {
+      debouncedSave(messages, chatId);
+    }
   }, [messages, chatId]);
 
   const clearMessages = () => {
