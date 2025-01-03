@@ -16,10 +16,10 @@ export class ChatService {
 
   static async sendOpenRouterMessage(
     messages: Array<{ role: string; content: string }>,
-    bot: Bot,
+    bots: Bot,
     abortSignal?: AbortSignal
   ) {
-    if (!bot.apiKey) {
+    if (!bots.api_key) {
       throw new Error("OpenRouter API key is missing");
     }
 
@@ -28,26 +28,26 @@ export class ChatService {
       content: this.sanitizeText(msg.content)
     }));
 
-    const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
+    const sanitizedInstructions = bots.instructions ? this.sanitizeText(bots.instructions) : '';
 
     try {
       const headers = {
-        'Authorization': `Bearer ${bot.apiKey}`,
+        'Authorization': `Bearer ${bots.api_key}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': window.location.origin,
         'X-Title': 'Lovable Chat Interface'
       };
 
       // Determine if this is a memory operation
-      const isMemoryOperation = bot.memory_enabled === true;
+      const isMemoryOperation = bots.memory_enabled === true;
       
       // Select the appropriate model based on the operation type
       let modelToUse;
-      if (isMemoryOperation && bot.memory_model) {
-        modelToUse = bot.memory_model;
+      if (isMemoryOperation && bots.memory_model) {
+        modelToUse = bots.memory_model;
         console.log("Using memory model:", modelToUse);
-      } else if (!isMemoryOperation && bot.openRouterModel) {
-        modelToUse = bot.openRouterModel;
+      } else if (!isMemoryOperation && bots.open_router_model) {
+        modelToUse = bots.open_router_model;
         console.log("Using chat model:", modelToUse);
       } else {
         throw new Error(isMemoryOperation ? 
@@ -55,10 +55,10 @@ export class ChatService {
           "OpenRouter model not configured");
       }
 
-      console.log("Bot configuration:", {
-        model: bot.model,
-        memory_model: bot.memory_model,
-        openRouterModel: bot.openRouterModel,
+      console.log("Bots configuration:", {
+        model: bots.model,
+        memory_model: bots.memory_model,
+        open_router_model: bots.open_router_model,
         isMemoryOperation
       });
 
@@ -99,14 +99,14 @@ export class ChatService {
 
   static async sendGeminiMessage(
     messages: Array<{ role: string; content: string }>,
-    bot: Bot
+    bots: Bot
   ) {
-    if (!bot.apiKey) {
-      throw new Error("Gemini API key is missing. Please check your bot configuration.");
+    if (!bots.api_key) {
+      throw new Error("Gemini API key is missing. Please check your bots configuration.");
     }
 
     try {
-      const genAI = new GoogleGenerativeAI(bot.apiKey);
+      const genAI = new GoogleGenerativeAI(bots.api_key);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       const chat = model.startChat({
         history: [],
@@ -115,8 +115,8 @@ export class ChatService {
         },
       });
 
-      const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messages
-        .map((msg) => `${msg.role === "user" ? "User" : bot.name}: ${msg.content}`)
+      const fullPrompt = `${bots.instructions}\n\nPrevious messages:\n${messages
+        .map((msg) => `${msg.role === "user" ? "User" : bots.name}: ${msg.content}`)
         .join("\n")}`;
 
       const result = await chat.sendMessage(fullPrompt);
