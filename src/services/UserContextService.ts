@@ -31,8 +31,11 @@ export class UserContextService {
 
       if (fetchError) throw fetchError;
 
+      // Ensure context is treated as an object type
+      const existingContext = (existingData?.context || {}) as Record<string, any>;
+      
       const mergedContext = {
-        ...(existingData?.context || {}),
+        ...existingContext,
         ...newContext
       };
 
