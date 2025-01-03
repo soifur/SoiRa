@@ -54,8 +54,8 @@ Return ONLY a valid JSON object with the merged context.`;
         [{ role: "user", content: contextUpdatePrompt }],
         {
           ...bot,
-          api_key: bot.memory_api_key,
-          open_router_model: bot.memory_model
+          apiKey: bot.memory_api_key,
+          openRouterModel: bot.memory_model
         }
       );
 

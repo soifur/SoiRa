@@ -22,7 +22,7 @@ export interface Bot {
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: BaseModel | string; // Match the type from useBots.ts
+  memory_model?: BaseModel | string;
   memory_api_key?: string;
 }
 
