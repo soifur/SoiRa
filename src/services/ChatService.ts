@@ -8,9 +8,9 @@ export class ChatService {
     return text
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
-      .replace(/\u2014/g, "--")
-      .replace(/\u2013/g, "-")
-      .replace(/\u2026/g, "...")
+      .replace(/[\u2014/g, "--")
+      .replace(/[\u2013]/g, "-")
+      .replace(/[\u2026]/g, "...")
       .replace(/[^\x00-\x7F]/g, " ");
   }
 
@@ -68,17 +68,22 @@ export class ChatService {
         if (!reader) throw new Error("No response body");
 
         let accumulatedResponse = '';
+        let buffer = '';
         
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
           const chunk = new TextDecoder().decode(value);
-          const lines = chunk.split('\n');
+          buffer += chunk;
+          
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
           
           for (const line of lines) {
+            if (line.trim() === '') continue;
             if (line.startsWith('data: ')) {
-              const data = line.slice(5);
+              const data = line.slice(5).trim();
               if (data === '[DONE]') continue;
               
               try {
@@ -90,6 +95,7 @@ export class ChatService {
                 }
               } catch (e) {
                 console.warn('Error parsing streaming response:', e);
+                // Continue processing other chunks even if one fails
               }
             }
           }
@@ -135,7 +141,6 @@ export class ChatService {
         },
       });
 
-      // Combine messages into a single prompt
       const fullPrompt = messages.map(msg => 
         `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
       ).join("\n");

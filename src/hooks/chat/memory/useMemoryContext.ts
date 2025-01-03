@@ -19,36 +19,18 @@ export const useMemoryContext = (
     }
 
     if (!memorySettings) {
-      const error = new Error("Memory settings not configured");
-      console.error(error.message);
-      toast({
-        title: "Error",
-        description: "Memory settings not configured. Please configure memory settings first.",
-        variant: "destructive",
-      });
-      throw error;
+      console.log("No memory settings found, skipping memory update");
+      return;
     }
 
     if (!memorySettings.api_key) {
-      const error = new Error("Memory API key not configured");
-      console.error(error.message);
-      toast({
-        title: "Error",
-        description: "Memory API key not configured. Please configure memory settings first.",
-        variant: "destructive",
-      });
-      throw error;
+      console.log("No memory API key configured, skipping memory update");
+      return;
     }
 
     if (!memorySettings.instructions) {
-      const error = new Error("Memory instructions not configured");
-      console.error(error.message);
-      toast({
-        title: "Error",
-        description: "Memory instructions not configured. Please configure memory settings first.",
-        variant: "destructive",
-      });
-      throw error;
+      console.log("No memory instructions configured, skipping memory update");
+      return;
     }
 
     try {
@@ -116,16 +98,12 @@ Return ONLY a valid JSON object with the merged context.`;
       } catch (parseError) {
         console.error("Error parsing context response:", parseError);
         console.log("Failed to parse response:", newContextResponse);
-        throw new Error("Failed to parse memory bot response");
+        // Don't throw error, just log it and continue
       }
     } catch (memoryError) {
       console.error("Error updating memory:", memoryError);
-      toast({
-        title: "Error",
-        description: memoryError instanceof Error ? memoryError.message : "Failed to update memory",
-        variant: "destructive",
-      });
-      throw memoryError;
+      // Don't throw error to prevent breaking the chat flow
+      console.log("Continuing chat despite memory error");
     }
   };
 
