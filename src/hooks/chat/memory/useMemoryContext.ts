@@ -15,16 +15,40 @@ export const useMemoryContext = (
       const userMessages = messages.filter(msg => msg.role === "user");
       
       const contextUpdatePrompt = `
-${bot.instructions}
+You are a context analyzer. Your task is to extract and maintain user context from conversations.
 
-Previous context: ${JSON.stringify(userContext || {})}
+Previous context: ${JSON.stringify(userContext || {
+  name: null,
+  faith: null,
+  likes: [],
+  topics: []
+})}
 
 User messages to analyze:
 ${userMessages.map(msg => msg.content).join('\n')}
 
-Based on the above instructions, analyze these messages and update the user context.
-IMPORTANT: Merge any new information with the existing context, don't replace it unless explicitly contradicted.
-Return ONLY a valid JSON object with the merged context.`;
+Instructions:
+${bot.instructions}
+
+Based on the messages, update the user context following these rules:
+1. Extract the user's name if mentioned
+2. Note any likes, interests, or positive mentions
+3. Track topics they discuss
+4. Preserve existing context unless explicitly contradicted
+5. Return ONLY a valid JSON object in this exact format:
+
+{
+  "name": "string or null",
+  "faith": "string or null",
+  "likes": ["array of strings"],
+  "topics": ["array of strings"]
+}
+
+IMPORTANT: 
+- Merge new information with existing context
+- Keep previous values unless contradicted
+- Return ONLY the JSON object, no other text
+- Ensure all arrays exist even if empty`;
 
       let newContextResponse;
       if (bot.model === "gemini") {
@@ -49,6 +73,7 @@ Return ONLY a valid JSON object with the merged context.`;
       try {
         newContext = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
+        console.error("Parse error:", parseError);
         throw new Error("Invalid JSON format in memory bot response");
       }
 
@@ -57,7 +82,7 @@ Return ONLY a valid JSON object with the merged context.`;
         throw new Error("Invalid context structure");
       }
 
-      // Initialize arrays if they don't exist
+      // Ensure all required fields exist with proper types
       const mergedContext = {
         name: newContext.name || userContext?.name || null,
         faith: newContext.faith || userContext?.faith || null,
@@ -79,6 +104,7 @@ Return ONLY a valid JSON object with the merged context.`;
         )
       };
 
+      console.log("Merged context:", mergedContext);
       await updateUserContext(mergedContext);
     } catch (error) {
       console.error("Memory update failed:", error);
