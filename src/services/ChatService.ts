@@ -38,32 +38,23 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      // Get the correct model based on context
+      // Determine the model and API key to use
       let modelToUse;
       
-      // If this is a memory operation (memory_model is set)
+      // Check if this is a memory operation
       if (bot.memory_model) {
-        // For memory operations, use memory_api_key if available
-        headers['Authorization'] = `Bearer ${bot.memory_api_key || bot.apiKey}`;
-        
-        // If memory_model is "openrouter", use the specified openRouterModel
-        if (bot.memory_model === "openrouter") {
-          modelToUse = bot.openRouterModel;
-          console.log("Using OpenRouter model for memory:", modelToUse);
-        } else {
-          // Otherwise use the specified memory_model
-          modelToUse = bot.memory_model;
-          console.log("Using specific memory model:", modelToUse);
+        // Use memory API key if available
+        if (bot.memory_api_key) {
+          headers['Authorization'] = `Bearer ${bot.memory_api_key}`;
         }
+        
+        // For memory operations, always use the memory_model directly
+        modelToUse = bot.memory_model;
+        console.log("Using memory model:", modelToUse);
       } else {
         // For regular chat operations
-        if (bot.model === "openrouter") {
-          modelToUse = bot.openRouterModel;
-          console.log("Using OpenRouter model for chat:", modelToUse);
-        } else {
-          modelToUse = bot.model;
-          console.log("Using specific chat model:", modelToUse);
-        }
+        modelToUse = bot.model === "openrouter" ? bot.openRouterModel : bot.model;
+        console.log("Using chat model:", modelToUse);
       }
 
       console.log("Final model selection:", modelToUse);
@@ -71,7 +62,8 @@ export class ChatService {
         memory_model: bot.memory_model,
         model: bot.model,
         openRouterModel: bot.openRouterModel,
-        memory_api_key: bot.memory_api_key ? "[PRESENT]" : "[NOT SET]"
+        memory_api_key: bot.memory_api_key ? "[PRESENT]" : "[NOT SET]",
+        selected_model: modelToUse
       });
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
