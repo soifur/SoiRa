@@ -19,9 +19,13 @@ const Settings = () => {
 
   useEffect(() => {
     if (settings && !localSettings) {
-      setLocalSettings(settings);
+      setLocalSettings({
+        ...settings,
+        api_key: settings.api_key || "",
+        instructions: settings.instructions || "",
+      });
     }
-  }, [settings]);
+  }, [settings, localSettings]);
 
   const handleLogout = async () => {
     try {
@@ -52,22 +56,20 @@ const Settings = () => {
     });
   };
 
-  const handleApiKeyChange = (value: string) => {
-    if (localSettings) {
-      setLocalSettings({
-        ...localSettings,
-        api_key: value,
-      });
-    }
+  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!localSettings) return;
+    setLocalSettings({
+      ...localSettings,
+      api_key: e.target.value,
+    });
   };
 
-  const handleInstructionsChange = (value: string) => {
-    if (localSettings) {
-      setLocalSettings({
-        ...localSettings,
-        instructions: value,
-      });
-    }
+  const handleInstructionsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (!localSettings) return;
+    setLocalSettings({
+      ...localSettings,
+      instructions: e.target.value,
+    });
   };
 
   return (
@@ -113,7 +115,7 @@ const Settings = () => {
                 <Input
                   type="password"
                   value={localSettings?.api_key || ""}
-                  onChange={(e) => handleApiKeyChange(e.target.value)}
+                  onChange={handleApiKeyChange}
                   placeholder="Enter your API key"
                 />
               </div>
@@ -122,7 +124,7 @@ const Settings = () => {
                 <label className="block text-sm font-medium mb-1">Memory Instructions</label>
                 <Textarea
                   value={localSettings?.instructions || ""}
-                  onChange={(e) => handleInstructionsChange(e.target.value)}
+                  onChange={handleInstructionsChange}
                   placeholder="Enter memory instructions..."
                   rows={4}
                 />
