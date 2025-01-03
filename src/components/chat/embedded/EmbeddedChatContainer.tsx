@@ -66,11 +66,6 @@ const EmbeddedChatContainer = () => {
         const avatarUrl = sharedBotData.avatar || 
           `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
 
-        // Use the same model and API key for memory as the main bot if not explicitly set
-        const memory_model = sharedBotData.memory_model || sharedBotData.model;
-        const memory_api_key = sharedBotData.memory_api_key || sharedBotData.bot_api_keys?.api_key;
-        const openRouterModel = sharedBotData.open_router_model || "deepseek-ai/deepseek-chat-33b";
-
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
           name: sharedBotData.bot_name,
@@ -78,13 +73,13 @@ const EmbeddedChatContainer = () => {
           starters: sharedBotData.starters || [],
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
-          openRouterModel: openRouterModel,
+          openRouterModel: sharedBotData.open_router_model,
           avatar: avatarUrl,
           accessType: "public",
           memory_enabled: memory_enabled,
           memory_instructions: sharedBotData.memory_instructions || "",
-          memory_model: memory_model,
-          memory_api_key: memory_api_key
+          memory_model: sharedBotData.memory_model || sharedBotData.open_router_model || "anthropic/claude-3-opus",
+          memory_api_key: sharedBotData.memory_api_key || sharedBotData.bot_api_keys?.api_key || ""
         };
 
         console.log("Transformed bot memory settings:", {
