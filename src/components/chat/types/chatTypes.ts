@@ -21,9 +21,6 @@ export interface Bot {
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
-  memory_instructions?: string;
-  memory_model?: BaseModel | string; // Match the type from useBots.ts
-  memory_api_key?: string;
 }
 
 export interface ChatHistoryItem {

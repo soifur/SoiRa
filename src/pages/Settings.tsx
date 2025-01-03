@@ -58,15 +58,21 @@ const Settings = () => {
             <div className="space-y-4">
               <ModelSelector 
                 bot={{
+                  id: "memory-settings",
+                  name: "Memory Settings",
+                  instructions: "",
+                  starters: [],
                   model: settings?.model || "openrouter",
+                  apiKey: "",
                   openRouterModel: settings?.open_router_model,
                 }}
                 onModelChange={(model) => 
-                  settings && saveSettings({ ...settings, model: model as "gemini" | "openrouter" })
+                  settings && saveSettings({ ...settings, model: model === "gemini" ? "gemini" : "openrouter" })
                 }
                 onOpenRouterModelChange={(model) => 
                   settings && saveSettings({ ...settings, open_router_model: model })
                 }
+                isMemorySelector
               />
               
               <div>

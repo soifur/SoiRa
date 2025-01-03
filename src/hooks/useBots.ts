@@ -15,9 +15,6 @@ export interface Bot {
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
-  memory_instructions?: string;
-  memory_model?: BaseModel | string; // Allow both basic models and OpenRouter model IDs
-  memory_api_key?: string;
 }
 
 export const useBots = () => {
@@ -53,9 +50,6 @@ export const useBots = () => {
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
-        memory_instructions: bot.memory_instructions || "",
-        memory_model: (bot.memory_model as "gemini" | "claude" | "openai" | "openrouter") || "openrouter",
-        memory_api_key: bot.memory_api_key || ""
       }));
 
       setBots(transformedBots);
@@ -86,9 +80,6 @@ export const useBots = () => {
         avatar: bot.avatar,
         user_id: session.session.user.id,
         memory_enabled: bot.memory_enabled,
-        memory_instructions: bot.memory_instructions,
-        memory_model: bot.memory_model || "openrouter",
-        memory_api_key: bot.memory_api_key
       };
 
       let result;
@@ -123,9 +114,6 @@ export const useBots = () => {
         avatar: result.data.avatar,
         accessType: "private",
         memory_enabled: result.data.memory_enabled,
-        memory_instructions: result.data.memory_instructions || "",
-        memory_model: result.data.memory_model || "openrouter",
-        memory_api_key: result.data.memory_api_key || ""
       };
 
       // Refresh the bots list
