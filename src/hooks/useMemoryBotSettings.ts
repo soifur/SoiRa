@@ -19,27 +19,17 @@ export const useMemoryBotSettings = () => {
   const { toast } = useToast();
 
   const fetchSettings = async () => {
-    try {
-      console.log("Starting to fetch memory bot settings...");
-      
+    try {      
       const { data: memoryBotData, error: memoryBotError } = await supabase
         .from('memory_bot_settings')
         .select('*')
         .maybeSingle();
 
       if (memoryBotError) {
-        console.error("Error fetching memory bot settings:", memoryBotError);
         throw memoryBotError;
       }
 
-      console.log("Raw memory bot data:", memoryBotData);
-
       if (memoryBotData) {
-        console.log("Found memory bot settings:", {
-          ...memoryBotData,
-          api_key: '[REDACTED]'
-        });
-        
         const validatedSettings: MemorySettings = {
           id: memoryBotData.id,
           model: memoryBotData.model as MemoryModel,
@@ -53,12 +43,10 @@ export const useMemoryBotSettings = () => {
         return;
       }
 
-      console.log("No memory settings found");
       setSettings(null);
       setError(null);
 
     } catch (err) {
-      console.error("Error in fetchSettings:", err);
       setError(err instanceof Error ? err : new Error('Failed to fetch memory settings'));
       setSettings(null);
     } finally {
@@ -75,8 +63,6 @@ export const useMemoryBotSettings = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      console.log("Attempting to save settings for user:", user.id);
-
       const { data, error } = await supabase
         .from('memory_bot_settings')
         .upsert({
@@ -91,14 +77,8 @@ export const useMemoryBotSettings = () => {
         .single();
 
       if (error) {
-        console.error("Error saving settings:", error);
         throw error;
       }
-
-      console.log("Settings saved successfully:", {
-        ...data,
-        api_key: '[REDACTED]'
-      });
 
       const validatedSettings: MemorySettings = {
         id: data.id,
@@ -117,7 +97,6 @@ export const useMemoryBotSettings = () => {
       });
       return true;
     } catch (err) {
-      console.error("Error saving memory settings:", err);
       setError(err instanceof Error ? err : new Error('Failed to save memory settings'));
       toast({
         title: "Error",
