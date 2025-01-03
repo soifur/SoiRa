@@ -9,15 +9,18 @@ import { ModelSelector } from "@/components/bot/ModelSelector";
 import { useMemorySettings } from "@/hooks/useMemorySettings";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import type { MemorySettings } from "@/hooks/useMemorySettings";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { settings, isLoading, saveSettings } = useMemorySettings();
-  const [localSettings, setLocalSettings] = useState(settings);
+  const [localSettings, setLocalSettings] = useState<MemorySettings | null>(null);
 
   useEffect(() => {
-    setLocalSettings(settings);
+    if (settings && !localSettings) {
+      setLocalSettings(settings);
+    }
   }, [settings]);
 
   const handleLogout = async () => {
