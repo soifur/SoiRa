@@ -21,7 +21,7 @@ export const useMessageHandling = (
     if (!bot.memory_enabled) return;
 
     try {
-      const contextUpdatePrompt = `Previous context: ${JSON.stringify(userContext)}\n\nConversation to analyze:\n${updatedMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nExtract and update the user context based on this conversation. Return ONLY a JSON object with the updated context.`;
+      const contextUpdatePrompt = `Previous context: ${JSON.stringify(userContext || {})}\n\nConversation to analyze:\n${updatedMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nExtract and update the user context based on this conversation. Return ONLY a JSON object with the updated context.`;
       
       let newContextResponse;
       const validatedModel = isValidBotModel(memoryBot.model) ? memoryBot.model : 'openrouter';
@@ -38,9 +38,19 @@ export const useMessageHandling = (
         await updateUserContext(newContext);
       } catch (parseError) {
         console.error("Error parsing context response:", parseError);
+        toast({
+          title: "Error",
+          description: "Failed to update memory context",
+          variant: "destructive",
+        });
       }
     } catch (memoryError) {
       console.error("Error updating memory:", memoryError);
+      toast({
+        title: "Error",
+        description: "Failed to update memory",
+        variant: "destructive",
+      });
     }
   };
 

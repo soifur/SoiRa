@@ -42,14 +42,17 @@ export const useEmbeddedChat = (
         console.log("Fetching user context for bot:", bot.id, "client:", clientId);
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
         console.log("Fetched user context:", context);
-        setUserContext(context);
+        setUserContext(context || {});
       } catch (error) {
         console.error("Error fetching user context:", error);
+        setUserContext({});
       }
     };
 
-    fetchUserContext();
-  }, [bot.id, clientId, sessionToken]);
+    if (bot.memory_enabled) {
+      fetchUserContext();
+    }
+  }, [bot.id, clientId, sessionToken, bot.memory_enabled]);
 
   useEffect(() => {
     const initializeChat = async () => {
