@@ -13,6 +13,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatInput } from "@/components/chat/ChatInput";
 
+interface EmbeddedChatUIProps {
+  bot: Bot;
+  clientId: string;
+  shareKey?: string;
+}
+
 const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const isMobile = useIsMobile();
