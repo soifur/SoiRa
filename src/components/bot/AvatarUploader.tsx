@@ -28,7 +28,7 @@ export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploader
     try {
       // If there's an existing avatar in storage, delete it
       if (avatar && !avatar.startsWith('data:') && botId) {
-        const fileName = avatar.split('/').pop();
+        const fileName = `${botId}.${avatar.split('.').pop()?.split('?')[0]}`;
         if (fileName) {
           await supabase.storage
             .from('avatars')
@@ -36,9 +36,9 @@ export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploader
         }
       }
 
-      // Upload new avatar
+      // Upload new avatar with bot ID as filename
       const fileExt = file.name.split('.').pop();
-      const fileName = botId ? `${botId}.${fileExt}` : `${Date.now()}.${fileExt}`;
+      const fileName = `${botId}.${fileExt}`;
 
       const { data, error } = await supabase.storage
         .from('avatars')
@@ -48,10 +48,22 @@ export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploader
 
       if (error) throw error;
 
-      // Get public URL
+      // Get public URL without cache busting
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
+
+      // Update shared_bots table with new avatar
+      if (botId) {
+        const { error: updateError } = await supabase
+          .from('shared_bots')
+          .update({ avatar: publicUrl })
+          .eq('bot_id', botId);
+
+        if (updateError) {
+          console.error('Error updating shared bot avatar:', updateError);
+        }
+      }
 
       onAvatarChange(publicUrl);
     } catch (error) {
