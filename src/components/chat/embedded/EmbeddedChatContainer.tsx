@@ -74,10 +74,10 @@ const EmbeddedChatContainer = () => {
           openRouterModel: sharedBotData.open_router_model,
           avatar: avatarUrl,
           accessType: "public",
-          memory_enabled: sharedBotData.memory_enabled || false,
-          memory_instructions: sharedBotData.memory_instructions || "",
-          memory_model: sharedBotData.memory_model || "",
-          memory_api_key: sharedBotData.memory_api_key || ""
+          memory_enabled: false, // Default to false if not present
+          memory_instructions: "",
+          memory_model: "",
+          memory_api_key: ""
         };
 
         setBot(transformedBot);

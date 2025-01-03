@@ -402,6 +402,10 @@ export type Database = {
           expires_at: string | null
           id: string
           instructions: string | null
+          memory_api_key: string | null
+          memory_enabled: boolean | null
+          memory_instructions: string | null
+          memory_model: string | null
           model: string
           open_router_model: string | null
           share_key: string
@@ -417,6 +421,10 @@ export type Database = {
           expires_at?: string | null
           id?: string
           instructions?: string | null
+          memory_api_key?: string | null
+          memory_enabled?: boolean | null
+          memory_instructions?: string | null
+          memory_model?: string | null
           model: string
           open_router_model?: string | null
           share_key: string
@@ -432,6 +440,10 @@ export type Database = {
           expires_at?: string | null
           id?: string
           instructions?: string | null
+          memory_api_key?: string | null
+          memory_enabled?: boolean | null
+          memory_instructions?: string | null
+          memory_model?: string | null
           model?: string
           open_router_model?: string | null
           share_key?: string
