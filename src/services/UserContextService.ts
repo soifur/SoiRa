@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 export class UserContextService {
   static async getUserContext(botId: string, clientId: string, sessionToken?: string | null) {
     try {
-      console.log("Getting context for:", { botId, clientId, sessionToken });
-      
       const { data, error } = await supabase
         .from('user_context')
         .select('context')
@@ -13,24 +11,15 @@ export class UserContextService {
         .eq('session_token', sessionToken)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching user context:", error);
-        return null;
-      }
-
-      console.log("Retrieved context:", data?.context);
+      if (error) throw error;
       return data?.context || null;
     } catch (error) {
-      console.error("Error in getUserContext:", error);
-      return null;
+      throw error;
     }
   }
 
   static async updateUserContext(botId: string, clientId: string, newContext: Record<string, any>, sessionToken?: string | null) {
     try {
-      console.log("Updating context for:", { botId, clientId, sessionToken });
-      console.log("New context:", newContext);
-      
       const { data: existingData, error: fetchError } = await supabase
         .from('user_context')
         .select('id, context')
@@ -39,21 +28,12 @@ export class UserContextService {
         .eq('session_token', sessionToken)
         .maybeSingle();
 
-      if (fetchError) {
-        console.error("Error checking existing context:", fetchError);
-        throw fetchError;
-      }
-
-      const existingContext = (existingData?.context && typeof existingData.context === 'object') 
-        ? existingData.context as Record<string, any>
-        : {};
+      if (fetchError) throw fetchError;
 
       const mergedContext = {
-        ...existingContext,
+        ...(existingData?.context || {}),
         ...newContext
       };
-
-      console.log("Merged context:", mergedContext);
 
       const { error: upsertError } = await supabase
         .from('user_context')
@@ -66,14 +46,8 @@ export class UserContextService {
           last_updated: new Date().toISOString()
         });
 
-      if (upsertError) {
-        console.error("Error updating user context:", upsertError);
-        throw upsertError;
-      }
-      
-      console.log("Successfully updated context");
+      if (upsertError) throw upsertError;
     } catch (error) {
-      console.error("Error in updateUserContext:", error);
       throw error;
     }
   }
