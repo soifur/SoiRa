@@ -53,9 +53,9 @@ IMPORTANT: Merge any new information with the existing context, don't replace it
 Return ONLY a valid JSON object with the merged context.`;
 
       // Create a memory bot configuration using the memory-specific settings
-      const memoryBot = {
+      const memoryBot: Bot = {
         ...bot,
-        model: "openrouter", // Force OpenRouter for memory operations
+        model: "openrouter" as const,  // Explicitly type as BaseModel
         apiKey: bot.memory_api_key,
         openRouterModel: bot.memory_model
       };
