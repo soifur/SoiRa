@@ -17,7 +17,7 @@ export const useMessageHandling = (
   const abortControllerRef = { current: null as AbortController | null };
 
   const handleMemoryUpdate = async (updatedMessages: Message[]) => {
-    if (!bot?.memory_enabled || !bot.memory_instructions) {
+    if (bot.memory_enabled !== true || !bot.memory_instructions) {
       console.log("Memory not enabled or no instructions provided for bot:", bot.id);
       return;
     }
@@ -100,7 +100,8 @@ Return ONLY a valid JSON object with the updated context.`;
         content: msg.content
       }));
 
-      if (bot?.memory_enabled && userContext) {
+      if (bot.memory_enabled === true && userContext) {
+        console.log("Adding context to message:", userContext);
         const contextPrompt = {
           role: "system",
           content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
@@ -124,7 +125,7 @@ Return ONLY a valid JSON object with the updated context.`;
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
 
-      if (bot?.memory_enabled) {
+      if (bot.memory_enabled === true) {
         console.log("Updating memory after bot response");
         await handleMemoryUpdate(updatedMessages);
       }

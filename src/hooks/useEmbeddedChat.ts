@@ -23,15 +23,13 @@ export const useEmbeddedChat = (
 
   const updateUserContext = async (newContext: any) => {
     try {
-      if (!bot.memory_enabled) {
+      if (bot.memory_enabled !== true) {
         console.log("Memory not enabled for bot:", bot.id);
         return;
       }
       
-      console.log("Updating user context for bot:", bot.id, "client:", clientId);
-      console.log("Memory instructions:", bot.memory_instructions);
-      console.log("Memory model:", bot.memory_model);
-      console.log("New context to save:", newContext);
+      console.log("Updating memory with context:", newContext);
+      console.log("Using memory instructions:", bot.memory_instructions);
       
       await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
       setUserContext(newContext);
@@ -48,7 +46,7 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
-      if (!bot.memory_enabled) {
+      if (bot.memory_enabled !== true) {
         console.log("Memory not enabled for bot:", bot.id);
         return;
       }
@@ -103,7 +101,7 @@ export const useEmbeddedChat = (
     console.log("Creating new chat");
     setMessages([]); // Clear messages immediately
     const newChatId = await createNewChat();
-    if (bot.memory_enabled) {
+    if (bot.memory_enabled === true) {
       console.log("Resetting context for new chat");
       setUserContext({}); // Reset context for new chat
     }
