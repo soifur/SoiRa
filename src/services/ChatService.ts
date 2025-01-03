@@ -38,8 +38,12 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      // Use the correct model based on whether this is a memory operation or not
-      const modelToUse = bot.memory_model || bot.openRouterModel;
+      // For memory operations, use memory_model if it exists and is not "openrouter"
+      // Otherwise, use openRouterModel for both memory and regular operations
+      const modelToUse = bot.memory_model && bot.memory_model !== "openrouter" 
+        ? bot.memory_model 
+        : bot.openRouterModel || "auto";
+        
       console.log("Using OpenRouter model:", modelToUse);
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
