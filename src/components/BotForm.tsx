@@ -16,13 +16,30 @@ interface BotFormProps {
 }
 
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
-  const [editingBot, setEditingBot] = useState<Bot>(bot);
+  const [editingBot, setEditingBot] = useState<Bot>({
+    ...bot,
+    memory_enabled: bot.memory_enabled ?? false,
+    memory_instructions: bot.memory_instructions ?? "",
+    memory_model: bot.memory_model ?? "",
+    memory_api_key: bot.memory_api_key ?? ""
+  });
 
   const handleModelChange = (model: "gemini" | "claude" | "openai" | "openrouter") => {
     setEditingBot({ 
       ...editingBot, 
       model: model,
       openRouterModel: model === "openrouter" ? editingBot.openRouterModel : undefined 
+    });
+  };
+
+  const handleSave = () => {
+    // Ensure memory fields are included in the save
+    onSave({
+      ...editingBot,
+      memory_enabled: editingBot.memory_enabled ?? false,
+      memory_instructions: editingBot.memory_enabled ? editingBot.memory_instructions : "",
+      memory_model: editingBot.memory_enabled ? editingBot.memory_model : "",
+      memory_api_key: editingBot.memory_enabled ? editingBot.memory_api_key : ""
     });
   };
 
@@ -80,15 +97,34 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       </div>
 
       {editingBot.memory_enabled && (
-        <div>
-          <label className="block text-sm font-medium mb-1">Memory Instructions</label>
-          <Textarea
-            value={editingBot.memory_instructions}
-            onChange={(e) => setEditingBot({ ...editingBot, memory_instructions: e.target.value })}
-            placeholder="Enter memory instructions..."
-            rows={4}
-          />
-        </div>
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1">Memory Instructions</label>
+            <Textarea
+              value={editingBot.memory_instructions}
+              onChange={(e) => setEditingBot({ ...editingBot, memory_instructions: e.target.value })}
+              placeholder="Enter memory instructions..."
+              rows={4}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Memory Model</label>
+            <Input
+              value={editingBot.memory_model}
+              onChange={(e) => setEditingBot({ ...editingBot, memory_model: e.target.value })}
+              placeholder="Enter memory model"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Memory API Key</label>
+            <Input
+              type="password"
+              value={editingBot.memory_api_key}
+              onChange={(e) => setEditingBot({ ...editingBot, memory_api_key: e.target.value })}
+              placeholder="Enter memory API key"
+            />
+          </div>
+        </>
       )}
 
       <StartersInput 
@@ -100,7 +136,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         <Button variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button onClick={() => onSave(editingBot)}>Save</Button>
+        <Button onClick={handleSave}>Save</Button>
       </div>
     </div>
   );

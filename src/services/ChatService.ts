@@ -65,8 +65,8 @@ export class ChatService {
       return data.choices[0].message.content;
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was aborted');
-        throw new Error('Request was cancelled');
+        console.log('Request was cancelled by user');
+        return "Message cancelled by user.";
       }
       console.error('OpenRouter API error:', error);
       throw error;

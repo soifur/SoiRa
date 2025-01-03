@@ -16,7 +16,7 @@ export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploader
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
         description: "Avatar image must be less than 5MB",
@@ -26,43 +26,37 @@ export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploader
     }
 
     try {
-      // If there's an existing avatar in storage, delete it
-      if (avatar && !avatar.startsWith('data:') && botId) {
-        const fileName = `${botId}.${avatar.split('.').pop()?.split('?')[0]}`;
-        if (fileName) {
-          await supabase.storage
-            .from('avatars')
-            .remove([fileName]);
-        }
+      if (!botId) {
+        throw new Error("Bot ID is required for avatar upload");
       }
 
-      // Upload new avatar with bot ID as filename
+      // Generate a unique filename using bot ID and timestamp
       const fileExt = file.name.split('.').pop();
-      const fileName = `${botId}.${fileExt}`;
+      const fileName = `${botId}_${Date.now()}.${fileExt}`;
 
-      const { data, error } = await supabase.storage
+      // Upload new avatar
+      const { data, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, {
-          upsert: true
+          upsert: true,
+          contentType: file.type
         });
 
-      if (error) throw error;
+      if (uploadError) throw uploadError;
 
-      // Get public URL without cache busting
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
       // Update shared_bots table with new avatar
-      if (botId) {
-        const { error: updateError } = await supabase
-          .from('shared_bots')
-          .update({ avatar: publicUrl })
-          .eq('bot_id', botId);
+      const { error: updateError } = await supabase
+        .from('shared_bots')
+        .update({ avatar: publicUrl })
+        .eq('bot_id', botId);
 
-        if (updateError) {
-          console.error('Error updating shared bot avatar:', updateError);
-        }
+      if (updateError) {
+        console.error('Error updating shared bot avatar:', updateError);
       }
 
       onAvatarChange(publicUrl);
