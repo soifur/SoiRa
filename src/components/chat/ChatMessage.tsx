@@ -48,7 +48,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
       <div
         className={cn(
           "relative group",
-          isBot && isEmbedded ? "max-w-[85%]" : "max-w-[85%]",
+          isBot && isEmbedded ? "w-full max-w-full" : "max-w-[85%]",
           !isBot && "ml-auto"
         )}
       >
@@ -64,6 +64,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
           className={cn(
             "prose prose-sm dark:prose-invert max-w-none",
             isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm",
+            isBot && isEmbedded && "px-6 py-4",
             !isBot && "px-6 py-4 rounded-2xl bg-primary text-primary-foreground"
           )}
         >
