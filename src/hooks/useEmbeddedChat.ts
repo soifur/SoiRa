@@ -22,6 +22,7 @@ export const useEmbeddedChat = (
 ) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [userContext, setUserContext] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const {
     chatId,
@@ -92,16 +93,23 @@ export const useEmbeddedChat = (
     initializeChat();
   }, [chatId]);
 
-  // Create a debounced version of saveChatHistory
+  // Create a debounced version of saveChatHistory that runs independently
   const debouncedSave = debounce(async (msgs: Message[], cId: string) => {
-    if (cId && msgs.length > 0) {
-      console.log("Saving chat history for chat:", cId);
+    if (!cId || msgs.length === 0) return;
+    
+    setIsSaving(true);
+    try {
       await saveChatHistory(msgs, cId);
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+    } finally {
+      setIsSaving(false);
     }
-  }, 1000); // 1 second debounce
+  }, 1000);
 
   useEffect(() => {
     if (chatId && messages.length > 0) {
+      // Fire and forget - don't await the save operation
       debouncedSave(messages, chatId);
     }
   }, [messages, chatId]);
@@ -125,6 +133,7 @@ export const useEmbeddedChat = (
     loadExistingChat,
     createNewChat: handleCreateNewChat,
     clearMessages,
-    userContext
+    userContext,
+    isSaving
   };
 };
