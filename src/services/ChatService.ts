@@ -55,20 +55,37 @@ export class ChatService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('OpenRouter API error:', errorData);
+        console.error('OpenRouter API error response:', errorData);
         throw new Error(
           `OpenRouter API error: ${errorData.error?.message || response.statusText}`
         );
       }
 
       const data = await response.json();
-      console.log("OpenRouter response:", data);
+      console.log("OpenRouter raw response:", data);
       
-      if (data.choices && data.choices[0] && data.choices[0].message) {
-        return data.choices[0].message.content;
-      } else {
-        throw new Error("Invalid response format from OpenRouter API");
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid response format - not an object:', data);
+        throw new Error('Invalid response format from OpenRouter API: Response is not an object');
       }
+
+      if (!Array.isArray(data.choices)) {
+        console.error('Invalid response format - choices is not an array:', data);
+        throw new Error('Invalid response format from OpenRouter API: Choices is not an array');
+      }
+
+      if (!data.choices[0] || !data.choices[0].message) {
+        console.error('Invalid response format - no message in first choice:', data.choices[0]);
+        throw new Error('Invalid response format from OpenRouter API: No message in response');
+      }
+
+      if (typeof data.choices[0].message.content !== 'string') {
+        console.error('Invalid response format - content is not a string:', data.choices[0].message);
+        throw new Error('Invalid response format from OpenRouter API: Message content is not a string');
+      }
+
+      return data.choices[0].message.content;
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         console.log('Request was cancelled by user');
