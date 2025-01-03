@@ -46,13 +46,13 @@ Return ONLY a valid JSON object with the updated context.`;
       if (memoryModel === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
-          apiKey: bot.memory_api_key,
+          apiKey: bot.memory_api_key || bot.apiKey,
           model: "gemini"
         });
       } else {
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
-          apiKey: bot.memory_api_key,
+          apiKey: bot.memory_api_key || bot.apiKey,
           model: "openrouter",
           openRouterModel: bot.memory_model
         });

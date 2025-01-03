@@ -23,7 +23,7 @@ export const useEmbeddedChat = (
 
   const updateUserContext = async (newContext: any) => {
     try {
-      if (!bot?.memory_enabled) {
+      if (!bot.memory_enabled) {
         console.log("Memory not enabled for bot:", bot.id);
         return;
       }
@@ -48,7 +48,7 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
-      if (!bot?.memory_enabled) {
+      if (!bot.memory_enabled) {
         console.log("Memory not enabled for bot:", bot.id);
         return;
       }
@@ -103,7 +103,7 @@ export const useEmbeddedChat = (
     console.log("Creating new chat");
     setMessages([]); // Clear messages immediately
     const newChatId = await createNewChat();
-    if (bot?.memory_enabled) {
+    if (bot.memory_enabled) {
       console.log("Resetting context for new chat");
       setUserContext({}); // Reset context for new chat
     }

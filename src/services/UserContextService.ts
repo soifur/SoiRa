@@ -31,8 +31,7 @@ export class UserContextService {
       console.log("Updating context for:", { botId, clientId, sessionToken });
       console.log("New context:", context);
       
-      // First try to find existing context
-      const { data: existingContext } = await supabase
+      const { data: existingContext, error: fetchError } = await supabase
         .from('user_context')
         .select('id')
         .eq('bot_id', botId)
@@ -40,7 +39,12 @@ export class UserContextService {
         .eq('session_token', sessionToken)
         .maybeSingle();
 
-      const { error } = await supabase
+      if (fetchError) {
+        console.error("Error checking existing context:", fetchError);
+        throw fetchError;
+      }
+
+      const { error: upsertError } = await supabase
         .from('user_context')
         .upsert({
           ...(existingContext?.id ? { id: existingContext.id } : {}),
@@ -49,13 +53,11 @@ export class UserContextService {
           session_token: sessionToken,
           context,
           last_updated: new Date().toISOString()
-        }, {
-          onConflict: 'bot_id,client_id,session_token'
         });
 
-      if (error) {
-        console.error("Error updating user context:", error);
-        throw error;
+      if (upsertError) {
+        console.error("Error updating user context:", upsertError);
+        throw upsertError;
       }
       
       console.log("Successfully updated context");
