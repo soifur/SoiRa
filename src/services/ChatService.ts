@@ -38,12 +38,16 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
+      // Use the correct model based on whether this is a memory operation or not
+      const modelToUse = bot.memory_model || bot.openRouterModel;
+      console.log("Using OpenRouter model:", modelToUse);
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers,
         signal: abortSignal,
         body: JSON.stringify({
-          model: bot.openRouterModel,
+          model: modelToUse,
           messages: [
             ...(sanitizedInstructions
               ? [{ role: 'system', content: sanitizedInstructions }]
