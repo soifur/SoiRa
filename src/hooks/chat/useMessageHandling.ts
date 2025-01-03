@@ -23,9 +23,8 @@ export const useMessageHandling = (
     }
 
     try {
-      console.log("Updating memory with context:", userContext);
-      console.log("Using memory instructions:", bot.memory_instructions);
       console.log("Using memory model:", bot.memory_model);
+      console.log("Using memory instructions:", bot.memory_instructions);
       
       const contextUpdatePrompt = `
 Instructions for context extraction:
@@ -41,23 +40,21 @@ IMPORTANT: Merge any new information with the existing context, don't replace it
 Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
+      const memoryBot = {
+        ...bot,
+        apiKey: bot.memory_api_key || bot.apiKey,
+        model: bot.memory_model === "gemini" ? "gemini" : "openrouter",
+        openRouterModel: bot.memory_model !== "gemini" ? bot.memory_model : undefined
+      };
+
+      console.log("Memory bot configuration:", memoryBot);
       
-      if (bot.memory_model === "gemini") {
-        newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
-          ...bot,
-          apiKey: bot.memory_api_key || bot.apiKey,
-          model: "gemini"
-        });
-      } else if (bot.model === "openrouter" && bot.memory_model) {
-        // For OpenRouter models, use the specific model ID from memory_model
-        newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
-          ...bot,
-          apiKey: bot.memory_api_key || bot.apiKey,
-          model: "openrouter",
-          openRouterModel: bot.memory_model
-        });
+      if (memoryBot.model === "gemini") {
+        newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], memoryBot);
+      } else if (memoryBot.model === "openrouter") {
+        newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], memoryBot);
       } else {
-        console.log("Unsupported memory model configuration");
+        console.error("Unsupported memory model:", bot.memory_model);
         return;
       }
 
@@ -67,7 +64,6 @@ Return ONLY a valid JSON object with the merged context.`;
         const jsonStr = jsonMatch ? jsonMatch[0] : newContextResponse;
         const newContext = JSON.parse(jsonStr);
         
-        // Merge new context with existing context
         const mergedContext = {
           ...(userContext || {}),
           ...newContext

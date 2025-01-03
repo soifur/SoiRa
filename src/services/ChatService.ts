@@ -38,12 +38,15 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
+      console.log("Selected model:", bot.openRouterModel);
+      console.log("Bot config:", bot);
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers,
         signal: abortSignal,
         body: JSON.stringify({
-          model: bot.openRouterModel,
+          model: bot.openRouterModel || "auto",
           messages: [
             ...(sanitizedInstructions
               ? [{ role: 'system', content: sanitizedInstructions }]
