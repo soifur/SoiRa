@@ -20,8 +20,17 @@ export const useMemoryBotSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      console.log("Fetching memory bot settings");
+      console.log("Starting to fetch memory bot settings...");
       
+      // First, check if we're authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log("Auth check result:", user ? "Authenticated" : "Not authenticated");
+      
+      if (authError) {
+        console.error("Auth error:", authError);
+        throw authError;
+      }
+
       const { data: memoryBotData, error: memoryBotError } = await supabase
         .from('memory_bot_settings')
         .select('*')
@@ -31,6 +40,8 @@ export const useMemoryBotSettings = () => {
         console.error("Error fetching memory bot settings:", memoryBotError);
         throw memoryBotError;
       }
+
+      console.log("Raw memory bot data:", memoryBotData);
 
       if (memoryBotData) {
         console.log("Found memory bot settings:", {
@@ -52,7 +63,7 @@ export const useMemoryBotSettings = () => {
       }
 
       // If no settings found in memory_bot_settings
-      console.log("No memory settings found");
+      console.log("No memory settings found in memory_bot_settings table");
       setSettings(null);
       setError(null);
 
@@ -74,6 +85,8 @@ export const useMemoryBotSettings = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      console.log("Attempting to save settings for user:", user.id);
+
       const { data, error } = await supabase
         .from('memory_bot_settings')
         .upsert({
@@ -87,7 +100,15 @@ export const useMemoryBotSettings = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving settings:", error);
+        throw error;
+      }
+
+      console.log("Settings saved successfully:", {
+        ...data,
+        api_key: '[REDACTED]'
+      });
 
       const validatedSettings: MemorySettings = {
         id: data.id,
