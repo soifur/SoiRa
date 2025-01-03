@@ -35,7 +35,7 @@ export const useMemoryBotSettings = () => {
         console.log("Found memory bot settings:", memoryBotData);
         setSettings({
           id: memoryBotData.id,
-          model: memoryBotData.model as "gemini" | "openrouter",
+          model: memoryBotData.model as MemoryModel,
           open_router_model: memoryBotData.open_router_model,
           api_key: memoryBotData.api_key,
           instructions: memoryBotData.instructions
@@ -44,7 +44,7 @@ export const useMemoryBotSettings = () => {
         console.log("No memory bot settings found");
         // Set default settings if none found
         setSettings({
-          model: "openrouter",
+          model: "openrouter" as MemoryModel,
           api_key: "",
           instructions: "Please analyze the conversation and maintain context about the user, including their preferences, background, and any important details they share. Update the context with new information while preserving existing knowledge unless it's explicitly contradicted."
         });
@@ -59,6 +59,9 @@ export const useMemoryBotSettings = () => {
 
   const saveSettings = async (newSettings: MemorySettings) => {
     try {
+      const { user } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('memory_bot_settings')
         .upsert({
@@ -66,14 +69,22 @@ export const useMemoryBotSettings = () => {
           model: newSettings.model,
           open_router_model: newSettings.open_router_model,
           api_key: newSettings.api_key,
-          instructions: newSettings.instructions
+          instructions: newSettings.instructions,
+          user_id: user.id
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setSettings(data);
+      setSettings({
+        id: data.id,
+        model: data.model as MemoryModel,
+        open_router_model: data.open_router_model,
+        api_key: data.api_key,
+        instructions: data.instructions
+      });
+      
       toast({
         title: "Success",
         description: "Memory settings saved successfully",
