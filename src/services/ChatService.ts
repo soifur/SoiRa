@@ -62,7 +62,13 @@ export class ChatService {
       }
 
       const data = await response.json();
-      return data.choices[0].message.content;
+      console.log("OpenRouter response:", data);
+      
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        return data.choices[0].message.content;
+      } else {
+        throw new Error("Invalid response format from OpenRouter API");
+      }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         console.log('Request was cancelled by user');
@@ -91,12 +97,14 @@ export class ChatService {
         },
       });
 
-      const fullPrompt = `${bot.instructions}\n\nPrevious messages:\n${messages
-        .map((msg) => `${msg.role === "user" ? "User" : bot.name}: ${msg.content}`)
-        .join("\n")}`;
+      // Combine messages into a single prompt
+      const fullPrompt = messages.map(msg => 
+        `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
+      ).join("\n");
 
       const result = await chat.sendMessage(fullPrompt);
       const response = await result.response.text();
+      console.log("Gemini response:", response);
       return response;
     } catch (error) {
       console.error("Gemini API error:", error);
