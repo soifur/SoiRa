@@ -25,9 +25,18 @@ interface OpenRouterModel {
   context_length?: number;
 }
 
-export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isMemorySelector = false }: ModelSelectorProps) => {
+export const ModelSelector = ({ 
+  bot, 
+  onModelChange, 
+  onOpenRouterModelChange, 
+  isMemorySelector = false 
+}: ModelSelectorProps) => {
   const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Determine which model to use based on whether this is a memory selector
+  const currentModel = isMemorySelector ? bot.memory_model : bot.model;
+  const currentOpenRouterModel = isMemorySelector ? bot.memory_model : bot.openRouterModel;
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -39,7 +48,6 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
         // Filter, transform, and sort the models
         const models = (data.data || [])
           .filter((model: OpenRouterModel) => 
-            // Only include models that have required fields
             model?.id && 
             model?.name && 
             typeof model?.pricing === 'object'
@@ -69,7 +77,7 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
         ]);
       } catch (error) {
         console.error('Error fetching OpenRouter models:', error);
-        // Fallback to a minimal set of reliable models if the API fails
+        // Fallback to a minimal set of reliable models
         setOpenRouterModels([
           {
             id: "auto",
@@ -105,7 +113,7 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
           {isMemorySelector ? "Memory Model" : "Model"}
         </label>
         <Select
-          value={bot.model}
+          value={currentModel}
           onValueChange={(value: "gemini" | "claude" | "openai" | "openrouter") =>
             onModelChange(value)
           }
@@ -122,13 +130,13 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
         </Select>
       </div>
 
-      {bot.model === "openrouter" && (
+      {currentModel === "openrouter" && (
         <div>
           <label className="block text-sm font-medium mb-1">
             {isMemorySelector ? "OpenRouter Memory Model" : "OpenRouter Model"}
           </label>
           <Select
-            value={bot.openRouterModel}
+            value={currentOpenRouterModel}
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
           >
             <SelectTrigger>
