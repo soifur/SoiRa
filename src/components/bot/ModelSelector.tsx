@@ -12,6 +12,7 @@ interface ModelSelectorProps {
   bot: Bot;
   onModelChange: (model: "gemini" | "claude" | "openai" | "openrouter") => void;
   onOpenRouterModelChange: (model: string) => void;
+  isMemorySelector?: boolean;
 }
 
 interface OpenRouterModel {
@@ -24,7 +25,7 @@ interface OpenRouterModel {
   context_length?: number;
 }
 
-export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: ModelSelectorProps) => {
+export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isMemorySelector = false }: ModelSelectorProps) => {
   const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -100,7 +101,9 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1">Model</label>
+        <label className="block text-sm font-medium mb-1">
+          {isMemorySelector ? "Memory Model" : "Model"}
+        </label>
         <Select
           value={bot.model}
           onValueChange={(value: "gemini" | "claude" | "openai" | "openrouter") =>
@@ -121,7 +124,9 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange }: M
 
       {bot.model === "openrouter" && (
         <div>
-          <label className="block text-sm font-medium mb-1">OpenRouter Model</label>
+          <label className="block text-sm font-medium mb-1">
+            {isMemorySelector ? "OpenRouter Memory Model" : "OpenRouter Model"}
+          </label>
           <Select
             value={bot.openRouterModel}
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
