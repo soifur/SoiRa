@@ -18,21 +18,40 @@ export const useMessageHandling = (
   const abortControllerRef = { current: null as AbortController | null };
 
   const handleMemoryUpdate = async (updatedMessages: Message[], memoryBot: Bot) => {
-    if (!bot.memory_enabled) return;
+    if (!bot.memory_enabled || !memoryBot.memory_instructions) return;
 
     try {
-      const contextUpdatePrompt = `Previous context: ${JSON.stringify(userContext || {})}\n\nConversation to analyze:\n${updatedMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nExtract and update the user context based on this conversation. Return ONLY a JSON object with the updated context.`;
+      const contextUpdatePrompt = `
+Instructions for context extraction:
+${memoryBot.memory_instructions}
+
+Previous context: ${JSON.stringify(userContext || {})}
+
+Conversation to analyze:
+${updatedMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+Based on the above instructions, analyze this conversation and update the user context.
+Return ONLY a valid JSON object with the updated context.`;
       
       let newContextResponse;
-      const validatedModel = isValidBotModel(memoryBot.model) ? memoryBot.model : 'openrouter';
+      const validatedModel = isValidBotModel(memoryBot.memory_model) ? memoryBot.memory_model : 'openrouter';
       
       if (validatedModel === "gemini") {
-        newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], memoryBot);
+        newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
+          ...memoryBot,
+          apiKey: memoryBot.memory_api_key,
+          model: memoryBot.memory_model
+        });
       } else {
-        newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], memoryBot);
+        newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
+          ...memoryBot,
+          apiKey: memoryBot.memory_api_key,
+          model: memoryBot.memory_model
+        });
       }
 
       try {
+        console.log("Memory bot response:", newContextResponse);
         const newContext = JSON.parse(newContextResponse);
         console.log("New context extracted:", newContext);
         await updateUserContext(newContext);
@@ -40,7 +59,7 @@ export const useMessageHandling = (
         console.error("Error parsing context response:", parseError);
         toast({
           title: "Error",
-          description: "Failed to update memory context",
+          description: "Failed to update memory context. Invalid response format.",
           variant: "destructive",
         });
       }
@@ -48,7 +67,7 @@ export const useMessageHandling = (
       console.error("Error updating memory:", memoryError);
       toast({
         title: "Error",
-        description: "Failed to update memory",
+        description: "Failed to update memory. Please check memory bot configuration.",
         variant: "destructive",
       });
     }
@@ -104,21 +123,7 @@ export const useMessageHandling = (
       setMessages(updatedMessages);
 
       if (bot.memory_enabled) {
-        const memoryBot: Bot = {
-          id: bot.id,
-          name: bot.name,
-          instructions: bot.memory_instructions || "You are a context extraction bot. Extract and update the user context based on the conversation. Return ONLY a JSON object with the updated context.",
-          starters: bot.starters,
-          model: isValidBotModel(bot.memory_model || "") ? bot.memory_model as Bot["model"] : "openrouter",
-          apiKey: bot.memory_api_key || "",
-          avatar: bot.avatar,
-          accessType: bot.accessType,
-          memory_enabled: bot.memory_enabled,
-          memory_instructions: bot.memory_instructions,
-          memory_model: bot.memory_model,
-          memory_api_key: bot.memory_api_key
-        };
-        await handleMemoryUpdate(updatedMessages, memoryBot);
+        await handleMemoryUpdate(updatedMessages, bot);
       }
 
     } catch (error) {
