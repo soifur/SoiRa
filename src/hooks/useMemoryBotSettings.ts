@@ -28,7 +28,7 @@ export const useMemoryBotSettings = () => {
 
       if (memoryBotError) {
         console.error("Error fetching memory bot settings:", memoryBotError);
-        return;
+        throw memoryBotError;
       }
       
       if (memoryBotData) {
@@ -41,7 +41,7 @@ export const useMemoryBotSettings = () => {
           instructions: memoryBotData.instructions
         });
       } else {
-        console.log("No memory bot settings found");
+        console.log("No memory bot settings found, using defaults");
         // Set default settings if none found
         setSettings({
           model: "openrouter" as MemoryModel,
@@ -52,6 +52,11 @@ export const useMemoryBotSettings = () => {
     } catch (err) {
       console.error("Error in fetchSettings:", err);
       setError(err instanceof Error ? err : new Error('Failed to fetch memory settings'));
+      toast({
+        title: "Error",
+        description: "Failed to fetch memory settings",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -59,8 +64,8 @@ export const useMemoryBotSettings = () => {
 
   const saveSettings = async (newSettings: MemorySettings) => {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (!user || userError) throw new Error('User not authenticated');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('memory_bot_settings')
