@@ -84,23 +84,27 @@ IMPORTANT:
 
       // Ensure all required fields exist with proper types
       const mergedContext = {
+        // Only update name if new context explicitly provides one
         name: newContext.name || userContext?.name || null,
+        // Only update faith if new context explicitly provides one
         faith: newContext.faith || userContext?.faith || null,
-        likes: [
+        // Merge likes arrays, removing duplicates and empty values
+        likes: Array.from(new Set([
           ...(Array.isArray(userContext?.likes) ? userContext.likes : []),
           ...(Array.isArray(newContext.likes) ? newContext.likes : [])
-        ].filter((item, index, self) => 
+        ])).filter(item => 
           item && 
-          item !== " " && 
-          self.indexOf(item) === index
+          item.trim() !== "" && 
+          item !== " "
         ),
-        topics: [
+        // Merge topics arrays, removing duplicates and empty values
+        topics: Array.from(new Set([
           ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
           ...(Array.isArray(newContext.topics) ? newContext.topics : [])
-        ].filter((item, index, self) => 
+        ])).filter(item => 
           item && 
-          item !== " " && 
-          self.indexOf(item) === index
+          item.trim() !== "" && 
+          item !== " "
         )
       };
 
