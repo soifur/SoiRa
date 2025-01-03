@@ -58,15 +58,14 @@ const EmbeddedChatContainer = () => {
         };
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
-        const memoryModel = validModel(sharedBotData.memory_model) ? sharedBotData.memory_model : 'openrouter';
-
-        const avatarUrl = sharedBotData.avatar || 
-          `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
 
         // Ensure memory_enabled is properly handled as a boolean
         const memory_enabled = sharedBotData.memory_enabled !== false; // Default to true if not explicitly false
         console.log("Raw memory_enabled from DB:", sharedBotData.memory_enabled);
         console.log("Processed memory_enabled:", memory_enabled);
+
+        const avatarUrl = sharedBotData.avatar || 
+          `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -80,8 +79,8 @@ const EmbeddedChatContainer = () => {
           accessType: "public",
           memory_enabled: memory_enabled,
           memory_instructions: sharedBotData.memory_instructions || "",
-          memory_model: memoryModel,
-          memory_api_key: sharedBotData.memory_api_key || ""
+          memory_model: sharedBotData.memory_model || sharedBotData.open_router_model || "anthropic/claude-3-opus",
+          memory_api_key: sharedBotData.memory_api_key || sharedBotData.bot_api_keys?.api_key || ""
         };
 
         console.log("Transformed bot memory settings:", {
