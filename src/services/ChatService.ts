@@ -39,7 +39,9 @@ export class ChatService {
       };
 
       const isMemoryOperation = bot.memory_model !== undefined;
-      const modelToUse = isMemoryOperation ? bot.openRouterMemoryModel : bot.openRouterModel;
+      const modelToUse = isMemoryOperation 
+        ? bot.memory_model 
+        : (bot.openRouterModel || "anthropic/claude-3-opus");
 
       console.log("Using model:", modelToUse);
       console.log("Bot configuration:", {
@@ -55,7 +57,7 @@ export class ChatService {
         headers,
         signal: abortSignal,
         body: JSON.stringify({
-          model: modelToUse || "auto",
+          model: modelToUse,
           messages: [
             ...(sanitizedInstructions
               ? [{ role: 'system', content: sanitizedInstructions }]
