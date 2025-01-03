@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2, Plus } from "lucide-react";
+import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Message {
@@ -24,7 +24,7 @@ interface MessageListProps {
 }
 
 export const MessageList = ({ 
-  messages, 
+  messages = [], // Add default empty array
   selectedBot, 
   starters = [], 
   onStarterClick, 
@@ -56,6 +56,12 @@ export const MessageList = ({
     }
     return MessageCircle;
   };
+
+  // Add null check for messages
+  if (!Array.isArray(messages)) {
+    console.warn("Messages prop is not an array:", messages);
+    return null;
+  }
 
   return (
     <div className="relative h-full flex flex-col overflow-hidden">
