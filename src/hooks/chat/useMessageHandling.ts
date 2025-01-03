@@ -13,8 +13,7 @@ export const useMessageHandling = (
   updateUserContext: (context: any) => void
 ) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { addContextToMessage, updateMemoryFromResponse } = useMemoryContext();
-  const abortController = new AbortController();
+  const { addContextToMessage, updateMemoryFromResponse, handleMemoryUpdate } = useMemoryContext(bot, userContext, updateUserContext);
 
   const sendMessage = async (message: string) => {
     if (!message.trim() || !bot) return;
@@ -58,8 +57,7 @@ export const useMessageHandling = (
       if (bot.model === "openrouter") {
         response = await ChatService.sendOpenRouterMessage(
           messagesToSend,
-          bot,
-          abortController.signal
+          bot
         );
       } else if (bot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(
@@ -84,20 +82,20 @@ export const useMessageHandling = (
       setMessages(finalMessages);
 
       // Update memory context in background
-      updateMemoryFromResponse(response, userContext).catch(console.error);
+      if (bot.memory_enabled) {
+        updateMemoryFromResponse(response, userContext).catch(console.error);
+      }
 
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error in sendMessage:", error);
-        // Add error message to chat
-        const errorMessage = {
-          id: uuidv4(),
-          role: "assistant",
-          content: "I apologize, but I encountered an error. Please try again.",
-          timestamp: new Date()
-        };
-        setMessages([...messages, errorMessage]);
-      }
+      console.error("Error in sendMessage:", error);
+      // Add error message to chat
+      const errorMessage = {
+        id: uuidv4(),
+        role: "assistant",
+        content: "I apologize, but I encountered an error. Please try again.",
+        timestamp: new Date()
+      };
+      setMessages([...messages, errorMessage]);
     } finally {
       setIsLoading(false);
       console.log("Message handling completed");
