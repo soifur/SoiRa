@@ -36,8 +36,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   } = useEmbeddedChat(bot, clientId, shareKey, sessionToken);
 
   const handleClearChat = async () => {
-    if (!chatId || !sessionToken) return;
-
     try {
       clearMessages();
       const newChatId = await createNewChat();
