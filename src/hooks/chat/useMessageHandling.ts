@@ -17,14 +17,15 @@ export const useMessageHandling = (
   const abortControllerRef = { current: null as AbortController | null };
 
   const handleMemoryUpdate = async (updatedMessages: Message[]) => {
-    if (bot.memory_enabled !== true || !bot.memory_instructions) {
-      console.log("Memory not enabled or no instructions provided for bot:", bot.id);
+    if (bot.memory_enabled !== true || !bot.memory_instructions || !bot.memory_model) {
+      console.log("Memory not enabled or no instructions/model provided for bot:", bot.id);
       return;
     }
 
     try {
       console.log("Updating memory with context:", userContext);
       console.log("Using memory instructions:", bot.memory_instructions);
+      console.log("Using memory model:", bot.memory_model);
       
       const contextUpdatePrompt = `
 Instructions for context extraction:
@@ -37,13 +38,10 @@ ${updatedMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 
 Based on the above instructions, analyze this conversation and update the user context.
 Return ONLY a valid JSON object with the updated context.`;
-      
+
       let newContextResponse;
-      const memoryModel = bot.memory_model || 'openrouter';
       
-      console.log("Using memory model:", memoryModel);
-      
-      if (memoryModel === "gemini") {
+      if (bot.memory_model.startsWith('gemini')) {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,

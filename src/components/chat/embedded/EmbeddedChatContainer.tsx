@@ -58,9 +58,8 @@ const EmbeddedChatContainer = () => {
         };
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
+        const memory_enabled = sharedBotData.memory_enabled !== false;
 
-        // Ensure memory_enabled is properly handled as a boolean
-        const memory_enabled = sharedBotData.memory_enabled !== false; // Default to true if not explicitly false
         console.log("Raw memory_enabled from DB:", sharedBotData.memory_enabled);
         console.log("Processed memory_enabled:", memory_enabled);
 

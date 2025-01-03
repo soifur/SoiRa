@@ -21,7 +21,7 @@ export interface Bot {
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: string; // Changed from literal union type to string to support OpenRouter model IDs
+  memory_model?: string;
   memory_api_key?: string;
 }
 
