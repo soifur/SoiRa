@@ -29,7 +29,6 @@ export const useEmbeddedChat = (
       }
       
       console.log("Updating memory with context:", newContext);
-      console.log("Using memory instructions:", bot.memory_instructions);
       
       await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
       setUserContext(newContext);
@@ -65,7 +64,6 @@ export const useEmbeddedChat = (
     fetchUserContext();
   }, [bot.id, bot.memory_enabled, clientId, sessionToken]);
 
-  // Initialize chat
   useEffect(() => {
     const initializeChat = async () => {
       if (!chatId) {
@@ -110,7 +108,7 @@ export const useEmbeddedChat = (
     chatId,
     sendMessage,
     loadExistingChat,
-    createNewChat: handleCreateNewChat,
+    createNewChat,
     userContext
   };
 };

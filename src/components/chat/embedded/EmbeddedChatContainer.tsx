@@ -77,17 +77,9 @@ const EmbeddedChatContainer = () => {
           avatar: avatarUrl,
           accessType: "public",
           memory_enabled: memory_enabled,
-          memory_instructions: sharedBotData.memory_instructions || "",
-          memory_model: sharedBotData.memory_model || sharedBotData.open_router_model || "anthropic/claude-3-opus",
-          memory_api_key: sharedBotData.memory_api_key || sharedBotData.bot_api_keys?.api_key || ""
         };
 
-        console.log("Transformed bot memory settings:", {
-          memory_enabled: transformedBot.memory_enabled,
-          memory_instructions: transformedBot.memory_instructions,
-          memory_model: transformedBot.memory_model,
-          raw_memory_enabled: sharedBotData.memory_enabled
-        });
+        console.log("Transformed bot:", transformedBot);
 
         setBot(transformedBot);
 

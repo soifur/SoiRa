@@ -21,13 +21,21 @@ export const useMessageHandling = (
 
   useEffect(() => {
     const fetchMemorySettings = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('memory_bot_settings')
         .select('*')
         .single();
       
       if (data) {
-        setMemorySettings(data);
+        // Ensure the model is of type MemoryModel
+        const model = data.model as MemoryModel;
+        setMemorySettings({
+          id: data.id,
+          model,
+          open_router_model: data.open_router_model,
+          api_key: data.api_key,
+          instructions: data.instructions
+        });
       }
     };
 
