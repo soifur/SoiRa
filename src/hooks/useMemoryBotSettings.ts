@@ -22,15 +22,6 @@ export const useMemoryBotSettings = () => {
     try {
       console.log("Starting to fetch memory bot settings...");
       
-      // First, check if we're authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log("Auth check result:", user ? "Authenticated" : "Not authenticated");
-      
-      if (authError) {
-        console.error("Auth error:", authError);
-        throw authError;
-      }
-
       const { data: memoryBotData, error: memoryBotError } = await supabase
         .from('memory_bot_settings')
         .select('*')
@@ -62,8 +53,7 @@ export const useMemoryBotSettings = () => {
         return;
       }
 
-      // If no settings found in memory_bot_settings
-      console.log("No memory settings found in memory_bot_settings table");
+      console.log("No memory settings found");
       setSettings(null);
       setError(null);
 
