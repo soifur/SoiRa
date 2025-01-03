@@ -78,7 +78,7 @@ const EmbeddedChatContainer = () => {
           accessType: "public",
           memory_enabled: memory_enabled,
           memory_instructions: sharedBotData.memory_instructions || "",
-          memory_model: sharedBotData.memory_model || sharedBotData.open_router_model || "anthropic/claude-3-opus",
+          memory_model: sharedBotData.memory_model || model,
           memory_api_key: sharedBotData.memory_api_key || sharedBotData.bot_api_keys?.api_key || ""
         };
 
