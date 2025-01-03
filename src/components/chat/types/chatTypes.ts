@@ -1,4 +1,5 @@
 import { Json } from "@/integrations/supabase/types";
+import { BaseModel } from "@/hooks/useBots";
 
 export interface Message {
   id: string;
@@ -14,14 +15,14 @@ export interface Bot {
   name: string;
   instructions: string;
   starters: string[];
-  model: "gemini" | "claude" | "openai" | "openrouter";
+  model: BaseModel;
   apiKey: string;
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: string;
+  memory_model?: BaseModel | string; // Match the type from useBots.ts
   memory_api_key?: string;
 }
 

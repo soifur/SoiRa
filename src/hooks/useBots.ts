@@ -2,19 +2,21 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+export type BaseModel = "gemini" | "claude" | "openai" | "openrouter";
+
 export interface Bot {
   id: string;
   name: string;
   instructions: string;
   starters: string[];
-  model: "gemini" | "claude" | "openai" | "openrouter";
+  model: BaseModel;
   apiKey: string;
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: "gemini" | "claude" | "openai" | "openrouter";
+  memory_model?: BaseModel | string; // Allow both basic models and OpenRouter model IDs
   memory_api_key?: string;
 }
 
