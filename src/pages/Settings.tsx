@@ -43,6 +43,24 @@ const Settings = () => {
     });
   };
 
+  const handleApiKeyChange = (value: string) => {
+    if (settings) {
+      saveSettings({
+        ...settings,
+        api_key: value,
+      });
+    }
+  };
+
+  const handleInstructionsChange = (value: string) => {
+    if (settings) {
+      saveSettings({
+        ...settings,
+        instructions: value,
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
@@ -80,9 +98,7 @@ const Settings = () => {
                 <Input
                   type="password"
                   value={settings?.api_key || ""}
-                  onChange={(e) => 
-                    settings && saveSettings({ ...settings, api_key: e.target.value })
-                  }
+                  onChange={(e) => handleApiKeyChange(e.target.value)}
                   placeholder="Enter your API key"
                 />
               </div>
@@ -91,9 +107,7 @@ const Settings = () => {
                 <label className="block text-sm font-medium mb-1">Memory Instructions</label>
                 <Textarea
                   value={settings?.instructions || ""}
-                  onChange={(e) => 
-                    settings && saveSettings({ ...settings, instructions: e.target.value })
-                  }
+                  onChange={(e) => handleInstructionsChange(e.target.value)}
                   placeholder="Enter memory instructions..."
                   rows={4}
                 />
