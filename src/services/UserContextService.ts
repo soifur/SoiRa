@@ -20,6 +20,7 @@ export class UserContextService {
 
   static async updateUserContext(botId: string, clientId: string, newContext: Record<string, any>, sessionToken?: string | null) {
     try {
+      // First try to find an existing context with either session_token or client_id
       const { data: existingData, error: fetchError } = await supabase
         .from('user_context')
         .select('id, context')
@@ -31,22 +32,35 @@ export class UserContextService {
       if (fetchError) throw fetchError;
 
       const mergedContext = {
-        ...(typeof existingData?.context === 'object' ? existingData.context : {}),
+        ...(existingData?.context || {}),
         ...newContext
       };
 
-      const { error: upsertError } = await supabase
-        .from('user_context')
-        .upsert({
-          ...(existingData?.id ? { id: existingData.id } : {}),
-          bot_id: botId,
-          client_id: clientId,
-          session_token: sessionToken,
-          context: mergedContext,
-          last_updated: new Date().toISOString()
-        });
+      if (existingData?.id) {
+        // Update existing context
+        const { error: updateError } = await supabase
+          .from('user_context')
+          .update({
+            context: mergedContext,
+            last_updated: new Date().toISOString()
+          })
+          .eq('id', existingData.id);
 
-      if (upsertError) throw upsertError;
+        if (updateError) throw updateError;
+      } else {
+        // Create new context
+        const { error: insertError } = await supabase
+          .from('user_context')
+          .insert({
+            bot_id: botId,
+            client_id: clientId,
+            session_token: sessionToken,
+            context: mergedContext,
+            last_updated: new Date().toISOString()
+          });
+
+        if (insertError) throw insertError;
+      }
     } catch (error) {
       throw error;
     }

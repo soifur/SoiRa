@@ -83,7 +83,6 @@ export const useEmbeddedChat = (
     initializeChat();
   }, [chatId]);
 
-  // Save messages when they change
   useEffect(() => {
     const saveMessages = async () => {
       if (chatId && messages.length > 0) {
@@ -101,7 +100,7 @@ export const useEmbeddedChat = (
 
   const handleCreateNewChat = async () => {
     console.log("Creating new chat");
-    clearMessages(); // Clear messages immediately
+    clearMessages();
     const newChatId = await createNewChat();
     return newChatId;
   };
@@ -112,7 +111,7 @@ export const useEmbeddedChat = (
     chatId,
     sendMessage,
     loadExistingChat,
-    createNewChat,
+    createNewChat: handleCreateNewChat,
     clearMessages,
     userContext
   };
