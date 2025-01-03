@@ -12,11 +12,12 @@ export interface Bot {
   model: BaseModel;
   apiKey: string;
   openRouterModel?: string;
+  openRouterMemoryModel?: string;  // Added this field
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: BaseModel | string; // Allow both basic models and OpenRouter model IDs
+  memory_model?: BaseModel | string;
   memory_api_key?: string;
 }
 
@@ -50,6 +51,7 @@ export const useBots = () => {
         model: bot.model as "gemini" | "claude" | "openai" | "openrouter",
         apiKey: bot.api_key,
         openRouterModel: bot.open_router_model,
+        openRouterMemoryModel: bot.memory_model, // Map memory_model to openRouterMemoryModel
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
@@ -120,6 +122,7 @@ export const useBots = () => {
         model: result.data.model,
         apiKey: result.data.api_key,
         openRouterModel: result.data.open_router_model,
+        openRouterMemoryModel: result.data.memory_model, // Map memory_model to openRouterMemoryModel
         avatar: result.data.avatar,
         accessType: "private",
         memory_enabled: result.data.memory_enabled,
