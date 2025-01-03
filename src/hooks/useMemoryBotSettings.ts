@@ -57,6 +57,39 @@ export const useMemoryBotSettings = () => {
     }
   };
 
+  const saveSettings = async (newSettings: MemorySettings) => {
+    try {
+      const { data, error } = await supabase
+        .from('memory_bot_settings')
+        .upsert({
+          id: newSettings.id,
+          model: newSettings.model,
+          open_router_model: newSettings.open_router_model,
+          api_key: newSettings.api_key,
+          instructions: newSettings.instructions
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSettings(data);
+      toast({
+        title: "Success",
+        description: "Memory settings saved successfully",
+      });
+      return true;
+    } catch (err) {
+      console.error("Error saving memory settings:", err);
+      toast({
+        title: "Error",
+        description: "Failed to save memory settings",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchSettings();
   }, []);
