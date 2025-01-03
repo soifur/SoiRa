@@ -39,23 +39,22 @@ export class ChatService {
       };
 
       // Determine if this is a memory operation
-      const isMemoryOperation = bot.memory_model !== undefined && bot.memory_enabled === true;
+      const isMemoryOperation = bot.memory_enabled === true;
       
       // Select the appropriate model based on the operation type
       let modelToUse;
-      if (isMemoryOperation) {
-        if (!bot.memory_model) {
-          throw new Error("Memory model not configured");
-        }
+      if (isMemoryOperation && bot.memory_model) {
         modelToUse = bot.memory_model;
-      } else {
-        if (!bot.openRouterModel) {
-          throw new Error("OpenRouter model not configured");
-        }
+        console.log("Using memory model:", modelToUse);
+      } else if (!isMemoryOperation && bot.openRouterModel) {
         modelToUse = bot.openRouterModel;
+        console.log("Using chat model:", modelToUse);
+      } else {
+        throw new Error(isMemoryOperation ? 
+          "Memory model not configured" : 
+          "OpenRouter model not configured");
       }
 
-      console.log("Using model:", modelToUse);
       console.log("Bot configuration:", {
         model: bot.model,
         memory_model: bot.memory_model,
