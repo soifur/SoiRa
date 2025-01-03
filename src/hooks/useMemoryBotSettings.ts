@@ -30,15 +30,16 @@ export const useMemoryBotSettings = () => {
         console.error("Error fetching memory bot settings:", memoryBotError);
         throw memoryBotError;
       }
-      
+
       if (!memoryBotData) {
-        console.error("No memory bot settings found");
+        const error = new Error("Memory settings not configured");
+        console.error(error.message);
         toast({
           title: "Error",
           description: "Memory settings not configured. Please configure memory settings first.",
           variant: "destructive",
         });
-        return;
+        throw error;
       }
 
       console.log("Found memory bot settings:", {
@@ -56,15 +57,20 @@ export const useMemoryBotSettings = () => {
     } catch (err) {
       console.error("Error in fetchSettings:", err);
       setError(err instanceof Error ? err : new Error('Failed to fetch memory settings'));
+      setSettings(null);
       toast({
         title: "Error",
-        description: "Failed to fetch memory settings",
+        description: err instanceof Error ? err.message : "Failed to fetch memory settings",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
   const saveSettings = async (newSettings: MemorySettings) => {
     try {
@@ -103,16 +109,12 @@ export const useMemoryBotSettings = () => {
       console.error("Error saving memory settings:", err);
       toast({
         title: "Error",
-        description: "Failed to save memory settings",
+        description: err instanceof Error ? err.message : "Failed to save memory settings",
         variant: "destructive",
       });
       return false;
     }
   };
-
-  useEffect(() => {
-    fetchSettings();
-  }, []);
 
   return {
     settings,

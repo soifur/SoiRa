@@ -25,20 +25,32 @@ export const useMessageHandling = (
     }
 
     if (!memorySettings) {
-      console.error("Memory settings not configured");
+      const error = new Error("Memory settings not configured");
+      console.error(error.message);
       toast({
         title: "Error",
         description: "Memory settings not configured. Please configure memory settings first.",
         variant: "destructive",
       });
-      return;
+      throw error;
+    }
+
+    if (!memorySettings.api_key) {
+      const error = new Error("Memory API key not configured");
+      console.error(error.message);
+      toast({
+        title: "Error",
+        description: "Memory API key not configured. Please configure memory settings first.",
+        variant: "destructive",
+      });
+      throw error;
     }
 
     try {
       console.log("Updating memory with context:", userContext);
       
       const contextUpdatePrompt = `
-${memorySettings.instructions || 'Please analyze the conversation and maintain context about the user, including their preferences, background, and any important details they share. Update the context with new information while preserving existing knowledge unless it\'s explicitly contradicted.'}
+${memorySettings.instructions || 'Error: Memory instructions not configured'}
 
 Previous context: ${JSON.stringify(userContext || {})}
 
@@ -63,10 +75,6 @@ Return ONLY a valid JSON object with the merged context.`;
         avatar: bot.avatar,
         memory_enabled: true
       };
-
-      if (!memorySettings.api_key) {
-        throw new Error("Memory API key not configured");
-      }
 
       console.log("Memory bot configuration:", {
         ...memoryBot,
@@ -102,6 +110,7 @@ Return ONLY a valid JSON object with the merged context.`;
       } catch (parseError) {
         console.error("Error parsing context response:", parseError);
         console.log("Failed to parse response:", newContextResponse);
+        throw new Error("Failed to parse memory bot response");
       }
     } catch (memoryError) {
       console.error("Error updating memory:", memoryError);
@@ -110,6 +119,7 @@ Return ONLY a valid JSON object with the merged context.`;
         description: memoryError instanceof Error ? memoryError.message : "Failed to update memory",
         variant: "destructive",
       });
+      throw memoryError;
     }
   };
 
