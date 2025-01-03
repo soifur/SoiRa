@@ -48,13 +48,13 @@ Return ONLY a valid JSON object with the merged context.`;
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "gemini"
         });
-      } else if (bot.model === "openrouter") {
+      } else if (bot.model === "openrouter" && bot.memory_model) {
         // For OpenRouter models, use the specific model ID from memory_model
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "openrouter",
-          openRouterModel: bot.memory_model // Use the memory_model as the OpenRouter model ID
+          openRouterModel: bot.memory_model
         });
       } else {
         console.log("Unsupported memory model configuration");
@@ -142,7 +142,7 @@ Return ONLY a valid JSON object with the merged context.`;
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was cancelled by user');
+        console.log('Request was aborted');
         return;
       }
       console.error("Chat error:", error);
