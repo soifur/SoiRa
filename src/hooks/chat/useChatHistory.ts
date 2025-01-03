@@ -14,7 +14,7 @@ export const useChatHistory = (
   const { toast } = useToast();
 
   const loadExistingChat = async (specificChatId?: string) => {
-    if (!botId || !sessionToken) return;
+    if (!botId || !sessionToken) return [];
 
     try {
       let query = supabase
@@ -48,15 +48,10 @@ export const useChatHistory = (
               id: msg.id || uuidv4()
             }))
           : [];
-      } else if (!specificChatId) {
-        await createNewChat();
       }
       return [];
     } catch (error) {
       console.error("Error loading chat:", error);
-      if (!specificChatId) {
-        await createNewChat();
-      }
       return [];
     }
   };
@@ -68,6 +63,20 @@ export const useChatHistory = (
       console.log("Creating new chat for session:", sessionToken);
       const newChatId = uuidv4();
       console.log("Generated new chat ID:", newChatId);
+
+      const { error } = await supabase
+        .from('chat_history')
+        .insert({
+          id: newChatId,
+          bot_id: botId,
+          messages: [],
+          client_id: clientId,
+          share_key: shareKey,
+          session_token: sessionToken,
+        });
+
+      if (error) throw error;
+      
       setChatId(newChatId);
       return newChatId;
     } catch (error) {
@@ -90,28 +99,13 @@ export const useChatHistory = (
         timestamp: msg.timestamp?.toISOString()
       }));
 
-      const { data: latestChat } = await supabase
-        .from('chat_history')
-        .select('sequence_number')
-        .eq('bot_id', botId)
-        .order('sequence_number', { ascending: false })
-        .limit(1)
-        .single();
-
-      const nextSequence = (latestChat?.sequence_number || 0) + 1;
-
       const { error } = await supabase
         .from('chat_history')
-        .upsert({
-          id: currentChatId,
-          bot_id: botId,
+        .update({
           messages: messagesToSave,
-          client_id: clientId,
-          share_key: shareKey,
-          session_token: sessionToken,
-          sequence_number: nextSequence,
           updated_at: new Date().toISOString()
-        });
+        })
+        .eq('id', currentChatId);
 
       if (error) throw error;
     } catch (error) {

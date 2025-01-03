@@ -53,12 +53,16 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const initializeChat = async () => {
-      const existingMessages = await loadExistingChat();
-      setMessages(existingMessages);
+      if (chatId) {
+        const existingMessages = await loadExistingChat(chatId);
+        setMessages(existingMessages || []);
+      } else {
+        setMessages([]);
+      }
     };
 
     initializeChat();
-  }, [bot.id, sessionToken]);
+  }, [chatId, bot.id, sessionToken]);
 
   useEffect(() => {
     if (chatId && messages.length > 0) {
@@ -66,13 +70,19 @@ export const useEmbeddedChat = (
     }
   }, [messages, chatId]);
 
+  const handleCreateNewChat = async () => {
+    setMessages([]); // Clear messages immediately
+    const newChatId = await createNewChat();
+    return newChatId;
+  };
+
   return {
     messages,
     isLoading,
     chatId,
     sendMessage,
     loadExistingChat,
-    createNewChat,
+    createNewChat: handleCreateNewChat,
     userContext
   };
 };
