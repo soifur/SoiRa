@@ -25,7 +25,12 @@ export const useMessageHandling = (
     }
 
     if (!memorySettings) {
-      console.log("No memory settings available");
+      console.error("Memory settings not configured");
+      toast({
+        title: "Error",
+        description: "Memory settings not configured. Please configure memory settings first.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -46,7 +51,7 @@ Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
 
-      // Create a memory-specific bot configuration using user settings
+      // Create a memory-specific bot configuration using memory settings
       const memoryBot: Bot = {
         id: bot.id,
         name: bot.name,
@@ -60,8 +65,7 @@ Return ONLY a valid JSON object with the merged context.`;
       };
 
       if (!memorySettings.api_key) {
-        console.error("No memory API key provided");
-        return;
+        throw new Error("Memory API key not configured");
       }
 
       console.log("Memory bot configuration:", {
@@ -101,6 +105,11 @@ Return ONLY a valid JSON object with the merged context.`;
       }
     } catch (memoryError) {
       console.error("Error updating memory:", memoryError);
+      toast({
+        title: "Error",
+        description: memoryError instanceof Error ? memoryError.message : "Failed to update memory",
+        variant: "destructive",
+      });
     }
   };
 
@@ -167,7 +176,7 @@ Return ONLY a valid JSON object with the merged context.`;
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: "Failed to process message",
+        description: error instanceof Error ? error.message : "Failed to process message",
         variant: "destructive",
       });
     } finally {

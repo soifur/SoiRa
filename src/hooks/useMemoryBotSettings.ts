@@ -31,24 +31,28 @@ export const useMemoryBotSettings = () => {
         throw memoryBotError;
       }
       
-      if (memoryBotData) {
-        console.log("Found memory bot settings:", memoryBotData);
-        setSettings({
-          id: memoryBotData.id,
-          model: memoryBotData.model as MemoryModel,
-          open_router_model: memoryBotData.open_router_model,
-          api_key: memoryBotData.api_key,
-          instructions: memoryBotData.instructions
+      if (!memoryBotData) {
+        console.error("No memory bot settings found");
+        toast({
+          title: "Error",
+          description: "Memory settings not configured. Please configure memory settings first.",
+          variant: "destructive",
         });
-      } else {
-        console.log("No memory bot settings found, using defaults");
-        // Set default settings if none found
-        setSettings({
-          model: "openrouter" as MemoryModel,
-          api_key: "",
-          instructions: "Please analyze the conversation and maintain context about the user, including their preferences, background, and any important details they share. Update the context with new information while preserving existing knowledge unless it's explicitly contradicted."
-        });
+        return;
       }
+
+      console.log("Found memory bot settings:", {
+        ...memoryBotData,
+        api_key: '[REDACTED]'
+      });
+      
+      setSettings({
+        id: memoryBotData.id,
+        model: memoryBotData.model as MemoryModel,
+        open_router_model: memoryBotData.open_router_model,
+        api_key: memoryBotData.api_key,
+        instructions: memoryBotData.instructions
+      });
     } catch (err) {
       console.error("Error in fetchSettings:", err);
       setError(err instanceof Error ? err : new Error('Failed to fetch memory settings'));
