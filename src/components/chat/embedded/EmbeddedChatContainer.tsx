@@ -66,8 +66,8 @@ const EmbeddedChatContainer = () => {
         const avatarUrl = sharedBotData.avatar || 
           `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
 
-        // Make sure to use the memory_model from sharedBotData
-        const memoryModel = sharedBotData.memory_model || model;
+        // Make sure to use the memory_model from sharedBotData or fallback to openRouterModel
+        const memoryModel = sharedBotData.memory_model || sharedBotData.open_router_model;
         console.log("Using memory model from DB:", memoryModel);
 
         const transformedBot: Bot = {
@@ -82,7 +82,7 @@ const EmbeddedChatContainer = () => {
           accessType: "public",
           memory_enabled: memory_enabled,
           memory_instructions: sharedBotData.memory_instructions || "",
-          memory_model: memoryModel,
+          memory_model: memoryModel || sharedBotData.open_router_model, // Fallback to open_router_model if no memory_model
           memory_api_key: sharedBotData.memory_api_key || sharedBotData.bot_api_keys?.api_key || ""
         };
 
