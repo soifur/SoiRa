@@ -34,19 +34,19 @@ Based on the above instructions, analyze this conversation and update the user c
 Return ONLY a valid JSON object with the updated context.`;
       
       let newContextResponse;
-      const validatedModel = isValidBotModel(memoryBot.memory_model) ? memoryBot.memory_model : 'openrouter';
+      const memoryModel = memoryBot.memory_model || 'openrouter';
       
-      if (validatedModel === "gemini") {
+      if (memoryModel === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...memoryBot,
           apiKey: memoryBot.memory_api_key,
-          model: memoryBot.memory_model
+          model: "gemini"
         });
       } else {
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...memoryBot,
           apiKey: memoryBot.memory_api_key,
-          model: memoryBot.memory_model
+          model: "openrouter"
         });
       }
 
