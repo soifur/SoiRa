@@ -45,15 +45,15 @@ export const useBots = () => {
         name: bot.name,
         instructions: bot.instructions || "",
         starters: bot.starters || [],
-        model: bot.model,
+        model: bot.model as "gemini" | "claude" | "openai" | "openrouter",
         apiKey: bot.api_key,
         openRouterModel: bot.open_router_model,
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
-        memory_instructions: bot.memory_instructions,
-        memory_model: bot.memory_model,
-        memory_api_key: bot.memory_api_key
+        memory_instructions: bot.memory_instructions || "",
+        memory_model: (bot.memory_model as "gemini" | "claude" | "openai" | "openrouter") || "openrouter",
+        memory_api_key: bot.memory_api_key || ""
       }));
 
       setBots(transformedBots);
