@@ -9,7 +9,7 @@ import { useMemoryContext } from "./memory/useMemoryContext";
 export const useMessageHandling = (
   bot: Bot,
   messages: Message[],
-  setMessages: (messages: Message[]) => void,
+  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void,
   userContext: any,
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
