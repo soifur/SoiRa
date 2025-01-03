@@ -16,13 +16,13 @@ export interface Bot {
   instructions: string;
   starters: string[];
   model: BaseModel;
-  api_key: string;
-  open_router_model?: string;
+  apiKey: string;
+  openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: BaseModel | string;
+  memory_model?: BaseModel | string; // Match the type from useBots.ts
   memory_api_key?: string;
 }
 

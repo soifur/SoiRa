@@ -10,13 +10,13 @@ export interface Bot {
   instructions: string;
   starters: string[];
   model: BaseModel;
-  api_key: string;
-  open_router_model?: string;
+  apiKey: string;
+  openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: string;
+  memory_model?: BaseModel | string; // Allow both basic models and OpenRouter model IDs
   memory_api_key?: string;
 }
 
@@ -47,18 +47,17 @@ export const useBots = () => {
         name: bot.name,
         instructions: bot.instructions || "",
         starters: bot.starters || [],
-        model: bot.model as BaseModel,
-        api_key: bot.api_key,
-        open_router_model: bot.open_router_model,
+        model: bot.model as "gemini" | "claude" | "openai" | "openrouter",
+        apiKey: bot.api_key,
+        openRouterModel: bot.open_router_model,
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
         memory_instructions: bot.memory_instructions || "",
-        memory_model: bot.memory_model || "",
+        memory_model: (bot.memory_model as "gemini" | "claude" | "openai" | "openrouter") || "openrouter",
         memory_api_key: bot.memory_api_key || ""
       }));
 
-      console.log("Transformed bots:", transformedBots);
       setBots(transformedBots);
     } catch (error) {
       console.error("Error fetching bots:", error);
@@ -82,13 +81,13 @@ export const useBots = () => {
         instructions: bot.instructions,
         starters: bot.starters,
         model: bot.model,
-        api_key: bot.api_key,
-        open_router_model: bot.open_router_model,
+        api_key: bot.apiKey,
+        open_router_model: bot.openRouterModel,
         avatar: bot.avatar,
         user_id: session.session.user.id,
         memory_enabled: bot.memory_enabled,
         memory_instructions: bot.memory_instructions,
-        memory_model: bot.memory_model,
+        memory_model: bot.memory_model || "openrouter",
         memory_api_key: bot.memory_api_key
       };
 
@@ -119,13 +118,13 @@ export const useBots = () => {
         instructions: result.data.instructions || "",
         starters: result.data.starters || [],
         model: result.data.model,
-        api_key: result.data.api_key,
-        open_router_model: result.data.open_router_model,
+        apiKey: result.data.api_key,
+        openRouterModel: result.data.open_router_model,
         avatar: result.data.avatar,
         accessType: "private",
         memory_enabled: result.data.memory_enabled,
         memory_instructions: result.data.memory_instructions || "",
-        memory_model: result.data.memory_model || "",
+        memory_model: result.data.memory_model || "openrouter",
         memory_api_key: result.data.memory_api_key || ""
       };
 

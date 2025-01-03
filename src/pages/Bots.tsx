@@ -58,7 +58,7 @@ const Bots = () => {
                   instructions: "",
                   starters: [],
                   model: "gemini",
-                  api_key: "",
+                  apiKey: "",
                   accessType: "private",
                 })
               }

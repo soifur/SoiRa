@@ -46,7 +46,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
               instructions: bot.instructions,
               starters: bot.starters,
               model: bot.model,
-              open_router_model: bot.open_router_model,
+              open_router_model: bot.openRouterModel,
             })
             .eq('short_key', existingShare.short_key);
 
@@ -62,7 +62,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           .from('bot_api_keys')
           .insert({
             bot_id: bot.id,
-            api_key: bot.api_key,
+            api_key: bot.apiKey,
           })
           .select()
           .single();
@@ -87,7 +87,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             instructions: bot.instructions,
             starters: bot.starters,
             model: bot.model,
-            open_router_model: bot.open_router_model,
+            open_router_model: bot.openRouterModel,
             api_key_id: apiKeyData.id,
           });
 
