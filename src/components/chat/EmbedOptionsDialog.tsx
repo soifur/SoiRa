@@ -6,6 +6,7 @@ import { Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useMemoryBotSettings } from "@/hooks/useMemoryBotSettings";
 
 interface EmbedOptionsDialogProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
   const baseUrl = window.location.origin;
   const [shareKey, setShareKey] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const { settings: memorySettings } = useMemoryBotSettings();
   
   useEffect(() => {
     const createShareConfig = async () => {
@@ -47,6 +49,10 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
               starters: bot.starters,
               model: bot.model,
               open_router_model: bot.openRouterModel,
+              memory_enabled: bot.memory_enabled,
+              memory_instructions: memorySettings?.instructions,
+              memory_model: memorySettings?.model,
+              memory_api_key: memorySettings?.api_key,
             })
             .eq('short_key', existingShare.short_key);
 
@@ -89,6 +95,10 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             model: bot.model,
             open_router_model: bot.openRouterModel,
             api_key_id: apiKeyData.id,
+            memory_enabled: bot.memory_enabled,
+            memory_instructions: memorySettings?.instructions,
+            memory_model: memorySettings?.model,
+            memory_api_key: memorySettings?.api_key,
           });
 
         if (shareError) throw shareError;
@@ -108,7 +118,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
     };
 
     createShareConfig();
-  }, [bot, isOpen, toast]);
+  }, [bot, isOpen, toast, memorySettings]);
 
   if (!bot) {
     return null;
