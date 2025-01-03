@@ -19,7 +19,7 @@ const EmbeddedChatContainer = () => {
         if (error) throw error;
         setClientId(user_ip || Math.random().toString(36).substring(7));
       } catch (error) {
-        console.error("Error fetching client IP:", error);
+        console.error("Error fetching client IP");
         setClientId(Math.random().toString(36).substring(7));
       }
     };
@@ -60,9 +60,6 @@ const EmbeddedChatContainer = () => {
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
         const memory_enabled = sharedBotData.memory_enabled !== false;
 
-        console.log("Raw memory_enabled from DB:", sharedBotData.memory_enabled);
-        console.log("Processed memory_enabled:", memory_enabled);
-
         const avatarUrl = sharedBotData.avatar || 
           `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
 
@@ -79,12 +76,9 @@ const EmbeddedChatContainer = () => {
           memory_enabled: memory_enabled,
         };
 
-        console.log("Transformed bot:", transformedBot);
-
         setBot(transformedBot);
 
       } catch (error) {
-        console.error("Error fetching bot:", error);
         toast({
           title: "Error",
           description: "Failed to load bot data",
@@ -104,11 +98,11 @@ const EmbeddedChatContainer = () => {
     <>
       <Helmet>
         <title>{`Chat with ${bot.name}`}</title>
+        <meta name="description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
         <meta property="og:title" content={`Chat with ${bot.name}`} />
         <meta property="og:description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
         <meta property="og:image" content={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
         <meta property="og:type" content="website" />
-        <meta name="description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`Chat with ${bot.name}`} />
         <meta name="twitter:description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
