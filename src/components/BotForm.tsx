@@ -20,7 +20,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
     memory_instructions: bot.memory_instructions ?? "",
-    memory_model: bot.memory_model ?? "openrouter",
+    memory_model: (bot.memory_model as "gemini" | "claude" | "openai" | "openrouter") || "openrouter",
     memory_api_key: bot.memory_api_key ?? ""
   });
 
