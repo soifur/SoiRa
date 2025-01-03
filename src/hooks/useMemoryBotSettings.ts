@@ -42,6 +42,28 @@ export const useMemoryBotSettings = () => {
         throw error;
       }
 
+      if (!memoryBotData.api_key) {
+        const error = new Error("Memory API key not configured");
+        console.error(error.message);
+        toast({
+          title: "Error",
+          description: "Memory API key not configured. Please configure memory settings first.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      if (!memoryBotData.instructions) {
+        const error = new Error("Memory instructions not configured");
+        console.error(error.message);
+        toast({
+          title: "Error",
+          description: "Memory instructions not configured. Please configure memory settings first.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
       console.log("Found memory bot settings:", {
         ...memoryBotData,
         api_key: '[REDACTED]'
