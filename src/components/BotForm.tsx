@@ -15,16 +15,18 @@ interface BotFormProps {
   onCancel: () => void;
 }
 
+type BotModel = "gemini" | "claude" | "openai" | "openrouter";
+
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
     memory_instructions: bot.memory_instructions ?? "",
-    memory_model: (bot.memory_model as "gemini" | "claude" | "openai" | "openrouter") || "openrouter",
+    memory_model: (bot.memory_model as BotModel) || "openrouter",
     memory_api_key: bot.memory_api_key ?? ""
   });
 
-  const handleModelChange = (model: "gemini" | "claude" | "openai" | "openrouter") => {
+  const handleModelChange = (model: BotModel) => {
     setEditingBot({ 
       ...editingBot, 
       model: model,
@@ -32,7 +34,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     });
   };
 
-  const handleMemoryModelChange = (model: "gemini" | "claude" | "openai" | "openrouter") => {
+  const handleMemoryModelChange = (model: BotModel) => {
     setEditingBot({ 
       ...editingBot, 
       memory_model: model
@@ -116,9 +118,9 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           <div>
             <label className="block text-sm font-medium mb-1">Memory Model</label>
             <ModelSelector 
-              bot={{ ...editingBot, model: editingBot.memory_model as "gemini" | "claude" | "openai" | "openrouter" }}
+              bot={{ ...editingBot, model: editingBot.memory_model as BotModel }}
               onModelChange={handleMemoryModelChange}
-              onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, memory_model: model as "gemini" | "claude" | "openai" | "openrouter" })}
+              onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, memory_model: model as BotModel })}
               isMemorySelector
             />
           </div>
