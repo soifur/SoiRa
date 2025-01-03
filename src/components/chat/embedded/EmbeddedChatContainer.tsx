@@ -59,8 +59,9 @@ const EmbeddedChatContainer = () => {
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
 
-        // Construct avatar URL directly without caching
-        const avatarUrl = `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
+        // Construct avatar URL with timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const avatarUrl = `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png?t=${timestamp}`;
         console.log("Constructed Avatar URL:", avatarUrl);
 
         const transformedBot: Bot = {
@@ -72,7 +73,11 @@ const EmbeddedChatContainer = () => {
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
           openRouterModel: sharedBotData.open_router_model,
           avatar: avatarUrl,
-          accessType: "public"
+          accessType: "public",
+          memory_enabled: sharedBotData.memory_enabled || false,
+          memory_instructions: sharedBotData.memory_instructions || "",
+          memory_model: sharedBotData.memory_model || "",
+          memory_api_key: sharedBotData.memory_api_key || ""
         };
 
         setBot(transformedBot);

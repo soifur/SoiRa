@@ -5,19 +5,19 @@ export class ChatService {
   private static sanitizeText(text: string): string {
     if (!text) return "";
     
-    // Replace smart quotes and other special characters with ASCII equivalents
     return text
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/\u2014/g, "--")
       .replace(/\u2013/g, "-")
       .replace(/\u2026/g, "...")
-      .replace(/[^\x00-\x7F]/g, " "); // Replace any remaining non-ASCII chars with space
+      .replace(/[^\x00-\x7F]/g, " ");
   }
 
   static async sendOpenRouterMessage(
     messages: Array<{ role: string; content: string }>,
-    bot: Bot
+    bot: Bot,
+    abortSignal?: AbortSignal
   ) {
     if (!bot.apiKey) {
       throw new Error("OpenRouter API key is missing");
@@ -41,6 +41,7 @@ export class ChatService {
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers,
+        signal: abortSignal,
         body: JSON.stringify({
           model: bot.openRouterModel,
           messages: [
@@ -63,6 +64,10 @@ export class ChatService {
       const data = await response.json();
       return data.choices[0].message.content;
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        console.log('Request was aborted');
+        throw new Error('Request was cancelled');
+      }
       console.error('OpenRouter API error:', error);
       throw error;
     }

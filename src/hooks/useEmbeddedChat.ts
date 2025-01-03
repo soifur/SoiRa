@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { Bot, Message } from "@/components/chat/types/chatTypes";
-import { Json } from "@/integrations/supabase/types";
 
 interface ChatMessage {
   role: string;
@@ -17,6 +16,7 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
   const [isLoading, setIsLoading] = useState(false);
   const [chatId, setChatId] = useState<string | null>(null);
   const { toast } = useToast();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const loadExistingChat = async (specificChatId?: string) => {
     if (!bot.id || !sessionToken) return;
@@ -97,6 +97,14 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
     try {
       setIsLoading(true);
       
+      // Cancel any existing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Create new abort controller for this request
+      abortControllerRef.current = new AbortController();
+      
       let currentChatId = chatId;
       if (!currentChatId) {
         currentChatId = await createNewChat();
@@ -130,16 +138,14 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
 
       if (bot.model === "gemini") {
         console.log("Sending message to Gemini API with context");
-        botResponse = await ChatService.sendGeminiMessage(contextMessages, {
-          ...bot,
-          starters: bot.starters || []
-        });
+        botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
       } else if (bot.model === "openrouter") {
         console.log("Sending message to OpenRouter API with context");
-        botResponse = await ChatService.sendOpenRouterMessage(contextMessages, {
-          ...bot,
-          starters: bot.starters || []
-        });
+        botResponse = await ChatService.sendOpenRouterMessage(
+          contextMessages,
+          bot,
+          abortControllerRef.current.signal
+        );
       }
 
       const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
@@ -177,6 +183,10 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
 
       if (error) throw error;
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        console.log('Request was aborted');
+        return;
+      }
       console.error("Chat error:", error);
       toast({
         title: "Error",
@@ -185,8 +195,18 @@ export const useEmbeddedChat = (bot: Bot, clientId: string, shareKey?: string, s
       });
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
+
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   return {
     messages,
