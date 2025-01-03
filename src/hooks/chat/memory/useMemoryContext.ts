@@ -26,8 +26,6 @@ Based on the above instructions, analyze these messages and update the user cont
 IMPORTANT: Merge any new information with the existing context, don't replace it unless explicitly contradicted.
 Return ONLY a valid JSON object with the merged context.`;
 
-      console.log("Memory bot configuration:", bot);
-
       let newContextResponse;
       if (bot.model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage(
@@ -41,8 +39,6 @@ Return ONLY a valid JSON object with the merged context.`;
         );
       }
 
-      console.log("Memory bot raw response:", newContextResponse);
-
       // Extract JSON from the response
       const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
@@ -53,7 +49,6 @@ Return ONLY a valid JSON object with the merged context.`;
       try {
         newContext = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
-        console.error("Failed to parse memory bot response:", parseError);
         throw new Error("Invalid JSON format in memory bot response");
       }
 
@@ -62,20 +57,27 @@ Return ONLY a valid JSON object with the merged context.`;
         throw new Error("Invalid context structure");
       }
 
-      if (!Array.isArray(newContext.likes) || !Array.isArray(newContext.topics)) {
-        throw new Error("Invalid context format: missing required arrays");
-      }
-
-      // Merge with existing context
+      // Initialize arrays if they don't exist
       const mergedContext = {
-        name: newContext.name || userContext?.name || "null",
-        faith: newContext.faith || userContext?.faith || " ",
-        likes: [...new Set([...(userContext?.likes || []), ...newContext.likes])].filter(item => item !== " "),
-        topics: [...new Set([...(userContext?.topics || []), ...newContext.topics])].filter(item => item !== " ")
+        name: newContext.name || userContext?.name || null,
+        faith: newContext.faith || userContext?.faith || null,
+        likes: [
+          ...(Array.isArray(userContext?.likes) ? userContext.likes : []),
+          ...(Array.isArray(newContext.likes) ? newContext.likes : [])
+        ].filter((item, index, self) => 
+          item && 
+          item !== " " && 
+          self.indexOf(item) === index
+        ),
+        topics: [
+          ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
+          ...(Array.isArray(newContext.topics) ? newContext.topics : [])
+        ].filter((item, index, self) => 
+          item && 
+          item !== " " && 
+          self.indexOf(item) === index
+        )
       };
-
-      console.log("New context extracted:", newContext);
-      console.log("Merged context:", mergedContext);
 
       await updateUserContext(mergedContext);
     } catch (error) {
