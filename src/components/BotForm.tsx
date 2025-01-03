@@ -118,7 +118,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             <ModelSelector 
               bot={{ ...editingBot, model: editingBot.memory_model as "gemini" | "claude" | "openai" | "openrouter" }}
               onModelChange={handleMemoryModelChange}
-              onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, memory_model: model })}
+              onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, memory_model: model as "gemini" | "claude" | "openai" | "openrouter" })}
               isMemorySelector
             />
           </div>
