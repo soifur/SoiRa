@@ -31,25 +31,12 @@ export const useMemoryBotSettings = () => {
         throw memoryBotError;
       }
 
+      // If no settings exist, return null without throwing an error
       if (!memoryBotData) {
-        const error = new Error("Memory settings not configured");
-        console.error(error.message);
+        console.log("No memory settings found");
         setSettings(null);
-        throw error;
-      }
-
-      if (!memoryBotData.api_key) {
-        const error = new Error("Memory API key not configured");
-        console.error(error.message);
-        setSettings(null);
-        throw error;
-      }
-
-      if (!memoryBotData.instructions) {
-        const error = new Error("Memory instructions not configured");
-        console.error(error.message);
-        setSettings(null);
-        throw error;
+        setError(null);
+        return;
       }
 
       console.log("Found memory bot settings:", {
@@ -71,11 +58,6 @@ export const useMemoryBotSettings = () => {
       console.error("Error in fetchSettings:", err);
       setError(err instanceof Error ? err : new Error('Failed to fetch memory settings'));
       setSettings(null);
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : "Failed to fetch memory settings",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
