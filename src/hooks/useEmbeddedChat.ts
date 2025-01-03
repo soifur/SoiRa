@@ -23,12 +23,14 @@ export const useEmbeddedChat = (
 
   const updateUserContext = async (newContext: any) => {
     try {
-      if (!bot.memory_enabled) {
-        console.log("Memory not enabled, skipping context update");
+      if (!bot?.memory_enabled) {
+        console.log("Memory not enabled for bot:", bot.id);
         return;
       }
       
       console.log("Updating user context for bot:", bot.id, "client:", clientId);
+      console.log("Memory instructions:", bot.memory_instructions);
+      console.log("Memory model:", bot.memory_model);
       console.log("New context to save:", newContext);
       
       await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
@@ -46,13 +48,19 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
-      if (!bot.memory_enabled) {
-        console.log("Memory not enabled for bot, skipping context fetch");
+      if (!bot?.memory_enabled) {
+        console.log("Memory not enabled for bot:", bot.id);
         return;
       }
 
       try {
         console.log("Fetching user context for bot:", bot.id, "client:", clientId);
+        console.log("Memory settings:", {
+          enabled: bot.memory_enabled,
+          instructions: bot.memory_instructions,
+          model: bot.memory_model
+        });
+        
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
         console.log("Fetched initial user context:", context);
         setUserContext(context || {});
@@ -63,7 +71,7 @@ export const useEmbeddedChat = (
     };
 
     fetchUserContext();
-  }, [bot.id, clientId, sessionToken, bot.memory_enabled]);
+  }, [bot.id, bot.memory_enabled, bot.memory_instructions, bot.memory_model, clientId, sessionToken]);
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -78,20 +86,21 @@ export const useEmbeddedChat = (
     };
 
     initializeChat();
-  }, [chatId, bot.id, sessionToken]);
+  }, [chatId, loadExistingChat]);
 
   useEffect(() => {
     if (chatId && messages.length > 0) {
       console.log("Saving chat history for chat:", chatId);
       saveChatHistory(messages, chatId);
     }
-  }, [messages, chatId]);
+  }, [messages, chatId, saveChatHistory]);
 
   const handleCreateNewChat = async () => {
     console.log("Creating new chat");
     setMessages([]); // Clear messages immediately
     const newChatId = await createNewChat();
-    if (bot.memory_enabled) {
+    if (bot?.memory_enabled) {
+      console.log("Resetting context for new chat");
       setUserContext({}); // Reset context for new chat
     }
     return newChatId;

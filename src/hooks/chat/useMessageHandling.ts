@@ -18,8 +18,8 @@ export const useMessageHandling = (
   const abortControllerRef = { current: null as AbortController | null };
 
   const handleMemoryUpdate = async (updatedMessages: Message[], memoryBot: Bot) => {
-    if (!bot.memory_enabled || !memoryBot.memory_instructions) {
-      console.log("Memory not enabled or no instructions provided");
+    if (!memoryBot?.memory_enabled || !memoryBot.memory_instructions) {
+      console.log("Memory not enabled or no instructions provided for bot:", memoryBot.id);
       return;
     }
 
@@ -54,7 +54,8 @@ Return ONLY a valid JSON object with the updated context.`;
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...memoryBot,
           apiKey: memoryBot.memory_api_key,
-          model: "openrouter"
+          model: "openrouter",
+          openRouterModel: memoryBot.memory_model
         });
       }
 
@@ -70,19 +71,9 @@ Return ONLY a valid JSON object with the updated context.`;
       } catch (parseError) {
         console.error("Error parsing context response:", parseError);
         console.log("Failed to parse response:", newContextResponse);
-        toast({
-          title: "Error",
-          description: "Failed to update memory context. Invalid response format.",
-          variant: "destructive",
-        });
       }
     } catch (memoryError) {
       console.error("Error updating memory:", memoryError);
-      toast({
-        title: "Error",
-        description: "Failed to update memory. Please check memory bot configuration.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -111,7 +102,7 @@ Return ONLY a valid JSON object with the updated context.`;
         content: msg.content
       }));
 
-      if (bot.memory_enabled && userContext) {
+      if (bot?.memory_enabled && userContext) {
         console.log("Adding context to messages:", userContext);
         const contextPrompt = `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`;
         contextMessages.unshift({
@@ -120,11 +111,11 @@ Return ONLY a valid JSON object with the updated context.`;
         });
       }
 
+      console.log("Sending message to API with context:", contextMessages);
+
       if (bot.model === "gemini") {
-        console.log("Sending message to Gemini API with context:", contextMessages);
         botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
       } else if (bot.model === "openrouter") {
-        console.log("Sending message to OpenRouter API with context:", contextMessages);
         botResponse = await ChatService.sendOpenRouterMessage(
           contextMessages,
           bot,
@@ -136,7 +127,7 @@ Return ONLY a valid JSON object with the updated context.`;
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
 
-      if (bot.memory_enabled) {
+      if (bot?.memory_enabled) {
         console.log("Updating memory after bot response");
         await handleMemoryUpdate(updatedMessages, bot);
       }
