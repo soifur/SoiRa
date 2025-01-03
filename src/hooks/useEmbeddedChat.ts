@@ -55,12 +55,6 @@ export const useEmbeddedChat = (
 
       try {
         console.log("Fetching user context for bot:", bot.id, "client:", clientId);
-        console.log("Memory settings:", {
-          enabled: bot.memory_enabled,
-          instructions: bot.memory_instructions,
-          model: bot.memory_model
-        });
-        
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
         console.log("Fetched initial user context:", context);
         setUserContext(context || {});
@@ -71,29 +65,39 @@ export const useEmbeddedChat = (
     };
 
     fetchUserContext();
-  }, [bot.id, bot.memory_enabled, bot.memory_instructions, bot.memory_model, clientId, sessionToken]);
+  }, [bot.id, bot.memory_enabled, clientId, sessionToken]);
 
+  // Initialize chat
   useEffect(() => {
     const initializeChat = async () => {
-      if (chatId) {
-        console.log("Loading existing chat:", chatId);
-        const existingMessages = await loadExistingChat(chatId);
-        setMessages(existingMessages || []);
-      } else {
-        console.log("No existing chat, starting fresh");
-        setMessages([]);
+      if (!chatId) {
+        console.log("No existing chat ID, creating new chat");
+        await createNewChat();
+        return;
+      }
+
+      console.log("Loading existing chat:", chatId);
+      const existingMessages = await loadExistingChat(chatId);
+      if (existingMessages && existingMessages.length > 0) {
+        console.log("Setting existing messages:", existingMessages.length);
+        setMessages(existingMessages);
       }
     };
 
     initializeChat();
-  }, [chatId, loadExistingChat]);
+  }, [chatId]);
 
+  // Save messages when they change
   useEffect(() => {
-    if (chatId && messages.length > 0) {
-      console.log("Saving chat history for chat:", chatId);
-      saveChatHistory(messages, chatId);
-    }
-  }, [messages, chatId, saveChatHistory]);
+    const saveMessages = async () => {
+      if (chatId && messages.length > 0) {
+        console.log("Saving chat history for chat:", chatId);
+        await saveChatHistory(messages, chatId);
+      }
+    };
+
+    saveMessages();
+  }, [messages, chatId]);
 
   const handleCreateNewChat = async () => {
     console.log("Creating new chat");

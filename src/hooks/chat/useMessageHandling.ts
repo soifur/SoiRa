@@ -3,7 +3,6 @@ import { Message } from "@/components/chat/types/chatTypes";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
-import { isValidBotModel } from "@/utils/typeValidation";
 import { useToast } from "@/components/ui/use-toast";
 
 export const useMessageHandling = (
@@ -17,19 +16,19 @@ export const useMessageHandling = (
   const { toast } = useToast();
   const abortControllerRef = { current: null as AbortController | null };
 
-  const handleMemoryUpdate = async (updatedMessages: Message[], memoryBot: Bot) => {
-    if (!memoryBot?.memory_enabled || !memoryBot.memory_instructions) {
-      console.log("Memory not enabled or no instructions provided for bot:", memoryBot.id);
+  const handleMemoryUpdate = async (updatedMessages: Message[]) => {
+    if (!bot?.memory_enabled || !bot.memory_instructions) {
+      console.log("Memory not enabled or no instructions provided for bot:", bot.id);
       return;
     }
 
     try {
       console.log("Updating memory with context:", userContext);
-      console.log("Using memory instructions:", memoryBot.memory_instructions);
+      console.log("Using memory instructions:", bot.memory_instructions);
       
       const contextUpdatePrompt = `
 Instructions for context extraction:
-${memoryBot.memory_instructions}
+${bot.memory_instructions}
 
 Previous context: ${JSON.stringify(userContext || {})}
 
@@ -40,28 +39,27 @@ Based on the above instructions, analyze this conversation and update the user c
 Return ONLY a valid JSON object with the updated context.`;
       
       let newContextResponse;
-      const memoryModel = memoryBot.memory_model || 'openrouter';
+      const memoryModel = bot.memory_model || 'openrouter';
       
       console.log("Using memory model:", memoryModel);
       
       if (memoryModel === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
-          ...memoryBot,
-          apiKey: memoryBot.memory_api_key,
+          ...bot,
+          apiKey: bot.memory_api_key,
           model: "gemini"
         });
       } else {
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
-          ...memoryBot,
-          apiKey: memoryBot.memory_api_key,
+          ...bot,
+          apiKey: bot.memory_api_key,
           model: "openrouter",
-          openRouterModel: memoryBot.memory_model
+          openRouterModel: bot.memory_model
         });
       }
 
       try {
         console.log("Memory bot raw response:", newContextResponse);
-        // Try to extract JSON from the response if it's wrapped in text
         const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
         const jsonStr = jsonMatch ? jsonMatch[0] : newContextResponse;
         const newContext = JSON.parse(jsonStr);
@@ -103,19 +101,18 @@ Return ONLY a valid JSON object with the updated context.`;
       }));
 
       if (bot?.memory_enabled && userContext) {
-        console.log("Adding context to messages:", userContext);
-        const contextPrompt = `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`;
-        contextMessages.unshift({
+        const contextPrompt = {
           role: "system",
-          content: contextPrompt
-        });
+          content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
+        };
+        contextMessages.unshift(contextPrompt);
       }
 
       console.log("Sending message to API with context:", contextMessages);
 
       if (bot.model === "gemini") {
         botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
-      } else if (bot.model === "openrouter") {
+      } else {
         botResponse = await ChatService.sendOpenRouterMessage(
           contextMessages,
           bot,
@@ -123,13 +120,13 @@ Return ONLY a valid JSON object with the updated context.`;
         );
       }
 
-      const botMessage = createMessage("assistant", botResponse, true, bot.avatar);
+      const botMessage = createMessage("assistant", botResponse, false, bot.avatar);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
 
       if (bot?.memory_enabled) {
         console.log("Updating memory after bot response");
-        await handleMemoryUpdate(updatedMessages, bot);
+        await handleMemoryUpdate(updatedMessages);
       }
 
     } catch (error) {
