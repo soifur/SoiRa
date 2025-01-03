@@ -34,33 +34,21 @@ export const useMemoryBotSettings = () => {
       if (!memoryBotData) {
         const error = new Error("Memory settings not configured");
         console.error(error.message);
-        toast({
-          title: "Error",
-          description: "Memory settings not configured. Please configure memory settings first.",
-          variant: "destructive",
-        });
+        setSettings(null);
         throw error;
       }
 
       if (!memoryBotData.api_key) {
         const error = new Error("Memory API key not configured");
         console.error(error.message);
-        toast({
-          title: "Error",
-          description: "Memory API key not configured. Please configure memory settings first.",
-          variant: "destructive",
-        });
+        setSettings(null);
         throw error;
       }
 
       if (!memoryBotData.instructions) {
         const error = new Error("Memory instructions not configured");
         console.error(error.message);
-        toast({
-          title: "Error",
-          description: "Memory instructions not configured. Please configure memory settings first.",
-          variant: "destructive",
-        });
+        setSettings(null);
         throw error;
       }
 
@@ -69,13 +57,16 @@ export const useMemoryBotSettings = () => {
         api_key: '[REDACTED]'
       });
       
-      setSettings({
+      const validatedSettings: MemorySettings = {
         id: memoryBotData.id,
         model: memoryBotData.model as MemoryModel,
         open_router_model: memoryBotData.open_router_model,
         api_key: memoryBotData.api_key,
         instructions: memoryBotData.instructions
-      });
+      };
+
+      setSettings(validatedSettings);
+      setError(null);
     } catch (err) {
       console.error("Error in fetchSettings:", err);
       setError(err instanceof Error ? err : new Error('Failed to fetch memory settings'));
@@ -114,13 +105,16 @@ export const useMemoryBotSettings = () => {
 
       if (error) throw error;
 
-      setSettings({
+      const validatedSettings: MemorySettings = {
         id: data.id,
         model: data.model as MemoryModel,
         open_router_model: data.open_router_model,
         api_key: data.api_key,
         instructions: data.instructions
-      });
+      };
+
+      setSettings(validatedSettings);
+      setError(null);
       
       toast({
         title: "Success",
@@ -129,6 +123,7 @@ export const useMemoryBotSettings = () => {
       return true;
     } catch (err) {
       console.error("Error saving memory settings:", err);
+      setError(err instanceof Error ? err : new Error('Failed to save memory settings'));
       toast({
         title: "Error",
         description: err instanceof Error ? err.message : "Failed to save memory settings",
