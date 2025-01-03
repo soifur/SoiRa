@@ -28,7 +28,8 @@ export class UserContextService {
 
   static async updateUserContext(botId: string, clientId: string, context: any, sessionToken?: string | null) {
     try {
-      console.log("Updating context for:", { botId, clientId, sessionToken, context });
+      console.log("Updating context for:", { botId, clientId, sessionToken });
+      console.log("New context:", context);
       
       // First try to find existing context
       const { data: existingContext } = await supabase
