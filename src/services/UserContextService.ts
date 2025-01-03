@@ -31,7 +31,7 @@ export class UserContextService {
       if (fetchError) throw fetchError;
 
       const mergedContext = {
-        ...(existingData?.context || {}),
+        ...(typeof existingData?.context === 'object' ? existingData.context : {}),
         ...newContext
       };
 
