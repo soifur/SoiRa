@@ -9,7 +9,7 @@ export class UserContextService {
         .eq('bot_id', botId)
         .eq('client_id', clientId)
         .eq('session_token', sessionToken)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching user context:", error);

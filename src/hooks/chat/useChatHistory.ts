@@ -30,11 +30,10 @@ export const useChatHistory = (
         query = query.order('created_at', { ascending: false }).limit(1);
       }
 
-      const { data: existingChat, error } = await query.single();
+      const { data: existingChat, error } = await query.maybeSingle();
 
-      if (error && !specificChatId) {
-        console.log("No existing chat found, creating new one");
-        await createNewChat();
+      if (error) {
+        console.error("Error loading chat:", error);
         return [];
       }
 
@@ -64,6 +63,17 @@ export const useChatHistory = (
       const newChatId = uuidv4();
       console.log("Generated new chat ID:", newChatId);
 
+      // Get the next sequence number
+      const { data: latestChat } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', botId)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const nextSequence = (latestChat?.sequence_number || 0) + 1;
+
       const { error } = await supabase
         .from('chat_history')
         .insert({
@@ -73,6 +83,7 @@ export const useChatHistory = (
           client_id: clientId,
           share_key: shareKey,
           session_token: sessionToken,
+          sequence_number: nextSequence
         });
 
       if (error) throw error;
