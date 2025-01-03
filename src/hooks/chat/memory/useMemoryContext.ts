@@ -1,14 +1,11 @@
 import { Bot } from "@/components/chat/types/chatTypes";
 import { ChatService } from "@/services/ChatService";
-import { useMemoryBotSettings } from "@/hooks/useMemoryBotSettings";
 
 export const useMemoryContext = (
   bot: Bot,
   userContext: any,
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
-  const { settings: memorySettings } = useMemoryBotSettings();
-
   const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
     if (!bot.memory_enabled || !memorySettings?.api_key || !memorySettings?.instructions) {
       return;
@@ -54,23 +51,41 @@ Return ONLY a valid JSON object with the merged context.`;
         );
       }
 
-      try {
-        const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
-        const jsonStr = jsonMatch ? jsonMatch[0] : newContextResponse;
-        const newContext = JSON.parse(jsonStr);
-        
-        const mergedContext = {
-          ...(userContext || {}),
-          ...newContext
-        };
-        
-        await updateUserContext(mergedContext);
-      } catch (parseError) {
-        throw new Error('Failed to parse memory bot response');
+      // Extract JSON from the response
+      const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("No valid JSON found in response");
       }
-    } catch (memoryError) {
-      // Don't throw error to prevent breaking the chat flow
-      console.error('Memory update failed:', memoryError);
+
+      let newContext;
+      try {
+        newContext = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error("Failed to parse memory bot response:", parseError);
+        throw new Error("Invalid JSON format in memory bot response");
+      }
+
+      // Validate the required structure
+      if (!newContext || typeof newContext !== 'object') {
+        throw new Error("Invalid context structure");
+      }
+
+      if (!Array.isArray(newContext.likes) || !Array.isArray(newContext.topics)) {
+        throw new Error("Invalid context format: missing required arrays");
+      }
+
+      // Merge with existing context
+      const mergedContext = {
+        name: newContext.name || userContext?.name || "null",
+        faith: newContext.faith || userContext?.faith || " ",
+        likes: [...new Set([...(userContext?.likes || []), ...newContext.likes])].filter(item => item !== " "),
+        topics: [...new Set([...(userContext?.topics || []), ...newContext.topics])].filter(item => item !== " ")
+      };
+
+      await updateUserContext(mergedContext);
+    } catch (error) {
+      console.error("Memory update failed:", error);
+      // Don't throw the error to prevent breaking the chat flow
     }
   };
 
