@@ -66,8 +66,8 @@ const EmbeddedChatContainer = () => {
         const avatarUrl = sharedBotData.avatar || 
           `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
 
-        // Make sure to use the memory_model from sharedBotData, falling back to the bot's model if not set
-        const memoryModel = sharedBotData.memory_model || sharedBotData.model;
+        // Make sure to use the memory_model from sharedBotData
+        const memoryModel = sharedBotData.memory_model || model;
         console.log("Using memory model from DB:", memoryModel);
 
         const transformedBot: Bot = {

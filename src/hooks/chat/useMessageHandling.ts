@@ -42,13 +42,13 @@ Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
       
-      if (bot.model === "gemini") {
+      if (bot.memory_model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "gemini"
         });
-      } else if (bot.model === "openrouter" && bot.memory_model) {
+      } else if (bot.model === "openrouter") {
         // For OpenRouter models, use the specific model ID from memory_model
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
@@ -142,7 +142,7 @@ Return ONLY a valid JSON object with the merged context.`;
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was aborted');
+        console.log('Request was cancelled by user');
         return;
       }
       console.error("Chat error:", error);
