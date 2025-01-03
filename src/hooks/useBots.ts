@@ -14,7 +14,7 @@ export interface Bot {
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: string;
+  memory_model?: "gemini" | "claude" | "openai" | "openrouter";
   memory_api_key?: string;
 }
 
