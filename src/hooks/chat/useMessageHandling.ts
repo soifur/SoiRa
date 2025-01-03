@@ -37,17 +37,19 @@ Conversation to analyze:
 ${updatedMessages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 
 Based on the above instructions, analyze this conversation and update the user context.
-Return ONLY a valid JSON object with the updated context.`;
+IMPORTANT: Merge any new information with the existing context, don't replace it unless explicitly contradicted.
+Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
       
-      if (bot.memory_model.startsWith('gemini')) {
+      if (bot.memory_model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "gemini"
         });
       } else {
+        // For OpenRouter models (including specific model IDs)
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,
@@ -62,8 +64,15 @@ Return ONLY a valid JSON object with the updated context.`;
         const jsonStr = jsonMatch ? jsonMatch[0] : newContextResponse;
         const newContext = JSON.parse(jsonStr);
         
+        // Merge new context with existing context
+        const mergedContext = {
+          ...userContext,
+          ...newContext
+        };
+        
         console.log("New context extracted:", newContext);
-        await updateUserContext(newContext);
+        console.log("Merged context:", mergedContext);
+        await updateUserContext(mergedContext);
       } catch (parseError) {
         console.error("Error parsing context response:", parseError);
         console.log("Failed to parse response:", newContextResponse);

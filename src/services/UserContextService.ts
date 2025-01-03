@@ -26,14 +26,14 @@ export class UserContextService {
     }
   }
 
-  static async updateUserContext(botId: string, clientId: string, context: any, sessionToken?: string | null) {
+  static async updateUserContext(botId: string, clientId: string, newContext: any, sessionToken?: string | null) {
     try {
       console.log("Updating context for:", { botId, clientId, sessionToken });
-      console.log("New context:", context);
+      console.log("New context:", newContext);
       
-      const { data: existingContext, error: fetchError } = await supabase
+      const { data: existingData, error: fetchError } = await supabase
         .from('user_context')
-        .select('id')
+        .select('id, context')
         .eq('bot_id', botId)
         .eq('client_id', clientId)
         .eq('session_token', sessionToken)
@@ -44,14 +44,20 @@ export class UserContextService {
         throw fetchError;
       }
 
+      // Merge existing context with new context
+      const mergedContext = {
+        ...(existingData?.context || {}),
+        ...newContext
+      };
+
       const { error: upsertError } = await supabase
         .from('user_context')
         .upsert({
-          ...(existingContext?.id ? { id: existingContext.id } : {}),
+          ...(existingData?.id ? { id: existingData.id } : {}),
           bot_id: botId,
           client_id: clientId,
           session_token: sessionToken,
-          context,
+          context: mergedContext,
           last_updated: new Date().toISOString()
         });
 

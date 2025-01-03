@@ -101,10 +101,6 @@ export const useEmbeddedChat = (
     console.log("Creating new chat");
     setMessages([]); // Clear messages immediately
     const newChatId = await createNewChat();
-    if (bot.memory_enabled === true) {
-      console.log("Resetting context for new chat");
-      setUserContext({}); // Reset context for new chat
-    }
     return newChatId;
   };
 
