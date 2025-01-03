@@ -85,7 +85,7 @@ export const useBots = () => {
         user_id: session.session.user.id,
         memory_enabled: bot.memory_enabled,
         memory_instructions: bot.memory_instructions,
-        memory_model: bot.memory_model,
+        memory_model: bot.memory_model || "openrouter",
         memory_api_key: bot.memory_api_key
       };
 
@@ -121,9 +121,9 @@ export const useBots = () => {
         avatar: result.data.avatar,
         accessType: "private",
         memory_enabled: result.data.memory_enabled,
-        memory_instructions: result.data.memory_instructions,
-        memory_model: result.data.memory_model,
-        memory_api_key: result.data.memory_api_key
+        memory_instructions: result.data.memory_instructions || "",
+        memory_model: result.data.memory_model || "openrouter",
+        memory_api_key: result.data.memory_api_key || ""
       };
 
       // Refresh the bots list

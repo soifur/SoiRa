@@ -57,7 +57,8 @@ const EmbeddedChatContainer = () => {
           return ['gemini', 'claude', 'openai', 'openrouter'].includes(model);
         };
 
-        const model = validModel(sharedBotData.model) ? sharedBotData.model : 'gemini';
+        const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
+        const memoryModel = validModel(sharedBotData.memory_model) ? sharedBotData.memory_model : 'openrouter';
 
         // Use the avatar from shared_bots if available, otherwise construct from bot_id
         const avatarUrl = sharedBotData.avatar || 
@@ -76,7 +77,7 @@ const EmbeddedChatContainer = () => {
           accessType: "public",
           memory_enabled: sharedBotData.memory_enabled ?? false,
           memory_instructions: sharedBotData.memory_instructions || "",
-          memory_model: sharedBotData.memory_model || "",
+          memory_model: memoryModel,
           memory_api_key: sharedBotData.memory_api_key || ""
         };
 

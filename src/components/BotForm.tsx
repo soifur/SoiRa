@@ -20,7 +20,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
     memory_instructions: bot.memory_instructions ?? "",
-    memory_model: bot.memory_model ?? "",
+    memory_model: bot.memory_model ?? "openrouter",
     memory_api_key: bot.memory_api_key ?? ""
   });
 
@@ -44,7 +44,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       ...editingBot,
       memory_enabled: editingBot.memory_enabled ?? false,
       memory_instructions: editingBot.memory_enabled ? editingBot.memory_instructions : "",
-      memory_model: editingBot.memory_enabled ? editingBot.memory_model : "",
+      memory_model: editingBot.memory_enabled ? editingBot.memory_model : "openrouter",
       memory_api_key: editingBot.memory_enabled ? editingBot.memory_api_key : ""
     });
   };
@@ -116,7 +116,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           <div>
             <label className="block text-sm font-medium mb-1">Memory Model</label>
             <ModelSelector 
-              bot={{ ...editingBot, model: editingBot.memory_model as "gemini" | "claude" | "openai" | "openrouter" || "openrouter" }}
+              bot={{ ...editingBot, model: editingBot.memory_model }}
               onModelChange={handleMemoryModelChange}
               onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, memory_model: model })}
               isMemorySelector
