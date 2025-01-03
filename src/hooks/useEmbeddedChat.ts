@@ -22,7 +22,7 @@ export const useEmbeddedChat = (
     saveChatHistory
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
-  const updateUserContext = async (newContext: any) => {
+  const updateUserContext = async (newContext: Record<string, any>) => {
     try {
       if (bot.memory_enabled !== true) {
         console.log("Memory not enabled for bot:", bot.id);
@@ -37,8 +37,11 @@ export const useEmbeddedChat = (
         .eq('session_token', sessionToken)
         .maybeSingle();
 
+      // Ensure we have a valid object for the spread operation
+      const currentContext = (existingContext?.context || {}) as Record<string, any>;
+      
       const mergedContext = {
-        ...(existingContext?.context || {}),
+        ...currentContext,
         ...newContext
       };
 
