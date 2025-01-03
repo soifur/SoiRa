@@ -37,6 +37,13 @@ export const useMessageHandling = (
       const botMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, botMessage]);
 
+      // Start memory update in the background if enabled
+      if (bot.memory_enabled === true) {
+        handleMemoryUpdate([...newMessages]).catch(error => {
+          console.error("Background memory update failed:", error);
+        });
+      }
+
       let botResponse = "";
       const contextMessages = newMessages.map(msg => ({
         role: msg.role,
@@ -78,11 +85,6 @@ export const useMessageHandling = (
 
       const finalBotMessage = createMessage("assistant", botResponse, false, bot.avatar);
       setMessages([...newMessages, finalBotMessage]);
-
-      if (bot.memory_enabled === true) {
-        console.log("Updating memory after bot response");
-        await handleMemoryUpdate([...newMessages, finalBotMessage]);
-      }
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
