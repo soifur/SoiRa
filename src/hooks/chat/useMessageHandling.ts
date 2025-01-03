@@ -18,9 +18,15 @@ export const useMessageHandling = (
   const abortControllerRef = { current: null as AbortController | null };
 
   const handleMemoryUpdate = async (updatedMessages: Message[], memoryBot: Bot) => {
-    if (!bot.memory_enabled || !memoryBot.memory_instructions) return;
+    if (!bot.memory_enabled || !memoryBot.memory_instructions) {
+      console.log("Memory not enabled or no instructions provided");
+      return;
+    }
 
     try {
+      console.log("Updating memory with context:", userContext);
+      console.log("Using memory instructions:", memoryBot.memory_instructions);
+      
       const contextUpdatePrompt = `
 Instructions for context extraction:
 ${memoryBot.memory_instructions}
@@ -35,6 +41,8 @@ Return ONLY a valid JSON object with the updated context.`;
       
       let newContextResponse;
       const memoryModel = memoryBot.memory_model || 'openrouter';
+      
+      console.log("Using memory model:", memoryModel);
       
       if (memoryModel === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
@@ -51,12 +59,17 @@ Return ONLY a valid JSON object with the updated context.`;
       }
 
       try {
-        console.log("Memory bot response:", newContextResponse);
-        const newContext = JSON.parse(newContextResponse);
+        console.log("Memory bot raw response:", newContextResponse);
+        // Try to extract JSON from the response if it's wrapped in text
+        const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? jsonMatch[0] : newContextResponse;
+        const newContext = JSON.parse(jsonStr);
+        
         console.log("New context extracted:", newContext);
         await updateUserContext(newContext);
       } catch (parseError) {
         console.error("Error parsing context response:", parseError);
+        console.log("Failed to parse response:", newContextResponse);
         toast({
           title: "Error",
           description: "Failed to update memory context. Invalid response format.",
@@ -99,6 +112,7 @@ Return ONLY a valid JSON object with the updated context.`;
       }));
 
       if (bot.memory_enabled && userContext) {
+        console.log("Adding context to messages:", userContext);
         const contextPrompt = `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`;
         contextMessages.unshift({
           role: "system",
@@ -107,10 +121,10 @@ Return ONLY a valid JSON object with the updated context.`;
       }
 
       if (bot.model === "gemini") {
-        console.log("Sending message to Gemini API with context");
+        console.log("Sending message to Gemini API with context:", contextMessages);
         botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
       } else if (bot.model === "openrouter") {
-        console.log("Sending message to OpenRouter API with context");
+        console.log("Sending message to OpenRouter API with context:", contextMessages);
         botResponse = await ChatService.sendOpenRouterMessage(
           contextMessages,
           bot,
@@ -123,6 +137,7 @@ Return ONLY a valid JSON object with the updated context.`;
       setMessages(updatedMessages);
 
       if (bot.memory_enabled) {
+        console.log("Updating memory after bot response");
         await handleMemoryUpdate(updatedMessages, bot);
       }
 
