@@ -10,9 +10,8 @@ export interface Bot {
   instructions: string;
   starters: string[];
   model: BaseModel;
-  apiKey: string;
-  openRouterModel?: string;
-  openRouterMemoryModel?: string;
+  api_key: string;
+  open_router_model?: string;
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
@@ -49,8 +48,8 @@ export const useBots = () => {
         instructions: bot.instructions || "",
         starters: bot.starters || [],
         model: bot.model as BaseModel,
-        apiKey: bot.api_key,
-        openRouterModel: bot.open_router_model,
+        api_key: bot.api_key,
+        open_router_model: bot.open_router_model,
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
@@ -83,8 +82,8 @@ export const useBots = () => {
         instructions: bot.instructions,
         starters: bot.starters,
         model: bot.model,
-        api_key: bot.apiKey,
-        open_router_model: bot.openRouterModel,
+        api_key: bot.api_key,
+        open_router_model: bot.open_router_model,
         avatar: bot.avatar,
         user_id: session.session.user.id,
         memory_enabled: bot.memory_enabled,
@@ -120,8 +119,8 @@ export const useBots = () => {
         instructions: result.data.instructions || "",
         starters: result.data.starters || [],
         model: result.data.model,
-        apiKey: result.data.api_key,
-        openRouterModel: result.data.open_router_model,
+        api_key: result.data.api_key,
+        open_router_model: result.data.open_router_model,
         avatar: result.data.avatar,
         accessType: "private",
         memory_enabled: result.data.memory_enabled,

@@ -16,9 +16,8 @@ export interface Bot {
   instructions: string;
   starters: string[];
   model: BaseModel;
-  apiKey: string;
-  openRouterModel?: string;
-  openRouterMemoryModel?: string; // New field for memory model
+  api_key: string;
+  open_router_model?: string;
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
