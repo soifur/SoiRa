@@ -60,10 +60,13 @@ const EmbeddedChatContainer = () => {
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
         const memoryModel = validModel(sharedBotData.memory_model) ? sharedBotData.memory_model : 'openrouter';
 
-        // Use the avatar from shared_bots if available, otherwise construct from bot_id
         const avatarUrl = sharedBotData.avatar || 
           `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
         console.log("Constructed Avatar URL:", avatarUrl);
+
+        // Convert memory_enabled to boolean explicitly
+        const memory_enabled = sharedBotData.memory_enabled === true;
+        console.log("Memory enabled:", memory_enabled);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -75,11 +78,17 @@ const EmbeddedChatContainer = () => {
           openRouterModel: sharedBotData.open_router_model,
           avatar: avatarUrl,
           accessType: "public",
-          memory_enabled: sharedBotData.memory_enabled ?? false,
+          memory_enabled: memory_enabled,
           memory_instructions: sharedBotData.memory_instructions || "",
           memory_model: memoryModel,
           memory_api_key: sharedBotData.memory_api_key || ""
         };
+
+        console.log("Transformed bot memory settings:", {
+          memory_enabled: transformedBot.memory_enabled,
+          memory_instructions: transformedBot.memory_instructions,
+          memory_model: transformedBot.memory_model
+        });
 
         setBot(transformedBot);
 
