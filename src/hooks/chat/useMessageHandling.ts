@@ -42,7 +42,7 @@ Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
       
-      if (bot.memory_model === "gemini") {
+      if (bot.model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,
@@ -54,7 +54,7 @@ Return ONLY a valid JSON object with the merged context.`;
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "openrouter",
-          openRouterModel: bot.memory_model
+          openRouterModel: bot.memory_model // Use the memory_model as the OpenRouter model ID
         });
       } else {
         console.log("Unsupported memory model configuration");
