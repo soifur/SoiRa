@@ -38,11 +38,21 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      // For memory operations, use memory_model if it exists and is not "openrouter"
-      // Otherwise, use openRouterModel for both memory and regular operations
-      const modelToUse = bot.memory_model && bot.memory_model !== "openrouter" 
-        ? bot.memory_model 
-        : bot.openRouterModel || "auto";
+      // Determine which model to use based on the context
+      let modelToUse;
+      
+      // If this is a memory operation (indicated by memory_model being set)
+      if (bot.memory_model) {
+        // If memory_model is "openrouter", use the bot's openRouterModel
+        modelToUse = bot.memory_model === "openrouter" 
+          ? bot.openRouterModel || "auto"
+          : bot.memory_model;
+      } else {
+        // For regular chat, use the bot's openRouterModel if model is "openrouter"
+        modelToUse = bot.model === "openrouter"
+          ? bot.openRouterModel || "auto"
+          : bot.model;
+      }
         
       console.log("Using OpenRouter model:", modelToUse);
 
