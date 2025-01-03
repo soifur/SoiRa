@@ -41,21 +41,35 @@ IMPORTANT: Merge any new information with the existing context, don't replace it
 Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
-      
+
       // Create a memory-specific bot configuration
       const memoryBot: Bot = {
-        ...bot,
+        id: bot.id,
+        name: bot.name,
+        instructions: bot.memory_instructions,
+        starters: [],
         model: "openrouter" as const,
-        apiKey: bot.memory_api_key || bot.apiKey,
-        openRouterModel: bot.memory_model || bot.openRouterModel,
+        apiKey: bot.memory_api_key || "", // Only use memory_api_key, don't fallback to bot.apiKey
+        openRouterModel: bot.memory_model || "anthropic/claude-3-opus",
+        avatar: bot.avatar,
+        memory_enabled: bot.memory_enabled,
+        memory_instructions: bot.memory_instructions,
+        memory_model: bot.memory_model,
+        memory_api_key: bot.memory_api_key
       };
 
       console.log("Memory bot configuration:", {
-        memory_enabled: bot.memory_enabled,
-        memory_model: bot.memory_model,
-        memory_api_key: bot.memory_api_key,
-        memory_instructions: bot.memory_instructions
+        memory_enabled: memoryBot.memory_enabled,
+        memory_model: memoryBot.memory_model,
+        memory_api_key: memoryBot.memory_api_key,
+        memory_instructions: memoryBot.memory_instructions,
+        using_api_key: memoryBot.apiKey // Log which API key we're actually using
       });
+
+      if (!memoryBot.apiKey) {
+        console.error("No memory API key provided");
+        return;
+      }
 
       if (bot.memory_model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage(
@@ -152,7 +166,7 @@ Return ONLY a valid JSON object with the merged context.`;
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was aborted');
+        console.log('Request was cancelled');
         return;
       }
       console.error("Chat error:", error);
