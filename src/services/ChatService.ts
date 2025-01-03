@@ -38,10 +38,16 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      console.log("Using model:", bot.memory_model);
+      const isMemoryOperation = bot.memory_model !== undefined;
+      const modelToUse = isMemoryOperation ? bot.openRouterMemoryModel : bot.openRouterModel;
+
+      console.log("Using model:", modelToUse);
       console.log("Bot configuration:", {
         model: bot.model,
-        memory_model: bot.memory_model
+        memory_model: bot.memory_model,
+        openRouterModel: bot.openRouterModel,
+        openRouterMemoryModel: bot.openRouterMemoryModel,
+        isMemoryOperation
       });
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -49,7 +55,7 @@ export class ChatService {
         headers,
         signal: abortSignal,
         body: JSON.stringify({
-          model: bot.memory_model,
+          model: modelToUse || "auto",
           messages: [
             ...(sanitizedInstructions
               ? [{ role: 'system', content: sanitizedInstructions }]

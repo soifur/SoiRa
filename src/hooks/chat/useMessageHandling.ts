@@ -44,12 +44,13 @@ Return ONLY a valid JSON object with the merged context.`;
         ...bot,
         apiKey: bot.memory_api_key || bot.apiKey,
         model: bot.memory_model === "gemini" ? "gemini" : "openrouter",
-        memory_model: bot.memory_model
+        openRouterMemoryModel: bot.memory_model !== "gemini" ? bot.memory_model : undefined
       };
 
       console.log("Memory bot configuration:", {
         model: memoryBot.model,
-        memory_model: memoryBot.memory_model
+        memory_model: memoryBot.memory_model,
+        openRouterMemoryModel: memoryBot.openRouterMemoryModel
       });
       
       if (memoryBot.model === "gemini") {

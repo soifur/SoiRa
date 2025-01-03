@@ -18,11 +18,12 @@ export interface Bot {
   model: BaseModel;
   apiKey: string;
   openRouterModel?: string;
+  openRouterMemoryModel?: string; // New field for memory model
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: BaseModel | string; // Match the type from useBots.ts
+  memory_model?: BaseModel | string;
   memory_api_key?: string;
 }
 
