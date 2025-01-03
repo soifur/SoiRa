@@ -8,6 +8,7 @@ import Index from "@/pages/Index";
 import Bots from "@/pages/Bots";
 import Chat from "@/pages/Chat";
 import Archive from "@/pages/Archive";
+import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { Helmet } from "react-helmet";
@@ -59,6 +60,10 @@ function App() {
           <Route
             path="/archive"
             element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/settings"
+            element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
           />
           <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
           <Route

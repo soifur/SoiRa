@@ -12,6 +12,10 @@ export interface Bot {
   openRouterModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
+  memory_enabled?: boolean;
+  memory_instructions?: string;
+  memory_model?: string;
+  memory_api_key?: string;
 }
 
 export const useBots = () => {

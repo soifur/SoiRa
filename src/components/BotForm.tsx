@@ -6,6 +6,8 @@ import { Bot } from "@/hooks/useBots";
 import { ModelSelector } from "./bot/ModelSelector";
 import { AvatarUploader } from "./bot/AvatarUploader";
 import { StartersInput } from "./bot/StartersInput";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 interface BotFormProps {
   bot: Bot;
@@ -67,6 +69,27 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           rows={4}
         />
       </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="memory-mode"
+          checked={editingBot.memory_enabled}
+          onCheckedChange={(checked) => setEditingBot({ ...editingBot, memory_enabled: checked })}
+        />
+        <Label htmlFor="memory-mode">Enable Memory Mode</Label>
+      </div>
+
+      {editingBot.memory_enabled && (
+        <div>
+          <label className="block text-sm font-medium mb-1">Memory Instructions</label>
+          <Textarea
+            value={editingBot.memory_instructions}
+            onChange={(e) => setEditingBot({ ...editingBot, memory_instructions: e.target.value })}
+            placeholder="Enter memory instructions..."
+            rows={4}
+          />
+        </div>
+      )}
 
       <StartersInput 
         starters={editingBot.starters}
