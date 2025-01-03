@@ -48,7 +48,7 @@ Return ONLY a valid JSON object with the merged context.`;
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "gemini"
         });
-      } else if (bot.model === "openrouter" && bot.memory_model) {
+      } else if (bot.model === "openrouter") {
         // For OpenRouter models, use the specific model ID from memory_model
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
