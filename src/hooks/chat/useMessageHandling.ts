@@ -5,7 +5,7 @@ import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { MemorySettings } from "@/hooks/useMemorySettings";
+import { MemorySettings, MemoryModel } from "@/hooks/useMemorySettings";
 
 export const useMessageHandling = (
   bot: Bot,
