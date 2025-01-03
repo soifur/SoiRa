@@ -59,8 +59,8 @@ export const useMemoryBotSettings = () => {
 
   const saveSettings = async (newSettings: MemorySettings) => {
     try {
-      const { user } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (!user || userError) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('memory_bot_settings')
