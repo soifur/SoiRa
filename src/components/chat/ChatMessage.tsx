@@ -15,9 +15,9 @@ export interface ChatMessageProps {
 
 export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessageProps) => {
   const { toast } = useToast();
+  const isEmbedded = window.location.pathname === '/embedded';
 
   const handleCopy = () => {
-    // Remove any "Assistant:" prefix before copying
     const cleanMessage = message.replace(/^(Assistant|Human):\s*/i, '');
     navigator.clipboard.writeText(cleanMessage);
     toast({
@@ -25,7 +25,6 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
     });
   };
 
-  // Clean up the message by removing any "Assistant:" or "Human:" prefix
   const cleanedMessage = message.replace(/^(Assistant|Human):\s*/i, '');
 
   return (
@@ -46,10 +45,11 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
           )}
         </Avatar>
       )}
-      <Card
+      <div
         className={cn(
-          "px-6 py-4 rounded-2xl max-w-[85%] relative group",
-          isBot ? "bg-accent/50 backdrop-blur-sm" : "bg-primary text-primary-foreground"
+          "relative group",
+          isBot && isEmbedded ? "max-w-[85%]" : "max-w-[85%]",
+          !isBot && "ml-auto"
         )}
       >
         {isBot && (
@@ -60,7 +60,13 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
             <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
           </button>
         )}
-        <div className="prose prose-sm dark:prose-invert max-w-none">
+        <div
+          className={cn(
+            "prose prose-sm dark:prose-invert max-w-none",
+            isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm",
+            !isBot && "px-6 py-4 rounded-2xl bg-primary text-primary-foreground"
+          )}
+        >
           <ReactMarkdown
             components={{
               p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed">{children}</p>,
@@ -85,7 +91,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
             {cleanedMessage}
           </ReactMarkdown>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

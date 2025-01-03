@@ -54,15 +54,18 @@ export const useMemoryContext = (
     try {
       console.log("Updating memory with context:", userContext);
       
+      // Filter only user messages for analysis
+      const userMessages = messages.filter(msg => msg.role === "user");
+      
       const contextUpdatePrompt = `
 ${memorySettings.instructions}
 
 Previous context: ${JSON.stringify(userContext || {})}
 
-Conversation to analyze:
-${messages.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+User messages to analyze:
+${userMessages.map(msg => msg.content).join('\n')}
 
-Based on the above instructions, analyze this conversation and update the user context.
+Based on the above instructions, analyze these messages and update the user context.
 IMPORTANT: Merge any new information with the existing context, don't replace it unless explicitly contradicted.
 Return ONLY a valid JSON object with the merged context.`;
 

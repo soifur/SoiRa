@@ -13,12 +13,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatInput } from "@/components/chat/ChatInput";
 
-interface EmbeddedChatUIProps {
-  bot: Bot;
-  clientId: string;
-  shareKey?: string;
-}
-
 const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const isMobile = useIsMobile();
@@ -31,7 +25,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     chatId,
     sendMessage,
     loadExistingChat,
-    createNewChat
+    createNewChat,
+    clearMessages
   } = useEmbeddedChat(bot, clientId, shareKey, sessionToken);
 
   const handleClearChat = async () => {
@@ -46,6 +41,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
 
       if (error) throw error;
 
+      clearMessages();
       const newChatId = await createNewChat();
       if (newChatId) {
         toast({
@@ -102,7 +98,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
                 onClearChat={handleClearChat}
                 onToggleHistory={() => setShowHistory(!showHistory)}
                 showHistory={showHistory}
-                onNewChat={createNewChat}
+                onNewChat={handleClearChat}
               />
             </div>
             <div className="flex-1 overflow-hidden mt-16 mb-24">

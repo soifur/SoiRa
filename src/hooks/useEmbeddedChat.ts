@@ -95,9 +95,13 @@ export const useEmbeddedChat = (
     saveMessages();
   }, [messages, chatId]);
 
+  const clearMessages = () => {
+    setMessages([]);
+  };
+
   const handleCreateNewChat = async () => {
     console.log("Creating new chat");
-    setMessages([]); // Clear messages immediately
+    clearMessages(); // Clear messages immediately
     const newChatId = await createNewChat();
     return newChatId;
   };
@@ -109,6 +113,7 @@ export const useEmbeddedChat = (
     sendMessage,
     loadExistingChat,
     createNewChat,
+    clearMessages,
     userContext
   };
 };
