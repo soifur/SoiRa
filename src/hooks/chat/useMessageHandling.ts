@@ -34,8 +34,8 @@ export const useMessageHandling = (
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
       
-      const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
-      setMessages([...newMessages, loadingMessage]);
+      const botMessage = createMessage("assistant", "", true, bot.avatar);
+      setMessages([...newMessages, botMessage]);
 
       let botResponse = "";
       const contextMessages = newMessages.map(msg => ({
@@ -60,17 +60,28 @@ export const useMessageHandling = (
         botResponse = await ChatService.sendOpenRouterMessage(
           contextMessages,
           bot,
-          abortControllerRef.current.signal
+          abortControllerRef.current.signal,
+          (chunk: string) => {
+            setMessages(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.role === "assistant") {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMessage, content: lastMessage.content + chunk }
+                ];
+              }
+              return prev;
+            });
+          }
         );
       }
 
-      const botMessage = createMessage("assistant", botResponse, false, bot.avatar);
-      const updatedMessages = [...newMessages, botMessage];
-      setMessages(updatedMessages);
+      const finalBotMessage = createMessage("assistant", botResponse, false, bot.avatar);
+      setMessages([...newMessages, finalBotMessage]);
 
       if (bot.memory_enabled === true) {
         console.log("Updating memory after bot response");
-        await handleMemoryUpdate(updatedMessages);
+        await handleMemoryUpdate([...newMessages, finalBotMessage]);
       }
 
     } catch (error) {

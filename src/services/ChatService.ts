@@ -17,7 +17,8 @@ export class ChatService {
   static async sendOpenRouterMessage(
     messages: Array<{ role: string; content: string }>,
     bot: Bot,
-    abortSignal?: AbortSignal
+    abortSignal?: AbortSignal,
+    onStream?: (chunk: string) => void
   ) {
     if (!bot.apiKey) {
       throw new Error("OpenRouter API key is missing");
@@ -50,6 +51,7 @@ export class ChatService {
               : []),
             ...sanitizedMessages,
           ],
+          stream: !!onStream,
         }),
       });
 
@@ -61,31 +63,50 @@ export class ChatService {
         );
       }
 
-      const data = await response.json();
-      console.log("OpenRouter raw response:", data);
-      
-      // Validate the response structure
-      if (!data || typeof data !== 'object') {
-        console.error('Invalid response format - not an object:', data);
-        throw new Error('Invalid response format from OpenRouter API: Response is not an object');
-      }
+      if (onStream) {
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("No response body");
 
-      if (!Array.isArray(data.choices)) {
-        console.error('Invalid response format - choices is not an array:', data);
-        throw new Error('Invalid response format from OpenRouter API: Choices is not an array');
-      }
+        let accumulatedResponse = '';
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      if (!data.choices[0] || !data.choices[0].message) {
-        console.error('Invalid response format - no message in first choice:', data.choices[0]);
-        throw new Error('Invalid response format from OpenRouter API: No message in response');
-      }
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(5);
+              if (data === '[DONE]') continue;
+              
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) {
+                  accumulatedResponse += content;
+                  onStream(content);
+                }
+              } catch (e) {
+                console.warn('Error parsing streaming response:', e);
+              }
+            }
+          }
+        }
+        
+        return accumulatedResponse;
+      } else {
+        const data = await response.json();
+        console.log("OpenRouter raw response:", data);
 
-      if (typeof data.choices[0].message.content !== 'string') {
-        console.error('Invalid response format - content is not a string:', data.choices[0].message);
-        throw new Error('Invalid response format from OpenRouter API: Message content is not a string');
-      }
+        if (!data?.choices?.[0]?.message?.content) {
+          console.error('Invalid response format:', data);
+          throw new Error('Invalid response format from OpenRouter API');
+        }
 
-      return data.choices[0].message.content;
+        return data.choices[0].message.content;
+      }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         console.log('Request was cancelled by user');

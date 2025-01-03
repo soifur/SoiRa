@@ -1,8 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { Copy, LoaderCircle } from "lucide-react";
+import { LoaderCircle, Copy } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -11,9 +10,10 @@ export interface ChatMessageProps {
   isBot?: boolean;
   avatar?: string;
   isLoading?: boolean;
+  isStreaming?: boolean;
 }
 
-export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessageProps) => {
+export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: ChatMessageProps) => {
   const { toast } = useToast();
   const isEmbedded = window.location.pathname === '/embedded';
 
@@ -55,7 +55,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
         {isBot && (
           <button
             onClick={handleCopy}
-            className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
           >
             <Copy className="h-4 w-4 text-muted-foreground hover:text-foreground" />
           </button>
@@ -63,9 +63,9 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading }: ChatMessagePr
         <div
           className={cn(
             "prose prose-sm dark:prose-invert max-w-none",
+            !isBot && "px-6 py-4 rounded-2xl bg-primary text-primary-foreground",
             isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm",
-            isBot && isEmbedded && "px-6 py-4",
-            !isBot && "px-6 py-4 rounded-2xl bg-primary text-primary-foreground"
+            isBot && isEmbedded && "px-6 py-4"
           )}
         >
           <ReactMarkdown
