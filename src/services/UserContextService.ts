@@ -55,6 +55,8 @@ export class UserContextService {
         ...newContext
       };
 
+      console.log("Merged context:", mergedContext);
+
       const { error: upsertError } = await supabase
         .from('user_context')
         .upsert({

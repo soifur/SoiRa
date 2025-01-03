@@ -17,8 +17,8 @@ export const useMessageHandling = (
   const abortControllerRef = { current: null as AbortController | null };
 
   const handleMemoryUpdate = async (updatedMessages: Message[]) => {
-    if (bot.memory_enabled !== true || !bot.memory_instructions || !bot.memory_model) {
-      console.log("Memory not enabled or no instructions/model provided for bot:", bot.id);
+    if (bot.memory_enabled !== true || !bot.memory_instructions) {
+      console.log("Memory not enabled or no instructions provided for bot:", bot.id);
       return;
     }
 
@@ -48,14 +48,17 @@ Return ONLY a valid JSON object with the merged context.`;
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "gemini"
         });
-      } else {
-        // For OpenRouter models (including specific model IDs)
+      } else if (bot.model === "openrouter" && bot.memory_model) {
+        // For OpenRouter models, use the specific model ID from memory_model
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
           apiKey: bot.memory_api_key || bot.apiKey,
           model: "openrouter",
           openRouterModel: bot.memory_model
         });
+      } else {
+        console.log("Unsupported memory model configuration");
+        return;
       }
 
       try {
@@ -66,7 +69,7 @@ Return ONLY a valid JSON object with the merged context.`;
         
         // Merge new context with existing context
         const mergedContext = {
-          ...userContext,
+          ...(userContext || {}),
           ...newContext
         };
         
@@ -120,7 +123,7 @@ Return ONLY a valid JSON object with the merged context.`;
 
       if (bot.model === "gemini") {
         botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
-      } else {
+      } else if (bot.model === "openrouter") {
         botResponse = await ChatService.sendOpenRouterMessage(
           contextMessages,
           bot,
