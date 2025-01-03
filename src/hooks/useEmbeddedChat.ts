@@ -4,6 +4,7 @@ import { Bot } from "@/components/chat/types/chatTypes";
 import { UserContextService } from "@/services/UserContextService";
 import { useMessageHandling } from "./chat/useMessageHandling";
 import { useChatHistory } from "./chat/useChatHistory";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useEmbeddedChat = (
   bot: Bot,
@@ -28,10 +29,33 @@ export const useEmbeddedChat = (
         return;
       }
       
-      console.log("Updating memory with context:", newContext);
-      
-      await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
-      setUserContext(newContext);
+      const { data: existingContext } = await supabase
+        .from('user_context')
+        .select('context')
+        .eq('bot_id', bot.id)
+        .eq('client_id', clientId)
+        .eq('session_token', sessionToken)
+        .maybeSingle();
+
+      const mergedContext = {
+        ...(existingContext?.context || {}),
+        ...newContext
+      };
+
+      const { error } = await supabase
+        .from('user_context')
+        .upsert({
+          bot_id: bot.id,
+          client_id: clientId,
+          session_token: sessionToken,
+          context: mergedContext,
+          last_updated: new Date().toISOString()
+        }, {
+          onConflict: 'bot_id,client_id,session_token'
+        });
+
+      if (error) throw error;
+      setUserContext(mergedContext);
       console.log("Context updated successfully");
     } catch (error) {
       console.error("Error updating user context:", error);
@@ -51,10 +75,16 @@ export const useEmbeddedChat = (
       }
 
       try {
-        console.log("Fetching user context for bot:", bot.id, "client:", clientId);
-        const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
-        console.log("Fetched initial user context:", context);
-        setUserContext(context || {});
+        const { data: context, error } = await supabase
+          .from('user_context')
+          .select('context')
+          .eq('bot_id', bot.id)
+          .eq('client_id', clientId)
+          .eq('session_token', sessionToken)
+          .maybeSingle();
+
+        if (error) throw error;
+        setUserContext(context?.context || {});
       } catch (error) {
         console.error("Error fetching user context:", error);
         setUserContext({});
@@ -83,7 +113,6 @@ export const useEmbeddedChat = (
     initializeChat();
   }, [chatId]);
 
-  // Save messages when they change
   useEffect(() => {
     const saveMessages = async () => {
       if (chatId && messages.length > 0) {
@@ -101,7 +130,7 @@ export const useEmbeddedChat = (
 
   const handleCreateNewChat = async () => {
     console.log("Creating new chat");
-    clearMessages(); // Clear messages immediately
+    clearMessages();
     const newChatId = await createNewChat();
     return newChatId;
   };
@@ -112,7 +141,7 @@ export const useEmbeddedChat = (
     chatId,
     sendMessage,
     loadExistingChat,
-    createNewChat,
+    createNewChat: handleCreateNewChat,
     clearMessages,
     userContext
   };
