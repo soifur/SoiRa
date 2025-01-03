@@ -69,6 +69,7 @@ const EmbeddedChatContainer = () => {
         // Use the same model and API key for memory as the main bot if not explicitly set
         const memory_model = sharedBotData.memory_model || sharedBotData.model;
         const memory_api_key = sharedBotData.memory_api_key || sharedBotData.bot_api_keys?.api_key;
+        const openRouterModel = sharedBotData.open_router_model || "deepseek-ai/deepseek-chat-33b";
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -77,7 +78,7 @@ const EmbeddedChatContainer = () => {
           starters: sharedBotData.starters || [],
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
-          openRouterModel: sharedBotData.open_router_model,
+          openRouterModel: openRouterModel,
           avatar: avatarUrl,
           accessType: "public",
           memory_enabled: memory_enabled,

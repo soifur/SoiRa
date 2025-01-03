@@ -25,7 +25,7 @@ export const useMessageHandling = (
     try {
       console.log("Updating memory with context:", userContext);
       console.log("Using memory instructions:", bot.memory_instructions);
-      console.log("Using memory model:", bot.memory_model);
+      console.log("Using memory model:", bot.memory_model || bot.model);
       
       const contextUpdatePrompt = `
 Instructions for context extraction:
@@ -41,20 +41,21 @@ IMPORTANT: Merge any new information with the existing context, don't replace it
 Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
+      const memoryModel = bot.memory_model || bot.model;
+      const memoryApiKey = bot.memory_api_key || bot.apiKey;
       
-      if (bot.memory_model === "gemini") {
+      if (memoryModel === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
-          apiKey: bot.memory_api_key || bot.apiKey,
+          apiKey: memoryApiKey,
           model: "gemini"
         });
-      } else if (bot.model === "openrouter") {
-        // For OpenRouter models, use the specific model ID from memory_model
+      } else if (memoryModel === "openrouter" || bot.model === "openrouter") {
         newContextResponse = await ChatService.sendOpenRouterMessage([{ role: "user", content: contextUpdatePrompt }], {
           ...bot,
-          apiKey: bot.memory_api_key || bot.apiKey,
+          apiKey: memoryApiKey,
           model: "openrouter",
-          openRouterModel: bot.memory_model
+          openRouterModel: bot.openRouterModel
         });
       } else {
         console.log("Unsupported memory model configuration");
