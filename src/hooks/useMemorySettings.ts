@@ -22,7 +22,7 @@ export const useMemorySettings = () => {
       const { data, error } = await supabase
         .from('memory_bot_settings')
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
@@ -46,25 +46,48 @@ export const useMemorySettings = () => {
 
   const saveSettings = async (newSettings: Omit<MemorySettings, 'id'>) => {
     try {
-      const { data, error } = await supabase
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+
+      const { data: existingSettings } = await supabase
         .from('memory_bot_settings')
-        .upsert({
-          ...newSettings,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        })
-        .select()
-        .single();
+        .select('id')
+        .maybeSingle();
 
-      if (error) throw error;
+      let result;
+      if (existingSettings) {
+        // Update existing settings
+        result = await supabase
+          .from('memory_bot_settings')
+          .update({
+            ...newSettings,
+            user_id: user.data.user.id
+          })
+          .eq('id', existingSettings.id)
+          .select()
+          .single();
+      } else {
+        // Insert new settings
+        result = await supabase
+          .from('memory_bot_settings')
+          .insert({
+            ...newSettings,
+            user_id: user.data.user.id
+          })
+          .select()
+          .single();
+      }
 
-      if (data) {
-        const model = data.model as MemoryModel;
+      if (result.error) throw result.error;
+
+      if (result.data) {
+        const model = result.data.model as MemoryModel;
         setSettings({
-          id: data.id,
+          id: result.data.id,
           model,
-          open_router_model: data.open_router_model,
-          api_key: data.api_key,
-          instructions: data.instructions
+          open_router_model: result.data.open_router_model,
+          api_key: result.data.api_key,
+          instructions: result.data.instructions
         });
       }
       

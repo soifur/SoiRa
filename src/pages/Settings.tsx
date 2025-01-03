@@ -15,7 +15,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { settings, isLoading, saveSettings } = useMemorySettings();
-  const [localSettings, setLocalSettings] = useState<MemorySettings>({
+  const [formData, setFormData] = useState<MemorySettings>({
     model: "openrouter",
     api_key: "",
     instructions: "",
@@ -23,7 +23,7 @@ const Settings = () => {
 
   useEffect(() => {
     if (settings) {
-      setLocalSettings({
+      setFormData({
         model: settings.model,
         open_router_model: settings.open_router_model,
         api_key: settings.api_key || "",
@@ -51,25 +51,18 @@ const Settings = () => {
   };
 
   const handleSaveMemorySettings = async () => {
-    if (!localSettings) return;
-    
-    await saveSettings({
-      model: localSettings.model,
-      open_router_model: localSettings.open_router_model,
-      api_key: localSettings.api_key,
-      instructions: localSettings.instructions,
-    });
+    await saveSettings(formData);
   };
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalSettings(prev => ({
+    setFormData(prev => ({
       ...prev,
       api_key: e.target.value,
     }));
   };
 
   const handleInstructionsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setLocalSettings(prev => ({
+    setFormData(prev => ({
       ...prev,
       instructions: e.target.value,
     }));
@@ -94,18 +87,18 @@ const Settings = () => {
                   name: "Memory Settings",
                   instructions: "",
                   starters: [],
-                  model: localSettings.model,
+                  model: formData.model,
                   apiKey: "",
-                  openRouterModel: localSettings.open_router_model,
+                  openRouterModel: formData.open_router_model,
                 }}
                 onModelChange={(model) => 
-                  setLocalSettings(prev => ({ 
+                  setFormData(prev => ({ 
                     ...prev, 
                     model: model === "gemini" ? "gemini" : "openrouter" 
                   }))
                 }
                 onOpenRouterModelChange={(model) => 
-                  setLocalSettings(prev => ({ 
+                  setFormData(prev => ({ 
                     ...prev, 
                     open_router_model: model 
                   }))
@@ -117,7 +110,7 @@ const Settings = () => {
                 <label className="block text-sm font-medium mb-1">API Key</label>
                 <Input
                   type="password"
-                  value={localSettings.api_key}
+                  value={formData.api_key}
                   onChange={handleApiKeyChange}
                   placeholder="Enter your API key"
                 />
@@ -126,7 +119,7 @@ const Settings = () => {
               <div>
                 <label className="block text-sm font-medium mb-1">Memory Instructions</label>
                 <Textarea
-                  value={localSettings.instructions}
+                  value={formData.instructions}
                   onChange={handleInstructionsChange}
                   placeholder="Enter memory instructions..."
                   rows={4}
