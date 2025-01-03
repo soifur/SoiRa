@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Message } from "@/components/chat/types/chatTypes";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { MemorySettings } from "@/hooks/useMemorySettings";
 
 export const useMessageHandling = (
   bot: Bot,
@@ -13,23 +15,39 @@ export const useMessageHandling = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [memorySettings, setMemorySettings] = useState<MemorySettings | null>(null);
   const { toast } = useToast();
   const abortControllerRef = { current: null as AbortController | null };
 
+  useEffect(() => {
+    const fetchMemorySettings = async () => {
+      const { data } = await supabase
+        .from('memory_bot_settings')
+        .select('*')
+        .single();
+      
+      if (data) {
+        setMemorySettings(data);
+      }
+    };
+
+    fetchMemorySettings();
+  }, []);
+
   const handleMemoryUpdate = async (updatedMessages: Message[]) => {
-    if (bot.memory_enabled !== true || !bot.memory_instructions) {
-      console.log("Memory not enabled or no instructions provided for bot:", bot.id);
+    if (!bot.memory_enabled || !memorySettings?.instructions) {
+      console.log("Memory not enabled or no instructions available");
       return;
     }
 
     try {
       console.log("Updating memory with context:", userContext);
-      console.log("Using memory instructions:", bot.memory_instructions);
-      console.log("Using memory model:", bot.memory_model);
+      console.log("Using memory instructions:", memorySettings.instructions);
+      console.log("Using memory model:", memorySettings.model);
       
       const contextUpdatePrompt = `
 Instructions for context extraction:
-${bot.memory_instructions}
+${memorySettings.instructions}
 
 Previous context: ${JSON.stringify(userContext || {})}
 
@@ -46,27 +64,23 @@ Return ONLY a valid JSON object with the merged context.`;
       const memoryBot: Bot = {
         id: bot.id,
         name: bot.name,
-        instructions: bot.memory_instructions || "",
+        instructions: memorySettings.instructions,
         starters: [],
-        model: bot.memory_model === "gemini" ? "gemini" : "openrouter",
-        apiKey: bot.memory_api_key || "", // Only use memory API key
-        openRouterModel: bot.memory_model || "",
+        model: memorySettings.model,
+        apiKey: memorySettings.api_key,
+        openRouterModel: memorySettings.open_router_model,
         avatar: bot.avatar,
-        memory_enabled: bot.memory_enabled,
-        memory_instructions: bot.memory_instructions,
-        memory_model: bot.memory_model,
-        memory_api_key: bot.memory_api_key
+        memory_enabled: true
       };
 
       console.log("Memory bot configuration:", {
         model: memoryBot.model,
-        memory_model: memoryBot.memory_model,
-        memory_api_key: memoryBot.memory_api_key,
-        memory_instructions: memoryBot.memory_instructions,
-        using_api_key: memoryBot.apiKey
+        memory_model: memorySettings.model,
+        api_key: memorySettings.api_key,
+        instructions: memorySettings.instructions
       });
 
-      if (!memoryBot.apiKey) {
+      if (!memorySettings.api_key) {
         console.error("No memory API key provided");
         return;
       }
@@ -90,7 +104,6 @@ Return ONLY a valid JSON object with the merged context.`;
         const jsonStr = jsonMatch ? jsonMatch[0] : newContextResponse;
         const newContext = JSON.parse(jsonStr);
         
-        // Merge new context with existing context
         const mergedContext = {
           ...(userContext || {}),
           ...newContext

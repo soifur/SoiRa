@@ -37,10 +37,7 @@ export type Database = {
           created_at: string
           id: string
           instructions: string | null
-          memory_api_key: string | null
           memory_enabled: boolean | null
-          memory_instructions: string | null
-          memory_model: string | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model: string | null
@@ -55,10 +52,7 @@ export type Database = {
           created_at?: string
           id?: string
           instructions?: string | null
-          memory_api_key?: string | null
           memory_enabled?: boolean | null
-          memory_instructions?: string | null
-          memory_model?: string | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model?: string | null
@@ -73,10 +67,7 @@ export type Database = {
           created_at?: string
           id?: string
           instructions?: string | null
-          memory_api_key?: string | null
           memory_enabled?: boolean | null
-          memory_instructions?: string | null
-          memory_model?: string | null
           model?: Database["public"]["Enums"]["bot_model"]
           name?: string
           open_router_model?: string | null
@@ -177,6 +168,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      memory_bot_settings: {
+        Row: {
+          api_key: string
+          created_at: string
+          id: string
+          instructions: string | null
+          model: string
+          open_router_model: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          model?: string
+          open_router_model?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          model?: string
+          open_router_model?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

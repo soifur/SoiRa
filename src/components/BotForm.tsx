@@ -21,9 +21,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    memory_instructions: bot.memory_instructions ?? "",
-    memory_model: bot.memory_model || "openrouter",
-    memory_api_key: bot.memory_api_key ?? ""
   });
 
   const handleModelChange = (model: BotModel) => {
@@ -34,29 +31,10 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     });
   };
 
-  const handleMemoryModelChange = (model: BotModel) => {
-    setEditingBot({ 
-      ...editingBot, 
-      memory_model: model,
-      // If memory model is OpenRouter, keep the existing OpenRouter model ID or use the main OpenRouter model ID as default
-      memory_api_key: model === "openrouter" ? (editingBot.memory_api_key || editingBot.apiKey) : editingBot.memory_api_key
-    });
-  };
-
-  const handleMemoryOpenRouterModelChange = (modelId: string) => {
-    setEditingBot({
-      ...editingBot,
-      memory_model: modelId // For OpenRouter, we store the specific model ID
-    });
-  };
-
   const handleSave = () => {
     onSave({
       ...editingBot,
       memory_enabled: editingBot.memory_enabled ?? false,
-      memory_instructions: editingBot.memory_enabled ? editingBot.memory_instructions : "",
-      memory_model: editingBot.memory_enabled ? editingBot.memory_model : "openrouter",
-      memory_api_key: editingBot.memory_enabled ? editingBot.memory_api_key : ""
     });
   };
 
@@ -112,48 +90,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         />
         <Label htmlFor="memory-mode">Enable Memory Mode</Label>
       </div>
-
-      {editingBot.memory_enabled && (
-        <>
-          <div>
-            <label className="block text-sm font-medium mb-1">Memory Instructions</label>
-            <Textarea
-              value={editingBot.memory_instructions}
-              onChange={(e) => setEditingBot({ ...editingBot, memory_instructions: e.target.value })}
-              placeholder="Enter memory instructions..."
-              rows={4}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Memory Model</label>
-            <ModelSelector 
-              bot={{
-                ...editingBot,
-                model: typeof editingBot.memory_model === 'string' && 
-                       ['gemini', 'claude', 'openai', 'openrouter'].includes(editingBot.memory_model)
-                       ? editingBot.memory_model as BotModel
-                       : 'openrouter',
-                openRouterModel: typeof editingBot.memory_model === 'string' && 
-                                !['gemini', 'claude', 'openai', 'openrouter'].includes(editingBot.memory_model)
-                                ? editingBot.memory_model
-                                : undefined
-              }}
-              onModelChange={handleMemoryModelChange}
-              onOpenRouterModelChange={handleMemoryOpenRouterModelChange}
-              isMemorySelector
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Memory API Key</label>
-            <Input
-              type="password"
-              value={editingBot.memory_api_key}
-              onChange={(e) => setEditingBot({ ...editingBot, memory_api_key: e.target.value })}
-              placeholder="Enter memory API key"
-            />
-          </div>
-        </>
-      )}
 
       <StartersInput 
         starters={editingBot.starters}
