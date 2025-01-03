@@ -57,10 +57,8 @@ export class ChatService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('OpenRouter API error response:', errorData);
-        throw new Error(
-          `OpenRouter API error: ${errorData.error?.message || response.statusText}`
-        );
+        console.error('OpenRouter API error status:', response.status);
+        throw new Error('Failed to process request');
       }
 
       if (onStream) {
@@ -94,8 +92,7 @@ export class ChatService {
                   onStream(content);
                 }
               } catch (e) {
-                console.warn('Error parsing streaming response:', e);
-                // Continue processing other chunks even if one fails
+                console.warn('Error parsing streaming response');
               }
             }
           }
@@ -104,21 +101,16 @@ export class ChatService {
         return accumulatedResponse;
       } else {
         const data = await response.json();
-        console.log("OpenRouter raw response:", data);
-
         if (!data?.choices?.[0]?.message?.content) {
-          console.error('Invalid response format:', data);
-          throw new Error('Invalid response format from OpenRouter API');
+          throw new Error('Invalid response format from API');
         }
 
         return data.choices[0].message.content;
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was cancelled by user');
         return "Message cancelled by user.";
       }
-      console.error('OpenRouter API error:', error);
       throw error;
     }
   }
@@ -128,7 +120,7 @@ export class ChatService {
     bot: Bot
   ) {
     if (!bot.apiKey) {
-      throw new Error("Gemini API key is missing. Please check your bot configuration.");
+      throw new Error("API key is missing. Please check your configuration.");
     }
 
     try {
@@ -147,13 +139,9 @@ export class ChatService {
 
       const result = await chat.sendMessage(fullPrompt);
       const response = await result.response.text();
-      console.log("Gemini response:", response);
       return response;
     } catch (error) {
-      console.error("Gemini API error:", error);
-      throw new Error(
-        `Gemini API error: ${error instanceof Error ? error.message : "Unknown error occurred"}`
-      );
+      throw new Error("Failed to process message");
     }
   }
 }
