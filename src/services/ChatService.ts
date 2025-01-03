@@ -38,8 +38,12 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      console.log("Selected model:", bot.openRouterModel);
-      console.log("Bot config:", bot);
+      console.log("Using model:", bot.memory_model || bot.openRouterModel);
+      console.log("Bot configuration:", {
+        model: bot.model,
+        memory_model: bot.memory_model,
+        openRouterModel: bot.openRouterModel
+      });
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',

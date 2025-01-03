@@ -40,14 +40,18 @@ IMPORTANT: Merge any new information with the existing context, don't replace it
 Return ONLY a valid JSON object with the merged context.`;
 
       let newContextResponse;
-      const memoryBot = {
+      const memoryBot: Bot = {
         ...bot,
         apiKey: bot.memory_api_key || bot.apiKey,
         model: bot.memory_model === "gemini" ? "gemini" : "openrouter",
         openRouterModel: bot.memory_model !== "gemini" ? bot.memory_model : undefined
       };
 
-      console.log("Memory bot configuration:", memoryBot);
+      console.log("Memory bot configuration:", {
+        model: memoryBot.model,
+        memory_model: memoryBot.memory_model,
+        openRouterModel: memoryBot.openRouterModel
+      });
       
       if (memoryBot.model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage([{ role: "user", content: contextUpdatePrompt }], memoryBot);
