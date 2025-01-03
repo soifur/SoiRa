@@ -22,7 +22,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
     memory_instructions: bot.memory_instructions ?? "",
-    memory_model: (bot.memory_model as BotModel) || "openrouter",
+    memory_model: bot.memory_model || "openrouter",
     memory_api_key: bot.memory_api_key ?? ""
   });
 
@@ -37,7 +37,16 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const handleMemoryModelChange = (model: BotModel) => {
     setEditingBot({ 
       ...editingBot, 
-      memory_model: model
+      memory_model: model,
+      // If memory model is OpenRouter, keep the existing OpenRouter model ID or use the main OpenRouter model ID as default
+      memory_api_key: model === "openrouter" ? (editingBot.memory_api_key || editingBot.apiKey) : editingBot.memory_api_key
+    });
+  };
+
+  const handleMemoryOpenRouterModelChange = (modelId: string) => {
+    setEditingBot({
+      ...editingBot,
+      memory_model: modelId // For OpenRouter, we store the specific model ID
     });
   };
 
@@ -118,9 +127,19 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           <div>
             <label className="block text-sm font-medium mb-1">Memory Model</label>
             <ModelSelector 
-              bot={{ ...editingBot, model: editingBot.memory_model as BotModel }}
+              bot={{
+                ...editingBot,
+                model: typeof editingBot.memory_model === 'string' && 
+                       ['gemini', 'claude', 'openai', 'openrouter'].includes(editingBot.memory_model)
+                       ? editingBot.memory_model as BotModel
+                       : 'openrouter',
+                openRouterModel: typeof editingBot.memory_model === 'string' && 
+                                !['gemini', 'claude', 'openai', 'openrouter'].includes(editingBot.memory_model)
+                                ? editingBot.memory_model
+                                : undefined
+              }}
               onModelChange={handleMemoryModelChange}
-              onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, memory_model: model as BotModel })}
+              onOpenRouterModelChange={handleMemoryOpenRouterModelChange}
               isMemorySelector
             />
           </div>
