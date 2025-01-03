@@ -1,105 +1,106 @@
 import { useState } from "react";
 import { Message } from "@/components/chat/types/chatTypes";
-import { createMessage } from "@/utils/messageUtils";
-import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
-import { useToast } from "@/components/ui/use-toast";
+import { ChatService } from "@/services/ChatService";
 import { useMemoryContext } from "./memory/useMemoryContext";
+import { v4 as uuidv4 } from 'uuid';
 
 export const useMessageHandling = (
   bot: Bot,
   messages: Message[],
-  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void,
+  setMessages: (messages: Message[]) => void,
   userContext: any,
-  updateUserContext: (newContext: any) => Promise<void>
+  updateUserContext: (context: any) => void
 ) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  const { handleMemoryUpdate } = useMemoryContext(bot, userContext, updateUserContext);
-  const abortControllerRef = { current: null as AbortController | null };
+  const { addContextToMessage, updateMemoryFromResponse } = useMemoryContext();
+  const abortController = new AbortController();
 
   const sendMessage = async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || !bot) return;
 
     try {
       setIsLoading(true);
-      
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      
-      abortControllerRef.current = new AbortController();
+      console.log("Starting to send message");
 
-      const userMessage = createMessage("user", message);
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
-      
-      const botMessage = createMessage("assistant", "", true, bot.avatar);
-      setMessages([...newMessages, botMessage]);
+      // Create and add user message
+      const userMessage = {
+        id: uuidv4(),
+        role: "user",
+        content: message,
+        timestamp: new Date()
+      };
 
-      // Start memory update in the background if enabled
-      if (bot.memory_enabled === true) {
-        handleMemoryUpdate([...newMessages]).catch(error => {
-          console.error("Background memory update failed:", error);
-        });
-      }
+      const updatedMessages = [...messages, userMessage];
+      setMessages(updatedMessages);
 
-      let botResponse = "";
-      const contextMessages = newMessages.map(msg => ({
+      // Add context to message if available
+      const messageWithContext = await addContextToMessage(message, userContext);
+      console.log("Adding context to message:", messageWithContext);
+
+      // Prepare messages for API
+      const messagesToSend = updatedMessages.map(msg => ({
         role: msg.role,
         content: msg.content
       }));
 
-      if (bot.memory_enabled === true && userContext) {
-        console.log("Adding context to message:", userContext);
-        const contextPrompt = {
+      if (bot.instructions) {
+        messagesToSend.unshift({
           role: "system",
-          content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
-        };
-        contextMessages.unshift(contextPrompt);
+          content: bot.instructions
+        });
       }
 
-      console.log("Sending message to API with context:", contextMessages);
+      console.log("Sending message to API with context:", messagesToSend);
 
-      if (bot.model === "gemini") {
-        botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
-      } else if (bot.model === "openrouter") {
-        botResponse = await ChatService.sendOpenRouterMessage(
-          contextMessages,
+      // Send message to API
+      let response;
+      if (bot.model === "openrouter") {
+        response = await ChatService.sendOpenRouterMessage(
+          messagesToSend,
           bot,
-          abortControllerRef.current.signal,
-          (chunk: string) => {
-            setMessages(prev => {
-              const lastMessage = prev[prev.length - 1];
-              if (lastMessage.role === "assistant") {
-                return [
-                  ...prev.slice(0, -1),
-                  { ...lastMessage, content: lastMessage.content + chunk }
-                ];
-              }
-              return prev;
-            });
-          }
+          abortController.signal
         );
+      } else if (bot.model === "gemini") {
+        response = await ChatService.sendGeminiMessage(
+          messagesToSend,
+          bot
+        );
+      } else {
+        throw new Error("Unsupported model type");
       }
 
-      const finalBotMessage = createMessage("assistant", botResponse, false, bot.avatar);
-      setMessages([...newMessages, finalBotMessage]);
+      if (!response) throw new Error("No response received from API");
+
+      // Create and add bot message
+      const botMessage = {
+        id: uuidv4(),
+        role: "assistant",
+        content: response,
+        timestamp: new Date()
+      };
+
+      const finalMessages = [...updatedMessages, botMessage];
+      setMessages(finalMessages);
+
+      // Update memory context in background
+      updateMemoryFromResponse(response, userContext).catch(console.error);
 
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was cancelled');
-        return;
+      if (error instanceof Error) {
+        console.error("Error in sendMessage:", error);
+        // Add error message to chat
+        const errorMessage = {
+          id: uuidv4(),
+          role: "assistant",
+          content: "I apologize, but I encountered an error. Please try again.",
+          timestamp: new Date()
+        };
+        setMessages([...messages, errorMessage]);
       }
-      console.error("Chat error:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to process message",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
-      abortControllerRef.current = null;
+      console.log("Message handling completed");
     }
   };
 
