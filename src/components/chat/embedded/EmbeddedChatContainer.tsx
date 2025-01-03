@@ -18,8 +18,7 @@ const EmbeddedChatContainer = () => {
         const { data: { user_ip }, error } = await supabase.functions.invoke('get-client-ip');
         if (error) throw error;
         setClientId(user_ip || Math.random().toString(36).substring(7));
-      } catch (error) {
-        console.error("Error fetching client IP");
+      } catch {
         setClientId(Math.random().toString(36).substring(7));
       }
     };
@@ -78,7 +77,7 @@ const EmbeddedChatContainer = () => {
 
         setBot(transformedBot);
 
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Failed to load bot data",
@@ -98,14 +97,14 @@ const EmbeddedChatContainer = () => {
     <>
       <Helmet>
         <title>{`Chat with ${bot.name}`}</title>
-        <meta name="description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
+        <meta name="description" content={`Start a conversation with ${bot.name}`} />
         <meta property="og:title" content={`Chat with ${bot.name}`} />
-        <meta property="og:description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
+        <meta property="og:description" content={`Start a conversation with ${bot.name}`} />
         <meta property="og:image" content={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`Chat with ${bot.name}`} />
-        <meta name="twitter:description" content={bot.instructions || `Start a conversation with ${bot.name}`} />
+        <meta name="twitter:description" content={`Start a conversation with ${bot.name}`} />
         <meta name="twitter:image" content={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
         <link rel="icon" type="image/png" href={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
       </Helmet>
