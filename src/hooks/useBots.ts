@@ -12,12 +12,12 @@ export interface Bot {
   model: BaseModel;
   apiKey: string;
   openRouterModel?: string;
-  openRouterMemoryModel?: string;  // Added this field
+  openRouterMemoryModel?: string;
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   memory_instructions?: string;
-  memory_model?: BaseModel | string;
+  memory_model?: string;
   memory_api_key?: string;
 }
 
@@ -48,18 +48,18 @@ export const useBots = () => {
         name: bot.name,
         instructions: bot.instructions || "",
         starters: bot.starters || [],
-        model: bot.model as "gemini" | "claude" | "openai" | "openrouter",
+        model: bot.model as BaseModel,
         apiKey: bot.api_key,
         openRouterModel: bot.open_router_model,
-        openRouterMemoryModel: bot.memory_model, // Map memory_model to openRouterMemoryModel
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
         memory_instructions: bot.memory_instructions || "",
-        memory_model: (bot.memory_model as "gemini" | "claude" | "openai" | "openrouter") || "openrouter",
+        memory_model: bot.memory_model || "",
         memory_api_key: bot.memory_api_key || ""
       }));
 
+      console.log("Transformed bots:", transformedBots);
       setBots(transformedBots);
     } catch (error) {
       console.error("Error fetching bots:", error);
@@ -89,7 +89,7 @@ export const useBots = () => {
         user_id: session.session.user.id,
         memory_enabled: bot.memory_enabled,
         memory_instructions: bot.memory_instructions,
-        memory_model: bot.memory_model || "openrouter",
+        memory_model: bot.memory_model,
         memory_api_key: bot.memory_api_key
       };
 
@@ -122,12 +122,11 @@ export const useBots = () => {
         model: result.data.model,
         apiKey: result.data.api_key,
         openRouterModel: result.data.open_router_model,
-        openRouterMemoryModel: result.data.memory_model, // Map memory_model to openRouterMemoryModel
         avatar: result.data.avatar,
         accessType: "private",
         memory_enabled: result.data.memory_enabled,
         memory_instructions: result.data.memory_instructions || "",
-        memory_model: result.data.memory_model || "openrouter",
+        memory_model: result.data.memory_model || "",
         memory_api_key: result.data.memory_api_key || ""
       };
 
