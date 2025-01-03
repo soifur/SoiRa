@@ -44,9 +44,15 @@ export class ChatService {
       // Select the appropriate model based on the operation type
       let modelToUse;
       if (isMemoryOperation) {
-        modelToUse = bot.memory_model || "anthropic/claude-3-opus";
+        if (!bot.memory_model) {
+          throw new Error("Memory model not configured");
+        }
+        modelToUse = bot.memory_model;
       } else {
-        modelToUse = bot.openRouterModel || "deepseek/deepseek-chat";
+        if (!bot.openRouterModel) {
+          throw new Error("OpenRouter model not configured");
+        }
+        modelToUse = bot.openRouterModel;
       }
 
       console.log("Using model:", modelToUse);
