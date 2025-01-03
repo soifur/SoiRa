@@ -22,7 +22,6 @@ export const useMemoryBotSettings = () => {
     try {
       console.log("Fetching memory bot settings");
       
-      // First try to get settings from memory_bot_settings
       const { data: memoryBotData, error: memoryBotError } = await supabase
         .from('memory_bot_settings')
         .select('*')
@@ -33,41 +32,8 @@ export const useMemoryBotSettings = () => {
         throw memoryBotError;
       }
 
-      // If no settings in memory_bot_settings, try shared_bots
-      if (!memoryBotData) {
-        console.log("No direct memory settings found, checking shared bots");
-        const { data: sharedBotData, error: sharedBotError } = await supabase
-          .from('shared_bots')
-          .select('memory_model, memory_api_key, memory_instructions')
-          .not('memory_model', 'is', null)
-          .maybeSingle();
-
-        if (sharedBotError) {
-          console.error("Error fetching shared bot memory settings:", sharedBotError);
-          throw sharedBotError;
-        }
-
-        if (sharedBotData && sharedBotData.memory_model) {
-          console.log("Found memory settings in shared bot:", {
-            model: sharedBotData.memory_model,
-            api_key: '[REDACTED]'
-          });
-
-          const validatedSettings: MemorySettings = {
-            model: sharedBotData.memory_model as MemoryModel,
-            api_key: sharedBotData.memory_api_key,
-            instructions: sharedBotData.memory_instructions
-          };
-
-          setSettings(validatedSettings);
-          setError(null);
-          return;
-        }
-      }
-
-      // If we found settings in memory_bot_settings, use those
       if (memoryBotData) {
-        console.log("Found direct memory bot settings:", {
+        console.log("Found memory bot settings:", {
           ...memoryBotData,
           api_key: '[REDACTED]'
         });
@@ -85,8 +51,8 @@ export const useMemoryBotSettings = () => {
         return;
       }
 
-      // If we get here, no settings were found in either table
-      console.log("No memory settings found in any table");
+      // If no settings found in memory_bot_settings
+      console.log("No memory settings found");
       setSettings(null);
       setError(null);
 
