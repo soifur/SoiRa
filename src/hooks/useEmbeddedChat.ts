@@ -53,8 +53,6 @@ export const useEmbeddedChat = (
           session_token: sessionToken,
           context: mergedContext,
           last_updated: new Date().toISOString()
-        }, {
-          onConflict: 'bot_id,client_id,session_token'
         });
 
       if (error) throw error;
