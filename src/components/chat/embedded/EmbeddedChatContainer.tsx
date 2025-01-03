@@ -62,11 +62,11 @@ const EmbeddedChatContainer = () => {
 
         const avatarUrl = sharedBotData.avatar || 
           `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
-        console.log("Constructed Avatar URL:", avatarUrl);
 
-        // Convert memory_enabled to boolean explicitly
-        const memory_enabled = sharedBotData.memory_enabled === true;
-        console.log("Memory enabled:", memory_enabled);
+        // Ensure memory_enabled is properly handled as a boolean
+        const memory_enabled = sharedBotData.memory_enabled !== false; // Default to true if not explicitly false
+        console.log("Raw memory_enabled from DB:", sharedBotData.memory_enabled);
+        console.log("Processed memory_enabled:", memory_enabled);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -87,7 +87,8 @@ const EmbeddedChatContainer = () => {
         console.log("Transformed bot memory settings:", {
           memory_enabled: transformedBot.memory_enabled,
           memory_instructions: transformedBot.memory_instructions,
-          memory_model: transformedBot.memory_model
+          memory_model: transformedBot.memory_model,
+          raw_memory_enabled: sharedBotData.memory_enabled
         });
 
         setBot(transformedBot);
