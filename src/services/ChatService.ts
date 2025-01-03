@@ -38,17 +38,22 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      const isMemoryOperation = bot.memory_model !== undefined;
-      const modelToUse = isMemoryOperation 
-        ? bot.memory_model 
-        : (bot.openRouterModel || "anthropic/claude-3-opus");
+      // Determine if this is a memory operation
+      const isMemoryOperation = bot.memory_model !== undefined && bot.memory_enabled === true;
+      
+      // Select the appropriate model based on the operation type
+      let modelToUse;
+      if (isMemoryOperation) {
+        modelToUse = bot.memory_model || "anthropic/claude-3-opus";
+      } else {
+        modelToUse = bot.openRouterModel || "deepseek/deepseek-chat";
+      }
 
       console.log("Using model:", modelToUse);
       console.log("Bot configuration:", {
         model: bot.model,
         memory_model: bot.memory_model,
         openRouterModel: bot.openRouterModel,
-        openRouterMemoryModel: bot.openRouterMemoryModel,
         isMemoryOperation
       });
 
