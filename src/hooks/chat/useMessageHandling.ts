@@ -46,11 +46,11 @@ Return ONLY a valid JSON object with the merged context.`;
       const memoryBot: Bot = {
         id: bot.id,
         name: bot.name,
-        instructions: bot.memory_instructions,
+        instructions: bot.memory_instructions || "",
         starters: [],
-        model: "openrouter" as const,
-        apiKey: bot.memory_api_key || "", // Only use memory_api_key, don't fallback to bot.apiKey
-        openRouterModel: bot.memory_model || "anthropic/claude-3-opus",
+        model: bot.memory_model === "gemini" ? "gemini" : "openrouter",
+        apiKey: bot.memory_api_key || "", // Only use memory API key
+        openRouterModel: bot.memory_model || "",
         avatar: bot.avatar,
         memory_enabled: bot.memory_enabled,
         memory_instructions: bot.memory_instructions,
@@ -59,11 +59,11 @@ Return ONLY a valid JSON object with the merged context.`;
       };
 
       console.log("Memory bot configuration:", {
-        memory_enabled: memoryBot.memory_enabled,
+        model: memoryBot.model,
         memory_model: memoryBot.memory_model,
         memory_api_key: memoryBot.memory_api_key,
         memory_instructions: memoryBot.memory_instructions,
-        using_api_key: memoryBot.apiKey // Log which API key we're actually using
+        using_api_key: memoryBot.apiKey
       });
 
       if (!memoryBot.apiKey) {
@@ -71,13 +71,12 @@ Return ONLY a valid JSON object with the merged context.`;
         return;
       }
 
-      if (bot.memory_model === "gemini") {
+      if (memoryBot.model === "gemini") {
         newContextResponse = await ChatService.sendGeminiMessage(
           [{ role: "user", content: contextUpdatePrompt }],
           memoryBot
         );
       } else {
-        // Default to OpenRouter for memory operations
         newContextResponse = await ChatService.sendOpenRouterMessage(
           [{ role: "user", content: contextUpdatePrompt }],
           memoryBot,
