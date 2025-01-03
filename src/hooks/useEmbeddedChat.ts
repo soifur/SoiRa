@@ -4,7 +4,6 @@ import { Bot } from "@/components/chat/types/chatTypes";
 import { UserContextService } from "@/services/UserContextService";
 import { useMessageHandling } from "./chat/useMessageHandling";
 import { useChatHistory } from "./chat/useChatHistory";
-import { supabase } from "@/integrations/supabase/client";
 
 export const useEmbeddedChat = (
   bot: Bot,
@@ -22,41 +21,17 @@ export const useEmbeddedChat = (
     saveChatHistory
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
-  const updateUserContext = async (newContext: Record<string, any>) => {
+  const updateUserContext = async (newContext: any) => {
     try {
       if (bot.memory_enabled !== true) {
         console.log("Memory not enabled for bot:", bot.id);
         return;
       }
       
-      const { data: existingContext } = await supabase
-        .from('user_context')
-        .select('context')
-        .eq('bot_id', bot.id)
-        .eq('client_id', clientId)
-        .eq('session_token', sessionToken)
-        .maybeSingle();
-
-      // Ensure we have a valid object for the spread operation
-      const currentContext = (existingContext?.context || {}) as Record<string, any>;
+      console.log("Updating memory with context:", newContext);
       
-      const mergedContext = {
-        ...currentContext,
-        ...newContext
-      };
-
-      const { error } = await supabase
-        .from('user_context')
-        .upsert({
-          bot_id: bot.id,
-          client_id: clientId,
-          session_token: sessionToken,
-          context: mergedContext,
-          last_updated: new Date().toISOString()
-        });
-
-      if (error) throw error;
-      setUserContext(mergedContext);
+      await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
+      setUserContext(newContext);
       console.log("Context updated successfully");
     } catch (error) {
       console.error("Error updating user context:", error);
@@ -76,16 +51,10 @@ export const useEmbeddedChat = (
       }
 
       try {
-        const { data: context, error } = await supabase
-          .from('user_context')
-          .select('context')
-          .eq('bot_id', bot.id)
-          .eq('client_id', clientId)
-          .eq('session_token', sessionToken)
-          .maybeSingle();
-
-        if (error) throw error;
-        setUserContext(context?.context || {});
+        console.log("Fetching user context for bot:", bot.id, "client:", clientId);
+        const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
+        console.log("Fetched initial user context:", context);
+        setUserContext(context || {});
       } catch (error) {
         console.error("Error fetching user context:", error);
         setUserContext({});
@@ -114,6 +83,7 @@ export const useEmbeddedChat = (
     initializeChat();
   }, [chatId]);
 
+  // Save messages when they change
   useEffect(() => {
     const saveMessages = async () => {
       if (chatId && messages.length > 0) {
@@ -131,7 +101,7 @@ export const useEmbeddedChat = (
 
   const handleCreateNewChat = async () => {
     console.log("Creating new chat");
-    clearMessages();
+    clearMessages(); // Clear messages immediately
     const newChatId = await createNewChat();
     return newChatId;
   };
@@ -142,7 +112,7 @@ export const useEmbeddedChat = (
     chatId,
     sendMessage,
     loadExistingChat,
-    createNewChat: handleCreateNewChat,
+    createNewChat,
     clearMessages,
     userContext
   };
