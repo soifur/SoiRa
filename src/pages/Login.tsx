@@ -8,13 +8,11 @@ import { useToast } from "@/components/ui/use-toast";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
     if (email !== "soifur2@gmail.com") {
       toast({
@@ -22,33 +20,28 @@ const Login = () => {
         title: "Access Denied",
         description: "This application is restricted to authorized users only.",
       });
-      setIsLoading(false);
       return;
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      if (data.user) {
-        toast({
-          title: "Welcome back!",
-          description: "Successfully logged in.",
-        });
-        navigate("/");
-      }
+      toast({
+        title: "Welcome back!",
+        description: "Successfully logged in.",
+      });
+      navigate("/");
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
         description: error.message,
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -68,7 +61,6 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isLoading}
               />
             </div>
             <div>
@@ -78,12 +70,11 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={isLoading}
               />
             </div>
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign in"}
+          <Button type="submit" className="w-full">
+            Sign in
           </Button>
         </form>
       </div>

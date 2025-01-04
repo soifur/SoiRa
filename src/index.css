@@ -51,7 +51,6 @@
 
 * {
   @apply border-border;
-  scroll-behavior: auto !important;
 }
 
 body {
@@ -60,5 +59,9 @@ body {
 
 #root {
   @apply min-h-screen bg-background;
-  opacity: 1 !important;
+}
+
+/* Remove smooth scrolling which can interfere with theme toggle */
+* {
+  scroll-behavior: auto !important;
 }
