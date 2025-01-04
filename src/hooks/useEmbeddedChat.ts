@@ -24,6 +24,7 @@ export const useEmbeddedChat = (
   const [userContext, setUserContext] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const { toast } = useToast();
   
   const {
@@ -34,7 +35,7 @@ export const useEmbeddedChat = (
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
   const debouncedSave = debounce(async (msgs: Message[]) => {
-    if (!chatId || !msgs.length || !hasUserSentMessage) return;
+    if (!chatId || !msgs.length || !hasUserSentMessage || isStreaming) return;
     
     try {
       console.log("Starting debounced save of", msgs.length, "messages");
@@ -55,14 +56,14 @@ export const useEmbeddedChat = (
   useEffect(() => {
     let mounted = true;
 
-    if (messages.length > 0 && chatId && mounted && hasUserSentMessage) {
+    if (messages.length > 0 && chatId && mounted && hasUserSentMessage && !isStreaming) {
       debouncedSave(messages);
     }
 
     return () => {
       mounted = false;
     };
-  }, [messages, chatId, hasUserSentMessage]);
+  }, [messages, chatId, hasUserSentMessage, isStreaming]);
 
   const updateUserContext = async (newContext: any) => {
     try {
@@ -91,7 +92,12 @@ export const useEmbeddedChat = (
         await createNewChat();
       }
     }
-    return originalSendMessage(message);
+    setIsStreaming(true);
+    try {
+      await originalSendMessage(message);
+    } finally {
+      setIsStreaming(false);
+    }
   };
 
   const initializeChat = async () => {
