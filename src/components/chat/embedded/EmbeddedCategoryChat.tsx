@@ -77,9 +77,25 @@ const EmbeddedCategoryChat = () => {
 
         if (botsError) throw botsError;
 
+        // Transform the data to match our Bot interface
         const validBots = botsData
-          .map(assignment => assignment.bots)
-          .filter(bot => bot) as Bot[];
+          .map(assignment => {
+            const bot = assignment.bots;
+            if (!bot) return null;
+            
+            return {
+              id: bot.id,
+              name: bot.name,
+              instructions: bot.instructions || "",
+              starters: bot.starters || [],
+              model: bot.model,
+              apiKey: bot.api_key, // Transform api_key to apiKey
+              openRouterModel: bot.open_router_model,
+              avatar: bot.avatar,
+              memory_enabled: bot.memory_enabled
+            } as Bot;
+          })
+          .filter((bot): bot is Bot => bot !== null);
 
         setBots(validBots);
         if (validBots.length > 0) {
