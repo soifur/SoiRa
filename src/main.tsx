@@ -9,6 +9,7 @@ createRoot(document.getElementById("root")!).render(
     defaultTheme="light"
     enableSystem={false}
     disableTransitionOnChange
+    themes={['light', 'dark']}
   >
     <App />
   </ThemeProvider>

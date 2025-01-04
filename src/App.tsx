@@ -23,7 +23,12 @@ function App() {
         
         if (sessionError) {
           console.error("App: Session error:", sessionError);
-          throw sessionError;
+          if (mounted) {
+            setIsLoading(false);
+            setIsAuthenticated(false);
+            setUserRole(null);
+          }
+          return;
         }
 
         if (!mounted) return;
@@ -38,7 +43,12 @@ function App() {
           
           if (profileError) {
             console.error("App: Profile error:", profileError);
-            throw profileError;
+            if (mounted) {
+              setIsLoading(false);
+              setIsAuthenticated(false);
+              setUserRole(null);
+            }
+            return;
           }
 
           if (mounted) {
@@ -84,7 +94,12 @@ function App() {
           
           if (profileError) {
             console.error("App: Profile error in auth change:", profileError);
-            throw profileError;
+            if (mounted) {
+              setIsLoading(false);
+              setIsAuthenticated(false);
+              setUserRole(null);
+            }
+            return;
           }
 
           if (mounted) {
