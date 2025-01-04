@@ -120,7 +120,7 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     initializeChat();
-  }, [chatId]);
+  }, []);
 
   const clearMessages = () => {
     setMessages([]);

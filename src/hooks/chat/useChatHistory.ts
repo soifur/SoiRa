@@ -63,7 +63,6 @@ export const useChatHistory = (
       const newChatId = uuidv4();
       console.log("Generated new chat ID:", newChatId);
 
-      // Get the next sequence number
       const { data: latestChat } = await supabase
         .from('chat_history')
         .select('sequence_number')
