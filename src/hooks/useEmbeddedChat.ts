@@ -23,6 +23,7 @@ export const useEmbeddedChat = (
   const [messages, setMessages] = useState<Message[]>([]);
   const [userContext, setUserContext] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
   const { toast } = useToast();
   
   const {
@@ -32,9 +33,8 @@ export const useEmbeddedChat = (
     saveChatHistory
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
-  // Create a debounced version of saveChatHistory with a longer delay
   const debouncedSave = debounce(async (msgs: Message[]) => {
-    if (!chatId || !msgs.length) return;
+    if (!chatId || !msgs.length || !hasUserSentMessage) return;
     
     try {
       console.log("Starting debounced save of", msgs.length, "messages");
@@ -50,20 +50,19 @@ export const useEmbeddedChat = (
     } finally {
       setIsSaving(false);
     }
-  }, 2000); // Increased from 1000ms to 2000ms
+  }, 2000);
 
-  // Save messages whenever they change
   useEffect(() => {
     let mounted = true;
 
-    if (messages.length > 0 && chatId && mounted) {
+    if (messages.length > 0 && chatId && mounted && hasUserSentMessage) {
       debouncedSave(messages);
     }
 
     return () => {
       mounted = false;
     };
-  }, [messages, chatId]); // Only depend on messages and chatId
+  }, [messages, chatId, hasUserSentMessage]);
 
   const updateUserContext = async (newContext: any) => {
     try {
@@ -82,8 +81,18 @@ export const useEmbeddedChat = (
 
   const {
     isLoading,
-    sendMessage
+    sendMessage: originalSendMessage
   } = useMessageHandling(bot, messages, setMessages, userContext, updateUserContext);
+
+  const sendMessage = async (message: string) => {
+    if (!hasUserSentMessage) {
+      setHasUserSentMessage(true);
+      if (!chatId) {
+        await createNewChat();
+      }
+    }
+    return originalSendMessage(message);
+  };
 
   const initializeChat = async () => {
     try {
@@ -96,6 +105,7 @@ export const useEmbeddedChat = (
         if (existingMessages && existingMessages.length > 0) {
           console.log("Setting existing messages:", existingMessages.length);
           setMessages(existingMessages);
+          setHasUserSentMessage(true);
         }
       }
     } catch (error) {
@@ -116,6 +126,7 @@ export const useEmbeddedChat = (
 
   const clearMessages = () => {
     setMessages([]);
+    setHasUserSentMessage(false);
   };
 
   const handleCreateNewChat = async () => {
