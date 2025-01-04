@@ -13,34 +13,50 @@ import Login from "@/pages/Login";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import EmbeddedCategoryChat from "@/components/chat/embedded/EmbeddedCategoryChat";
 import { Helmet } from "react-helmet";
+import { useToast } from "./components/ui/use-toast";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     let mounted = true;
+    console.log("App: Initializing authentication...");
 
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
+        if (sessionError) {
+          console.error("App: Session error:", sessionError);
+          throw sessionError;
+        }
+
         if (!mounted) return;
         
         if (session?.user) {
-          const { data: profile } = await supabase
+          console.log("App: User session found");
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', session.user.id)
             .maybeSingle();
           
+          if (profileError) {
+            console.error("App: Profile fetch error:", profileError);
+            throw profileError;
+          }
+
           if (mounted) {
+            console.log("App: Setting authenticated state with role:", profile?.role);
             setUserRole(profile?.role || null);
             setIsAuthenticated(true);
             setIsLoading(false);
           }
         } else {
+          console.log("App: No active session");
           if (mounted) {
             setUserRole(null);
             setIsAuthenticated(false);
@@ -48,8 +64,13 @@ function App() {
           }
         }
       } catch (error) {
-        console.error('Error in auth initialization:', error);
+        console.error('App: Error in auth initialization:', error);
         if (mounted) {
+          toast({
+            title: "Authentication Error",
+            description: "There was a problem with authentication. Please try logging in again.",
+            variant: "destructive",
+          });
           setIsAuthenticated(false);
           setUserRole(null);
           setIsLoading(false);
@@ -58,22 +79,37 @@ function App() {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("App: Auth state changed:", event);
+      
       if (!mounted) return;
       
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        
-        if (mounted) {
-          setIsAuthenticated(true);
-          setUserRole(profile?.role || null);
-          setIsLoading(false);
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (profileError) throw profileError;
+
+          if (mounted) {
+            console.log("App: Updated auth state - authenticated with role:", profile?.role);
+            setIsAuthenticated(true);
+            setUserRole(profile?.role || null);
+            setIsLoading(false);
+          }
+        } catch (error) {
+          console.error("App: Error fetching profile:", error);
+          toast({
+            title: "Profile Error",
+            description: "There was a problem loading your profile. Please try refreshing the page.",
+            variant: "destructive",
+          });
         }
       } else {
         if (mounted) {
+          console.log("App: Updated auth state - not authenticated");
           setIsAuthenticated(false);
           setUserRole(null);
           setIsLoading(false);
@@ -84,10 +120,11 @@ function App() {
     initializeAuth();
 
     return () => {
+      console.log("App: Cleaning up auth listeners");
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   if (isLoading) {
     return (
