@@ -120,17 +120,22 @@ function App() {
   }, [toast]);
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return (
+      <div className="min-h-screen bg-background">
+        <LoadingScreen />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        storageKey="soira-theme"
-      >
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      storageKey="soira-theme-v1"
+    >
+      <div className="min-h-screen bg-background">
         <Helmet>
           <title>SoiRa AI</title>
           <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
@@ -140,8 +145,8 @@ function App() {
           <AppRoutes isAuthenticated={isAuthenticated} userRole={userRole} />
           <Toaster />
         </Router>
-      </ThemeProvider>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 
