@@ -5,6 +5,7 @@ import { Bot } from "@/hooks/useBots";
 import { useToast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import EmbeddedChatUI from "./EmbeddedChatUI";
+import { Loader2 } from "lucide-react";
 
 interface Category {
   id: string;
@@ -18,6 +19,7 @@ const EmbeddedCategoryChat = () => {
   const [bots, setBots] = useState<Bot[]>([]);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [clientId, setClientId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,19 +38,20 @@ const EmbeddedCategoryChat = () => {
   useEffect(() => {
     const fetchCategoryAndBots = async () => {
       try {
-        // Fetch category
+        setIsLoading(true);
+        // Fetch category using maybeSingle() instead of single()
         const { data: categoryData, error: categoryError } = await supabase
           .from("bot_categories")
           .select("*")
           .eq("short_key", categoryId)
-          .single();
+          .maybeSingle();
 
         if (categoryError) throw categoryError;
         
         if (!categoryData) {
           toast({
-            title: "Error",
-            description: "Category not found or access denied",
+            title: "Category not found",
+            description: "The requested category does not exist or is not public",
             variant: "destructive",
           });
           return;
@@ -77,7 +80,6 @@ const EmbeddedCategoryChat = () => {
 
         if (botsError) throw botsError;
 
-        // Transform the data to match our Bot interface
         const validBots = botsData
           .map(assignment => {
             const bot = assignment.bots;
@@ -89,10 +91,11 @@ const EmbeddedCategoryChat = () => {
               instructions: bot.instructions || "",
               starters: bot.starters || [],
               model: bot.model,
-              apiKey: bot.api_key, // Transform api_key to apiKey
+              apiKey: bot.api_key,
               openRouterModel: bot.open_router_model,
               avatar: bot.avatar,
-              memory_enabled: bot.memory_enabled
+              memory_enabled: bot.memory_enabled,
+              accessType: "public"
             } as Bot;
           })
           .filter((bot): bot is Bot => bot !== null);
@@ -106,9 +109,11 @@ const EmbeddedCategoryChat = () => {
         console.error("Error fetching category data:", error);
         toast({
           title: "Error",
-          description: "Failed to load category data",
+          description: "Failed to load category data. Please try again later.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -117,8 +122,25 @@ const EmbeddedCategoryChat = () => {
     }
   }, [categoryId, toast]);
 
-  if (!category || !clientId) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!category) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">Category Not Found</h1>
+          <p className="text-muted-foreground">
+            The requested category does not exist or is not public.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -127,7 +149,7 @@ const EmbeddedCategoryChat = () => {
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-2">{category.name}</h1>
           {category.description && (
-            <p className="text-muted-foreground">{category.description}</p>
+            <p className="text-muted-foreground mb-4">{category.description}</p>
           )}
           <div className="mt-4">
             <Select
@@ -137,7 +159,7 @@ const EmbeddedCategoryChat = () => {
                 if (bot) setSelectedBot(bot);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a bot to chat with" />
               </SelectTrigger>
               <SelectContent>
