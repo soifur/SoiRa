@@ -12,57 +12,69 @@ function App() {
   const { toast } = useToast();
 
   useEffect(() => {
-    let mounted = true;
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-
-      if (!session?.user) {
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session?.user) {
         setIsAuthenticated(false);
         setUserRole(null);
         return;
       }
 
-      // Get user profile
-      supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single()
-        .then(({ data: profile }) => {
-          if (!mounted) return;
-          
-          setIsAuthenticated(true);
-          setUserRole(profile?.role || null);
-        });
-    });
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
 
-    // Auth state change listener
+        if (profileError) throw profileError;
+
+        setIsAuthenticated(true);
+        setUserRole(profile?.role || null);
+      } catch (error: any) {
+        console.error('Profile fetch error:', error);
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
+    };
+
+    checkSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-
       if (!session?.user) {
         setIsAuthenticated(false);
         setUserRole(null);
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
 
-      setIsAuthenticated(true);
-      setUserRole(profile?.role || null);
+        if (profileError) throw profileError;
+
+        setIsAuthenticated(true);
+        setUserRole(profile?.role || null);
+      } catch (error: any) {
+        console.error('Profile fetch error:', error);
+        setIsAuthenticated(false);
+        setUserRole(null);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load user profile. Please try logging in again.",
+        });
+      }
     });
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-background">
