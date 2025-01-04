@@ -55,15 +55,17 @@ function App() {
             console.log("App: Setting authenticated state with role:", profile?.role);
             setUserRole(profile?.role || null);
             setIsAuthenticated(true);
-            setIsLoading(false);
           }
         } else {
           console.log("App: No session found, setting unauthenticated state");
           if (mounted) {
             setIsAuthenticated(false);
             setUserRole(null);
-            setIsLoading(false);
           }
+        }
+        
+        if (mounted) {
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('App: Error in auth initialization:', error);
@@ -95,9 +97,9 @@ function App() {
           if (profileError) {
             console.error("App: Profile error in auth change:", profileError);
             if (mounted) {
-              setIsLoading(false);
               setIsAuthenticated(false);
               setUserRole(null);
+              setIsLoading(false);
             }
             return;
           }
@@ -106,7 +108,6 @@ function App() {
             console.log("App: Updating state after auth change:", profile?.role);
             setIsAuthenticated(true);
             setUserRole(profile?.role || null);
-            setIsLoading(false);
           }
         } catch (error) {
           console.error("App: Error in auth change:", error);
@@ -118,7 +119,6 @@ function App() {
             });
             setIsAuthenticated(false);
             setUserRole(null);
-            setIsLoading(false);
           }
         }
       } else {
@@ -126,8 +126,11 @@ function App() {
         if (mounted) {
           setIsAuthenticated(false);
           setUserRole(null);
-          setIsLoading(false);
         }
+      }
+      
+      if (mounted) {
+        setIsLoading(false);
       }
     });
 
