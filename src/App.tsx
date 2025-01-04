@@ -37,6 +37,11 @@ function App() {
             setUserRole(profile?.role || null);
             setIsAuthenticated(true);
           }
+        } else {
+          if (mounted) {
+            setIsAuthenticated(false);
+            setUserRole(null);
+          }
         }
       } catch (error: any) {
         console.error('App: Error in auth initialization:', error);
@@ -102,6 +107,8 @@ function App() {
       subscription.unsubscribe();
     };
   }, [toast]);
+
+  console.log('App: Current state:', { isLoading, isAuthenticated, userRole });
 
   if (isLoading) {
     return <LoadingScreen />;
