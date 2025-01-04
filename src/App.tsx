@@ -18,7 +18,7 @@ function App() {
 
     const initializeAuth = async () => {
       try {
-        console.log("App: Initializing auth...");
+        console.log("App: Checking session...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -55,17 +55,19 @@ function App() {
             console.log("App: Setting authenticated state with role:", profile?.role);
             setUserRole(profile?.role || null);
             setIsAuthenticated(true);
-            setIsLoading(false);
           }
         } else {
           console.log("App: No session found, setting unauthenticated state");
           if (mounted) {
             setIsAuthenticated(false);
             setUserRole(null);
-            setIsLoading(false);
           }
         }
-      } catch (error: any) {
+        
+        if (mounted) {
+          setIsLoading(false);
+        }
+      } catch (error) {
         console.error('App: Error in auth initialization:', error);
         if (mounted) {
           toast({
@@ -110,12 +112,12 @@ function App() {
           }
         } catch (error) {
           console.error("App: Error in auth change:", error);
-          toast({
-            title: "Profile Error",
-            description: "There was a problem loading your profile. Please try refreshing the page.",
-            variant: "destructive",
-          });
           if (mounted) {
+            toast({
+              title: "Profile Error",
+              description: "There was a problem loading your profile. Please try refreshing the page.",
+              variant: "destructive",
+            });
             setIsAuthenticated(false);
             setUserRole(null);
             setIsLoading(false);
@@ -131,7 +133,6 @@ function App() {
       }
     });
 
-    // Initialize auth immediately
     initializeAuth();
 
     return () => {
