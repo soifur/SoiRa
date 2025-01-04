@@ -12,8 +12,10 @@ export const useMemoryContext = (
     }
 
     try {
-      const userMessages = messages.filter(msg => msg.role === "user");
-      
+      // Get only the last user message
+      const lastUserMessage = messages.filter(msg => msg.role === "user").slice(-1)[0];
+      if (!lastUserMessage) return;
+
       const contextUpdatePrompt = `
 You are a context analyzer. Your task is to extract and maintain user context from conversations.
 
@@ -21,34 +23,38 @@ Previous context: ${JSON.stringify(userContext || {
   name: null,
   faith: null,
   likes: [],
-  topics: []
+  topics: [],
+  facts: []
 })}
 
-User messages to analyze:
-${userMessages.map(msg => msg.content).join('\n')}
+User message to analyze:
+${lastUserMessage.content}
 
 Instructions:
 ${bot.instructions}
 
-Based on the messages, update the user context following these rules:
+Based on the message, update the user context following these rules:
 1. Extract the user's name if mentioned
 2. Note any likes, interests, or positive mentions
 3. Track topics they discuss
 4. If user expresses dislike for something that was in their "likes" array, REMOVE it
-5. Preserve existing context unless explicitly contradicted
-6. Return ONLY a valid JSON object in this exact format:
+5. Extract factual statements about the user (job, role, location, etc.)
+6. Preserve existing context unless explicitly contradicted
+7. Return ONLY a valid JSON object in this exact format:
 
 {
   "name": "string or null",
   "faith": "string or null",
   "likes": ["array of strings"],
-  "topics": ["array of strings"]
+  "topics": ["array of strings"],
+  "facts": ["array of strings"]
 }
 
 IMPORTANT: 
 - Merge new information with existing context
 - Keep previous values unless contradicted
 - If user says they don't like something anymore, remove it from likes array
+- Facts should be complete, clear statements about the user
 - Return ONLY the JSON object, no other text
 - Ensure all arrays exist even if empty`;
 
@@ -95,6 +101,14 @@ IMPORTANT:
         topics: Array.from(new Set([
           ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
           ...(Array.isArray(newContext.topics) ? newContext.topics : [])
+        ])).filter(item => 
+          item && 
+          item.trim() !== "" && 
+          item !== " "
+        ),
+        facts: Array.from(new Set([
+          ...(Array.isArray(userContext?.facts) ? userContext.facts : []),
+          ...(Array.isArray(newContext.facts) ? newContext.facts : [])
         ])).filter(item => 
           item && 
           item.trim() !== "" && 

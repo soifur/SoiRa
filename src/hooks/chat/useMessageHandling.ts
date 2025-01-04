@@ -42,7 +42,7 @@ export const useMessageHandling = (
       // Strict boolean check for TRUE
       if (bot.memory_enabled === true) {
         console.log("Memory is explicitly TRUE, updating context");
-        handleMemoryUpdate([...newMessages]).catch(error => {
+        handleMemoryUpdate([userMessage]).catch(error => {
           console.error("Background memory update failed:", error);
         });
       } else {
@@ -50,10 +50,7 @@ export const useMessageHandling = (
       }
 
       let botResponse = "";
-      const contextMessages = newMessages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
+      const contextMessages = [];
 
       // Strict boolean check for TRUE
       if (bot.memory_enabled === true && userContext) {
@@ -62,10 +59,16 @@ export const useMessageHandling = (
           role: "system",
           content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
         };
-        contextMessages.unshift(contextPrompt);
+        contextMessages.push(contextPrompt);
       } else {
         console.log("Memory is explicitly FALSE or undefined, skipping context addition");
       }
+
+      // Add only the current user message
+      contextMessages.push({
+        role: "user",
+        content: message
+      });
 
       console.log("Sending message to API with context:", contextMessages);
 
