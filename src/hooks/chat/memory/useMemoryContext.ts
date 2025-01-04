@@ -7,6 +7,7 @@ export const useMemoryContext = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
+    // Early return if memory is explicitly disabled
     if (bot.memory_enabled === false) {
       console.log("Memory updates disabled for bot:", bot.id);
       return;
@@ -94,28 +95,16 @@ IMPORTANT:
 
       // Ensure all required fields exist with proper types
       const mergedContext = {
-        // Only update name if new context explicitly provides one
         name: newContext.name || userContext?.name || null,
-        // Only update faith if new context explicitly provides one
         faith: newContext.faith || userContext?.faith || null,
-        // Merge likes arrays, removing duplicates and empty values
         likes: Array.from(new Set([
           ...(Array.isArray(userContext?.likes) ? userContext.likes : []),
           ...(Array.isArray(newContext.likes) ? newContext.likes : [])
-        ])).filter(item => 
-          item && 
-          item.trim() !== "" && 
-          item !== " "
-        ),
-        // Merge topics arrays, removing duplicates and empty values
+        ])).filter(item => item && item.trim() !== "" && item !== " "),
         topics: Array.from(new Set([
           ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
           ...(Array.isArray(newContext.topics) ? newContext.topics : [])
-        ])).filter(item => 
-          item && 
-          item.trim() !== "" && 
-          item !== " "
-        )
+        ])).filter(item => item && item.trim() !== "" && item !== " ")
       };
 
       console.log("Merged context:", mergedContext);

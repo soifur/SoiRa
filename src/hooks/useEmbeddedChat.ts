@@ -5,15 +5,7 @@ import { UserContextService } from "@/services/UserContextService";
 import { useMessageHandling } from "./chat/useMessageHandling";
 import { useChatHistory } from "./chat/useChatHistory";
 
-const debounce = (func: Function, wait: number) => {
-  let timeout: NodeJS.Timeout;
-  return (...args: any[]) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
-
-export const useEmbeddedChat = (
+const useEmbeddedChat = (
   bot: Bot,
   clientId: string,
   shareKey?: string,
@@ -31,6 +23,7 @@ export const useEmbeddedChat = (
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
   const updateUserContext = async (newContext: any) => {
+    // Early return if memory is disabled
     if (bot.memory_enabled === false) {
       console.log("Memory explicitly disabled for bot:", bot.id, "- skipping context update");
       return;
@@ -53,7 +46,7 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
-      // Reset context to null if memory is disabled
+      // Always reset context to null if memory is disabled
       if (bot.memory_enabled === false) {
         console.log("Memory explicitly disabled for bot:", bot.id, "- skipping context fetch");
         setUserContext(null);
@@ -64,16 +57,7 @@ export const useEmbeddedChat = (
         console.log("Fetching user context for bot:", bot.id, "client:", clientId);
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
         console.log("Fetched initial user context:", context);
-        if (context) {
-          setUserContext(context);
-        } else {
-          setUserContext({
-            name: null,
-            faith: null,
-            likes: [],
-            topics: []
-          });
-        }
+        setUserContext(context || null);
       } catch (error) {
         console.error("Error fetching user context:", error);
         setUserContext(null);
@@ -125,3 +109,5 @@ export const useEmbeddedChat = (
     isSaving
   };
 };
+
+export { useEmbeddedChat };

@@ -37,9 +37,8 @@ export const useMessageHandling = (
       const botMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, botMessage]);
 
-      if (bot.memory_enabled === false) {
-        console.log("Memory explicitly disabled for bot:", bot.id, "- skipping memory operations");
-      } else {
+      // Only update memory if it's enabled
+      if (bot.memory_enabled !== false) {
         console.log("Memory enabled, updating context");
         handleMemoryUpdate([...newMessages]).catch(error => {
           console.error("Background memory update failed:", error);
