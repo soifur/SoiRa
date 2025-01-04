@@ -16,6 +16,15 @@ export default function SharedCategory() {
   useEffect(() => {
     const fetchCategory = async () => {
       try {
+        if (!shortKey) {
+          toast({
+            title: "Error",
+            description: "Invalid category link",
+            variant: "destructive",
+          });
+          return;
+        }
+
         // First fetch the category with its bot assignments
         const { data: categoryData, error: categoryError } = await supabase
           .from('bot_categories')
@@ -26,10 +35,20 @@ export default function SharedCategory() {
             )
           `)
           .eq('short_key', shortKey)
-          .single();
+          .maybeSingle();
 
-        if (categoryError || !categoryData) {
+        if (categoryError) {
           console.error("Error fetching category:", categoryError);
+          toast({
+            title: "Error",
+            description: "Failed to fetch category",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!categoryData) {
+          console.error("Category not found");
           toast({
             title: "Error",
             description: "Category not found",
@@ -38,6 +57,7 @@ export default function SharedCategory() {
           return;
         }
 
+        console.log("Category data:", categoryData);
         setCategory(categoryData);
 
         // Then fetch the bots data if there are assignments
@@ -59,8 +79,13 @@ export default function SharedCategory() {
             return;
           }
 
+          if (!botsData || botsData.length === 0) {
+            console.log("No bots found for this category");
+            return;
+          }
+
           // Transform the data to match our Bot interface
-          const transformedBots: Bot[] = (botsData || []).map(bot => ({
+          const transformedBots: Bot[] = botsData.map(bot => ({
             id: bot.id,
             name: bot.name,
             instructions: bot.instructions || "",
