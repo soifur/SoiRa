@@ -18,6 +18,7 @@ function App() {
 
     const initializeAuth = async () => {
       try {
+        console.log("App: Checking session...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) throw sessionError;
@@ -25,6 +26,7 @@ function App() {
         if (!mounted) return;
         
         if (session?.user) {
+          console.log("App: Session found, fetching profile...");
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
@@ -34,10 +36,12 @@ function App() {
           if (profileError) throw profileError;
 
           if (mounted) {
+            console.log("App: Profile fetched, setting state...");
             setUserRole(profile?.role || null);
             setIsAuthenticated(true);
           }
         } else {
+          console.log("App: No session found");
           if (mounted) {
             setIsAuthenticated(false);
             setUserRole(null);
@@ -56,12 +60,14 @@ function App() {
         }
       } finally {
         if (mounted) {
+          console.log("App: Setting loading to false");
           setIsLoading(false);
         }
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("App: Auth state changed:", event);
       if (!mounted) return;
       
       if (session?.user) {
