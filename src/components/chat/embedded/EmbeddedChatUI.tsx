@@ -27,7 +27,6 @@ interface EmbeddedChatUIProps {
 
 const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedChatUIProps) => {
   const [showHistory, setShowHistory] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
   const { toast } = useToast();
@@ -39,19 +38,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedCha
   const selectedShareKey = shareKey || (category && category.short_key);
   const selectedClientId = clientId || category?.id;
 
-  // Check if we have the required data
-  useEffect(() => {
-    if (!selectedBot || !selectedClientId) {
-      toast({
-        title: "Error",
-        description: "Missing required data to initialize chat",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
-  }, [selectedBot, selectedClientId]);
+  console.log("Initial props:", { bot, clientId, shareKey, category, bots });
+  console.log("Selected values:", { selectedBot, selectedShareKey, selectedClientId });
   
   const {
     messages,
@@ -81,15 +69,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedCha
     return <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />;
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Initializing chat...</div>
-      </div>
-    );
-  }
-
   if (!selectedBot || !selectedClientId) {
+    console.error("Missing required data:", { selectedBot, selectedClientId });
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Unable to load chat. Please try again later.</div>
