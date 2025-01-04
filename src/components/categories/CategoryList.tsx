@@ -2,14 +2,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Share2, Edit2, Trash2 } from "lucide-react";
-
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  short_key: string | null;
-  is_public: boolean;
-}
+import { Category } from "./CategoryManagement";
+import { Badge } from "@/components/ui/badge";
 
 interface CategoryListProps {
   categories: Category[];
@@ -29,15 +23,26 @@ export const CategoryList = ({
       {categories.map((category) => (
         <Card key={category.id} className="p-4">
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-semibold">{category.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {category.description}
-              </p>
+            <div className="space-y-2">
+              <div>
+                <h3 className="font-semibold">{category.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {category.description}
+                </p>
+              </div>
               {category.is_public && (
                 <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-2 py-1 rounded-full">
                   Public
                 </span>
+              )}
+              {category.bots && category.bots.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {category.bots.map((bot) => (
+                    <Badge key={bot.id} variant="secondary">
+                      {bot.name}
+                    </Badge>
+                  ))}
+                </div>
               )}
             </div>
             <div className="flex gap-2">
