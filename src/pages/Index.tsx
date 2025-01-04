@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2, Share2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CategoryForm } from "@/components/categories/CategoryForm";
+import { CategoryList } from "@/components/categories/CategoryList";
+import { ShareDialog } from "@/components/categories/ShareDialog";
 
 interface Category {
   id: string;
@@ -33,6 +33,7 @@ const Index = () => {
   const checkAdminStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         navigate('/login');
         return;
@@ -152,6 +153,12 @@ const Index = () => {
     }
   };
 
+  const handleCategoryChange = (field: keyof Category, value: any) => {
+    if (editingCategory) {
+      setEditingCategory({ ...editingCategory, [field]: value });
+    }
+  };
+
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text).then(() => {
       toast({
@@ -197,140 +204,31 @@ const Index = () => {
           </Button>
         </div>
 
-        {editingCategory && (
-          <Card className="p-4">
-            <form onSubmit={handleSaveCategory} className="space-y-4">
-              <div>
-                <Input
-                  placeholder="Category Name"
-                  value={editingCategory.name}
-                  onChange={(e) =>
-                    setEditingCategory({ ...editingCategory, name: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  placeholder="Description"
-                  value={editingCategory.description || ""}
-                  onChange={(e) =>
-                    setEditingCategory({
-                      ...editingCategory,
-                      description: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="is_public"
-                  checked={editingCategory.is_public}
-                  onChange={(e) =>
-                    setEditingCategory({
-                      ...editingCategory,
-                      is_public: e.target.checked,
-                    })
-                  }
-                />
-                <label htmlFor="is_public">Make Public</label>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit">
-                  {editingCategory.id ? "Update" : "Create"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditingCategory(null)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </Card>
-        )}
+        <CategoryForm
+          editingCategory={editingCategory}
+          onSave={handleSaveCategory}
+          onCancel={() => setEditingCategory(null)}
+          onChange={handleCategoryChange}
+        />
 
-        <div className="grid gap-4">
-          {categories.map((category) => (
-            <Card key={category.id} className="p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold">{category.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {category.description}
-                  </p>
-                  {category.is_public && (
-                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-2 py-1 rounded-full">
-                      Public
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  {category.short_key && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCategory(category);
-                        setShareDialogOpen(true);
-                      }}
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingCategory(category)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteCategory(category.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <CategoryList
+          categories={categories}
+          onEdit={setEditingCategory}
+          onDelete={handleDeleteCategory}
+          onShare={(category) => {
+            setSelectedCategory(category);
+            setShareDialogOpen(true);
+          }}
+        />
+
+        <ShareDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          category={selectedCategory}
+          baseUrl={baseUrl}
+          onCopy={copyToClipboard}
+        />
       </div>
-
-      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Share Category</DialogTitle>
-          </DialogHeader>
-          {selectedCategory && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium mb-2">Public Link</h3>
-                <div className="flex gap-2">
-                  <Input
-                    value={`${baseUrl}/category/${selectedCategory.short_key}`}
-                    readOnly
-                  />
-                  <Button
-                    onClick={() =>
-                      copyToClipboard(
-                        `${baseUrl}/category/${selectedCategory.short_key}`,
-                        "Public link"
-                      )
-                    }
-                  >
-                    Copy
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
