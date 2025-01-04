@@ -102,13 +102,24 @@ export const useChatHistory = (
   };
 
   const saveChatHistory = async (messages: Message[], currentChatId: string) => {
-    if (!sessionToken) return;
+    if (!sessionToken || !currentChatId) {
+      console.error("Missing required data for saving chat history");
+      return;
+    }
 
     try {
+      console.log("Saving chat history with", messages.length, "messages");
+      
+      // Ensure messages are properly formatted for JSONB storage
       const messagesToSave = messages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp?.toISOString()
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp?.toISOString(),
+        avatar: msg.avatar
       }));
+
+      console.log("Formatted messages for save:", messagesToSave);
 
       const { error } = await supabase
         .from('chat_history')
@@ -119,7 +130,12 @@ export const useChatHistory = (
         .eq('id', currentChatId)
         .eq('session_token', sessionToken);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving chat history:", error);
+        throw error;
+      }
+      
+      console.log("Successfully saved chat history");
     } catch (error) {
       console.error("Error saving chat history:", error);
       toast({

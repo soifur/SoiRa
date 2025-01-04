@@ -34,13 +34,17 @@ export const useEmbeddedChat = (
 
   // Create a debounced version of saveChatHistory
   const debouncedSave = debounce(async (msgs: Message[]) => {
-    if (!chatId || !msgs.length) return;
+    if (!chatId || !msgs.length) {
+      console.log("Skipping save - no chat ID or messages");
+      return;
+    }
     
     try {
+      console.log("Starting debounced save of", msgs.length, "messages");
       setIsSaving(true);
       await saveChatHistory(msgs, chatId);
     } catch (error) {
-      console.error("Error saving chat history:", error);
+      console.error("Error in debounced save:", error);
       toast({
         title: "Error",
         description: "Failed to save chat history",
@@ -54,25 +58,21 @@ export const useEmbeddedChat = (
   // Save messages whenever they change
   useEffect(() => {
     if (messages.length > 0 && chatId) {
-      console.log("Saving messages to chat history:", messages.length);
+      console.log("Triggering save for", messages.length, "messages");
       debouncedSave(messages);
     }
   }, [messages, chatId]);
 
   const updateUserContext = async (newContext: any) => {
     try {
-      console.log("Current memory_enabled value:", bot.memory_enabled);
-      
       if (bot.memory_enabled !== true) {
-        console.log("Memory is not explicitly TRUE, skipping all memory operations");
+        console.log("Memory is not enabled, skipping context update");
         setUserContext(null);
         return;
       }
       
-      console.log("Memory is TRUE, updating context:", newContext);
       await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
       setUserContext(newContext);
-      console.log("Context updated successfully");
     } catch (error) {
       console.error("Error updating user context:", error);
     }
@@ -85,18 +85,14 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
-      console.log("Checking memory_enabled status:", bot.memory_enabled);
-      
       if (bot.memory_enabled !== true) {
-        console.log("Memory is not explicitly TRUE, skipping context fetch");
+        console.log("Memory not enabled, skipping context fetch");
         setUserContext(null);
         return;
       }
 
       try {
-        console.log("Memory is TRUE, fetching user context for bot:", bot.id, "client:", clientId);
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
-        console.log("Fetched initial user context:", context);
         setUserContext(context || {});
       } catch (error) {
         console.error("Error fetching user context:", error);
