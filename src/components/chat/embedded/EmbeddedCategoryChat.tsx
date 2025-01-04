@@ -1,190 +1,110 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Bot } from "@/hooks/useBots";
-import { useToast } from "@/components/ui/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import EmbeddedChatUI from "./EmbeddedChatUI";
-import { Loader2 } from "lucide-react";
-
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-}
+import { Bot } from "@/hooks/useBots";
+import { Category } from "@/components/categories/CategoryManagement";
 
 const EmbeddedCategoryChat = () => {
   const { categoryId } = useParams();
   const [category, setCategory] = useState<Category | null>(null);
   const [bots, setBots] = useState<Bot[]>([]);
-  const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
-  const [clientId, setClientId] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getClientId = async () => {
-      try {
-        const { data: { user_ip }, error } = await supabase.functions.invoke('get-client-ip');
-        if (error) throw error;
-        setClientId(user_ip || Math.random().toString(36).substring(7));
-      } catch {
-        setClientId(Math.random().toString(36).substring(7));
+    fetchCategoryAndBots();
+  }, [categoryId]);
+
+  const fetchCategoryAndBots = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch category
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('bot_categories')
+        .select('*')
+        .eq('short_key', categoryId)
+        .maybeSingle();
+
+      if (categoryError) throw categoryError;
+      
+      if (!categoryData) {
+        setError("Category not found");
+        setLoading(false);
+        return;
       }
-    };
-    getClientId();
-  }, []);
 
-  useEffect(() => {
-    const fetchCategoryAndBots = async () => {
-      try {
-        setIsLoading(true);
-        // Fetch category using maybeSingle() instead of single()
-        const { data: categoryData, error: categoryError } = await supabase
-          .from("bot_categories")
-          .select("*")
-          .eq("short_key", categoryId)
-          .maybeSingle();
+      if (!categoryData.is_public) {
+        setError("This category is not public");
+        setLoading(false);
+        return;
+      }
 
-        if (categoryError) throw categoryError;
-        
-        if (!categoryData) {
-          toast({
-            title: "Category not found",
-            description: "The requested category does not exist or is not public",
-            variant: "destructive",
-          });
-          return;
-        }
+      // Fetch bot assignments for the category
+      const { data: assignments, error: assignmentsError } = await supabase
+        .from('bot_category_assignments')
+        .select('bot_id')
+        .eq('category_id', categoryData.id);
 
-        setCategory(categoryData);
+      if (assignmentsError) throw assignmentsError;
 
-        // Fetch bots in this category
+      // Fetch bots data
+      if (assignments && assignments.length > 0) {
+        const botIds = assignments.map(a => a.bot_id);
         const { data: botsData, error: botsError } = await supabase
-          .from("bot_category_assignments")
-          .select(`
-            bot_id,
-            bots (
-              id,
-              name,
-              instructions,
-              starters,
-              model,
-              api_key,
-              open_router_model,
-              avatar,
-              memory_enabled
-            )
-          `)
-          .eq("category_id", categoryData.id);
+          .from('bots')
+          .select('*')
+          .in('id', botIds);
 
         if (botsError) throw botsError;
 
-        const validBots = botsData
-          .map(assignment => {
-            const bot = assignment.bots;
-            if (!bot) return null;
-            
-            return {
-              id: bot.id,
-              name: bot.name,
-              instructions: bot.instructions || "",
-              starters: bot.starters || [],
-              model: bot.model,
-              apiKey: bot.api_key,
-              openRouterModel: bot.open_router_model,
-              avatar: bot.avatar,
-              memory_enabled: bot.memory_enabled,
-              accessType: "public"
-            } as Bot;
-          })
-          .filter((bot): bot is Bot => bot !== null);
+        const transformedBots = botsData.map((bot): Bot => ({
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private",
+          memory_enabled: bot.memory_enabled,
+        }));
 
-        setBots(validBots);
-        if (validBots.length > 0) {
-          setSelectedBot(validBots[0]);
-        }
-
-      } catch (error) {
-        console.error("Error fetching category data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load category data. Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
+        setBots(transformedBots);
       }
-    };
 
-    if (categoryId) {
-      fetchCategoryAndBots();
+      setCategory(categoryData);
+    } catch (error: any) {
+      console.error("Error fetching category data:", error);
+      setError(error.message || "Failed to load category");
+    } finally {
+      setLoading(false);
     }
-  }, [categoryId, toast]);
+  };
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
       </div>
     );
   }
 
-  if (!category) {
+  if (error || !category) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">Category Not Found</h1>
-          <p className="text-muted-foreground">
-            The requested category does not exist or is not public.
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">Category Not Found</h1>
+        <p className="text-muted-foreground">
+          {error || "The requested category does not exist or is not public."}
+        </p>
       </div>
     );
   }
 
-  return (
-    <div className="h-screen flex flex-col">
-      <div className="p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold mb-2">{category.name}</h1>
-          {category.description && (
-            <p className="text-muted-foreground mb-4">{category.description}</p>
-          )}
-          <div className="mt-4">
-            <Select
-              value={selectedBot?.id}
-              onValueChange={(value) => {
-                const bot = bots.find(b => b.id === value);
-                if (bot) setSelectedBot(bot);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a bot to chat with" />
-              </SelectTrigger>
-              <SelectContent>
-                {bots.map((bot) => (
-                  <SelectItem key={bot.id} value={bot.id}>
-                    {bot.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-      
-      {selectedBot && (
-        <div className="flex-1 overflow-hidden">
-          <EmbeddedChatUI
-            bot={selectedBot}
-            clientId={clientId}
-            shareKey={categoryId}
-          />
-        </div>
-      )}
-    </div>
-  );
+  return <EmbeddedChatUI category={category} bots={bots} />;
 };
 
 export default EmbeddedCategoryChat;

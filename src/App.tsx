@@ -17,21 +17,35 @@ import { Helmet } from "react-helmet";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-      if (session?.user) {
-        checkUserRole(session.user.id);
+    const initializeAuth = async () => {
+      try {
+        // Check initial auth state
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+        if (session?.user) {
+          await checkUserRole(session.user.id);
+        } else {
+          setUserRole(null);
+        }
+      } catch (error) {
+        console.error('Error checking auth state:', error);
+        setIsAuthenticated(false);
+        setUserRole(null);
+      } finally {
+        setIsLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setIsAuthenticated(!!session);
       if (session?.user) {
-        checkUserRole(session.user.id);
+        await checkUserRole(session.user.id);
       } else {
         setUserRole(null);
       }
@@ -43,17 +57,29 @@ function App() {
   }, []);
 
   const checkUserRole = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-    
-    setUserRole(profile?.role || null);
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      setUserRole(profile?.role || null);
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      setUserRole(null);
+    }
   };
 
-  // Show nothing while checking auth state
-  if (isAuthenticated === null) return null;
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
@@ -74,34 +100,34 @@ function App() {
                 isAdmin ? (
                   <Index />
                 ) : (
-                  <Navigate to="/login" />
+                  <Navigate to="/chat" replace />
                 )
               ) : (
-                <Navigate to="/login" />
+                <Navigate to="/login" replace />
               )
             }
           />
           <Route
             path="/bots"
-            element={isAuthenticated ? <Bots /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Bots /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/chat"
-            element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Chat /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/archive"
-            element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Archive /> : <Navigate to="/login" replace />}
           />
           <Route
             path="/settings"
-            element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
+            element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />}
           />
           <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
           <Route path="/category/:categoryId" element={<EmbeddedCategoryChat />} />
           <Route
             path="/login"
-            element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
+            element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />}
           />
         </Routes>
         <Toaster />
