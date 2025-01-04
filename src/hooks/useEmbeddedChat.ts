@@ -24,7 +24,7 @@ export const useEmbeddedChat = (
   const [userContext, setUserContext] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-
+  
   const {
     chatId,
     loadExistingChat,
@@ -34,10 +34,7 @@ export const useEmbeddedChat = (
 
   // Create a debounced version of saveChatHistory
   const debouncedSave = debounce(async (msgs: Message[]) => {
-    if (!chatId || !msgs.length) {
-      console.log("Skipping save - no chat ID or messages");
-      return;
-    }
+    if (!chatId || !msgs.length) return;
     
     try {
       console.log("Starting debounced save of", msgs.length, "messages");
@@ -58,7 +55,6 @@ export const useEmbeddedChat = (
   // Save messages whenever they change
   useEffect(() => {
     if (messages.length > 0 && chatId) {
-      console.log("Triggering save for", messages.length, "messages");
       debouncedSave(messages);
     }
   }, [messages, chatId]);
@@ -83,44 +79,34 @@ export const useEmbeddedChat = (
     sendMessage
   } = useMessageHandling(bot, messages, setMessages, userContext, updateUserContext);
 
-  useEffect(() => {
-    const fetchUserContext = async () => {
-      if (bot.memory_enabled !== true) {
-        console.log("Memory not enabled, skipping context fetch");
-        setUserContext(null);
-        return;
-      }
-
-      try {
-        const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
-        setUserContext(context || {});
-      } catch (error) {
-        console.error("Error fetching user context:", error);
-        setUserContext({});
-      }
-    };
-
-    fetchUserContext();
-  }, [bot.id, bot.memory_enabled, clientId, sessionToken]);
-
   const initializeChat = async () => {
-    if (!chatId) {
-      console.log("No existing chat ID, creating new chat");
-      await createNewChat();
-      return;
-    }
-
-    console.log("Loading existing chat:", chatId);
-    const existingMessages = await loadExistingChat(chatId);
-    if (existingMessages && existingMessages.length > 0) {
-      console.log("Setting existing messages:", existingMessages.length);
-      setMessages(existingMessages);
+    try {
+      if (!chatId) {
+        console.log("No existing chat ID, creating new chat");
+        await createNewChat();
+      } else {
+        console.log("Loading existing chat:", chatId);
+        const existingMessages = await loadExistingChat(chatId);
+        if (existingMessages && existingMessages.length > 0) {
+          console.log("Setting existing messages:", existingMessages.length);
+          setMessages(existingMessages);
+        }
+      }
+    } catch (error) {
+      console.error("Error initializing chat:", error);
+      toast({
+        title: "Error",
+        description: "Failed to initialize chat",
+        variant: "destructive",
+      });
     }
   };
 
   useEffect(() => {
-    initializeChat();
-  }, []);
+    if (chatId) {
+      initializeChat();
+    }
+  }, [chatId]);
 
   const clearMessages = () => {
     setMessages([]);

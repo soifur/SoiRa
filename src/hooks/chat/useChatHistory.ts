@@ -82,7 +82,8 @@ export const useChatHistory = (
           client_id: clientId,
           share_key: shareKey,
           session_token: sessionToken,
-          sequence_number: nextSequence
+          sequence_number: nextSequence,
+          deleted: 'no'
         });
 
       if (error) throw error;
