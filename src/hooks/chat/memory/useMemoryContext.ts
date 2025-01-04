@@ -6,42 +6,49 @@ export const useMemoryContext = (
   userContext: any,
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
-  const addContextToMessage = async (message: string, context: any) => {
-    if (!bot.memory_enabled) {
-      console.log("Memory not enabled for bot:", bot.id);
-      return message;
-    }
-
-    if (!context || Object.keys(context).length === 0) {
-      console.log("No context available, returning original message");
-      return message;
-    }
-
-    const contextString = JSON.stringify(context);
-    return `[Context: ${contextString}]\n\nUser message: ${message}`;
-  };
-
-  const updateMemoryFromResponse = async (response: string, currentContext: any) => {
-    if (!bot.memory_enabled) {
-      console.log("Memory not enabled for bot:", bot.id);
+  const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
+    if (!bot.memory_enabled || !bot.apiKey || !bot.instructions) {
       return;
     }
 
     try {
+      const userMessages = messages.filter(msg => msg.role === "user");
+      
       const contextUpdatePrompt = `
-Based on this conversation, update the user context. Current context:
-${JSON.stringify(currentContext || {})}
+You are a context analyzer. Your task is to extract and maintain user context from conversations.
 
-Assistant's last response:
-${response}
+Previous context: ${JSON.stringify(userContext || {
+  name: null,
+  faith: null,
+  likes: [],
+  topics: []
+})}
 
-Return ONLY a valid JSON object with this structure:
+User messages to analyze:
+${userMessages.map(msg => msg.content).join('\n')}
+
+Instructions:
+${bot.instructions}
+
+Based on the messages, update the user context following these rules:
+1. Extract the user's name if mentioned
+2. Note any likes, interests, or positive mentions
+3. Track topics they discuss
+4. Preserve existing context unless explicitly contradicted
+5. Return ONLY a valid JSON object in this exact format:
+
 {
   "name": "string or null",
   "faith": "string or null",
   "likes": ["array of strings"],
   "topics": ["array of strings"]
-}`;
+}
+
+IMPORTANT: 
+- Merge new information with existing context
+- Keep previous values unless contradicted
+- Return ONLY the JSON object, no other text
+- Ensure all arrays exist even if empty`;
 
       let newContextResponse;
       if (bot.model === "gemini") {
@@ -56,6 +63,7 @@ Return ONLY a valid JSON object with this structure:
         );
       }
 
+      // Extract JSON from the response
       const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error("No valid JSON found in response");
@@ -69,43 +77,44 @@ Return ONLY a valid JSON object with this structure:
         throw new Error("Invalid JSON format in memory bot response");
       }
 
-      // Keep existing values if new ones are null or empty
+      // Validate the required structure
+      if (!newContext || typeof newContext !== 'object') {
+        throw new Error("Invalid context structure");
+      }
+
+      // Ensure all required fields exist with proper types
       const mergedContext = {
-        name: newContext.name || currentContext?.name || null,
-        faith: newContext.faith || currentContext?.faith || null,
+        // Only update name if new context explicitly provides one
+        name: newContext.name || userContext?.name || null,
+        // Only update faith if new context explicitly provides one
+        faith: newContext.faith || userContext?.faith || null,
+        // Merge likes arrays, removing duplicates and empty values
         likes: Array.from(new Set([
-          ...(currentContext?.likes || []),
-          ...(newContext.likes || [])
-        ])).filter(item => item && item.trim() !== ""),
+          ...(Array.isArray(userContext?.likes) ? userContext.likes : []),
+          ...(Array.isArray(newContext.likes) ? newContext.likes : [])
+        ])).filter(item => 
+          item && 
+          item.trim() !== "" && 
+          item !== " "
+        ),
+        // Merge topics arrays, removing duplicates and empty values
         topics: Array.from(new Set([
-          ...(currentContext?.topics || []),
-          ...(newContext.topics || [])
-        ])).filter(item => item && item.trim() !== "")
+          ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
+          ...(Array.isArray(newContext.topics) ? newContext.topics : [])
+        ])).filter(item => 
+          item && 
+          item.trim() !== "" && 
+          item !== " "
+        )
       };
 
       console.log("Merged context:", mergedContext);
       await updateUserContext(mergedContext);
     } catch (error) {
       console.error("Memory update failed:", error);
+      // Don't throw the error to prevent breaking the chat flow
     }
   };
 
-  const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
-    if (!bot.memory_enabled) {
-      return;
-    }
-
-    try {
-      const userMessages = messages.filter(msg => msg.role === "user");
-      await updateMemoryFromResponse(userMessages[userMessages.length - 1].content, userContext);
-    } catch (error) {
-      console.error("Memory update failed:", error);
-    }
-  };
-
-  return {
-    handleMemoryUpdate,
-    addContextToMessage,
-    updateMemoryFromResponse
-  };
+  return { handleMemoryUpdate };
 };
