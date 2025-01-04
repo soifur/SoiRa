@@ -35,7 +35,23 @@ export const useEmbeddedChat = (
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
   const debouncedSave = debounce(async (msgs: Message[]) => {
-    if (!chatId || !msgs.length || !hasUserSentMessage || isStreaming) return;
+    // Don't save if there are no messages, no chat ID, or we're streaming
+    if (!chatId || !msgs.length || !hasUserSentMessage || isStreaming) {
+      console.log("Skipping save - conditions not met:", {
+        chatId,
+        messageCount: msgs.length,
+        hasUserSent: hasUserSentMessage,
+        isStreaming
+      });
+      return;
+    }
+
+    // Check if there are any non-empty messages
+    const hasNonEmptyMessages = msgs.some(msg => msg.content.trim() !== '');
+    if (!hasNonEmptyMessages) {
+      console.log("Skipping save - no non-empty messages");
+      return;
+    }
     
     try {
       console.log("Starting debounced save of", msgs.length, "messages");
@@ -86,6 +102,8 @@ export const useEmbeddedChat = (
   } = useMessageHandling(bot, messages, setMessages, userContext, updateUserContext);
 
   const sendMessage = async (message: string) => {
+    if (!message.trim()) return;
+
     if (!hasUserSentMessage) {
       setHasUserSentMessage(true);
       if (!chatId) {
