@@ -27,7 +27,18 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
       
       setIsLoading(true);
       try {
-        console.log("Creating share configuration for bot:", bot.id, "with memory_enabled:", bot.memory_enabled);
+        // First, get the latest bot data to ensure we have the current memory_enabled value
+        const { data: currentBot, error: botError } = await supabase
+          .from('bots')
+          .select('memory_enabled')
+          .eq('id', bot.id)
+          .single();
+
+        if (botError) throw botError;
+
+        const memory_enabled = currentBot?.memory_enabled === true;
+        console.log("Retrieved memory_enabled from bots table:", currentBot?.memory_enabled);
+        console.log("Converted memory_enabled value:", memory_enabled);
         
         // First check if a share configuration already exists
         const { data: existingShare } = await supabase
@@ -39,8 +50,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           .maybeSingle();
 
         if (existingShare) {
-          console.log("Using existing share key:", existingShare.short_key);
-          setShareKey(existingShare.short_key);
+          console.log("Updating existing share configuration with memory_enabled:", memory_enabled);
           
           // Update the existing share configuration with latest bot data
           const { error: updateError } = await supabase
@@ -51,7 +61,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
               starters: bot.starters,
               model: bot.model,
               open_router_model: bot.openRouterModel,
-              memory_enabled: bot.memory_enabled === true, // Explicitly convert to boolean
+              memory_enabled: memory_enabled,
               memory_instructions: memorySettings?.instructions,
               memory_model: memorySettings?.model,
               memory_api_key: memorySettings?.api_key,
@@ -59,11 +69,12 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             .eq('short_key', existingShare.short_key);
 
           if (updateError) throw updateError;
+          setShareKey(existingShare.short_key);
           return;
         }
 
         // If no existing share found, create new configuration
-        console.log("Creating new share configuration for bot:", bot.id);
+        console.log("Creating new share configuration with memory_enabled:", memory_enabled);
         
         // First store the API key
         const { data: apiKeyData, error: apiKeyError } = await supabase
@@ -97,7 +108,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             model: bot.model,
             open_router_model: bot.openRouterModel,
             api_key_id: apiKeyData.id,
-            memory_enabled: bot.memory_enabled === true, // Explicitly convert to boolean
+            memory_enabled: memory_enabled,
             memory_instructions: memorySettings?.instructions,
             memory_model: memorySettings?.model,
             memory_api_key: memorySettings?.api_key,
@@ -106,7 +117,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
         if (shareError) throw shareError;
 
         setShareKey(newShareKey);
-        console.log("Share configuration stored successfully");
+        console.log("Share configuration stored successfully with memory_enabled:", memory_enabled);
       } catch (error) {
         console.error("Error storing share configuration:", error);
         toast({
