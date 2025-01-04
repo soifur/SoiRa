@@ -30,8 +30,19 @@ export default function SharedCategory() {
           .from('bot_categories')
           .select(`
             *,
-            bot_category_assignments (
-              bot_id
+            bot_category_assignments!inner (
+              bot_id,
+              bots!inner (
+                id,
+                name,
+                instructions,
+                starters,
+                model,
+                api_key,
+                open_router_model,
+                avatar,
+                memory_enabled
+              )
             )
           `)
           .eq('short_key', shortKey)
@@ -60,42 +71,19 @@ export default function SharedCategory() {
         console.log("Category data:", categoryData);
         setCategory(categoryData);
 
-        // Then fetch the bots data if there are assignments
+        // Transform the nested bot data
         if (categoryData.bot_category_assignments?.length) {
-          const botIds = categoryData.bot_category_assignments.map((a: any) => a.bot_id);
-          
-          const { data: botsData, error: botsError } = await supabase
-            .from('bots')
-            .select('*')
-            .in('id', botIds);
-
-          if (botsError) {
-            console.error("Error fetching bots:", botsError);
-            toast({
-              title: "Error",
-              description: "Failed to fetch bots",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          if (!botsData || botsData.length === 0) {
-            console.log("No bots found for this category");
-            return;
-          }
-
-          // Transform the data to match our Bot interface
-          const transformedBots: Bot[] = botsData.map(bot => ({
-            id: bot.id,
-            name: bot.name,
-            instructions: bot.instructions || "",
-            starters: bot.starters || [],
-            model: bot.model,
-            apiKey: bot.api_key,
-            openRouterModel: bot.open_router_model,
-            avatar: bot.avatar,
+          const transformedBots: Bot[] = categoryData.bot_category_assignments.map((assignment: any) => ({
+            id: assignment.bots.id,
+            name: assignment.bots.name,
+            instructions: assignment.bots.instructions || "",
+            starters: assignment.bots.starters || [],
+            model: assignment.bots.model,
+            apiKey: assignment.bots.api_key,
+            openRouterModel: assignment.bots.open_router_model,
+            avatar: assignment.bots.avatar,
             accessType: "public",
-            memory_enabled: bot.memory_enabled,
+            memory_enabled: assignment.bots.memory_enabled,
           }));
 
           console.log("Transformed bots:", transformedBots);
@@ -120,7 +108,10 @@ export default function SharedCategory() {
     <div className="container mx-auto p-4 pt-20">
       {category && (
         <>
-          <h1 className="text-2xl font-bold mb-6">{category.name}</h1>
+          <h1 className="text-2xl font-bold mb-2">{category.name}</h1>
+          {category.description && (
+            <p className="text-muted-foreground mb-6">{category.description}</p>
+          )}
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Available Bots</h2>
@@ -133,12 +124,23 @@ export default function SharedCategory() {
                     }`}
                     onClick={() => setSelectedBot(bot)}
                   >
-                    <h3 className="font-medium">{bot.name}</h3>
-                    {bot.instructions && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {bot.instructions}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {bot.avatar && (
+                        <img 
+                          src={bot.avatar} 
+                          alt={bot.name} 
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      )}
+                      <div>
+                        <h3 className="font-medium">{bot.name}</h3>
+                        {bot.instructions && (
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                            {bot.instructions}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </Card>
                 ))}
               </div>
