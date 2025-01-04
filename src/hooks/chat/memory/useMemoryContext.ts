@@ -58,7 +58,7 @@ IMPORTANT:
 - Return ONLY the JSON object, no other text
 - Ensure all arrays exist even if empty`;
 
-      let apiResponse: string;
+      let apiResponse: string | undefined;
       try {
         if (bot.model === "gemini") {
           apiResponse = await ChatService.sendGeminiMessage(
@@ -72,7 +72,7 @@ IMPORTANT:
           );
         }
 
-        if (typeof apiResponse !== 'string') {
+        if (!apiResponse || typeof apiResponse !== 'string') {
           console.error("Invalid API response type:", typeof apiResponse);
           throw new Error("Invalid response type from API");
         }
