@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Folder, Plus, Trash2, Check } from "lucide-react";
+import { Folder, Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -82,7 +82,7 @@ export default function Categories() {
     fetchCategories();
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchCategories();
   }, []);
 
