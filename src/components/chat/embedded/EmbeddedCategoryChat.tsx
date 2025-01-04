@@ -19,7 +19,7 @@ const EmbeddedCategoryChat = () => {
     botsData: null,
     errors: [],
     loadingSteps: [],
-    rawQuery: null
+    queryDetails: null
   });
 
   useEffect(() => {
@@ -55,9 +55,15 @@ const EmbeddedCategoryChat = () => {
         .select('*')
         .eq('short_key', categoryId);
 
-      setDebugInfo(prev => ({ ...prev, rawQuery: categoryQuery.toSQL() }));
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        queryDetails: {
+          table: 'bot_categories',
+          filter: { short_key: categoryId }
+        }
+      }));
       
-      const { data: categoryData, error: categoryError } = await categoryQuery.maybeSingle();
+      const { data: categoryData, error: categoryError } = await categoryQuery;
 
       if (categoryError) {
         console.error("Error fetching category:", categoryError);
@@ -65,10 +71,11 @@ const EmbeddedCategoryChat = () => {
         throw categoryError;
       }
       
-      addLoadingStep(`Category data received: ${JSON.stringify(categoryData)}`);
-      setDebugInfo(prev => ({ ...prev, categoryData }));
+      const foundCategory = categoryData?.[0];
+      addLoadingStep(`Category data received: ${JSON.stringify(foundCategory)}`);
+      setDebugInfo(prev => ({ ...prev, categoryData: foundCategory }));
 
-      if (!categoryData) {
+      if (!foundCategory) {
         const notFoundError = "Category not found";
         addError(notFoundError, 'Category not found');
         setError(notFoundError);
@@ -76,7 +83,7 @@ const EmbeddedCategoryChat = () => {
         return;
       }
 
-      if (!categoryData.is_public) {
+      if (!foundCategory.is_public) {
         const notPublicError = "This category is not public";
         addError(notPublicError, 'Category not public');
         setError(notPublicError);
@@ -89,7 +96,7 @@ const EmbeddedCategoryChat = () => {
       const { data: assignments, error: assignmentsError } = await supabase
         .from('bot_category_assignments')
         .select('bot_id')
-        .eq('category_id', categoryData.id);
+        .eq('category_id', foundCategory.id);
 
       if (assignmentsError) {
         console.error("Error fetching assignments:", assignmentsError);
@@ -134,7 +141,7 @@ const EmbeddedCategoryChat = () => {
         setBots(transformedBots);
       }
 
-      setCategory(categoryData);
+      setCategory(foundCategory);
     } catch (error: any) {
       console.error("Error fetching category data:", error);
       addError(error, 'General error');
@@ -157,9 +164,9 @@ const EmbeddedCategoryChat = () => {
               <strong>Category ID:</strong> {categoryId}
             </div>
             <div>
-              <strong>Raw Query:</strong>
+              <strong>Query Details:</strong>
               <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                {JSON.stringify(debugInfo.rawQuery, null, 2)}
+                {JSON.stringify(debugInfo.queryDetails, null, 2)}
               </pre>
             </div>
             <div>
@@ -196,9 +203,9 @@ const EmbeddedCategoryChat = () => {
               <strong>Category ID:</strong> {categoryId}
             </div>
             <div>
-              <strong>Raw Query:</strong>
+              <strong>Query Details:</strong>
               <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                {JSON.stringify(debugInfo.rawQuery, null, 2)}
+                {JSON.stringify(debugInfo.queryDetails, null, 2)}
               </pre>
             </div>
             <div>
