@@ -59,12 +59,10 @@ const EmbeddedChatContainer = () => {
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
         
         const memory_enabled = sharedBotData.memory_enabled === true;
-        console.log("Setting memory_enabled to:", memory_enabled, "from shared bot data:", sharedBotData.memory_enabled);
+        console.log("Memory enabled:", memory_enabled);
 
-        // Get the avatar URL from shared_bots or original bot
         let avatarUrl = sharedBotData.avatar;
         
-        // If no avatar in shared_bots, try to get it from the original bot
         if (!avatarUrl && sharedBotData.bot_id) {
           const { data: botData } = await supabase
             .from('bots')
@@ -73,7 +71,6 @@ const EmbeddedChatContainer = () => {
             .single();
           
           if (botData?.avatar) {
-            // If the avatar is a storage path, get the public URL
             if (botData.avatar.startsWith('avatars/')) {
               const { data } = supabase
                 .storage
@@ -86,12 +83,9 @@ const EmbeddedChatContainer = () => {
           }
         }
 
-        // If still no avatar, use default
         if (!avatarUrl) {
           avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
         }
-
-        console.log("Using avatar URL:", avatarUrl);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -106,7 +100,6 @@ const EmbeddedChatContainer = () => {
           memory_enabled: memory_enabled,
         };
 
-        console.log("Transformed bot:", transformedBot);
         setBot(transformedBot);
 
       } catch (error) {
