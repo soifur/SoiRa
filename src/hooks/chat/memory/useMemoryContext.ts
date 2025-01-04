@@ -59,65 +59,68 @@ IMPORTANT:
 - Ensure all arrays exist even if empty`;
 
       let newContextResponse;
-      if (bot.model === "gemini") {
-        newContextResponse = await ChatService.sendGeminiMessage(
-          [{ role: "user", content: contextUpdatePrompt }],
-          bot
-        );
-      } else {
-        newContextResponse = await ChatService.sendOpenRouterMessage(
-          [{ role: "user", content: contextUpdatePrompt }],
-          bot
-        );
-      }
-
-      // Extract JSON from the response
-      const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("No valid JSON found in response");
-      }
-
-      let newContext;
       try {
-        newContext = JSON.parse(jsonMatch[0]);
-      } catch (parseError) {
-        console.error("Parse error:", parseError);
-        throw new Error("Invalid JSON format in memory bot response");
+        if (bot.model === "gemini") {
+          newContextResponse = await ChatService.sendGeminiMessage(
+            [{ role: "user", content: contextUpdatePrompt }],
+            bot
+          );
+        } else {
+          newContextResponse = await ChatService.sendOpenRouterMessage(
+            [{ role: "user", content: contextUpdatePrompt }],
+            bot
+          );
+        }
+
+        // Clean up the response to ensure we get valid JSON
+        const cleanedResponse = newContextResponse.trim();
+        const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+        
+        if (!jsonMatch) {
+          console.error("No valid JSON found in response:", cleanedResponse);
+          throw new Error("Invalid response format from API");
+        }
+
+        let newContext;
+        try {
+          newContext = JSON.parse(jsonMatch[0]);
+        } catch (parseError) {
+          console.error("Parse error:", parseError, "Response:", jsonMatch[0]);
+          throw new Error("Invalid JSON format in memory bot response");
+        }
+
+        // Validate the required structure
+        if (!newContext || typeof newContext !== 'object') {
+          throw new Error("Invalid context structure");
+        }
+
+        // Ensure all required fields exist with proper types
+        const mergedContext = {
+          name: newContext.name || userContext?.name || null,
+          faith: newContext.faith || userContext?.faith || null,
+          likes: Array.isArray(newContext.likes) ? 
+            [...new Set(newContext.likes)].filter(item => item && item.trim() !== "") : 
+            userContext?.likes || [],
+          topics: Array.from(new Set([
+            ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
+            ...(Array.isArray(newContext.topics) ? newContext.topics : [])
+          ])).filter(item => item && item.trim() !== ""),
+          facts: Array.from(new Set([
+            ...(Array.isArray(userContext?.facts) ? userContext.facts : []),
+            ...(Array.isArray(newContext.facts) ? newContext.facts : [])
+          ])).filter(item => item && item.trim() !== "")
+        };
+
+        console.log("Merged context:", mergedContext);
+        await updateUserContext(mergedContext);
+      } catch (apiError) {
+        console.error("API or parsing error:", apiError);
+        // Don't throw here to prevent breaking the chat flow
+        // Instead, preserve the existing context
+        if (userContext) {
+          await updateUserContext(userContext);
+        }
       }
-
-      // Validate the required structure
-      if (!newContext || typeof newContext !== 'object') {
-        throw new Error("Invalid context structure");
-      }
-
-      // Ensure all required fields exist with proper types
-      const mergedContext = {
-        name: newContext.name || userContext?.name || null,
-        faith: newContext.faith || userContext?.faith || null,
-        // For likes, we want to use the new context's likes array directly since it should handle removals
-        likes: Array.isArray(newContext.likes) ? 
-          newContext.likes.filter(item => item && item.trim() !== "" && item !== " ") : 
-          [],
-        topics: Array.from(new Set([
-          ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
-          ...(Array.isArray(newContext.topics) ? newContext.topics : [])
-        ])).filter(item => 
-          item && 
-          item.trim() !== "" && 
-          item !== " "
-        ),
-        facts: Array.from(new Set([
-          ...(Array.isArray(userContext?.facts) ? userContext.facts : []),
-          ...(Array.isArray(newContext.facts) ? newContext.facts : [])
-        ])).filter(item => 
-          item && 
-          item.trim() !== "" && 
-          item !== " "
-        )
-      };
-
-      console.log("Merged context:", mergedContext);
-      await updateUserContext(mergedContext);
     } catch (error) {
       console.error("Memory update failed:", error);
       // Don't throw the error to prevent breaking the chat flow
