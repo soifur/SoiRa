@@ -1,6 +1,5 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "next-themes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet";
@@ -56,7 +55,7 @@ function App() {
             setIsLoading(false);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('App: Error in auth initialization:', error);
         if (mounted) {
           toast({
@@ -128,25 +127,17 @@ function App() {
   }
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      storageKey="soira-theme-v1"
-    >
-      <div className="min-h-screen bg-background">
-        <Helmet>
-          <title>SoiRa AI</title>
-          <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
-          <meta name="description" content="SoiRa AI - Your AI Assistant" />
-        </Helmet>
-        <Router>
-          <AppRoutes isAuthenticated={isAuthenticated} userRole={userRole} />
-          <Toaster />
-        </Router>
-      </div>
-    </ThemeProvider>
+    <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>SoiRa AI</title>
+        <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
+        <meta name="description" content="SoiRa AI - Your AI Assistant" />
+      </Helmet>
+      <Router>
+        <AppRoutes isAuthenticated={isAuthenticated} userRole={userRole} />
+        <Toaster />
+      </Router>
+    </div>
   );
 }
 
