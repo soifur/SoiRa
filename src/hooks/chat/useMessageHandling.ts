@@ -53,11 +53,22 @@ export const useMessageHandling = (
       const contextMessages = [];
 
       // Strict boolean check for TRUE
-      if (bot.memory_enabled === true && userContext) {
+      if (bot.memory_enabled === true) {
         console.log("Memory is explicitly TRUE, adding context to message");
+        // Create a deep copy of the userContext to avoid any reference issues
+        const contextToSend = userContext ? JSON.parse(JSON.stringify(userContext)) : {
+          name: null,
+          faith: null,
+          likes: [],
+          topics: [],
+          facts: []
+        };
+        
+        console.log("Using context for message:", contextToSend);
+        
         const contextPrompt = {
           role: "system",
-          content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
+          content: `Previous context about the user: ${JSON.stringify(contextToSend)}\n\nCurrent conversation:`
         };
         contextMessages.push(contextPrompt);
       } else {
