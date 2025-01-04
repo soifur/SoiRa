@@ -58,12 +58,27 @@ const EmbeddedChatContainer = () => {
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
         
-        // Explicitly handle memory_enabled as a boolean
         const memory_enabled = sharedBotData.memory_enabled === true;
         console.log("Setting memory_enabled to:", memory_enabled, "from shared bot data:", sharedBotData.memory_enabled);
 
-        const avatarUrl = sharedBotData.avatar || 
-          `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
+        // Get the public URL for the avatar if it exists
+        let avatarUrl = sharedBotData.avatar;
+        if (!avatarUrl && sharedBotData.bot_id) {
+          const { data: botData } = await supabase
+            .from('bots')
+            .select('avatar')
+            .eq('id', sharedBotData.bot_id)
+            .single();
+          
+          if (botData?.avatar) {
+            avatarUrl = botData.avatar;
+          }
+        }
+
+        // If still no avatar, use default
+        if (!avatarUrl) {
+          avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
+        }
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -78,10 +93,11 @@ const EmbeddedChatContainer = () => {
           memory_enabled: memory_enabled,
         };
 
-        console.log("Transformed bot memory_enabled:", transformedBot.memory_enabled);
+        console.log("Transformed bot:", transformedBot);
         setBot(transformedBot);
 
-      } catch {
+      } catch (error) {
+        console.error("Error fetching bot data:", error);
         toast({
           title: "Error",
           description: "Failed to load bot data",
@@ -104,13 +120,13 @@ const EmbeddedChatContainer = () => {
         <meta name="description" content={`Start a conversation with ${bot.name}`} />
         <meta property="og:title" content={`Chat with ${bot.name}`} />
         <meta property="og:description" content={`Start a conversation with ${bot.name}`} />
-        <meta property="og:image" content={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
+        <meta property="og:image" content={bot.avatar} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`Chat with ${bot.name}`} />
         <meta name="twitter:description" content={`Start a conversation with ${bot.name}`} />
-        <meta name="twitter:image" content={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
-        <link rel="icon" type="image/png" href={bot.avatar || "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png"} />
+        <meta name="twitter:image" content={bot.avatar} />
+        <link rel="icon" type="image/png" href={bot.avatar} />
       </Helmet>
       <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />
     </>
