@@ -53,7 +53,21 @@ export default function SharedCategory() {
           return;
         }
 
-        setBots(botsData || []);
+        // Transform the data to match our Bot interface
+        const transformedBots: Bot[] = (botsData || []).map(bot => ({
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private",
+          memory_enabled: bot.memory_enabled,
+        }));
+
+        setBots(transformedBots);
       }
     };
 
