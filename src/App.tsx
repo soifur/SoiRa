@@ -135,55 +135,68 @@ function App() {
   }
 
   return (
-    <ThemeProvider>
-      <Helmet>
-        <title>SoiRa AI</title>
-        <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
-        <meta name="description" content="SoiRa AI - Your AI Assistant" />
-      </Helmet>
-      <Router>
-        {isAuthenticated && <Navigation />}
-        <Routes>
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? (
-                userRole === 'admin' || userRole === 'super_admin' ? (
-                  <Index />
-                ) : (
-                  <Navigate to="/chat" replace />
-                )
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
-          <Route
-            path="/bots"
-            element={isAuthenticated ? <Bots /> : <Navigate to="/login" replace />}
-          />
-          <Route
-            path="/chat"
-            element={isAuthenticated ? <Chat /> : <Navigate to="/login" replace />}
-          />
-          <Route
-            path="/archive"
-            element={isAuthenticated ? <Archive /> : <Navigate to="/login" replace />}
-          />
-          <Route
-            path="/settings"
-            element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />}
-          />
-          <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
-          <Route path="/category/:categoryId" element={<EmbeddedCategoryChat />} />
-          <Route
-            path="/login"
-            element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />}
-          />
-        </Routes>
-        <Toaster />
-      </Router>
-    </ThemeProvider>
+    <div className="min-h-screen bg-background">
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <Helmet>
+          <title>SoiRa AI</title>
+          <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
+          <meta name="description" content="SoiRa AI - Your AI Assistant" />
+        </Helmet>
+        <Router>
+          {isAuthenticated && <Navigation />}
+          {isLoading ? (
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-lg text-foreground">Loading...</div>
+            </div>
+          ) : (
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  isAuthenticated ? (
+                    userRole === 'admin' || userRole === 'super_admin' ? (
+                      <Index />
+                    ) : (
+                      <Navigate to="/chat" replace />
+                    )
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+              <Route
+                path="/bots"
+                element={isAuthenticated ? <Bots /> : <Navigate to="/login" replace />}
+              />
+              <Route
+                path="/chat"
+                element={isAuthenticated ? <Chat /> : <Navigate to="/login" replace />}
+              />
+              <Route
+                path="/archive"
+                element={isAuthenticated ? <Archive /> : <Navigate to="/login" replace />}
+              />
+              <Route
+                path="/settings"
+                element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />}
+              />
+              <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
+              <Route path="/category/:categoryId" element={<EmbeddedCategoryChat />} />
+              <Route
+                path="/login"
+                element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />}
+              />
+            </Routes>
+          )}
+          <Toaster />
+        </Router>
+      </ThemeProvider>
+    </div>
   );
 }
 
