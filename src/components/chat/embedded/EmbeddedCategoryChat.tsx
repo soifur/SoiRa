@@ -18,7 +18,8 @@ const EmbeddedCategoryChat = () => {
     assignments: null,
     botsData: null,
     errors: [],
-    loadingSteps: []
+    loadingSteps: [],
+    rawQuery: null
   });
 
   useEffect(() => {
@@ -33,6 +34,7 @@ const EmbeddedCategoryChat = () => {
   };
 
   const addError = (error: any, context: string) => {
+    console.error(`Error in ${context}:`, error);
     setDebugInfo(prev => ({
       ...prev,
       errors: [...prev.errors, { context, error, timestamp: new Date().toISOString() }]
@@ -46,13 +48,16 @@ const EmbeddedCategoryChat = () => {
       addLoadingStep(`Starting fetch for category ID: ${categoryId}`);
       setDebugInfo(prev => ({ ...prev, categoryId }));
 
-      // Fetch category
+      // Fetch category with detailed logging
       addLoadingStep('Fetching category data');
-      const { data: categoryData, error: categoryError } = await supabase
+      const categoryQuery = supabase
         .from('bot_categories')
         .select('*')
-        .eq('short_key', categoryId)
-        .maybeSingle();
+        .eq('short_key', categoryId);
+
+      setDebugInfo(prev => ({ ...prev, rawQuery: categoryQuery.toSQL() }));
+      
+      const { data: categoryData, error: categoryError } = await categoryQuery.maybeSingle();
 
       if (categoryError) {
         console.error("Error fetching category:", categoryError);
@@ -79,7 +84,7 @@ const EmbeddedCategoryChat = () => {
         return;
       }
 
-      // Fetch bot assignments for the category
+      // Fetch bot assignments with detailed logging
       addLoadingStep('Fetching bot assignments');
       const { data: assignments, error: assignmentsError } = await supabase
         .from('bot_category_assignments')
@@ -95,7 +100,7 @@ const EmbeddedCategoryChat = () => {
       addLoadingStep(`Assignments received: ${JSON.stringify(assignments)}`);
       setDebugInfo(prev => ({ ...prev, assignments }));
 
-      // Fetch bots data
+      // Fetch bots data with detailed logging
       if (assignments && assignments.length > 0) {
         addLoadingStep('Fetching bots data');
         const botIds = assignments.map(a => a.bot_id);
@@ -145,22 +150,28 @@ const EmbeddedCategoryChat = () => {
       <div className="flex flex-col items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <div className="text-lg">Loading category...</div>
-        <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg">
+        <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg w-full mx-4">
           <h3 className="text-sm font-semibold mb-2">Debug Info:</h3>
           <div className="text-xs space-y-2">
             <div>
               <strong>Category ID:</strong> {categoryId}
             </div>
             <div>
+              <strong>Raw Query:</strong>
+              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
+                {JSON.stringify(debugInfo.rawQuery, null, 2)}
+              </pre>
+            </div>
+            <div>
               <strong>Loading Steps:</strong>
-              <pre className="mt-1 overflow-auto max-h-40">
+              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
                 {debugInfo.loadingSteps.join('\n')}
               </pre>
             </div>
             {debugInfo.errors.length > 0 && (
               <div>
                 <strong>Errors:</strong>
-                <pre className="mt-1 overflow-auto max-h-40">
+                <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
                   {JSON.stringify(debugInfo.errors, null, 2)}
                 </pre>
               </div>
@@ -178,22 +189,28 @@ const EmbeddedCategoryChat = () => {
         <p className="text-muted-foreground">
           {error || "The requested category does not exist or is not public."}
         </p>
-        <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg">
+        <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg w-full mx-4">
           <h3 className="text-sm font-semibold mb-2">Debug Info:</h3>
           <div className="text-xs space-y-2">
             <div>
               <strong>Category ID:</strong> {categoryId}
             </div>
             <div>
+              <strong>Raw Query:</strong>
+              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
+                {JSON.stringify(debugInfo.rawQuery, null, 2)}
+              </pre>
+            </div>
+            <div>
               <strong>Loading Steps:</strong>
-              <pre className="mt-1 overflow-auto max-h-40">
+              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
                 {debugInfo.loadingSteps.join('\n')}
               </pre>
             </div>
             {debugInfo.errors.length > 0 && (
               <div>
                 <strong>Errors:</strong>
-                <pre className="mt-1 overflow-auto max-h-40">
+                <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
                   {JSON.stringify(debugInfo.errors, null, 2)}
                 </pre>
               </div>
