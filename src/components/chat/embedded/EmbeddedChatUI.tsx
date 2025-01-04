@@ -18,17 +18,25 @@ import { useNavigate } from "react-router-dom";
 import { Category } from "@/components/categories/CategoryManagement";
 
 interface EmbeddedChatUIProps {
-  category: Category;
-  bots: Bot[];
+  bot?: Bot;
+  clientId?: string;
+  shareKey?: string;
+  category?: Category;
+  bots?: Bot[];
 }
 
-const EmbeddedChatUI = ({ category, bots }: EmbeddedChatUIProps) => {
+const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedChatUIProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const isMobile = useIsMobile();
   const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // Use either the single bot or the first bot from the array
+  const selectedBot = bot || (bots && bots[0]);
+  const selectedShareKey = shareKey || (category && category.short_key);
+  const selectedClientId = clientId || category?.id;
   
   const {
     messages,
@@ -38,7 +46,7 @@ const EmbeddedChatUI = ({ category, bots }: EmbeddedChatUIProps) => {
     loadExistingChat,
     createNewChat,
     clearMessages
-  } = useEmbeddedChat(bots[0], category.id, category.share_key, sessionToken);
+  } = useEmbeddedChat(selectedBot, selectedClientId, selectedShareKey, sessionToken);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -98,7 +106,7 @@ const EmbeddedChatUI = ({ category, bots }: EmbeddedChatUIProps) => {
           )}>
             <EmbeddedChatHistory
               sessionToken={sessionToken}
-              botId={bots[0]?.id}
+              botId={selectedBot?.id}
               onSelectChat={handleSelectChat}
               onNewChat={createNewChat}
               currentChatId={chatId}
@@ -109,7 +117,7 @@ const EmbeddedChatUI = ({ category, bots }: EmbeddedChatUIProps) => {
           <div className="flex-1 flex flex-col h-full relative w-full">
             <div className="absolute top-0 left-0 right-0 z-40">
               <EmbeddedChatHeader
-                bot={bots[0] ? {...bots[0], starters: bots[0].starters || []} : null}
+                bot={selectedBot ? {...selectedBot, starters: selectedBot.starters || []} : null}
                 onClearChat={handleClearChat}
                 onToggleHistory={() => setShowHistory(!showHistory)}
                 showHistory={showHistory}
@@ -122,7 +130,7 @@ const EmbeddedChatUI = ({ category, bots }: EmbeddedChatUIProps) => {
                 messages={messages}
                 isLoading={isLoading}
                 onSend={sendMessage}
-                bot={bots[0] ? {...bots[0], starters: bots[0].starters || []} : null}
+                bot={selectedBot ? {...selectedBot, starters: selectedBot.starters || []} : null}
                 onStarterClick={sendMessage}
               />
             </div>
