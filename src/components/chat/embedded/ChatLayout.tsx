@@ -15,12 +15,9 @@ export const ChatLayout = ({ onNewChat, children }: ChatLayoutProps) => {
     <div 
       className="fixed inset-0 flex flex-col overflow-hidden touch-none bg-background"
       style={{
+        height: '100dvh',
         WebkitOverflowScrolling: 'touch',
-        position: 'fixed',
-        height: '100%',
-        width: '100%',
-        overscrollBehavior: 'none',
-        WebkitOverflowScrolling: 'touch'
+        overscrollBehavior: 'none'
       }}
     >
       {/* Header */}
