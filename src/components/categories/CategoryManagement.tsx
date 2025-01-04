@@ -23,22 +23,30 @@ export const CategoryManagement = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>({});
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("CategoryManagement: Component mounted");
     fetchCategories();
     fetchBots();
   }, []);
 
   const fetchBots = async () => {
+    console.log("CategoryManagement: Fetching bots...");
     try {
       const { data, error } = await supabase
         .from('bots')
         .select('*')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error("CategoryManagement: Error fetching bots:", error);
+        setDebugInfo(prev => ({ ...prev, botsError: error }));
+        throw error;
+      }
 
+      console.log("CategoryManagement: Bots fetched:", data);
       const transformedBots = data.map((bot): Bot => ({
         id: bot.id,
         name: bot.name,
@@ -53,6 +61,7 @@ export const CategoryManagement = () => {
       }));
 
       setAvailableBots(transformedBots);
+      setDebugInfo(prev => ({ ...prev, botsCount: transformedBots.length }));
     } catch (error) {
       console.error('Error fetching bots:', error);
       toast({
@@ -64,23 +73,33 @@ export const CategoryManagement = () => {
   };
 
   const fetchCategories = async () => {
+    console.log("CategoryManagement: Fetching categories...");
     try {
-      // Fetch categories with their assigned bots
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('bot_categories')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (categoriesError) throw categoriesError;
+      if (categoriesError) {
+        console.error("CategoryManagement: Error fetching categories:", categoriesError);
+        setDebugInfo(prev => ({ ...prev, categoriesError }));
+        throw categoriesError;
+      }
 
-      // Fetch bot assignments for all categories
+      console.log("CategoryManagement: Categories fetched:", categoriesData);
+
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('bot_category_assignments')
         .select('category_id, bot_id');
 
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error("CategoryManagement: Error fetching assignments:", assignmentsError);
+        setDebugInfo(prev => ({ ...prev, assignmentsError }));
+        throw assignmentsError;
+      }
 
-      // Create a map of category IDs to their assigned bot IDs
+      console.log("CategoryManagement: Assignments fetched:", assignmentsData);
+
       const categoryBotMap = new Map();
       assignmentsData.forEach((assignment) => {
         const botIds = categoryBotMap.get(assignment.category_id) || [];
@@ -88,7 +107,6 @@ export const CategoryManagement = () => {
         categoryBotMap.set(assignment.category_id, botIds);
       });
 
-      // Transform categories data with assigned bots
       const categoriesWithBots = categoriesData.map((category) => ({
         ...category,
         bots: availableBots.filter((bot) => 
@@ -97,6 +115,11 @@ export const CategoryManagement = () => {
       }));
 
       setCategories(categoriesWithBots);
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        categoriesCount: categoriesWithBots.length,
+        categoryBotMapSize: categoryBotMap.size
+      }));
     } catch (error) {
       console.error('Error fetching categories:', error);
       toast({
@@ -243,6 +266,14 @@ export const CategoryManagement = () => {
         >
           <Plus className="mr-2 h-4 w-4" /> New Category
         </Button>
+      </div>
+
+      {/* Debug Information */}
+      <div className="bg-muted p-4 rounded-lg mb-4">
+        <h2 className="text-sm font-semibold mb-2">Debug Information:</h2>
+        <pre className="text-xs overflow-auto">
+          {JSON.stringify(debugInfo, null, 2)}
+        </pre>
       </div>
 
       <CategoryForm
