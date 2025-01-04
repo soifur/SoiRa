@@ -15,59 +15,74 @@ export default function SharedCategory() {
 
   useEffect(() => {
     const fetchCategory = async () => {
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('bot_categories')
-        .select(`
-          *,
-          bot_category_assignments (
-            bot_id
-          )
-        `)
-        .eq('short_key', shortKey)
-        .single();
+      try {
+        // First fetch the category with its bot assignments
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('bot_categories')
+          .select(`
+            *,
+            bot_category_assignments (
+              bot_id
+            )
+          `)
+          .eq('short_key', shortKey)
+          .single();
 
-      if (categoryError || !categoryData) {
-        toast({
-          title: "Error",
-          description: "Category not found",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setCategory(categoryData);
-
-      if (categoryData.bot_category_assignments?.length) {
-        const botIds = categoryData.bot_category_assignments.map((a: any) => a.bot_id);
-        const { data: botsData, error: botsError } = await supabase
-          .from('bots')
-          .select('*')
-          .in('id', botIds);
-
-        if (botsError) {
+        if (categoryError || !categoryData) {
+          console.error("Error fetching category:", categoryError);
           toast({
             title: "Error",
-            description: "Failed to fetch bots",
+            description: "Category not found",
             variant: "destructive",
           });
           return;
         }
 
-        // Transform the data to match our Bot interface
-        const transformedBots: Bot[] = (botsData || []).map(bot => ({
-          id: bot.id,
-          name: bot.name,
-          instructions: bot.instructions || "",
-          starters: bot.starters || [],
-          model: bot.model,
-          apiKey: bot.api_key,
-          openRouterModel: bot.open_router_model,
-          avatar: bot.avatar,
-          accessType: "private",
-          memory_enabled: bot.memory_enabled,
-        }));
+        setCategory(categoryData);
 
-        setBots(transformedBots);
+        // Then fetch the bots data if there are assignments
+        if (categoryData.bot_category_assignments?.length) {
+          const botIds = categoryData.bot_category_assignments.map((a: any) => a.bot_id);
+          
+          const { data: botsData, error: botsError } = await supabase
+            .from('bots')
+            .select('*')
+            .in('id', botIds);
+
+          if (botsError) {
+            console.error("Error fetching bots:", botsError);
+            toast({
+              title: "Error",
+              description: "Failed to fetch bots",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          // Transform the data to match our Bot interface
+          const transformedBots: Bot[] = (botsData || []).map(bot => ({
+            id: bot.id,
+            name: bot.name,
+            instructions: bot.instructions || "",
+            starters: bot.starters || [],
+            model: bot.model,
+            apiKey: bot.api_key,
+            openRouterModel: bot.open_router_model,
+            avatar: bot.avatar,
+            accessType: "public",
+            memory_enabled: bot.memory_enabled,
+          }));
+
+          console.log("Transformed bots:", transformedBots);
+          setBots(transformedBots);
+        }
+      } catch (error) {
+        console.error("Error in fetchCategory:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load category data",
+          variant: "destructive",
+        });
       }
     };
 
