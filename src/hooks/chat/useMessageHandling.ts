@@ -52,8 +52,9 @@ export const useMessageHandling = (
         content: msg.content
       }));
 
+      // Only add context if memory is enabled and context exists
       if (bot.memory_enabled === false) {
-        console.log("Memory explicitly disabled - skipping context addition");
+        console.log("Memory disabled - skipping context addition");
       } else if (userContext) {
         console.log("Memory enabled, adding context to message:", userContext);
         const contextPrompt = {

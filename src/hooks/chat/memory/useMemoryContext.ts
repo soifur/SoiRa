@@ -7,8 +7,13 @@ export const useMemoryContext = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
-    if (!bot.memory_enabled || !bot.apiKey || !bot.instructions) {
+    if (bot.memory_enabled === false) {
       console.log("Memory updates disabled for bot:", bot.id);
+      return;
+    }
+
+    if (!bot.apiKey || !bot.instructions) {
+      console.log("Memory updates disabled - missing API key or instructions");
       return;
     }
 

@@ -31,14 +31,13 @@ export const useEmbeddedChat = (
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
   const updateUserContext = async (newContext: any) => {
+    if (bot.memory_enabled === false) {
+      console.log("Memory explicitly disabled for bot:", bot.id, "- skipping context update");
+      return;
+    }
+    
     try {
-      if (bot.memory_enabled === false) {
-        console.log("Memory explicitly disabled for bot:", bot.id, "- skipping context update");
-        return;
-      }
-      
       console.log("Updating memory with context:", newContext);
-      
       await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
       setUserContext(newContext);
       console.log("Context updated successfully");
@@ -54,6 +53,7 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
+      // Reset context to null if memory is disabled
       if (bot.memory_enabled === false) {
         console.log("Memory explicitly disabled for bot:", bot.id, "- skipping context fetch");
         setUserContext(null);
@@ -64,12 +64,16 @@ export const useEmbeddedChat = (
         console.log("Fetching user context for bot:", bot.id, "client:", clientId);
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
         console.log("Fetched initial user context:", context);
-        setUserContext(context || {
-          name: null,
-          faith: null,
-          likes: [],
-          topics: []
-        });
+        if (context) {
+          setUserContext(context);
+        } else {
+          setUserContext({
+            name: null,
+            faith: null,
+            likes: [],
+            topics: []
+          });
+        }
       } catch (error) {
         console.error("Error fetching user context:", error);
         setUserContext(null);
