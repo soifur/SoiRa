@@ -39,7 +39,6 @@ export const useMessageHandling = (
 
       console.log("Current memory_enabled status:", bot.memory_enabled);
       
-      // Strict boolean check for TRUE
       if (bot.memory_enabled === true) {
         console.log("Memory is explicitly TRUE, updating context");
         handleMemoryUpdate([userMessage]).catch(error => {
@@ -49,11 +48,9 @@ export const useMessageHandling = (
 
       const contextMessages = [];
 
-      // Strict boolean check for TRUE
       if (bot.memory_enabled === true) {
         console.log("Memory is explicitly TRUE, adding context to message");
         
-        // Create a deep copy of the userContext to avoid any reference issues
         const contextToSend = userContext ? {
           name: userContext.name || null,
           faith: userContext.faith || null,
@@ -79,7 +76,6 @@ export const useMessageHandling = (
         console.log("Memory is explicitly FALSE or undefined, skipping context addition");
       }
 
-      // Add only the current user message
       contextMessages.push({
         role: "user",
         content: message
@@ -88,26 +84,44 @@ export const useMessageHandling = (
       console.log("Sending message to API with context:", contextMessages);
 
       let botResponse = "";
-      if (bot.model === "gemini") {
-        botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
-      } else if (bot.model === "openrouter") {
-        botResponse = await ChatService.sendOpenRouterMessage(
-          contextMessages,
-          bot,
-          abortControllerRef.current.signal,
-          (chunk: string) => {
-            setMessages(prev => {
-              const lastMessage = prev[prev.length - 1];
-              if (lastMessage.role === "assistant") {
-                return [
-                  ...prev.slice(0, -1),
-                  { ...lastMessage, content: lastMessage.content + chunk }
-                ];
-              }
-              return prev;
-            });
-          }
-        );
+      try {
+        if (bot.model === "gemini") {
+          botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
+        } else if (bot.model === "openrouter") {
+          botResponse = await ChatService.sendOpenRouterMessage(
+            contextMessages,
+            bot,
+            abortControllerRef.current.signal,
+            (chunk: string) => {
+              setMessages(prev => {
+                const lastMessage = prev[prev.length - 1];
+                if (lastMessage.role === "assistant") {
+                  return [
+                    ...prev.slice(0, -1),
+                    { ...lastMessage, content: lastMessage.content + chunk }
+                  ];
+                }
+                return prev;
+              });
+            }
+          );
+        } else {
+          throw new Error(`Unsupported model type: ${bot.model}`);
+        }
+      } catch (error) {
+        console.error("Error getting bot response:", error);
+        toast({
+          title: "Error",
+          description: "Failed to get response from the bot. Please try again.",
+          variant: "destructive",
+        });
+        // Remove the loading message
+        setMessages(newMessages);
+        return;
+      }
+
+      if (!botResponse) {
+        throw new Error("Empty response from bot");
       }
 
       const finalBotMessage = createMessage("assistant", botResponse, false, bot.avatar);

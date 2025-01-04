@@ -4,6 +4,7 @@ import { Bot } from "@/components/chat/types/chatTypes";
 import { UserContextService } from "@/services/UserContextService";
 import { useMessageHandling } from "./chat/useMessageHandling";
 import { useChatHistory } from "./chat/useChatHistory";
+import { useToast } from "@/components/ui/use-toast";
 
 const debounce = (func: Function, wait: number) => {
   let timeout: NodeJS.Timeout;
@@ -22,6 +23,7 @@ export const useEmbeddedChat = (
   const [messages, setMessages] = useState<Message[]>([]);
   const [userContext, setUserContext] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const {
     chatId,
@@ -30,11 +32,36 @@ export const useEmbeddedChat = (
     saveChatHistory
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
+  // Create a debounced version of saveChatHistory
+  const debouncedSave = debounce(async (msgs: Message[]) => {
+    if (!chatId) return;
+    
+    try {
+      setIsSaving(true);
+      await saveChatHistory(msgs, chatId);
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save chat history",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, 1000);
+
+  // Save messages whenever they change
+  useEffect(() => {
+    if (messages.length > 0 && chatId) {
+      debouncedSave(messages);
+    }
+  }, [messages, chatId]);
+
   const updateUserContext = async (newContext: any) => {
     try {
       console.log("Current memory_enabled value:", bot.memory_enabled);
       
-      // Strict boolean check for TRUE
       if (bot.memory_enabled !== true) {
         console.log("Memory is not explicitly TRUE, skipping all memory operations");
         setUserContext(null);
@@ -59,7 +86,6 @@ export const useEmbeddedChat = (
     const fetchUserContext = async () => {
       console.log("Checking memory_enabled status:", bot.memory_enabled);
       
-      // Strict boolean check for TRUE
       if (bot.memory_enabled !== true) {
         console.log("Memory is not explicitly TRUE, skipping context fetch");
         setUserContext(null);
