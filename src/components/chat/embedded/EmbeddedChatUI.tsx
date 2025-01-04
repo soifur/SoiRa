@@ -27,6 +27,7 @@ interface EmbeddedChatUIProps {
 
 const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedChatUIProps) => {
   const [showHistory, setShowHistory] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
   const { toast } = useToast();
@@ -37,10 +38,24 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedCha
   const selectedBot = bot || (bots && bots[0]);
   const selectedShareKey = shareKey || (category && category.short_key);
   const selectedClientId = clientId || category?.id;
+
+  // Check if we have the required data
+  useEffect(() => {
+    if (!selectedBot || !selectedClientId) {
+      toast({
+        title: "Error",
+        description: "Missing required data to initialize chat",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+    }
+  }, [selectedBot, selectedClientId]);
   
   const {
     messages,
-    isLoading,
+    isLoading: chatLoading,
     chatId,
     sendMessage,
     loadExistingChat,
@@ -62,6 +77,33 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedCha
     };
   }, []);
 
+  if (!hasConsent) {
+    return <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Initializing chat...</div>
+      </div>
+    );
+  }
+
+  if (!selectedBot || !selectedClientId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Unable to load chat. Please try again later.</div>
+      </div>
+    );
+  }
+
+  const handleSelectChat = (selectedChatId: string) => {
+    loadExistingChat(selectedChatId);
+    if (isMobile) {
+      setShowHistory(false);
+    }
+  };
+
   const handleClearChat = async () => {
     try {
       clearMessages();
@@ -81,17 +123,6 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedCha
       });
     }
   };
-
-  const handleSelectChat = (selectedChatId: string) => {
-    loadExistingChat(selectedChatId);
-    if (isMobile) {
-      setShowHistory(false);
-    }
-  };
-
-  if (hasConsent === false) {
-    return <CookieConsent onAccept={handleCookieAccept} onReject={handleCookieReject} />;
-  }
 
   return (
     <>
@@ -128,7 +159,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedCha
             <div className="flex-1 overflow-hidden mt-16 mb-24">
               <EmbeddedChatContent
                 messages={messages}
-                isLoading={isLoading}
+                isLoading={chatLoading}
                 onSend={sendMessage}
                 bot={selectedBot ? {...selectedBot, starters: selectedBot.starters || []} : null}
                 onStarterClick={sendMessage}
@@ -152,8 +183,8 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey, category, bots }: EmbeddedCha
               <div className="max-w-3xl mx-auto">
                 <ChatInput
                   onSend={sendMessage}
-                  disabled={isLoading}
-                  isLoading={isLoading}
+                  disabled={chatLoading}
+                  isLoading={chatLoading}
                   placeholder="Type your message..."
                 />
               </div>
