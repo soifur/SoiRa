@@ -103,16 +103,16 @@ IMPORTANT:
           name: newContext.name || userContext?.name || null,
           faith: newContext.faith || userContext?.faith || null,
           likes: Array.isArray(newContext.likes) ? 
-            [...new Set(newContext.likes)].filter(item => item && item.trim() !== "") : 
+            [...new Set(newContext.likes)].filter(item => item && typeof item === 'string' && item.trim() !== "") : 
             userContext?.likes || [],
           topics: Array.from(new Set([
             ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
             ...(Array.isArray(newContext.topics) ? newContext.topics : [])
-          ])).filter(item => item && item.trim() !== ""),
+          ])).filter(item => item && typeof item === 'string' && item.trim() !== ""),
           facts: Array.from(new Set([
             ...(Array.isArray(userContext?.facts) ? userContext.facts : []),
             ...(Array.isArray(newContext.facts) ? newContext.facts : [])
-          ])).filter(item => item && item.trim() !== "")
+          ])).filter(item => item && typeof item === 'string' && item.trim() !== "")
         };
 
         console.log("Merged context:", mergedContext);
