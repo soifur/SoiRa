@@ -8,6 +8,7 @@ export const useMemoryContext = (
 ) => {
   const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
     if (!bot.memory_enabled || !bot.apiKey || !bot.instructions) {
+      console.log("Memory updates disabled for bot:", bot.id);
       return;
     }
 
