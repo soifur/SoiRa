@@ -58,27 +58,27 @@ IMPORTANT:
 - Return ONLY the JSON object, no other text
 - Ensure all arrays exist even if empty`;
 
-      let newContextResponse: string;
+      let apiResponse: unknown;
       try {
         if (bot.model === "gemini") {
-          newContextResponse = await ChatService.sendGeminiMessage(
+          apiResponse = await ChatService.sendGeminiMessage(
             [{ role: "user", content: contextUpdatePrompt }],
             bot
           );
         } else {
-          newContextResponse = await ChatService.sendOpenRouterMessage(
+          apiResponse = await ChatService.sendOpenRouterMessage(
             [{ role: "user", content: contextUpdatePrompt }],
             bot
           );
         }
 
-        // Clean up the response and ensure it's a string
-        if (typeof newContextResponse !== 'string') {
-          console.error("Invalid response type from API:", typeof newContextResponse);
+        // Ensure we have a string response
+        if (typeof apiResponse !== 'string') {
+          console.error("Invalid API response type:", typeof apiResponse);
           throw new Error("Invalid response type from API");
         }
 
-        const cleanedResponse = newContextResponse.trim();
+        const cleanedResponse = apiResponse.trim();
         const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {
