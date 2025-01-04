@@ -12,72 +12,47 @@ const EmbeddedCategoryChat = () => {
   const [bots, setBots] = useState<Bot[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [debugInfo, setDebugInfo] = useState<any>({
-    categoryId: null,
-    categoryData: null,
-    assignments: null,
-    botsData: null,
-    errors: [],
-    loadingSteps: [],
-    queryDetails: null
-  });
+
+  const logDebug = (step: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    console.group(`[${timestamp}] Category Chat Debug`);
+    console.log('Step:', step);
+    if (data) console.log('Data:', data);
+    console.groupEnd();
+  };
+
+  const logError = (context: string, error: any) => {
+    console.error(`Error in ${context}:`, error);
+  };
 
   useEffect(() => {
     fetchCategoryAndBots();
   }, [categoryId]);
 
-  const addLoadingStep = (step: string) => {
-    setDebugInfo(prev => ({
-      ...prev,
-      loadingSteps: [...prev.loadingSteps, `${new Date().toISOString()}: ${step}`]
-    }));
-  };
-
-  const addError = (error: any, context: string) => {
-    console.error(`Error in ${context}:`, error);
-    setDebugInfo(prev => ({
-      ...prev,
-      errors: [...prev.errors, { context, error, timestamp: new Date().toISOString() }]
-    }));
-  };
-
   const fetchCategoryAndBots = async () => {
     try {
       setLoading(true);
       setError(null);
-      addLoadingStep(`Starting fetch for category ID: ${categoryId}`);
-      setDebugInfo(prev => ({ ...prev, categoryId }));
+      logDebug(`Starting fetch for category ID: ${categoryId}`);
 
-      // Fetch category with detailed logging
-      addLoadingStep('Fetching category data');
-      const categoryQuery = supabase
+      // Fetch category
+      logDebug('Fetching category data');
+      const { data: categoryData, error: categoryError } = await supabase
         .from('bot_categories')
         .select('*')
         .eq('short_key', categoryId);
 
-      setDebugInfo(prev => ({ 
-        ...prev, 
-        queryDetails: {
-          table: 'bot_categories',
-          filter: { short_key: categoryId }
-        }
-      }));
-      
-      const { data: categoryData, error: categoryError } = await categoryQuery;
-
       if (categoryError) {
-        console.error("Error fetching category:", categoryError);
-        addError(categoryError, 'Category fetch error');
+        logError("Category fetch", categoryError);
         throw categoryError;
       }
-      
+
       const foundCategory = categoryData?.[0];
-      addLoadingStep(`Category data received: ${JSON.stringify(foundCategory)}`);
-      setDebugInfo(prev => ({ ...prev, categoryData: foundCategory }));
+      logDebug('Category data received', foundCategory);
 
       if (!foundCategory) {
         const notFoundError = "Category not found";
-        addError(notFoundError, 'Category not found');
+        logError('Category lookup', notFoundError);
         setError(notFoundError);
         setLoading(false);
         return;
@@ -85,31 +60,29 @@ const EmbeddedCategoryChat = () => {
 
       if (!foundCategory.is_public) {
         const notPublicError = "This category is not public";
-        addError(notPublicError, 'Category not public');
+        logError('Category access', notPublicError);
         setError(notPublicError);
         setLoading(false);
         return;
       }
 
-      // Fetch bot assignments with detailed logging
-      addLoadingStep('Fetching bot assignments');
+      // Fetch bot assignments
+      logDebug('Fetching bot assignments');
       const { data: assignments, error: assignmentsError } = await supabase
         .from('bot_category_assignments')
         .select('bot_id')
         .eq('category_id', foundCategory.id);
 
       if (assignmentsError) {
-        console.error("Error fetching assignments:", assignmentsError);
-        addError(assignmentsError, 'Assignments fetch error');
+        logError("Assignments fetch", assignmentsError);
         throw assignmentsError;
       }
 
-      addLoadingStep(`Assignments received: ${JSON.stringify(assignments)}`);
-      setDebugInfo(prev => ({ ...prev, assignments }));
+      logDebug('Assignments received', assignments);
 
-      // Fetch bots data with detailed logging
+      // Fetch bots data
       if (assignments && assignments.length > 0) {
-        addLoadingStep('Fetching bots data');
+        logDebug('Fetching bots data');
         const botIds = assignments.map(a => a.bot_id);
         const { data: botsData, error: botsError } = await supabase
           .from('bots')
@@ -117,13 +90,11 @@ const EmbeddedCategoryChat = () => {
           .in('id', botIds);
 
         if (botsError) {
-          console.error("Error fetching bots:", botsError);
-          addError(botsError, 'Bots fetch error');
+          logError("Bots fetch", botsError);
           throw botsError;
         }
 
-        addLoadingStep(`Bots data received: ${JSON.stringify(botsData)}`);
-        setDebugInfo(prev => ({ ...prev, botsData }));
+        logDebug('Bots data received', botsData);
 
         const transformedBots = botsData.map((bot): Bot => ({
           id: bot.id,
@@ -143,11 +114,10 @@ const EmbeddedCategoryChat = () => {
 
       setCategory(foundCategory);
     } catch (error: any) {
-      console.error("Error fetching category data:", error);
-      addError(error, 'General error');
+      logError("General error", error);
       setError(error.message || "Failed to load category");
     } finally {
-      addLoadingStep('Fetch process completed');
+      logDebug('Fetch process completed');
       setLoading(false);
     }
   };
@@ -157,34 +127,6 @@ const EmbeddedCategoryChat = () => {
       <div className="flex flex-col items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <div className="text-lg">Loading category...</div>
-        <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg w-full mx-4">
-          <h3 className="text-sm font-semibold mb-2">Debug Info:</h3>
-          <div className="text-xs space-y-2">
-            <div>
-              <strong>Category ID:</strong> {categoryId}
-            </div>
-            <div>
-              <strong>Query Details:</strong>
-              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                {JSON.stringify(debugInfo.queryDetails, null, 2)}
-              </pre>
-            </div>
-            <div>
-              <strong>Loading Steps:</strong>
-              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                {debugInfo.loadingSteps.join('\n')}
-              </pre>
-            </div>
-            {debugInfo.errors.length > 0 && (
-              <div>
-                <strong>Errors:</strong>
-                <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                  {JSON.stringify(debugInfo.errors, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     );
   }
@@ -196,34 +138,6 @@ const EmbeddedCategoryChat = () => {
         <p className="text-muted-foreground">
           {error || "The requested category does not exist or is not public."}
         </p>
-        <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg w-full mx-4">
-          <h3 className="text-sm font-semibold mb-2">Debug Info:</h3>
-          <div className="text-xs space-y-2">
-            <div>
-              <strong>Category ID:</strong> {categoryId}
-            </div>
-            <div>
-              <strong>Query Details:</strong>
-              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                {JSON.stringify(debugInfo.queryDetails, null, 2)}
-              </pre>
-            </div>
-            <div>
-              <strong>Loading Steps:</strong>
-              <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                {debugInfo.loadingSteps.join('\n')}
-              </pre>
-            </div>
-            {debugInfo.errors.length > 0 && (
-              <div>
-                <strong>Errors:</strong>
-                <pre className="mt-1 overflow-auto max-h-40 bg-muted-foreground/10 p-2 rounded">
-                  {JSON.stringify(debugInfo.errors, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     );
   }
