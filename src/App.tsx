@@ -126,9 +126,17 @@ function App() {
     };
   }, [toast]);
 
+  const themeProviderProps = {
+    attribute: "class",
+    defaultTheme: "dark",
+    enableSystem: true,
+    disableTransitionOnChange: false,
+    storageKey: "soira-theme"
+  };
+
   if (isLoading) {
     return (
-      <ThemeProvider defaultTheme="dark" attribute="class">
+      <ThemeProvider {...themeProviderProps}>
         <div className="flex items-center justify-center min-h-screen bg-background">
           <div className="text-lg text-foreground">Loading...</div>
         </div>
@@ -137,7 +145,7 @@ function App() {
   }
 
   return (
-    <ThemeProvider defaultTheme="dark" attribute="class">
+    <ThemeProvider {...themeProviderProps}>
       <Helmet>
         <title>SoiRa AI</title>
         <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
