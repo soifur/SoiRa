@@ -37,14 +37,13 @@ export const useMessageHandling = (
       const botMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, botMessage]);
 
-      // Only update memory if explicitly enabled
-      if (bot.memory_enabled === true) {
+      if (bot.memory_enabled === false) {
+        console.log("Memory explicitly disabled for bot:", bot.id, "- skipping memory operations");
+      } else {
         console.log("Memory enabled, updating context");
         handleMemoryUpdate([...newMessages]).catch(error => {
           console.error("Background memory update failed:", error);
         });
-      } else {
-        console.log("Memory disabled, skipping context update");
       }
 
       let botResponse = "";
@@ -53,16 +52,15 @@ export const useMessageHandling = (
         content: msg.content
       }));
 
-      // Only add context if memory is explicitly enabled
-      if (bot.memory_enabled === true && userContext) {
+      if (bot.memory_enabled === false) {
+        console.log("Memory explicitly disabled - skipping context addition");
+      } else if (userContext) {
         console.log("Memory enabled, adding context to message:", userContext);
         const contextPrompt = {
           role: "system",
           content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
         };
         contextMessages.unshift(contextPrompt);
-      } else {
-        console.log("Memory disabled, skipping context addition");
       }
 
       console.log("Sending message to API with context:", contextMessages);
