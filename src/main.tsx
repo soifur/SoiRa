@@ -10,7 +10,6 @@ createRoot(document.getElementById("root")!).render(
     enableSystem
     disableTransitionOnChange
     storageKey="soira-theme-v1"
-    forcedTheme="light" // Force light theme initially to prevent flash
   >
     <App />
   </ThemeProvider>
