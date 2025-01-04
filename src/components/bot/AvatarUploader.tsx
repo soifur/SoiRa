@@ -34,12 +34,22 @@ export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploader
       const fileExt = file.name.split('.').pop();
       const fileName = `${botId}_${Date.now()}.${fileExt}`;
 
+      // Delete existing avatar if it exists
+      if (avatar) {
+        const existingFileName = avatar.split('/').pop();
+        if (existingFileName) {
+          await supabase.storage
+            .from('avatars')
+            .remove([existingFileName]);
+        }
+      }
+
       // Upload new avatar
       const { data, error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, {
-          upsert: true,
-          contentType: file.type
+          cacheControl: '3600',
+          upsert: false
         });
 
       if (uploadError) throw uploadError;
@@ -49,17 +59,30 @@ export const AvatarUploader = ({ avatar, botId, onAvatarChange }: AvatarUploader
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Update shared_bots table with new avatar
+      // Update bot record with new avatar URL
       const { error: updateError } = await supabase
+        .from('bots')
+        .update({ avatar: publicUrl })
+        .eq('id', botId);
+
+      if (updateError) throw updateError;
+
+      // Update shared_bots table if it exists
+      const { error: sharedBotError } = await supabase
         .from('shared_bots')
         .update({ avatar: publicUrl })
         .eq('bot_id', botId);
 
-      if (updateError) {
-        console.error('Error updating shared bot avatar:', updateError);
+      if (sharedBotError) {
+        console.error('Error updating shared bot avatar:', sharedBotError);
       }
 
       onAvatarChange(publicUrl);
+      
+      toast({
+        title: "Success",
+        description: "Avatar updated successfully",
+      });
     } catch (error) {
       console.error('Error uploading avatar:', error);
       toast({
