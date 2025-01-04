@@ -23,6 +23,7 @@ export const useEmbeddedChat = (
   const [messages, setMessages] = useState<Message[]>([]);
   const [userContext, setUserContext] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isContextInitialized, setIsContextInitialized] = useState(false);
 
   const {
     chatId,
@@ -55,24 +56,23 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
-      if (bot.memory_enabled !== true) {
-        console.log("Memory not enabled for bot:", bot.id);
-        return;
-      }
-
-      try {
-        console.log("Fetching user context for bot:", bot.id, "client:", clientId);
-        const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
-        console.log("Fetched initial user context:", context);
-        setUserContext(context || {});
-      } catch (error) {
-        console.error("Error fetching user context:", error);
-        setUserContext({});
+      if (!isContextInitialized && bot.memory_enabled === true) {
+        try {
+          console.log("Fetching user context for bot:", bot.id, "client:", clientId);
+          const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
+          console.log("Fetched initial user context:", context);
+          setUserContext(context || {});
+          setIsContextInitialized(true);
+        } catch (error) {
+          console.error("Error fetching user context:", error);
+          setUserContext({});
+          setIsContextInitialized(true);
+        }
       }
     };
 
     fetchUserContext();
-  }, [bot.id, bot.memory_enabled, clientId, sessionToken]);
+  }, [bot.id, bot.memory_enabled, clientId, sessionToken, isContextInitialized]);
 
   useEffect(() => {
     const initializeChat = async () => {

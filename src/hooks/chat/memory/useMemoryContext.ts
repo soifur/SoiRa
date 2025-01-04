@@ -69,16 +69,17 @@ Return ONLY a valid JSON object with this structure:
         throw new Error("Invalid JSON format in memory bot response");
       }
 
+      // Keep existing values if new ones are null or empty
       const mergedContext = {
         name: newContext.name || currentContext?.name || null,
         faith: newContext.faith || currentContext?.faith || null,
         likes: Array.from(new Set([
-          ...(Array.isArray(currentContext?.likes) ? currentContext.likes : []),
-          ...(Array.isArray(newContext.likes) ? newContext.likes : [])
+          ...(currentContext?.likes || []),
+          ...(newContext.likes || [])
         ])).filter(item => item && item.trim() !== ""),
         topics: Array.from(new Set([
-          ...(Array.isArray(currentContext?.topics) ? currentContext.topics : []),
-          ...(Array.isArray(newContext.topics) ? newContext.topics : [])
+          ...(currentContext?.topics || []),
+          ...(newContext.topics || [])
         ])).filter(item => item && item.trim() !== "")
       };
 
