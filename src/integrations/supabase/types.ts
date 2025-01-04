@@ -30,6 +30,69 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_categories: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bot_category_assignments: {
+        Row: {
+          bot_id: string | null
+          category_id: string | null
+          created_at: string
+          id: string
+        }
+        Insert: {
+          bot_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          bot_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_category_assignments_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bot_category_assignments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "bot_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bots: {
         Row: {
           api_key: string
@@ -517,6 +580,33 @@ export type Database = {
           id?: string
           last_updated?: string | null
           session_token?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_custom_instructions: {
+        Row: {
+          about_user: string | null
+          created_at: string
+          id: string
+          response_preferences: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          about_user?: string | null
+          created_at?: string
+          id?: string
+          response_preferences?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          about_user?: string | null
+          created_at?: string
+          id?: string
+          response_preferences?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: []
