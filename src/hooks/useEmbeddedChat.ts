@@ -32,7 +32,7 @@ export const useEmbeddedChat = (
     saveChatHistory
   } = useChatHistory(bot.id, clientId, shareKey, sessionToken);
 
-  // Create a debounced version of saveChatHistory
+  // Create a debounced version of saveChatHistory with a longer delay
   const debouncedSave = debounce(async (msgs: Message[]) => {
     if (!chatId || !msgs.length) return;
     
@@ -50,14 +50,20 @@ export const useEmbeddedChat = (
     } finally {
       setIsSaving(false);
     }
-  }, 1000);
+  }, 2000); // Increased from 1000ms to 2000ms
 
   // Save messages whenever they change
   useEffect(() => {
-    if (messages.length > 0 && chatId) {
+    let mounted = true;
+
+    if (messages.length > 0 && chatId && mounted) {
       debouncedSave(messages);
     }
-  }, [messages, chatId]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [messages, chatId]); // Only depend on messages and chatId
 
   const updateUserContext = async (newContext: any) => {
     try {
