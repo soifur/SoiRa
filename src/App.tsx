@@ -55,17 +55,15 @@ function App() {
             console.log("App: Setting authenticated state with role:", profile?.role);
             setUserRole(profile?.role || null);
             setIsAuthenticated(true);
+            setIsLoading(false);
           }
         } else {
           console.log("App: No session found, setting unauthenticated state");
           if (mounted) {
             setIsAuthenticated(false);
             setUserRole(null);
+            setIsLoading(false);
           }
-        }
-        
-        if (mounted) {
-          setIsLoading(false);
         }
       } catch (error) {
         console.error('App: Error in auth initialization:', error);

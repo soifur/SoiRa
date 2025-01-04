@@ -8,11 +8,7 @@ createRoot(document.getElementById("root")!).render(
     attribute="class"
     defaultTheme="light"
     enableSystem={false}
-    storageKey="ui-theme"
-    value={{
-      light: "light",
-      dark: "dark"
-    }}
+    themes={["light", "dark"]}
   >
     <App />
   </ThemeProvider>
