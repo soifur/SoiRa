@@ -15,14 +15,14 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Category } from "@/components/categories/CategoryManagement";
 
 interface EmbeddedChatUIProps {
-  bot: Bot;
-  clientId: string;
-  shareKey?: string;
+  category: Category;
+  bots: Bot[];
 }
 
-const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
+const EmbeddedChatUI = ({ category, bots }: EmbeddedChatUIProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const isMobile = useIsMobile();
   const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
@@ -38,7 +38,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     loadExistingChat,
     createNewChat,
     clearMessages
-  } = useEmbeddedChat(bot, clientId, shareKey, sessionToken);
+  } = useEmbeddedChat(bots[0], category.id, category.share_key, sessionToken);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -98,7 +98,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           )}>
             <EmbeddedChatHistory
               sessionToken={sessionToken}
-              botId={bot.id}
+              botId={bots[0]?.id}
               onSelectChat={handleSelectChat}
               onNewChat={createNewChat}
               currentChatId={chatId}
@@ -109,7 +109,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
           <div className="flex-1 flex flex-col h-full relative w-full">
             <div className="absolute top-0 left-0 right-0 z-40">
               <EmbeddedChatHeader
-                bot={{...bot, starters: bot.starters || []}}
+                bot={bots[0] ? {...bots[0], starters: bots[0].starters || []} : null}
                 onClearChat={handleClearChat}
                 onToggleHistory={() => setShowHistory(!showHistory)}
                 showHistory={showHistory}
@@ -122,7 +122,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
                 messages={messages}
                 isLoading={isLoading}
                 onSend={sendMessage}
-                bot={{...bot, starters: bot.starters || []}}
+                bot={bots[0] ? {...bots[0], starters: bots[0].starters || []} : null}
                 onStarterClick={sendMessage}
               />
             </div>
