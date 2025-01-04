@@ -20,60 +20,87 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const initializeAuth = async () => {
       try {
-        // Check initial auth state
+        console.log("Initializing auth...");
         const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        console.log("Session status:", !!session);
         setIsAuthenticated(!!session);
+        
         if (session?.user) {
-          await checkUserRole(session.user.id);
+          console.log("Checking user role for:", session.user.id);
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (!mounted) return;
+          
+          if (error) {
+            console.error('Error fetching user role:', error);
+            setUserRole(null);
+          } else {
+            console.log("User role:", profile?.role);
+            setUserRole(profile?.role || null);
+          }
         } else {
-          setUserRole(null);
+          if (mounted) {
+            setUserRole(null);
+          }
         }
       } catch (error) {
-        console.error('Error checking auth state:', error);
-        setIsAuthenticated(false);
-        setUserRole(null);
+        console.error('Error in auth initialization:', error);
+        if (mounted) {
+          setIsAuthenticated(false);
+          setUserRole(null);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          console.log("Setting loading to false");
+          setIsLoading(false);
+        }
       }
     };
 
     initializeAuth();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
+      console.log("Auth state changed:", event);
       setIsAuthenticated(!!session);
+      
       if (session?.user) {
-        await checkUserRole(session.user.id);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        
+        if (mounted) {
+          setUserRole(profile?.role || null);
+        }
       } else {
-        setUserRole(null);
+        if (mounted) {
+          setUserRole(null);
+        }
       }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
-  const checkUserRole = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      setUserRole(profile?.role || null);
-    } catch (error) {
-      console.error('Error fetching user role:', error);
-      setUserRole(null);
-    }
-  };
-
-  // Show loading state while checking auth
   if (isLoading) {
+    console.log("Rendering loading state");
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Loading...</div>
@@ -82,6 +109,8 @@ function App() {
   }
 
   const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+
+  console.log("Rendering app with auth status:", { isAuthenticated, userRole, isAdmin });
 
   return (
     <ThemeProvider defaultTheme="dark" attribute="class">
