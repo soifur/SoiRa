@@ -36,7 +36,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleMemoryToggle = async (checked: boolean) => {
     try {
-      // Update shared bot if it exists
+      // First update the bot
+      const { error: botError } = await supabase
+        .from('bots')
+        .update({ memory_enabled: checked })
+        .eq('id', editingBot.id);
+
+      if (botError) throw botError;
+
+      // Then update shared bot if it exists
       const { data: sharedBot } = await supabase
         .from('shared_bots')
         .select('short_key')
@@ -44,14 +52,21 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         .maybeSingle();
 
       if (sharedBot) {
-        await supabase
+        const { error: sharedBotError } = await supabase
           .from('shared_bots')
           .update({ memory_enabled: checked })
           .eq('bot_id', editingBot.id);
+
+        if (sharedBotError) throw sharedBotError;
       }
 
       // Update local state
       setEditingBot({ ...editingBot, memory_enabled: checked });
+
+      toast({
+        title: "Success",
+        description: "Memory settings updated successfully",
+      });
     } catch (error) {
       console.error("Error updating memory settings:", error);
       toast({
