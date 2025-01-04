@@ -32,8 +32,10 @@ export const useEmbeddedChat = (
 
   const updateUserContext = async (newContext: any) => {
     try {
+      // Strict check for memory_enabled
       if (bot.memory_enabled !== true) {
-        console.log("Memory not enabled for bot, skipping context update");
+        console.log("Memory explicitly disabled for bot, skipping context update");
+        setUserContext(null); // Reset context when disabled
         return;
       }
       
@@ -53,9 +55,10 @@ export const useEmbeddedChat = (
 
   useEffect(() => {
     const fetchUserContext = async () => {
+      // Strict check for memory_enabled
       if (bot.memory_enabled !== true) {
-        console.log("Memory not enabled for bot, skipping context fetch");
-        setUserContext(null);
+        console.log("Memory explicitly disabled for bot, skipping context fetch");
+        setUserContext(null); // Reset context when disabled
         return;
       }
 

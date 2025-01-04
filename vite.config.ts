@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => ({
     sourcemap: true,
     rollupOptions: {
       output: {
-        sourcemapExcludeSources: true
+        sourcemap: true,
+        sourcemapExcludeSources: false
       }
     }
   },

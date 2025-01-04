@@ -37,9 +37,9 @@ export const useMessageHandling = (
       const botMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, botMessage]);
 
-      // Only update memory if enabled
+      // Only update memory if explicitly enabled
       if (bot.memory_enabled === true) {
-        console.log("Memory enabled, updating context");
+        console.log("Memory explicitly enabled, updating context");
         handleMemoryUpdate([...newMessages]).catch(error => {
           console.error("Background memory update failed:", error);
         });
@@ -51,9 +51,9 @@ export const useMessageHandling = (
         content: msg.content
       }));
 
-      // Only add context if memory is enabled
+      // Only add context if memory is explicitly enabled
       if (bot.memory_enabled === true && userContext) {
-        console.log("Memory enabled, adding context to message:", userContext);
+        console.log("Memory explicitly enabled, adding context to message:", userContext);
         const contextPrompt = {
           role: "system",
           content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
