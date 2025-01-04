@@ -116,7 +116,8 @@ export const useChatHistory = (
           messages: messagesToSave,
           updated_at: new Date().toISOString()
         })
-        .eq('id', currentChatId);
+        .eq('id', currentChatId)
+        .eq('session_token', sessionToken);
 
       if (error) throw error;
     } catch (error) {

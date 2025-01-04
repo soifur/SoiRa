@@ -34,7 +34,7 @@ export const useEmbeddedChat = (
 
   // Create a debounced version of saveChatHistory
   const debouncedSave = debounce(async (msgs: Message[]) => {
-    if (!chatId) return;
+    if (!chatId || !msgs.length) return;
     
     try {
       setIsSaving(true);
@@ -54,6 +54,7 @@ export const useEmbeddedChat = (
   // Save messages whenever they change
   useEffect(() => {
     if (messages.length > 0 && chatId) {
+      console.log("Saving messages to chat history:", messages.length);
       debouncedSave(messages);
     }
   }, [messages, chatId]);
