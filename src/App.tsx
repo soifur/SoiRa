@@ -4,107 +4,93 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Helmet } from "react-helmet";
 import { useToast } from "./components/ui/use-toast";
-import { LoadingScreen } from "./components/layout/LoadingScreen";
 import { AppRoutes } from "./components/layout/AppRoutes";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     let mounted = true;
 
-    async function checkSession() {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) throw sessionError;
+    // Immediately check the current session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      
+      if (error) {
+        console.error('Session error:', error);
+        setIsAuthenticated(false);
+        setUserRole(null);
+        return;
+      }
 
-        if (!session?.user) {
-          if (mounted) {
+      if (!session?.user) {
+        setIsAuthenticated(false);
+        setUserRole(null);
+        return;
+      }
+
+      // Get user profile
+      supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle()
+        .then(({ data: profile, error: profileError }) => {
+          if (!mounted) return;
+          
+          if (profileError) {
+            console.error('Profile error:', profileError);
             setIsAuthenticated(false);
             setUserRole(null);
-            setIsLoading(false);
+            return;
           }
-          return;
-        }
 
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        
-        if (profileError) throw profileError;
-
-        if (mounted) {
           setIsAuthenticated(true);
           setUserRole(profile?.role || null);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Auth error:', error);
-        if (mounted) {
-          setIsAuthenticated(false);
-          setUserRole(null);
-          setIsLoading(false);
-          toast({
-            title: "Authentication Error",
-            description: "Please try logging in again.",
-            variant: "destructive",
-          });
-        }
-      }
-    }
+        });
+    });
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      try {
-        if (!session?.user) {
-          setIsAuthenticated(false);
-          setUserRole(null);
-          setIsLoading(false);
-          return;
-        }
+      console.log('Auth state changed:', event, session?.user?.email);
 
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        
-        if (profileError) throw profileError;
-
-        setIsAuthenticated(true);
-        setUserRole(profile?.role || null);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Auth state change error:', error);
+      if (!session?.user) {
         setIsAuthenticated(false);
         setUserRole(null);
-        setIsLoading(false);
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        setIsAuthenticated(false);
+        setUserRole(null);
         toast({
           title: "Authentication Error",
           description: "Please try logging in again.",
           variant: "destructive",
         });
+        return;
       }
-    });
 
-    checkSession();
+      setIsAuthenticated(true);
+      setUserRole(profile?.role || null);
+    });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
   }, [toast]);
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
 
   return (
     <div className="min-h-screen bg-background">
