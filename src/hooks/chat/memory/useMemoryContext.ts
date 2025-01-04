@@ -7,14 +7,7 @@ export const useMemoryContext = (
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
   const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
-    // Early return if memory is explicitly disabled
-    if (bot.memory_enabled === false) {
-      console.log("Memory updates disabled for bot:", bot.id);
-      return;
-    }
-
-    if (!bot.apiKey || !bot.instructions) {
-      console.log("Memory updates disabled - missing API key or instructions");
+    if (!bot.memory_enabled || !bot.apiKey || !bot.instructions) {
       return;
     }
 
@@ -70,13 +63,9 @@ IMPORTANT:
         );
       }
 
-      // Clean up the response to ensure we only get JSON
-      const cleanedResponse = newContextResponse.replace(/```json\s*|\s*```/g, '').trim();
-      
-      // Try to find a JSON object in the response
-      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      // Extract JSON from the response
+      const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.error("No valid JSON found in response:", cleanedResponse);
         throw new Error("No valid JSON found in response");
       }
 
@@ -84,7 +73,7 @@ IMPORTANT:
       try {
         newContext = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
-        console.error("Parse error:", parseError, "Response:", cleanedResponse);
+        console.error("Parse error:", parseError);
         throw new Error("Invalid JSON format in memory bot response");
       }
 
@@ -95,23 +84,35 @@ IMPORTANT:
 
       // Ensure all required fields exist with proper types
       const mergedContext = {
+        // Only update name if new context explicitly provides one
         name: newContext.name || userContext?.name || null,
+        // Only update faith if new context explicitly provides one
         faith: newContext.faith || userContext?.faith || null,
+        // Merge likes arrays, removing duplicates and empty values
         likes: Array.from(new Set([
           ...(Array.isArray(userContext?.likes) ? userContext.likes : []),
           ...(Array.isArray(newContext.likes) ? newContext.likes : [])
-        ])).filter(item => item && item.trim() !== "" && item !== " "),
+        ])).filter(item => 
+          item && 
+          item.trim() !== "" && 
+          item !== " "
+        ),
+        // Merge topics arrays, removing duplicates and empty values
         topics: Array.from(new Set([
           ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
           ...(Array.isArray(newContext.topics) ? newContext.topics : [])
-        ])).filter(item => item && item.trim() !== "" && item !== " ")
+        ])).filter(item => 
+          item && 
+          item.trim() !== "" && 
+          item !== " "
+        )
       };
 
       console.log("Merged context:", mergedContext);
       await updateUserContext(mergedContext);
     } catch (error) {
       console.error("Memory update failed:", error);
-      throw error;
+      // Don't throw the error to prevent breaking the chat flow
     }
   };
 

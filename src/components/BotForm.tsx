@@ -20,7 +20,7 @@ type BotModel = "gemini" | "claude" | "openai" | "openrouter";
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
-    memory_enabled: bot.memory_enabled !== undefined ? bot.memory_enabled : true,
+    memory_enabled: bot.memory_enabled ?? false,
   });
 
   const handleModelChange = (model: BotModel) => {
@@ -34,15 +34,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const handleSave = () => {
     onSave({
       ...editingBot,
-      memory_enabled: editingBot.memory_enabled !== undefined ? editingBot.memory_enabled : true,
+      memory_enabled: editingBot.memory_enabled ?? false,
     });
-  };
-
-  const handleMemoryToggle = (checked: boolean) => {
-    setEditingBot(prev => ({
-      ...prev,
-      memory_enabled: checked,
-    }));
   };
 
   return (
@@ -93,7 +86,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         <Switch
           id="memory-mode"
           checked={editingBot.memory_enabled}
-          onCheckedChange={handleMemoryToggle}
+          onCheckedChange={(checked) => setEditingBot({ ...editingBot, memory_enabled: checked })}
         />
         <Label htmlFor="memory-mode">Enable Memory Mode</Label>
       </div>
