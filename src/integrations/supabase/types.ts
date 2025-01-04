@@ -279,21 +279,27 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          managed_by: string | null
           role: Database["public"]["Enums"]["user_role"]
+          subscription_status: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
           id: string
+          managed_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          subscription_status?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          managed_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          subscription_status?: string | null
           updated_at?: string
         }
         Relationships: []
