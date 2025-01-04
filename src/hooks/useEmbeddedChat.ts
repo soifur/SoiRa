@@ -34,14 +34,14 @@ export const useEmbeddedChat = (
     try {
       console.log("Current memory_enabled value:", bot.memory_enabled);
       
-      // Strict boolean check for false
-      if (bot.memory_enabled === false) {
-        console.log("Memory is explicitly set to FALSE, skipping all memory operations");
+      // Strict boolean check for TRUE
+      if (bot.memory_enabled !== true) {
+        console.log("Memory is not explicitly TRUE, skipping all memory operations");
         setUserContext(null);
         return;
       }
       
-      console.log("Updating memory with context:", newContext);
+      console.log("Memory is TRUE, updating context:", newContext);
       await UserContextService.updateUserContext(bot.id, clientId, newContext, sessionToken);
       setUserContext(newContext);
       console.log("Context updated successfully");
@@ -59,15 +59,15 @@ export const useEmbeddedChat = (
     const fetchUserContext = async () => {
       console.log("Checking memory_enabled status:", bot.memory_enabled);
       
-      // Strict boolean check for false
-      if (bot.memory_enabled === false) {
-        console.log("Memory is explicitly set to FALSE, skipping context fetch");
+      // Strict boolean check for TRUE
+      if (bot.memory_enabled !== true) {
+        console.log("Memory is not explicitly TRUE, skipping context fetch");
         setUserContext(null);
         return;
       }
 
       try {
-        console.log("Fetching user context for bot:", bot.id, "client:", clientId);
+        console.log("Memory is TRUE, fetching user context for bot:", bot.id, "client:", clientId);
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
         console.log("Fetched initial user context:", context);
         setUserContext(context || {});
