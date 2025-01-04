@@ -8,8 +8,8 @@ import { AvatarUploader } from "./bot/AvatarUploader";
 import { StartersInput } from "./bot/StartersInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
+import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
 
 interface BotFormProps {
   bot: Bot;
@@ -36,33 +36,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleMemoryToggle = async (checked: boolean) => {
     try {
-      // First update the bot
-      const { error: botError } = await supabase
-        .from('bots')
-        .update({ memory_enabled: checked })
-        .eq('id', editingBot.id);
-
-      if (botError) throw botError;
-
-      // Then update shared bot if it exists
-      const { data: sharedBot } = await supabase
-        .from('shared_bots')
-        .select('short_key')
-        .eq('bot_id', editingBot.id)
-        .maybeSingle();
-
-      if (sharedBot) {
-        const { error: sharedBotError } = await supabase
-          .from('shared_bots')
-          .update({ memory_enabled: checked })
-          .eq('bot_id', editingBot.id);
-
-        if (sharedBotError) throw sharedBotError;
-      }
-
-      // Update local state
+      await updateBotMemorySettings(editingBot.id, checked);
       setEditingBot({ ...editingBot, memory_enabled: checked });
-
       toast({
         title: "Success",
         description: "Memory settings updated successfully",
@@ -79,54 +54,11 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleSave = async () => {
     try {
-      // First update the bot
-      const { error: botError } = await supabase
-        .from('bots')
-        .update({
-          name: editingBot.name,
-          instructions: editingBot.instructions,
-          starters: editingBot.starters,
-          model: editingBot.model,
-          api_key: editingBot.apiKey,
-          open_router_model: editingBot.openRouterModel,
-          avatar: editingBot.avatar,
-          memory_enabled: editingBot.memory_enabled
-        })
-        .eq('id', editingBot.id);
-
-      if (botError) throw botError;
-
-      // Check if there's a shared bot configuration
-      const { data: sharedBot } = await supabase
-        .from('shared_bots')
-        .select('*')
-        .eq('bot_id', editingBot.id)
-        .maybeSingle();
-
-      if (sharedBot) {
-        // Update shared bot configuration
-        const { error: sharedBotError } = await supabase
-          .from('shared_bots')
-          .update({
-            bot_name: editingBot.name,
-            instructions: editingBot.instructions,
-            starters: editingBot.starters,
-            model: editingBot.model,
-            open_router_model: editingBot.openRouterModel,
-            avatar: editingBot.avatar,
-            memory_enabled: editingBot.memory_enabled
-          })
-          .eq('bot_id', editingBot.id);
-
-        if (sharedBotError) throw sharedBotError;
-      }
-
-      // Call the onSave prop with the updated bot
+      await updateBotAndSharedConfig(editingBot);
       onSave({
         ...editingBot,
         memory_enabled: editingBot.memory_enabled ?? false,
       });
-
       toast({
         title: "Success",
         description: "Bot updated successfully",
