@@ -72,30 +72,33 @@ IMPORTANT:
           );
         }
 
-        if (!apiResponse || typeof apiResponse !== 'string') {
-          console.error("Invalid API response type:", typeof apiResponse);
-          throw new Error("Invalid response type from API");
+        // If request was cancelled or response is empty, maintain existing context
+        if (!apiResponse) {
+          console.log("Empty API response, maintaining existing context");
+          return;
         }
 
         const cleanedResponse = apiResponse.trim();
         const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {
-          console.error("No valid JSON found in response:", cleanedResponse);
-          throw new Error("Invalid response format from API");
+          console.log("No valid JSON found in response, maintaining existing context");
+          return;
         }
 
         let newContext;
         try {
           newContext = JSON.parse(jsonMatch[0]);
         } catch (parseError) {
-          console.error("Parse error:", parseError, "Response:", jsonMatch[0]);
-          throw new Error("Invalid JSON format in memory bot response");
+          console.log("Parse error:", parseError, "Response:", jsonMatch[0]);
+          console.log("Maintaining existing context due to parse error");
+          return;
         }
 
         // Validate the required structure
         if (!newContext || typeof newContext !== 'object') {
-          throw new Error("Invalid context structure");
+          console.log("Invalid context structure, maintaining existing context");
+          return;
         }
 
         // Ensure all required fields exist with proper types
@@ -118,16 +121,21 @@ IMPORTANT:
         console.log("Merged context:", mergedContext);
         await updateUserContext(mergedContext);
       } catch (apiError) {
+        // Check if the error is due to request cancellation
+        if (apiError.name === 'AbortError' || apiError.message?.includes('cancelled')) {
+          console.log("Request was cancelled, maintaining existing context");
+          return;
+        }
+        
         console.error("API or parsing error:", apiError);
-        // Don't throw here to prevent breaking the chat flow
-        // Instead, preserve the existing context
+        // Preserve the existing context
         if (userContext) {
           await updateUserContext(userContext);
         }
       }
     } catch (error) {
+      // Only log the error without throwing it to prevent breaking the chat flow
       console.error("Memory update failed:", error);
-      // Don't throw the error to prevent breaking the chat flow
     }
   };
 
