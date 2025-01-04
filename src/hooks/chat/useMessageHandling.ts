@@ -10,7 +10,7 @@ export const useMessageHandling = (
   messages: Message[],
   setMessages: (messages: Message[]) => void,
   userContext: any,
-  updateUserContext: (context: any) => void
+  updateUserContext: (context: any) => Promise<void>
 ) => {
   const [isLoading, setIsLoading] = useState(false);
   const { addContextToMessage, updateMemoryFromResponse, handleMemoryUpdate } = useMemoryContext(bot, userContext, updateUserContext);
