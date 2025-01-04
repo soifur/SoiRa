@@ -12,7 +12,17 @@ interface ChatLayoutProps {
 
 export const ChatLayout = ({ onNewChat, children }: ChatLayoutProps) => {
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden touch-none bg-background">
+    <div 
+      className="fixed inset-0 flex flex-col overflow-hidden touch-none bg-background"
+      style={{
+        WebkitOverflowScrolling: 'touch',
+        position: 'fixed',
+        height: '100%',
+        width: '100%',
+        overscrollBehavior: 'none',
+        WebkitOverflowScrolling: 'touch'
+      }}
+    >
       {/* Header */}
       <div className="flex-none h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="h-full flex items-center justify-end px-4">
@@ -29,10 +39,16 @@ export const ChatLayout = ({ onNewChat, children }: ChatLayoutProps) => {
       </div>
 
       {/* Messages Container */}
-      <div className={cn(
-        "flex-1 overflow-y-auto overscroll-none",
-        "w-full max-w-4xl mx-auto px-4"
-      )}>
+      <div 
+        className={cn(
+          "flex-1 overflow-y-auto overscroll-none",
+          "w-full max-w-4xl mx-auto px-4"
+        )}
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'none'
+        }}
+      >
         {children.messages}
       </div>
 
