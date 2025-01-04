@@ -14,16 +14,9 @@ function App() {
   useEffect(() => {
     let mounted = true;
 
-    // Immediately check the current session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
-      
-      if (error) {
-        console.error('Session error:', error);
-        setIsAuthenticated(false);
-        setUserRole(null);
-        return;
-      }
 
       if (!session?.user) {
         setIsAuthenticated(false);
@@ -36,27 +29,18 @@ function App() {
         .from('profiles')
         .select('role')
         .eq('id', session.user.id)
-        .maybeSingle()
-        .then(({ data: profile, error: profileError }) => {
+        .single()
+        .then(({ data: profile }) => {
           if (!mounted) return;
           
-          if (profileError) {
-            console.error('Profile error:', profileError);
-            setIsAuthenticated(false);
-            setUserRole(null);
-            return;
-          }
-
           setIsAuthenticated(true);
           setUserRole(profile?.role || null);
         });
     });
 
-    // Listen for auth changes
+    // Auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
-
-      console.log('Auth state changed:', event, session?.user?.email);
 
       if (!session?.user) {
         setIsAuthenticated(false);
@@ -64,23 +48,11 @@ function App() {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', session.user.id)
-        .maybeSingle();
-      
-      if (profileError) {
-        console.error('Profile error:', profileError);
-        setIsAuthenticated(false);
-        setUserRole(null);
-        toast({
-          title: "Authentication Error",
-          description: "Please try logging in again.",
-          variant: "destructive",
-        });
-        return;
-      }
+        .single();
 
       setIsAuthenticated(true);
       setUserRole(profile?.role || null);
@@ -90,7 +62,7 @@ function App() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
