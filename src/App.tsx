@@ -11,20 +11,30 @@ import Archive from "@/pages/Archive";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
+import EmbeddedCategoryChat from "@/components/chat/embedded/EmbeddedCategoryChat";
 import { Helmet } from "react-helmet";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Check initial auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        checkUserRole(session.user.id);
+      }
     });
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
+      if (session?.user) {
+        checkUserRole(session.user.id);
+      } else {
+        setUserRole(null);
+      }
     });
 
     return () => {
@@ -32,8 +42,20 @@ function App() {
     };
   }, []);
 
+  const checkUserRole = async (userId: string) => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    
+    setUserRole(profile?.role || null);
+  };
+
   // Show nothing while checking auth state
   if (isAuthenticated === null) return null;
+
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
   return (
     <ThemeProvider defaultTheme="dark" attribute="class">
@@ -47,7 +69,17 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={isAuthenticated ? <Index /> : <Navigate to="/login" />}
+            element={
+              isAuthenticated ? (
+                isAdmin ? (
+                  <Index />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
           />
           <Route
             path="/bots"
@@ -66,6 +98,7 @@ function App() {
             element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
           />
           <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
+          <Route path="/category/:categoryId" element={<EmbeddedCategoryChat />} />
           <Route
             path="/login"
             element={!isAuthenticated ? <Login /> : <Navigate to="/" />}

@@ -36,7 +36,10 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          is_public: boolean | null
           name: string
+          share_key: string | null
+          short_key: string | null
           updated_at: string
         }
         Insert: {
@@ -44,7 +47,10 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          is_public?: boolean | null
           name: string
+          share_key?: string | null
+          short_key?: string | null
           updated_at?: string
         }
         Update: {
@@ -52,7 +58,10 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          is_public?: boolean | null
           name?: string
+          share_key?: string | null
+          short_key?: string | null
           updated_at?: string
         }
         Relationships: []
