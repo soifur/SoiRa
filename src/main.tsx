@@ -6,10 +6,9 @@ import './index.css'
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider
     attribute="class"
-    defaultTheme="system"
-    enableSystem
+    defaultTheme="light"
+    enableSystem={false}
     disableTransitionOnChange
-    storageKey="soira-theme-v1"
   >
     <App />
   </ThemeProvider>
