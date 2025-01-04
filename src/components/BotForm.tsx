@@ -77,11 +77,68 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
   };
 
-  const handleSave = () => {
-    onSave({
-      ...editingBot,
-      memory_enabled: editingBot.memory_enabled ?? false,
-    });
+  const handleSave = async () => {
+    try {
+      // First update the bot
+      const { error: botError } = await supabase
+        .from('bots')
+        .update({
+          name: editingBot.name,
+          instructions: editingBot.instructions,
+          starters: editingBot.starters,
+          model: editingBot.model,
+          api_key: editingBot.apiKey,
+          open_router_model: editingBot.openRouterModel,
+          avatar: editingBot.avatar,
+          memory_enabled: editingBot.memory_enabled
+        })
+        .eq('id', editingBot.id);
+
+      if (botError) throw botError;
+
+      // Check if there's a shared bot configuration
+      const { data: sharedBot } = await supabase
+        .from('shared_bots')
+        .select('*')
+        .eq('bot_id', editingBot.id)
+        .maybeSingle();
+
+      if (sharedBot) {
+        // Update shared bot configuration
+        const { error: sharedBotError } = await supabase
+          .from('shared_bots')
+          .update({
+            bot_name: editingBot.name,
+            instructions: editingBot.instructions,
+            starters: editingBot.starters,
+            model: editingBot.model,
+            open_router_model: editingBot.openRouterModel,
+            avatar: editingBot.avatar,
+            memory_enabled: editingBot.memory_enabled
+          })
+          .eq('bot_id', editingBot.id);
+
+        if (sharedBotError) throw sharedBotError;
+      }
+
+      // Call the onSave prop with the updated bot
+      onSave({
+        ...editingBot,
+        memory_enabled: editingBot.memory_enabled ?? false,
+      });
+
+      toast({
+        title: "Success",
+        description: "Bot updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating bot:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update bot",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
