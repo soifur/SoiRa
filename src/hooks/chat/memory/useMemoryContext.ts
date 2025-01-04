@@ -58,7 +58,7 @@ IMPORTANT:
 - Return ONLY the JSON object, no other text
 - Ensure all arrays exist even if empty`;
 
-      let newContextResponse;
+      let newContextResponse: string;
       try {
         if (bot.model === "gemini") {
           newContextResponse = await ChatService.sendGeminiMessage(
@@ -72,7 +72,12 @@ IMPORTANT:
           );
         }
 
-        // Clean up the response to ensure we get valid JSON
+        // Clean up the response and ensure it's a string
+        if (typeof newContextResponse !== 'string') {
+          console.error("Invalid response type from API:", typeof newContextResponse);
+          throw new Error("Invalid response type from API");
+        }
+
         const cleanedResponse = newContextResponse.trim();
         const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
         
