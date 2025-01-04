@@ -78,6 +78,7 @@ IMPORTANT:
           throw new Error("Invalid response type from API");
         }
 
+        // Now TypeScript knows apiResponse is a string
         const cleanedResponse = apiResponse.trim();
         const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
         
