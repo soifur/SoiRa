@@ -57,7 +57,10 @@ const EmbeddedChatContainer = () => {
         };
 
         const model = validModel(sharedBotData.model) ? sharedBotData.model : 'openrouter';
-        const memory_enabled = sharedBotData.memory_enabled !== false;
+        
+        // Explicitly handle memory_enabled as a boolean
+        const memory_enabled = sharedBotData.memory_enabled === true;
+        console.log("Setting memory_enabled to:", memory_enabled, "from shared bot data:", sharedBotData.memory_enabled);
 
         const avatarUrl = sharedBotData.avatar || 
           `https://ivkasvmrscfbijqiiaeo.supabase.co/storage/v1/object/public/avatars/${sharedBotData.bot_id}.png`;
@@ -75,6 +78,7 @@ const EmbeddedChatContainer = () => {
           memory_enabled: memory_enabled,
         };
 
+        console.log("Transformed bot memory_enabled:", transformedBot.memory_enabled);
         setBot(transformedBot);
 
       } catch {
