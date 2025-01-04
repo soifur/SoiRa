@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import EmbeddedChatUI from "./EmbeddedChatUI";
 import { Bot } from "@/hooks/useBots";
 import { Category } from "@/components/categories/CategoryManagement";
+import { Loader2 } from "lucide-react";
 
 const EmbeddedCategoryChat = () => {
   const { categoryId } = useParams();
@@ -11,6 +12,7 @@ const EmbeddedCategoryChat = () => {
   const [bots, setBots] = useState<Bot[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<any>({});
 
   useEffect(() => {
     fetchCategoryAndBots();
@@ -20,6 +22,7 @@ const EmbeddedCategoryChat = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log("EmbeddedCategoryChat: Fetching category data for ID:", categoryId);
 
       // Fetch category
       const { data: categoryData, error: categoryError } = await supabase
@@ -28,8 +31,15 @@ const EmbeddedCategoryChat = () => {
         .eq('short_key', categoryId)
         .maybeSingle();
 
-      if (categoryError) throw categoryError;
+      if (categoryError) {
+        console.error("Error fetching category:", categoryError);
+        setDebugInfo(prev => ({ ...prev, categoryError }));
+        throw categoryError;
+      }
       
+      console.log("EmbeddedCategoryChat: Category data:", categoryData);
+      setDebugInfo(prev => ({ ...prev, categoryData }));
+
       if (!categoryData) {
         setError("Category not found");
         setLoading(false);
@@ -48,7 +58,14 @@ const EmbeddedCategoryChat = () => {
         .select('bot_id')
         .eq('category_id', categoryData.id);
 
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error("Error fetching assignments:", assignmentsError);
+        setDebugInfo(prev => ({ ...prev, assignmentsError }));
+        throw assignmentsError;
+      }
+
+      console.log("EmbeddedCategoryChat: Bot assignments:", assignments);
+      setDebugInfo(prev => ({ ...prev, assignments }));
 
       // Fetch bots data
       if (assignments && assignments.length > 0) {
@@ -58,7 +75,14 @@ const EmbeddedCategoryChat = () => {
           .select('*')
           .in('id', botIds);
 
-        if (botsError) throw botsError;
+        if (botsError) {
+          console.error("Error fetching bots:", botsError);
+          setDebugInfo(prev => ({ ...prev, botsError }));
+          throw botsError;
+        }
+
+        console.log("EmbeddedCategoryChat: Bots data:", botsData);
+        setDebugInfo(prev => ({ ...prev, botsData }));
 
         const transformedBots = botsData.map((bot): Bot => ({
           id: bot.id,
@@ -87,8 +111,17 @@ const EmbeddedCategoryChat = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin mb-4" />
+        <div className="text-lg">Loading category...</div>
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg">
+            <h3 className="text-sm font-semibold mb-2">Debug Info:</h3>
+            <pre className="text-xs overflow-auto">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
     );
   }
@@ -100,6 +133,14 @@ const EmbeddedCategoryChat = () => {
         <p className="text-muted-foreground">
           {error || "The requested category does not exist or is not public."}
         </p>
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-4 bg-muted rounded-lg max-w-lg">
+            <h3 className="text-sm font-semibold mb-2">Debug Info:</h3>
+            <pre className="text-xs overflow-auto">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
     );
   }
