@@ -28,47 +28,67 @@ const Index = () => {
 
   useEffect(() => {
     checkAdminStatus();
-    fetchCategories();
   }, []);
 
   const checkAdminStatus = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        navigate('/login');
+        return;
+      }
+
+      if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
+        navigate('/login');
+        return;
+      }
+
+      setIsAdmin(true);
+      setLoading(false);
+      fetchCategories();
+    } catch (error) {
+      console.error('Error checking admin status:', error);
       navigate('/login');
-      return;
     }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
-      navigate('/login');
-      return;
-    }
-
-    setIsAdmin(true);
-    setLoading(false);
   };
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('bot_categories')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('bot_categories')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch categories",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
       toast({
         title: "Error",
         description: "Failed to fetch categories",
         variant: "destructive",
       });
-      return;
     }
-
-    setCategories(data || []);
   };
 
   const handleSaveCategory = async (e: React.FormEvent) => {
@@ -142,7 +162,13 @@ const Index = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="container mx-auto max-w-7xl pt-20 px-4">
+        <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!isAdmin) {
