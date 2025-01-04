@@ -35,7 +35,7 @@ export const useEmbeddedChat = (
     try {
       // Only update context if memory is enabled
       if (bot.memory_enabled !== true) {
-        console.log("Memory not enabled for bot:", bot.id);
+        console.log("Memory not enabled for bot:", bot.id, "- skipping context update");
         return;
       }
       
@@ -58,7 +58,7 @@ export const useEmbeddedChat = (
     const fetchUserContext = async () => {
       // Only fetch context if memory is enabled
       if (bot.memory_enabled !== true) {
-        console.log("Memory not enabled for bot:", bot.id);
+        console.log("Memory not enabled for bot:", bot.id, "- skipping context fetch");
         setUserContext(null);
         return;
       }
@@ -67,7 +67,12 @@ export const useEmbeddedChat = (
         console.log("Fetching user context for bot:", bot.id, "client:", clientId);
         const context = await UserContextService.getUserContext(bot.id, clientId, sessionToken);
         console.log("Fetched initial user context:", context);
-        setUserContext(context || {});
+        setUserContext(context || {
+          name: null,
+          faith: null,
+          likes: [],
+          topics: []
+        });
       } catch (error) {
         console.error("Error fetching user context:", error);
         setUserContext({});
