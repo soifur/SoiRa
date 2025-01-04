@@ -10,7 +10,7 @@ import SharedCategory from "@/pages/SharedCategory";
 import Settings from "@/pages/Settings";
 import Archive from "@/pages/Archive";
 import Chat from "@/pages/Chat";
-import { EmbeddedChatUI } from "@/components/chat/embedded/EmbeddedChatUI";
+import EmbeddedChatUI from "@/components/chat/embedded/EmbeddedChatUI";
 
 function App() {
   return (
