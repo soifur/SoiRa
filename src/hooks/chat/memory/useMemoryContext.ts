@@ -58,7 +58,7 @@ IMPORTANT:
 - Return ONLY the JSON object, no other text
 - Ensure all arrays exist even if empty`;
 
-      let apiResponse: unknown;
+      let apiResponse: string;
       try {
         if (bot.model === "gemini") {
           apiResponse = await ChatService.sendGeminiMessage(
@@ -72,13 +72,11 @@ IMPORTANT:
           );
         }
 
-        // Ensure we have a string response
         if (typeof apiResponse !== 'string') {
           console.error("Invalid API response type:", typeof apiResponse);
           throw new Error("Invalid response type from API");
         }
 
-        // Now TypeScript knows apiResponse is a string
         const cleanedResponse = apiResponse.trim();
         const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
         
