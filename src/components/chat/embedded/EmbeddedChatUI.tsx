@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import CookieConsent from "./CookieConsent";
