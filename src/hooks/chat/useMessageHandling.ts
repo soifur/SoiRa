@@ -22,8 +22,10 @@ export const useMessageHandling = (
     if (!message.trim()) return;
 
     try {
+      console.log("Starting to send message");
       setIsLoading(true);
       
+      // Cancel any ongoing request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -31,21 +33,21 @@ export const useMessageHandling = (
       abortControllerRef.current = new AbortController();
 
       const userMessage = createMessage("user", message);
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
+      setMessages(prev => [...prev, userMessage]);
       
       const botMessage = createMessage("assistant", "", true, bot.avatar);
-      setMessages([...newMessages, botMessage]);
+      setMessages(prev => [...prev, botMessage]);
 
       // Start memory update in the background if enabled
+      let memoryUpdatePromise;
       if (bot.memory_enabled === true) {
-        handleMemoryUpdate([...newMessages]).catch(error => {
+        memoryUpdatePromise = handleMemoryUpdate([...messages, userMessage]).catch(error => {
           console.error("Background memory update failed:", error);
         });
       }
 
       let botResponse = "";
-      const contextMessages = newMessages.map(msg => ({
+      const contextMessages = [...messages, userMessage].map(msg => ({
         role: msg.role,
         content: msg.content
       }));
@@ -84,7 +86,12 @@ export const useMessageHandling = (
       }
 
       const finalBotMessage = createMessage("assistant", botResponse, false, bot.avatar);
-      setMessages([...newMessages, finalBotMessage]);
+      setMessages(prev => [...prev.slice(0, -1), finalBotMessage]);
+
+      // Wait for memory update to complete if it was started
+      if (memoryUpdatePromise) {
+        await memoryUpdatePromise;
+      }
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
@@ -97,9 +104,12 @@ export const useMessageHandling = (
         description: error instanceof Error ? error.message : "Failed to process message",
         variant: "destructive",
       });
+      // Remove the loading message on error
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
       abortControllerRef.current = null;
+      console.log("Message handling completed");
     }
   };
 
