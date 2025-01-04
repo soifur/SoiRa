@@ -8,6 +8,8 @@ import { AvatarUploader } from "./bot/AvatarUploader";
 import { StartersInput } from "./bot/StartersInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "./ui/use-toast";
 
 interface BotFormProps {
   bot: Bot;
@@ -22,6 +24,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
   });
+  const { toast } = useToast();
 
   const handleModelChange = (model: BotModel) => {
     setEditingBot({ 
@@ -29,6 +32,34 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       model: model,
       openRouterModel: model === "openrouter" ? editingBot.openRouterModel : undefined 
     });
+  };
+
+  const handleMemoryToggle = async (checked: boolean) => {
+    try {
+      // Update shared bot if it exists
+      const { data: sharedBot } = await supabase
+        .from('shared_bots')
+        .select('short_key')
+        .eq('bot_id', editingBot.id)
+        .maybeSingle();
+
+      if (sharedBot) {
+        await supabase
+          .from('shared_bots')
+          .update({ memory_enabled: checked })
+          .eq('bot_id', editingBot.id);
+      }
+
+      // Update local state
+      setEditingBot({ ...editingBot, memory_enabled: checked });
+    } catch (error) {
+      console.error("Error updating memory settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update memory settings",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSave = () => {
@@ -86,7 +117,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         <Switch
           id="memory-mode"
           checked={editingBot.memory_enabled}
-          onCheckedChange={(checked) => setEditingBot({ ...editingBot, memory_enabled: checked })}
+          onCheckedChange={handleMemoryToggle}
         />
         <Label htmlFor="memory-mode">Enable Memory Mode</Label>
       </div>
