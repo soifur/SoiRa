@@ -45,18 +45,22 @@ export const useMessageHandling = (
         handleMemoryUpdate([userMessage]).catch(error => {
           console.error("Background memory update failed:", error);
         });
-      } else {
-        console.log("Memory is explicitly FALSE or undefined, skipping memory update");
       }
 
-      let botResponse = "";
       const contextMessages = [];
 
       // Strict boolean check for TRUE
       if (bot.memory_enabled === true) {
         console.log("Memory is explicitly TRUE, adding context to message");
+        
         // Create a deep copy of the userContext to avoid any reference issues
-        const contextToSend = userContext ? JSON.parse(JSON.stringify(userContext)) : {
+        const contextToSend = userContext ? {
+          name: userContext.name || null,
+          faith: userContext.faith || null,
+          likes: Array.isArray(userContext.likes) ? [...userContext.likes] : [],
+          topics: Array.isArray(userContext.topics) ? [...userContext.topics] : [],
+          facts: Array.isArray(userContext.facts) ? [...userContext.facts] : []
+        } : {
           name: null,
           faith: null,
           likes: [],
@@ -83,6 +87,7 @@ export const useMessageHandling = (
 
       console.log("Sending message to API with context:", contextMessages);
 
+      let botResponse = "";
       if (bot.model === "gemini") {
         botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
       } else if (bot.model === "openrouter") {
