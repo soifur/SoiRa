@@ -64,9 +64,13 @@ IMPORTANT:
         );
       }
 
-      // Extract JSON from the response
-      const jsonMatch = newContextResponse.match(/\{[\s\S]*\}/);
+      // Clean up the response to ensure we only get JSON
+      const cleanedResponse = newContextResponse.replace(/```json\s*|\s*```/g, '').trim();
+      
+      // Try to find a JSON object in the response
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        console.error("No valid JSON found in response:", cleanedResponse);
         throw new Error("No valid JSON found in response");
       }
 
@@ -74,7 +78,7 @@ IMPORTANT:
       try {
         newContext = JSON.parse(jsonMatch[0]);
       } catch (parseError) {
-        console.error("Parse error:", parseError);
+        console.error("Parse error:", parseError, "Response:", cleanedResponse);
         throw new Error("Invalid JSON format in memory bot response");
       }
 
@@ -113,7 +117,7 @@ IMPORTANT:
       await updateUserContext(mergedContext);
     } catch (error) {
       console.error("Memory update failed:", error);
-      // Don't throw the error to prevent breaking the chat flow
+      throw error;
     }
   };
 
