@@ -34,8 +34,9 @@ Based on the messages, update the user context following these rules:
 1. Extract the user's name if mentioned
 2. Note any likes, interests, or positive mentions
 3. Track topics they discuss
-4. Preserve existing context unless explicitly contradicted
-5. Return ONLY a valid JSON object in this exact format:
+4. If user expresses dislike for something that was in their "likes" array, REMOVE it
+5. Preserve existing context unless explicitly contradicted
+6. Return ONLY a valid JSON object in this exact format:
 
 {
   "name": "string or null",
@@ -47,6 +48,7 @@ Based on the messages, update the user context following these rules:
 IMPORTANT: 
 - Merge new information with existing context
 - Keep previous values unless contradicted
+- If user says they don't like something anymore, remove it from likes array
 - Return ONLY the JSON object, no other text
 - Ensure all arrays exist even if empty`;
 
@@ -84,20 +86,12 @@ IMPORTANT:
 
       // Ensure all required fields exist with proper types
       const mergedContext = {
-        // Only update name if new context explicitly provides one
         name: newContext.name || userContext?.name || null,
-        // Only update faith if new context explicitly provides one
         faith: newContext.faith || userContext?.faith || null,
-        // Merge likes arrays, removing duplicates and empty values
-        likes: Array.from(new Set([
-          ...(Array.isArray(userContext?.likes) ? userContext.likes : []),
-          ...(Array.isArray(newContext.likes) ? newContext.likes : [])
-        ])).filter(item => 
-          item && 
-          item.trim() !== "" && 
-          item !== " "
-        ),
-        // Merge topics arrays, removing duplicates and empty values
+        // For likes, we want to use the new context's likes array directly since it should handle removals
+        likes: Array.isArray(newContext.likes) ? 
+          newContext.likes.filter(item => item && item.trim() !== "" && item !== " ") : 
+          [],
         topics: Array.from(new Set([
           ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
           ...(Array.isArray(newContext.topics) ? newContext.topics : [])
