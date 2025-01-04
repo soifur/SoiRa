@@ -30,7 +30,6 @@ function App() {
         if (!mounted) return;
         
         console.log("Session status:", !!session);
-        setIsAuthenticated(!!session);
         
         if (session?.user) {
           console.log("Checking user role for:", session.user.id);
@@ -54,15 +53,16 @@ function App() {
             setUserRole(null);
           }
         }
+        
+        if (mounted) {
+          setIsAuthenticated(!!session);
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error('Error in auth initialization:', error);
         if (mounted) {
           setIsAuthenticated(false);
           setUserRole(null);
-        }
-      } finally {
-        if (mounted) {
-          console.log("Setting loading to false");
           setIsLoading(false);
         }
       }
@@ -74,7 +74,6 @@ function App() {
       if (!mounted) return;
       
       console.log("Auth state changed:", event);
-      setIsAuthenticated(!!session);
       
       if (session?.user) {
         const { data: profile } = await supabase
@@ -84,11 +83,15 @@ function App() {
           .maybeSingle();
         
         if (mounted) {
+          setIsAuthenticated(true);
           setUserRole(profile?.role || null);
+          setIsLoading(false);
         }
       } else {
         if (mounted) {
+          setIsAuthenticated(false);
           setUserRole(null);
+          setIsLoading(false);
         }
       }
     });
@@ -99,12 +102,14 @@ function App() {
     };
   }, []);
 
-  if (isLoading) {
+  if (isLoading || isAuthenticated === null) {
     console.log("Rendering loading state");
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
+      <ThemeProvider defaultTheme="dark" attribute="class">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </ThemeProvider>
     );
   }
 
