@@ -12,6 +12,10 @@ import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { Helmet } from "react-helmet";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -36,44 +40,46 @@ function App() {
   if (isAuthenticated === null) return null;
 
   return (
-    <ThemeProvider defaultTheme="dark" attribute="class">
-      <Helmet>
-        <title>SoiRa AI</title>
-        <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
-        <meta name="description" content="SoiRa AI - Your AI Assistant" />
-      </Helmet>
-      <Router>
-        {isAuthenticated && <Navigation />}
-        <Routes>
-          <Route
-            path="/"
-            element={isAuthenticated ? <Index /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/bots"
-            element={isAuthenticated ? <Bots /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/chat"
-            element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/archive"
-            element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/settings"
-            element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
-          />
-          <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
-          <Route
-            path="/login"
-            element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
-          />
-        </Routes>
-        <Toaster />
-      </Router>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark" attribute="class">
+        <Helmet>
+          <title>SoiRa AI</title>
+          <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
+          <meta name="description" content="SoiRa AI - Your AI Assistant" />
+        </Helmet>
+        <Router>
+          {isAuthenticated && <Navigation />}
+          <Routes>
+            <Route
+              path="/"
+              element={isAuthenticated ? <Index /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/bots"
+              element={isAuthenticated ? <Bots /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/chat"
+              element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/archive"
+              element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/settings"
+              element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
+            />
+            <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
+            <Route
+              path="/login"
+              element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
+            />
+          </Routes>
+          <Toaster />
+        </Router>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
