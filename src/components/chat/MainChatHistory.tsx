@@ -8,6 +8,9 @@ import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
 import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
 import { ProfileSection } from "./ProfileSection";
+import { Button } from "../ui/button";
+import { Bot, Archive } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -52,6 +55,7 @@ export const MainChatHistory = ({
 
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (sessionToken) {
@@ -223,7 +227,37 @@ export const MainChatHistory = ({
     )}>
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
+        
         <ScrollArea className="flex-1">
+          {isMobile && (
+            <div className="p-4 border-b">
+              <div className="space-y-2">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    navigate('/bots');
+                    onClose();
+                  }}
+                >
+                  <Bot className="mr-2 h-4 w-4" />
+                  My Bots
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    navigate('/archive');
+                    onClose();
+                  }}
+                >
+                  <Archive className="mr-2 h-4 w-4" />
+                  Archive
+                </Button>
+              </div>
+            </div>
+          )}
+          
           <div className="p-4 space-y-4">
             {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
               <ChatHistoryGroup
@@ -258,7 +292,10 @@ export const MainChatHistory = ({
             ))}
           </div>
         </ScrollArea>
-        <ProfileSection showViewPlans={isMobile} />
+        
+        <div className="mt-auto border-t">
+          <ProfileSection showViewPlans={isMobile} />
+        </div>
       </div>
     </div>
   );
