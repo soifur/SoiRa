@@ -3,7 +3,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { RoleSubscriptionSettings } from "./subscription/RoleSubscriptionSettings";
-import { ModelSubscriptionSetting, UserRole, LimitType } from "@/types/subscription";
+import { ModelSubscriptionSetting, UserRole } from "@/types/subscription";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,7 +46,7 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
         return {
           ...existingSetting,
           limit_type: (existingSetting.limit_type || 'tokens') as LimitType,
-          reset_period: existingSetting.reset_period,
+          reset_period: existingSetting.reset_period as ResetPeriod,
           reset_amount: existingSetting.reset_amount || 1,
           units_per_period: existingSetting.units_per_period
         } as ModelSubscriptionSetting;
@@ -80,8 +80,14 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
         .from('model_subscription_settings')
         .upsert(
           settings.map(setting => ({
-            ...setting,
+            id: setting.id,
             bot_id: botId,
+            units_per_period: setting.units_per_period,
+            reset_period: setting.reset_period,
+            reset_amount: setting.reset_amount,
+            lifetime_max_units: setting.lifetime_max_units,
+            limit_type: setting.limit_type,
+            user_role: setting.user_role,
           }))
         );
 
