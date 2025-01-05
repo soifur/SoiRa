@@ -22,7 +22,7 @@ export const ChatContainer = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)] pt-14">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
       <div className="flex-1 overflow-hidden relative">
         {selectedBot ? (
           <MessageList
@@ -40,7 +40,7 @@ export const ChatContainer = ({
         )}
       </div>
       <div className="w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-        <div className="max-w-3xl mx-auto p-4">
+        <div className="max-w-3xl mx-auto px-4 py-2">
           <ChatInput
             onSend={sendMessage}
             disabled={!selectedBot}
