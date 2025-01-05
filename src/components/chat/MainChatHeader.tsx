@@ -1,4 +1,4 @@
-import { Clock, Plus, Settings, LogOut, Bot, Archive, Home } from "lucide-react";
+import { Clock, Plus, Settings, Bot, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,12 +9,10 @@ import {
 } from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProfileSection } from "./ProfileSection";
 
 interface MainChatHeaderProps {
   selectedBotId: string | null;
@@ -36,10 +34,8 @@ export const MainChatHeader = ({
   showHistory,
 }: MainChatHeaderProps) => {
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
-  const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
-  const [userProfile, setUserProfile] = useState<any>(null);
   const isMobile = useIsMobile();
+  const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
 
   useEffect(() => {
     if (bots) {
@@ -53,21 +49,6 @@ export const MainChatHeader = ({
     }
   }, [bots]);
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setUserProfile(profile);
-      }
-    };
-    fetchUserProfile();
-  }, []);
-
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -78,7 +59,6 @@ export const MainChatHeader = ({
             showHistory ? "ml-80" : "ml-0"
           )}>
             {isMobile ? (
-              // Mobile layout
               <div className="flex items-center justify-between w-full">
                 <Button
                   variant="ghost"
@@ -112,7 +92,6 @@ export const MainChatHeader = ({
                 </Button>
               </div>
             ) : (
-              // Desktop layout
               <>
                 {!showHistory && (
                   <>
@@ -183,28 +162,17 @@ export const MainChatHeader = ({
         </div>
       </div>
 
-      {/* Mobile bottom profile section */}
-      {isMobile && (
-        <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ProfileMenu />
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">
-                  {userProfile?.email?.split('@')[0] || 'User'}
-                </span>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={() => navigate('/upgrade')}
-            >
-              View plans
-            </Button>
-          </div>
+      {/* Profile section - visible on mobile at bottom, on sidebar for desktop */}
+      {isMobile ? (
+        <div className="fixed bottom-0 left-0 right-0 z-[100]">
+          <ProfileSection />
         </div>
+      ) : (
+        showHistory && (
+          <div className="fixed bottom-0 left-0 w-80 z-[100]">
+            <ProfileSection />
+          </div>
+        )
       )}
     </>
   );
