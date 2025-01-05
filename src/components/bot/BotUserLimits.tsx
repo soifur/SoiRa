@@ -73,16 +73,38 @@ export const BotUserLimits = ({ botId }: BotUserLimitsProps) => {
       const limitToUpdate = updatedLimits.find(l => l.user_role === role);
       if (!limitToUpdate) return;
 
-      const { error } = await supabase
+      // Check if a record already exists for this bot_id and user_role combination
+      const { data: existingLimit } = await supabase
         .from('bot_user_limits')
-        .upsert({
-          bot_id: botId,
-          user_role: role,
-          token_limit: limitToUpdate.token_limit,
-          message_limit: limitToUpdate.message_limit
-        });
+        .select('id')
+        .eq('bot_id', botId)
+        .eq('user_role', role)
+        .single();
 
-      if (error) throw error;
+      if (existingLimit) {
+        // Update existing record
+        const { error } = await supabase
+          .from('bot_user_limits')
+          .update({
+            token_limit: limitToUpdate.token_limit,
+            message_limit: limitToUpdate.message_limit
+          })
+          .eq('id', existingLimit.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('bot_user_limits')
+          .insert({
+            bot_id: botId,
+            user_role: role,
+            token_limit: limitToUpdate.token_limit,
+            message_limit: limitToUpdate.message_limit
+          });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "Success",
