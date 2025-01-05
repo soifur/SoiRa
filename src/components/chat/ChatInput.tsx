@@ -27,6 +27,8 @@ export const ChatInput = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (disabled) return;
+    
     const message = textareaRef.current?.value.trim();
     if (message) {
       if (onSubmit) {
@@ -81,12 +83,13 @@ export const ChatInput = ({
       <div className="relative flex items-end gap-2 max-w-3xl mx-auto w-full">
         <Textarea
           ref={textareaRef}
-          placeholder={placeholder || "Type your message..."}
+          placeholder={disabled ? "Chat disabled - Usage limit exceeded" : placeholder || "Type your message..."}
           disabled={disabled || isLoading}
           className={cn(
             "min-h-[48px] max-h-[100px] resize-none py-3 px-4 text-base",
             "bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-ring",
-            "dark:bg-[#2F2F2F] dark:border-0"
+            "dark:bg-[#2F2F2F] dark:border-0",
+            disabled && "opacity-50 cursor-not-allowed"
           )}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
@@ -100,7 +103,8 @@ export const ChatInput = ({
             "bg-black dark:bg-white",
             "text-white dark:text-black",
             "hover:bg-black/90 dark:hover:bg-white/90",
-            "shadow-lg"
+            "shadow-lg",
+            disabled && "opacity-50 cursor-not-allowed"
           )}
         >
           <Send className="h-4 w-4" />

@@ -1,24 +1,16 @@
-import React, { useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Message } from "./types/chatTypes";
+import { Bot } from "@/hooks/useBots";
 import { ChatMessage } from "./ChatMessage";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-export interface Message {
-  id: string;
-  role: string;
-  content: string;
-  timestamp?: Date;
-  isBot?: boolean;
-  avatar?: string;
-}
-
-interface MessageListProps {
+export interface MessageListProps {
   messages: Message[];
-  selectedBot?: any;
+  selectedBot: Bot;
   starters?: string[];
-  onStarterClick?: (value: string) => void;
+  onStarterClick?: (starter: string) => void;
   isLoading?: boolean;
   isStreaming?: boolean;
   onClearChat?: () => void;
@@ -27,7 +19,7 @@ interface MessageListProps {
 }
 
 export const MessageList = ({ 
-  messages = [],
+  messages, 
   selectedBot, 
   starters = [], 
   onStarterClick, 
@@ -39,106 +31,78 @@ export const MessageList = ({
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
-    if (lastMessageRef.current && !isLoading) {
+    if (!hasScrolled && lastMessageRef.current) {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isLoading]);
+  }, [messages, hasScrolled]);
 
-  const getStarterIcon = (starter: string) => {
-    const lowerStarter = starter.toLowerCase();
-    if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
-      return HelpCircle;
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isAtBottom = scrollHeight - scrollTop === clientHeight;
+      setHasScrolled(!isAtBottom);
     }
-    if (lowerStarter.includes('code') || lowerStarter.includes('program')) {
-      return Code;
-    }
-    if (lowerStarter.includes('explain') || lowerStarter.includes('learn')) {
-      return BookOpen;
-    }
-    if (lowerStarter.includes('idea') || lowerStarter.includes('suggest')) {
-      return Lightbulb;
-    }
-    return MessageCircle;
   };
 
-  // Add null check for messages
-  if (!Array.isArray(messages)) {
-    console.warn("Messages prop is not an array:", messages);
-    return null;
-  }
-
   return (
-    <div className="relative h-full flex flex-col overflow-hidden">
-      <ScrollArea className="flex-1">
-        <div className={cn(
-          "h-full p-4",
-          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
-        )}>
-          {messages.length === 0 && starters && starters.length > 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
-              {selectedBot && (
-                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
-                  {selectedBot.name}
-                </h2>
-              )}
-              <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
-                What can I help with?
-              </h1>
-              <div className="grid grid-cols-1 gap-2 md:gap-3 w-full max-w-xl">
-                {starters.map((starter, index) => {
-                  const Icon = getStarterIcon(starter);
-                  return (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className={cn(
-                        "flex items-center justify-start gap-2 md:gap-3 p-3 md:p-4 h-auto",
-                        "text-sm md:text-base w-full",
-                        "rounded-xl md:rounded-2xl hover:bg-accent/50 transition-colors",
-                        "bg-background/50 backdrop-blur-sm border-muted-foreground/20",
-                        "whitespace-normal text-left"
-                      )}
-                      onClick={() => onStarterClick && onStarterClick(starter)}
-                    >
-                      <Icon className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
-                      <span className="text-left break-words">{starter}</span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div
-                  key={message.id}
-                  ref={index === messages.length - 1 ? lastMessageRef : null}
-                  className="relative group"
+    <div className="flex flex-col h-full">
+      <ScrollArea 
+        className="flex-1 p-4"
+        onScroll={handleScroll}
+        ref={scrollRef}
+      >
+        {messages.length === 0 && starters && starters.length > 0 && (
+          <div className="flex flex-col items-center justify-center h-full space-y-4 p-4">
+            <h3 className="text-lg font-semibold text-center">
+              Start a conversation with {selectedBot.name}
+            </h3>
+            <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
+              {starters.map((starter, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className={cn(
+                    "text-sm px-4 py-2 rounded-full",
+                    disabled && "opacity-50 cursor-not-allowed"
+                  )}
+                  onClick={() => !disabled && onStarterClick?.(starter)}
+                  disabled={disabled}
                 >
-                  <ChatMessage
-                    message={message.content}
-                    isBot={message.role === "assistant"}
-                    avatar={message.avatar || selectedBot?.avatar}
-                    isLoading={index === messages.length - 1 && message.role === "assistant" && isLoading}
-                    isStreaming={index === messages.length - 1 && message.role === "assistant" && isStreaming}
-                  />
-                </div>
+                  {starter}
+                </Button>
               ))}
             </div>
-          )}
-          {onClearChat && messages.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClearChat}
-              className="absolute top-2 right-2 hover:bg-destructive/10"
+            {disabled && disabledReason && (
+              <p className="text-sm text-destructive mt-4 text-center">
+                {disabledReason}
+              </p>
+            )}
+          </div>
+        )}
+        
+        {messages.map((message, index) => {
+          const isLastMessage = index === messages.length - 1;
+          return (
+            <div
+              key={message.id || index}
+              ref={isLastMessage ? lastMessageRef : null}
+              className={cn(
+                "mb-4 last:mb-0",
+                isLastMessage && isStreaming && "animate-pulse"
+              )}
             >
-              <Trash2 className="h-5 w-5 text-destructive" />
-            </Button>
-          )}
-        </div>
+              <ChatMessage
+                message={message}
+                isLast={isLastMessage}
+                botName={selectedBot.name}
+                botAvatar={selectedBot.avatar}
+              />
+            </div>
+          );
+        })}
       </ScrollArea>
     </div>
   );
