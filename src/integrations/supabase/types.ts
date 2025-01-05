@@ -141,6 +141,75 @@ export type Database = {
           },
         ]
       }
+      folder_bots: {
+        Row: {
+          bot_id: string | null
+          created_at: string
+          folder_id: string | null
+          id: string
+        }
+        Insert: {
+          bot_id?: string | null
+          created_at?: string
+          folder_id?: string | null
+          id?: string
+        }
+        Update: {
+          bot_id?: string | null
+          created_at?: string
+          folder_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folder_bots_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folder_bots_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          allow_signups: boolean | null
+          back_half: string | null
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          allow_signups?: boolean | null
+          back_half?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          allow_signups?: boolean | null
+          back_half?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       memory_bot_settings: {
         Row: {
           api_key: string
@@ -327,6 +396,12 @@ export type Database = {
           length?: number
         }
         Returns: string
+      }
+      is_back_half_available: {
+        Args: {
+          back_half: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
