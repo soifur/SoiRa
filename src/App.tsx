@@ -14,6 +14,7 @@ import Folders from "@/pages/Folders";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { Helmet } from "react-helmet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -48,44 +49,48 @@ function App() {
           <link rel="icon" type="image/png" href="/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png" />
           <meta name="description" content="SoiRa AI - Your AI Assistant" />
         </Helmet>
-        <Router>
-          <Routes>
-            <Route
-              path="/"
-              element={isAuthenticated ? <Index /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/bots"
-              element={isAuthenticated ? <Bots /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/chat"
-              element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/archive"
-              element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/settings"
-              element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/folders"
-              element={isAuthenticated ? <Folders /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/users"
-              element={isAuthenticated ? <Users /> : <Navigate to="/login" />}
-            />
-            <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
-            <Route
-              path="/login"
-              element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
-            />
-          </Routes>
-          <Toaster />
-        </Router>
+        <SidebarProvider>
+          <div className="min-h-screen flex w-full">
+            <Router>
+              <Routes>
+                <Route
+                  path="/"
+                  element={isAuthenticated ? <Index /> : <Navigate to="/login" />}
+                />
+                <Route
+                  path="/bots"
+                  element={isAuthenticated ? <Bots /> : <Navigate to="/login" />}
+                />
+                <Route
+                  path="/chat"
+                  element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
+                />
+                <Route
+                  path="/archive"
+                  element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
+                />
+                <Route
+                  path="/settings"
+                  element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
+                />
+                <Route
+                  path="/folders"
+                  element={isAuthenticated ? <Folders /> : <Navigate to="/login" />}
+                />
+                <Route
+                  path="/users"
+                  element={isAuthenticated ? <Users /> : <Navigate to="/login" />}
+                />
+                <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
+                <Route
+                  path="/login"
+                  element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
+                />
+              </Routes>
+              <Toaster />
+            </Router>
+          </div>
+        </SidebarProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
