@@ -6,9 +6,11 @@ import { CustomInstructions } from "@/components/settings/CustomInstructions";
 import { Settings as SettingsIcon, User, MessageSquare, Database, CreditCard, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("general");
 
   const tabs = [
     {
@@ -51,38 +53,33 @@ const Settings = () => {
               <X className="h-4 w-4" />
             </button>
           </div>
-          <Tabs defaultValue="general" orientation="vertical" className="h-full">
-            <TabsList className="flex flex-col items-stretch h-full space-y-1 bg-transparent p-2">
+          <div className="flex flex-col h-full">
+            <nav className="flex-1 p-2 space-y-1">
               {tabs.map((tab) => (
-                <TabsTrigger
+                <button
                   key={tab.value}
-                  value={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
                   className={cn(
-                    "justify-start gap-2 px-4 py-2 text-left",
-                    "data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+                    "flex items-center gap-2 w-full px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                    "hover:bg-accent hover:text-accent-foreground",
+                    activeTab === tab.value 
+                      ? "bg-accent text-accent-foreground" 
+                      : "text-muted-foreground"
                   )}
                 >
                   <tab.icon className="h-4 w-4" />
                   {tab.label}
-                </TabsTrigger>
+                </button>
               ))}
-            </TabsList>
-          </Tabs>
+            </nav>
+          </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <Tabs defaultValue="general" className="w-full">
-            {tabs.map((tab) => (
-              <TabsContent
-                key={tab.value}
-                value={tab.value}
-                className="p-6 m-0 focus-visible:outline-none focus-visible:ring-0"
-              >
-                {tab.content}
-              </TabsContent>
-            ))}
-          </Tabs>
+          <div className="p-6">
+            {tabs.find(tab => tab.value === activeTab)?.content}
+          </div>
         </div>
       </div>
     </div>
