@@ -4,7 +4,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Bot } from "@/hooks/useBots";
 
 export interface Message {
   id: string;
@@ -17,7 +16,7 @@ export interface Message {
 
 interface MessageListProps {
   messages: Message[];
-  selectedBot?: Bot;
+  selectedBot?: any;
   starters?: string[];
   onStarterClick?: (value: string) => void;
   isLoading?: boolean;
@@ -25,7 +24,6 @@ interface MessageListProps {
   onClearChat?: () => void;
   disabled?: boolean;
   disabledReason?: string;
-  bot?: Bot;
 }
 
 export const MessageList = ({ 
@@ -37,8 +35,7 @@ export const MessageList = ({
   isStreaming,
   onClearChat,
   disabled,
-  disabledReason,
-  bot
+  disabledReason
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
