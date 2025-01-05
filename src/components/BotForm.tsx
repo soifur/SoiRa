@@ -22,7 +22,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published ?? true,
+    published: bot.published // Remove the default true value
   });
   const { toast } = useToast();
 
@@ -32,7 +32,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       ...prev,
       ...bot,
       memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published ?? true,
+      published: bot.published // Remove the default true value
     }));
   }, [bot]);
 
@@ -95,7 +95,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
       
       <BotPublishToggle 
-        isPublished={editingBot.published ?? true}
+        isPublished={editingBot.published}
         onPublishChange={(published) => handleBotChange({ published })}
       />
 
