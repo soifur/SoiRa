@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { ProfileMenu } from "@/components/ProfileMenu";
 
 interface MainChatHeaderProps {
   selectedBotId: string | null;
@@ -92,38 +93,11 @@ export const MainChatHeader = ({
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onSignOut}
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
             onClick={onNewChat}
           >
             <Plus className="h-4 w-4" />
           </Button>
+          <ProfileMenu />
         </div>
       </div>
     </div>
