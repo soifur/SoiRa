@@ -26,6 +26,16 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   });
   const { toast } = useToast();
 
+  // Update editingBot when bot prop changes
+  useEffect(() => {
+    setEditingBot(prev => ({
+      ...prev,
+      ...bot,
+      memory_enabled: bot.memory_enabled ?? false,
+      published: bot.published ?? true,
+    }));
+  }, [bot]);
+
   const handleBotChange = (updates: Partial<Bot>) => {
     setEditingBot(prev => ({ ...prev, ...updates }));
   };
