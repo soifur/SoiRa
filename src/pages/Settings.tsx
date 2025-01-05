@@ -32,6 +32,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { Database } from "@/integrations/supabase/types";
+import { useQuery } from "@tanstack/react-query";
+import { UserRole } from "@/types/user";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -70,7 +72,7 @@ const Settings = () => {
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('avatar, language')
+        .select('avatar, language, role')
         .eq('id', user.id)
         .single();
 
@@ -204,6 +206,9 @@ const Settings = () => {
     }
   };
 
+  const role = userProfile?.role as UserRole;
+  const canAccessMemorySettings = role === 'super_admin' || role === 'admin';
+
   return (
     <div className="min-h-screen bg-background">
       <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -224,7 +229,9 @@ const Settings = () => {
           <TabsList>
             <TabsTrigger value="account">Account Settings</TabsTrigger>
             <TabsTrigger value="personalization">Personalization</TabsTrigger>
-            <TabsTrigger value="memory">Memory Configuration</TabsTrigger>
+            {canAccessMemorySettings && (
+              <TabsTrigger value="memory">Memory Configuration</TabsTrigger>
+            )}
             <TabsTrigger value="subscription">Subscription</TabsTrigger>
           </TabsList>
 
@@ -312,67 +319,69 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="memory" className="space-y-6">
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Memory Bot Configuration</h2>
-              {isLoading ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <ModelSelector 
-                    bot={{
-                      id: "memory-settings",
-                      name: "Memory Settings",
-                      instructions: "",
-                      starters: [],
-                      model: formData.model,
-                      apiKey: "",
-                      openRouterModel: formData.open_router_model,
-                    }}
-                    onModelChange={(model) => 
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        model: model === "gemini" ? "gemini" : "openrouter" 
-                      }))
-                    }
-                    onOpenRouterModelChange={(model) => 
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        open_router_model: model 
-                      }))
-                    }
-                    isMemorySelector
-                  />
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">API Key</label>
-                    <Input
-                      type="password"
-                      value={formData.api_key}
-                      onChange={handleApiKeyChange}
-                      placeholder="Enter your API key"
-                    />
+          {canAccessMemorySettings && (
+            <TabsContent value="memory" className="space-y-6">
+              <Card className="p-6">
+                <h2 className="text-lg font-semibold mb-4">Memory Bot Configuration</h2>
+                {isLoading ? (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Memory Instructions</label>
-                    <Textarea
-                      value={formData.instructions}
-                      onChange={handleInstructionsChange}
-                      placeholder="Enter memory instructions..."
-                      rows={4}
+                ) : (
+                  <div className="space-y-4">
+                    <ModelSelector 
+                      bot={{
+                        id: "memory-settings",
+                        name: "Memory Settings",
+                        instructions: "",
+                        starters: [],
+                        model: formData.model,
+                        apiKey: "",
+                        openRouterModel: formData.open_router_model,
+                      }}
+                      onModelChange={(model) => 
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          model: model === "gemini" ? "gemini" : "openrouter" 
+                        }))
+                      }
+                      onOpenRouterModelChange={(model) => 
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          open_router_model: model 
+                        }))
+                      }
+                      isMemorySelector
                     />
-                  </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">API Key</label>
+                      <Input
+                        type="password"
+                        value={formData.api_key}
+                        onChange={handleApiKeyChange}
+                        placeholder="Enter your API key"
+                      />
+                    </div>
 
-                  <Button onClick={handleSaveMemorySettings}>
-                    Save Memory Settings
-                  </Button>
-                </div>
-              )}
-            </Card>
-          </TabsContent>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Memory Instructions</label>
+                      <Textarea
+                        value={formData.instructions}
+                        onChange={handleInstructionsChange}
+                        placeholder="Enter memory instructions..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <Button onClick={handleSaveMemorySettings}>
+                      Save Memory Settings
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+          )}
 
           <TabsContent value="subscription" className="space-y-6">
             <Card className="p-6">

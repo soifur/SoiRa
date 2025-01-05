@@ -13,10 +13,52 @@ import Users from "@/pages/Users";
 import Folders from "@/pages/Folders";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { Helmet } from "react-helmet";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { UserRole } from "./types/user";
 
 // Create a client
 const queryClient = new QueryClient();
+
+const ProtectedRoute = ({ 
+  children, 
+  allowedRoles = ['super_admin', 'admin', 'paid_user', 'user'],
+}: { 
+  children: React.ReactNode;
+  allowedRoles?: UserRole[];
+}) => {
+  const { data: session } = useQuery({
+    queryKey: ['session'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session;
+    },
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile', session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session?.user?.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (!session) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!profile || !allowedRoles.includes(profile.role as UserRole)) {
+    return <Navigate to="/" />;
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -56,7 +98,11 @@ function App() {
             />
             <Route
               path="/bots"
-              element={isAuthenticated ? <Bots /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'paid_user']}>
+                  <Bots />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/chat"
@@ -64,7 +110,11 @@ function App() {
             />
             <Route
               path="/archive"
-              element={isAuthenticated ? <Archive /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                  <Archive />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/settings"
@@ -72,11 +122,19 @@ function App() {
             />
             <Route
               path="/folders"
-              element={isAuthenticated ? <Folders /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute allowedRoles={['super_admin']}>
+                  <Folders />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/users"
-              element={isAuthenticated ? <Users /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                  <Users />
+                </ProtectedRoute>
+              }
             />
             <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
             <Route
