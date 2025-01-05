@@ -1,14 +1,13 @@
-import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { createMessage, formatMessages } from "@/utils/messageUtils";
-import { v4 as uuidv4 } from 'uuid';
+import { createMessage } from "@/utils/messageUtils";
+import { saveChatHistory, handleMessageSend } from "@/utils/chatOperations";
+import { useChatState } from "@/hooks/useChatState";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DedicatedBotChatProps {
@@ -17,39 +16,16 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [chatId] = useState(() => uuidv4());
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    const chatKey = `chat_${bot.id}_${chatId}`;
-    const savedMessages = localStorage.getItem(chatKey);
-    if (savedMessages) {
-      try {
-        const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages.map((msg: any) => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-          avatar: msg.role === "assistant" ? (msg.avatar || bot.avatar) : undefined
-        })));
-      } catch (error) {
-        console.error("Error parsing saved messages:", error);
-        setMessages([]);
-      }
-    } else {
-      setMessages([]);
-    }
-  }, [bot.id, chatId, bot.avatar]);
+  const {
+    messages,
+    setMessages,
+    isLoading,
+    setIsLoading,
+    isStreaming,
+    setIsStreaming,
+    messagesEndRef,
+    chatId
+  } = useChatState(bot);
 
   const clearChat = () => {
     setMessages([]);
@@ -66,55 +42,28 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
     try {
       setIsLoading(true);
-      const newUserMessage = createMessage("user", message);
-      const newMessages = [...messages, newUserMessage];
-      setMessages(newMessages);
-
-      // Add temporary streaming message
-      const streamingMessage = createMessage("assistant", "", true, bot.avatar);
-      setMessages([...newMessages, streamingMessage]);
       setIsStreaming(true);
 
-      let response: string = "";
+      const { response, newMessages } = await handleMessageSend(
+        message,
+        messages,
+        bot,
+        setMessages,
+        (chunk: string) => {
+          setMessages(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage.role === "assistant") {
+              return [
+                ...prev.slice(0, -1),
+                { ...lastMessage, content: chunk }
+              ];
+            }
+            return prev;
+          });
+        }
+      );
 
-      if (bot.model === "openrouter") {
-        await ChatService.sendOpenRouterMessage(
-          newMessages,
-          bot,
-          undefined,
-          (chunk: string) => {
-            response += chunk;
-            setMessages(prev => {
-              const lastMessage = prev[prev.length - 1];
-              if (lastMessage.role === "assistant") {
-                return [
-                  ...prev.slice(0, -1),
-                  { ...lastMessage, content: response }
-                ];
-              }
-              return prev;
-            });
-          }
-        );
-      } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, bot);
-        // For Gemini, update the message all at once since it doesn't support streaming
-        setMessages(prev => {
-          const lastMessage = prev[prev.length - 1];
-          if (lastMessage.role === "assistant") {
-            return [
-              ...prev.slice(0, -1),
-              { ...lastMessage, content: response }
-            ];
-          }
-          return prev;
-        });
-      } else {
-        throw new Error("Unsupported model type");
-      }
-
-      // Get the next sequence number
-      const { data: chatData } = await supabase
+      const { data: nextSequence } = await supabase
         .from('chat_history')
         .select('sequence_number')
         .eq('bot_id', bot.id)
@@ -122,31 +71,20 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         .limit(1)
         .single();
 
-      const nextSequenceNumber = (chatData?.sequence_number || 0) + 1;
+      const nextSequenceNumber = (nextSequence?.sequence_number || 0) + 1;
 
-      // Save to Supabase with avatar URL and sequence number
-      const { error } = await supabase
-        .from('chat_history')
-        .upsert({
-          id: chatId,
-          bot_id: bot.id,
-          messages: [...newMessages, { ...streamingMessage, content: response }].map(msg => ({
-            ...msg,
-            timestamp: msg.timestamp?.toISOString(),
-          })),
-          avatar_url: bot.avatar,
-          sequence_number: nextSequenceNumber,
-          updated_at: new Date().toISOString()
-        });
+      await saveChatHistory(
+        chatId,
+        bot.id,
+        [...newMessages, createMessage("assistant", response, true, bot.avatar)],
+        nextSequenceNumber
+      );
 
-      if (error) {
-        console.error("Error saving chat history:", error);
-        throw error;
-      }
-
-      // Save to localStorage
       const chatKey = `chat_${bot.id}_${chatId}`;
-      localStorage.setItem(chatKey, JSON.stringify([...newMessages, { ...streamingMessage, content: response }]));
+      localStorage.setItem(
+        chatKey,
+        JSON.stringify([...newMessages, { ...createMessage("assistant", response, true, bot.avatar) }])
+      );
 
     } catch (error) {
       console.error("Chat error:", error);
@@ -176,7 +114,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       
       <div className="flex-1 overflow-hidden flex flex-col">
         <MessageList
-          messages={formatMessages(messages)}
+          messages={messages}
           selectedBot={bot}
           starters={bot.starters}
           onStarterClick={sendMessage}

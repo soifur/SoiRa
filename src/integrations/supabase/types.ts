@@ -92,6 +92,7 @@ export type Database = {
           deleted: string | null
           id: string
           messages: Json
+          messages_used: number | null
           sequence_number: number
           session_token: string | null
           share_key: string | null
@@ -106,6 +107,7 @@ export type Database = {
           deleted?: string | null
           id?: string
           messages?: Json
+          messages_used?: number | null
           sequence_number: number
           session_token?: string | null
           share_key?: string | null
@@ -120,6 +122,7 @@ export type Database = {
           deleted?: string | null
           id?: string
           messages?: Json
+          messages_used?: number | null
           sequence_number?: number
           session_token?: string | null
           share_key?: string | null
