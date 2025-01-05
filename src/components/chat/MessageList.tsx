@@ -55,17 +55,17 @@ export const MessageList = ({
         ref={scrollRef}
       >
         {messages.length === 0 && starters && starters.length > 0 && (
-          <div className="flex flex-col items-center justify-center h-full space-y-4 p-4">
-            <h3 className="text-lg font-semibold text-center">
+          <div className="flex flex-col items-center justify-center h-full space-y-4">
+            <h3 className="text-lg font-semibold">
               Start a conversation with {selectedBot.name}
             </h3>
-            <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
+            <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
               {starters.map((starter, index) => (
                 <Button
                   key={index}
                   variant="outline"
                   className={cn(
-                    "text-sm px-4 py-2 rounded-full",
+                    "text-sm",
                     disabled && "opacity-50 cursor-not-allowed"
                   )}
                   onClick={() => !disabled && onStarterClick?.(starter)}
@@ -76,7 +76,7 @@ export const MessageList = ({
               ))}
             </div>
             {disabled && disabledReason && (
-              <p className="text-sm text-destructive mt-4 text-center">
+              <p className="text-sm text-destructive mt-4">
                 {disabledReason}
               </p>
             )}
