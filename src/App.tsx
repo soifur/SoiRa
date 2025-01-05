@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "@/pages/Index";
 import Bots from "@/pages/Bots";
+import Categories from "@/pages/Categories";
 import Chat from "@/pages/Chat";
 import Archive from "@/pages/Archive";
 import Settings from "@/pages/Settings";
@@ -54,6 +55,10 @@ function App() {
             element={isAuthenticated ? <Bots /> : <Navigate to="/login" />}
           />
           <Route
+            path="/categories"
+            element={isAuthenticated ? <Categories /> : <Navigate to="/login" />}
+          />
+          <Route
             path="/chat"
             element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
           />
@@ -66,6 +71,7 @@ function App() {
             element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
           />
           <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
+          <Route path="/embed/category/:categoryId" element={<EmbeddedBotChat />} />
           <Route
             path="/login"
             element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
