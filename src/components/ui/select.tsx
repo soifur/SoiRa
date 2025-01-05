@@ -17,7 +17,7 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-[14px] font-medium ring-offset-background transition-colors",
-      "bg-background border border-input hover:bg-accent hover:text-accent-foreground",
+      "bg-dropdown border border-input hover:bg-dropdown-hover",
       "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "[&>span]:line-clamp-1",

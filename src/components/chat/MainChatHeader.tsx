@@ -1,4 +1,4 @@
-import { Clock, Plus, Sun, Moon, Settings, LogOut, Bot, Archive, Home } from "lucide-react";
+import { Clock, Plus, Settings, LogOut, Bot, Archive, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -52,7 +52,7 @@ export const MainChatHeader = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-dropdown-hover"
             onClick={() => navigate('/archive')}
           >
             <Clock className="h-4 w-4" />
@@ -60,7 +60,7 @@ export const MainChatHeader = ({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-dropdown-hover"
             onClick={onNewChat}
           >
             <Plus className="h-4 w-4" />
@@ -69,7 +69,7 @@ export const MainChatHeader = ({
             variant="ghost"
             size="icon"
             onClick={() => navigate('/bots')}
-            className="text-foreground hover:text-foreground/80"
+            className="h-8 w-8 hover:bg-dropdown-hover"
           >
             <Bot className="h-4 w-4" />
           </Button>
@@ -77,14 +77,14 @@ export const MainChatHeader = ({
             variant="ghost"
             size="icon"
             onClick={() => navigate('/archive')}
-            className="text-foreground hover:text-foreground/80"
+            className="h-8 w-8 hover:bg-dropdown-hover"
           >
             <Archive className="h-4 w-4" />
           </Button>
         </div>
 
         <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-          <SelectTrigger className="w-[300px] h-9 text-sm">
+          <SelectTrigger className="w-[300px] h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
