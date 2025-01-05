@@ -6,7 +6,7 @@ import { BotCategory } from "@/types/categoryTypes";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const EmbeddedCategoryView = () => {
   const { categoryId } = useParams();
@@ -49,8 +49,23 @@ const EmbeddedCategoryView = () => {
         if (assignmentsError) throw assignmentsError;
 
         const categoryBots = assignments
-          .map(assignment => assignment.bots)
-          .filter(bot => bot) as Bot[];
+          .map(assignment => {
+            const bot = assignment.bots;
+            if (!bot) return null;
+            return {
+              id: bot.id,
+              name: bot.name,
+              instructions: bot.instructions || "",
+              starters: bot.starters || [],
+              model: bot.model,
+              apiKey: bot.api_key,
+              openRouterModel: bot.open_router_model,
+              avatar: bot.avatar,
+              accessType: "private",
+              memory_enabled: bot.memory_enabled,
+            } as Bot;
+          })
+          .filter((bot): bot is Bot => bot !== null);
 
         setBots(categoryBots);
       } catch (error) {
