@@ -35,6 +35,7 @@ export type Database = {
           api_key: string
           avatar: string | null
           created_at: string
+          default_bot: boolean | null
           id: string
           instructions: string | null
           memory_enabled: boolean | null
@@ -51,6 +52,7 @@ export type Database = {
           api_key: string
           avatar?: string | null
           created_at?: string
+          default_bot?: boolean | null
           id?: string
           instructions?: string | null
           memory_enabled?: boolean | null
@@ -67,6 +69,7 @@ export type Database = {
           api_key?: string
           avatar?: string | null
           created_at?: string
+          default_bot?: boolean | null
           id?: string
           instructions?: string | null
           memory_enabled?: boolean | null

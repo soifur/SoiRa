@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2, Share2, ArrowLeft } from "lucide-react";
+import { Plus, Edit2, Trash2, Share2, ArrowLeft, Star } from "lucide-react";
 import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
@@ -10,6 +10,7 @@ import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
@@ -36,6 +37,29 @@ const Bots = () => {
   const handleEdit = (bot: Bot) => {
     setEditingBot(bot);
     setSelectedBot(bot);
+  };
+
+  const handleSetDefaultBot = async (bot: Bot) => {
+    try {
+      const { error } = await supabase
+        .from('bots')
+        .update({ default_bot: !bot.default_bot })
+        .eq('id', bot.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: bot.default_bot ? "Default bot removed" : "Default bot set successfully",
+      });
+    } catch (error) {
+      console.error("Error setting default bot:", error);
+      toast({
+        title: "Error",
+        description: "Failed to set default bot",
+        variant: "destructive",
+      });
+    }
   };
 
   const truncateInstructions = (instructions: string, lines: number = 2) => {
@@ -73,6 +97,17 @@ const Bots = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`h-8 w-8 p-0 ${bot.default_bot ? 'text-yellow-500' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSetDefaultBot(bot);
+            }}
+          >
+            <Star className="h-4 w-4" fill={bot.default_bot ? "currentColor" : "none"} />
+          </Button>
           <Button
             variant="ghost"
             size="sm"

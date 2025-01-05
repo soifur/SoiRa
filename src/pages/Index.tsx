@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +24,16 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { sessionToken } = useSessionToken();
+
+  // Add this effect to set the default bot on load
+  useEffect(() => {
+    if (userBots && userBots.length > 0 && !selectedBotId) {
+      const defaultBot = userBots.find(bot => bot.default_bot);
+      if (defaultBot) {
+        setSelectedBotId(defaultBot.id);
+      }
+    }
+  }, [userBots, selectedBotId]);
 
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],

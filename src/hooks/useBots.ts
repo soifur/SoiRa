@@ -16,6 +16,7 @@ export interface Bot {
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   published?: boolean;
+  default_bot?: boolean;
 }
 
 export const useBots = () => {
