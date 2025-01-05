@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChatHistoryItem } from "./ChatHistoryItem";
 import { DateGroup } from "@/utils/dateUtils";
+import { cn } from "@/lib/utils";
 
 interface ChatHistoryGroupProps {
   label: string;
@@ -15,6 +16,7 @@ interface ChatHistoryGroupProps {
   currentChatId: string | null;
   onSelectChat: (chatId: string) => void;
   onDeleteChat: (chatId: string, e: React.MouseEvent) => void;
+  isModelGroup?: boolean;
 }
 
 export const ChatHistoryGroup = ({
@@ -25,6 +27,7 @@ export const ChatHistoryGroup = ({
   currentChatId,
   onSelectChat,
   onDeleteChat,
+  isModelGroup = false,
 }: ChatHistoryGroupProps) => {
   const getChatTitle = (messages: any[]) => {
     const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
@@ -36,13 +39,16 @@ export const ChatHistoryGroup = ({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
-      <CollapsibleTrigger className="flex items-center w-full p-2 rounded-lg hover:bg-accent">
+      <CollapsibleTrigger className={cn(
+        "flex items-center w-full p-2 rounded-lg hover:bg-accent",
+        isModelGroup && "font-semibold"
+      )}>
         {isExpanded ? (
           <ChevronDown className="h-4 w-4 mr-2" />
         ) : (
           <ChevronRight className="h-4 w-4 mr-2" />
         )}
-        <span className="font-medium">{label}</span>
+        <span className={cn("font-medium", isModelGroup && "text-primary")}>{label}</span>
         <span className="ml-2 text-xs text-muted-foreground">
           ({chats.length})
         </span>

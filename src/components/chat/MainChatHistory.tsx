@@ -18,8 +18,10 @@ interface MainChatHistoryProps {
   onClose: () => void;
 }
 
-type ChatsByDate = {
-  [K in DateGroup]?: any[];
+type ChatsByModelAndDate = {
+  [modelName: string]: {
+    [K in DateGroup]?: any[];
+  };
 };
 
 export const MainChatHistory = ({
@@ -31,8 +33,9 @@ export const MainChatHistory = ({
   isOpen,
   onClose,
 }: MainChatHistoryProps) => {
-  const [chatsByDate, setChatsByDate] = useState<ChatsByDate>({});
+  const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Today", "Yesterday"]));
+  const [expandedModels, setExpandedModels] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -68,17 +71,24 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
-      // Group chats by date
-      const grouped = (data || []).reduce((acc: ChatsByDate, chat) => {
+      // Group chats by model and then by date
+      const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
+        const modelName = chat.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
-        if (!acc[dateGroup]) {
-          acc[dateGroup] = [];
+        
+        if (!acc[modelName]) {
+          acc[modelName] = {};
         }
-        acc[dateGroup]!.push(chat);
+        
+        if (!acc[modelName][dateGroup]) {
+          acc[modelName][dateGroup] = [];
+        }
+        
+        acc[modelName][dateGroup]!.push(chat);
         return acc;
       }, {});
 
-      setChatsByDate(grouped);
+      setChatsByModelAndDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);
       toast({
@@ -127,6 +137,18 @@ export const MainChatHistory = ({
     });
   };
 
+  const toggleModel = (modelName: string) => {
+    setExpandedModels(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(modelName)) {
+        newSet.delete(modelName);
+      } else {
+        newSet.add(modelName);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className={cn(
       "fixed top-0 left-0 h-screen z-[200] bg-zinc-950 dark:bg-zinc-950 shadow-lg transition-transform duration-300 ease-in-out border-r",
@@ -137,17 +159,36 @@ export const MainChatHistory = ({
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
-            {DATE_GROUP_ORDER.map((groupName) => (
+            {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
               <ChatHistoryGroup
-                key={groupName}
-                label={groupName}
-                chats={chatsByDate[groupName] || []}
-                isExpanded={expandedGroups.has(groupName)}
-                onToggle={() => toggleGroup(groupName)}
+                key={modelName}
+                label={modelName}
+                chats={[]}
+                isExpanded={expandedModels.has(modelName)}
+                onToggle={() => toggleModel(modelName)}
                 currentChatId={currentChatId}
                 onSelectChat={onSelectChat}
                 onDeleteChat={handleDelete}
-              />
+                isModelGroup={true}
+              >
+                {DATE_GROUP_ORDER.map((dateGroup) => {
+                  const chats = dateGroups[dateGroup] || [];
+                  if (chats.length === 0) return null;
+                  
+                  return (
+                    <ChatHistoryGroup
+                      key={`${modelName}-${dateGroup}`}
+                      label={dateGroup}
+                      chats={chats}
+                      isExpanded={expandedGroups.has(dateGroup)}
+                      onToggle={() => toggleGroup(dateGroup)}
+                      currentChatId={currentChatId}
+                      onSelectChat={onSelectChat}
+                      onDeleteChat={handleDelete}
+                    />
+                  );
+                })}
+              </ChatHistoryGroup>
             ))}
           </div>
         </ScrollArea>
