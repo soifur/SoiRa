@@ -9,6 +9,14 @@ interface TokenUsageResponse {
   limit: number;
 }
 
+interface MessagesUsage {
+  messages_used: number;
+}
+
+interface TokensUsage {
+  tokens_used: number;
+}
+
 export const useTokenUsage = () => {
   const { toast } = useToast();
 
@@ -35,7 +43,6 @@ export const useTokenUsage = () => {
       console.log("Model:", model);
       console.log("Estimated tokens:", estimatedTokens);
 
-      // First get the user's role and subscription settings
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -57,7 +64,6 @@ export const useTokenUsage = () => {
         throw new Error("Subscription settings not found");
       }
 
-      // Get current period usage
       const periodStart = getPeriodStart(settings.reset_period);
       const { data: usage } = await supabase
         .from('chat_history')
@@ -65,9 +71,13 @@ export const useTokenUsage = () => {
         .eq('user_id', userData.user.id)
         .gte('created_at', periodStart);
 
-      const currentUsage = usage?.reduce((acc, curr) => 
-        acc + (settings.limit_type === 'messages' ? curr.messages_used : curr.tokens_used), 0
-      ) || 0;
+      const currentUsage = usage?.reduce((acc, curr) => {
+        if (settings.limit_type === 'messages') {
+          return acc + (curr as MessagesUsage).messages_used;
+        } else {
+          return acc + (curr as TokensUsage).tokens_used;
+        }
+      }, 0) || 0;
 
       const unitsToCheck = settings.limit_type === 'messages' ? 1 : estimatedTokens;
       const canProceed = currentUsage + unitsToCheck <= settings.units_per_period;
