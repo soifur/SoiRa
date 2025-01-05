@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
 import { MainChatHistory } from "@/components/chat/MainChatHistory";
@@ -11,7 +10,6 @@ import { useChatState } from "@/hooks/chat/useChatState";
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
-  const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
   const { allBots, isLoadingBots } = useBotsData();
   const { 
