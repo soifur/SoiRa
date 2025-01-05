@@ -32,70 +32,87 @@ export const Navigation = () => {
   const role = userProfile?.role as UserRole;
   const isSuperAdmin = role === 'super_admin';
   const isAdmin = role === 'admin';
-  const isPaidUser = role === 'paid_user';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         <div className="flex gap-6 md:gap-10">
-          {(isSuperAdmin || isAdmin || isPaidUser) && (
-            <Link to="/bots">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                <Bot className="h-5 w-5" />
-              </Button>
-            </Link>
-          )}
-          
           {isSuperAdmin && (
-            <Link to="/folders">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                <Folder className="h-5 w-5" />
-              </Button>
-            </Link>
+            <>
+              <Link to="/bots">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Bot className="h-5 w-5" />
+                </Button>
+              </Link>
+              
+              <Link to="/folders">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Folder className="h-5 w-5" />
+                </Button>
+              </Link>
+
+              <Link to="/subscriptions">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <CreditCard className="h-5 w-5" />
+                </Button>
+              </Link>
+
+              <Link to="/users">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Users className="h-5 w-5" />
+                </Button>
+              </Link>
+
+              <Link to="/archive">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Archive className="h-5 w-5" />
+                </Button>
+              </Link>
+            </>
           )}
 
-          {isSuperAdmin && (
-            <Link to="/subscriptions">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                <CreditCard className="h-5 w-5" />
-              </Button>
-            </Link>
-          )}
+          {isAdmin && (
+            <>
+              <Link to="/users">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Users className="h-5 w-5" />
+                </Button>
+              </Link>
 
-          {(isSuperAdmin || isAdmin) && (
-            <Link to="/users">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                <Users className="h-5 w-5" />
-              </Button>
-            </Link>
-          )}
-
-          {(isSuperAdmin || isAdmin) && (
-            <Link to="/archive">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                <Archive className="h-5 w-5" />
-              </Button>
-            </Link>
+              <Link to="/archive">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Archive className="h-5 w-5" />
+                </Button>
+              </Link>
+            </>
           )}
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
