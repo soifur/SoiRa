@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 export interface Message {
   id: string;
@@ -39,6 +40,7 @@ export const MessageList = ({
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (lastMessageRef.current && !isLoading) {
@@ -111,6 +113,22 @@ export const MessageList = ({
                   );
                 })}
               </div>
+              {disabled && disabledReason && (
+                <div className="fixed bottom-24 left-0 right-0 p-4 bg-destructive/10 backdrop-blur">
+                  <div className="max-w-3xl mx-auto flex items-center justify-between">
+                    <p className="text-sm text-destructive">
+                      {disabledReason}
+                    </p>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => navigate('/upgrade')}
+                    >
+                      Upgrade Now
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
