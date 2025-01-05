@@ -42,10 +42,10 @@ export const ProfileMenu = () => {
           <User className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 p-2">
+      <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem 
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5"
         >
           {theme === "light" ? (
             <Moon className="h-4 w-4" />
@@ -56,23 +56,23 @@ export const ProfileMenu = () => {
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => navigate('/settings')}
-          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5"
         >
           <Settings className="h-4 w-4" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuSeparator className="my-2" />
+        <DropdownMenuSeparator className="my-1" />
         <DropdownMenuItem 
           onClick={() => navigate('/upgrade')}
-          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5"
         >
           <CreditCard className="h-4 w-4" />
           Upgrade Plan
         </DropdownMenuItem>
-        <DropdownMenuSeparator className="my-2" />
+        <DropdownMenuSeparator className="my-1" />
         <DropdownMenuItem 
           onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+          className="flex items-center gap-2 px-3 py-2.5"
         >
           <LogOut className="h-4 w-4" />
           Log Out

@@ -52,22 +52,6 @@ export const MainChatHeader = ({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/bots')}
-            className="text-foreground hover:text-foreground/80"
-          >
-            <Bot className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/archive')}
-            className="text-foreground hover:text-foreground/80"
-          >
-            <Archive className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
             className="h-8 w-8"
             onClick={() => navigate('/archive')}
           >
@@ -80,6 +64,22 @@ export const MainChatHeader = ({
             onClick={onNewChat}
           >
             <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/bots')}
+            className="text-foreground hover:text-foreground/80"
+          >
+            <Bot className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/archive')}
+            className="text-foreground hover:text-foreground/80"
+          >
+            <Archive className="h-4 w-4" />
           </Button>
         </div>
 
