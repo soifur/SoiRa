@@ -85,7 +85,7 @@ export const ChatInput = ({
           disabled={disabled || isLoading}
           className={cn(
             "min-h-[48px] max-h-[100px] resize-none py-3 px-4 text-base",
-            "bg-[#202123] border-0 rounded-2xl focus:ring-2 focus:ring-primary/50",
+            "bg-[#343541] border-0 rounded-2xl focus:ring-2 focus:ring-primary/50",
             "backdrop-blur-sm"
           )}
           onKeyDown={handleKeyDown}
