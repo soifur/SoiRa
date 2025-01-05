@@ -31,18 +31,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const handleModelChange = (model: Bot['model']) => {
-    if (!editingBot.published) {
-      toast({
-        title: "Error",
-        description: "Please enable publishing to select a model",
-        variant: "destructive",
-      });
-      return;
-    }
-    handleBotChange({ 
-      model,
-      openRouterModel: model === "openrouter" ? editingBot.openRouterModel : undefined 
-    });
+    handleBotChange({ model });
   };
 
   const handleMemoryToggle = async (checked: boolean) => {
@@ -69,22 +58,10 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const handlePublishToggle = (checked: boolean) => {
-    handleBotChange({
-      published: checked,
-      model: checked ? editingBot.model : undefined
-    });
+    handleBotChange({ published: checked });
   };
 
   const handleSave = async () => {
-    if (editingBot.published && !editingBot.model) {
-      toast({
-        title: "Error",
-        description: "Please select a model before saving a published bot",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       if (!editingBot.id) {
         onSave(editingBot);
@@ -119,18 +96,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       <ModelSelector 
         bot={editingBot}
         onModelChange={handleModelChange}
-        onOpenRouterModelChange={(model) => {
-          if (!editingBot.published) {
-            toast({
-              title: "Error",
-              description: "Please enable publishing to select a model",
-              variant: "destructive",
-            });
-            return;
-          }
-          handleBotChange({ openRouterModel: model });
-        }}
-        disabled={!editingBot.published}
+        onOpenRouterModelChange={(model) => handleBotChange({ openRouterModel: model })}
       />
 
       <BotApiSettings 

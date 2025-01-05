@@ -34,6 +34,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('bots')
         .select('*')
+        .eq('published', true)  // Only select published bots
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -49,6 +50,7 @@ const Index = () => {
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
+        published: bot.published,
       }));
     }
   });
@@ -59,6 +61,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('shared_bots')
         .select('*')
+        .eq('published', true)  // Only select published bots
         .order('created_at', { ascending: false });
 
       if (error) throw error;
