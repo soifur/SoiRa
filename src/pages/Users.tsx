@@ -19,21 +19,24 @@ const Users = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: currentUser } = useQuery({
+  const { data: currentUser, isLoading: isLoadingCurrentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
-      const { data: profile } = await supabase
+      
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+        
+      if (error) throw error;
       return profile;
     },
   });
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -44,6 +47,7 @@ const Users = () => {
       if (error) throw error;
       return data as UserProfile[];
     },
+    enabled: !!currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin'),
   });
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
@@ -111,7 +115,10 @@ const Users = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    const { error } = await supabase.auth.admin.deleteUser(userId);
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
 
     if (error) {
       toast({
@@ -129,8 +136,17 @@ const Users = () => {
     });
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (isLoadingCurrentUser || isLoadingUsers) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-24">
+          <div className="flex items-center justify-center">
+            <p>Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   const canManageUsers = currentUser?.role === 'super_admin' || currentUser?.role === 'admin';
