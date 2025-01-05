@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Bot as BotType } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { History, Sun, Moon, Settings, LogOut, Bot, Archive } from "lucide-react";
+import { History, Plus, Sun, Moon, Settings, LogOut, Bot as BotIcon, Archive, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -60,6 +60,14 @@ const Index = () => {
     navigate('/login');
   };
 
+  const handleNewChat = () => {
+    // Implement new chat functionality
+    toast({
+      title: "New Chat",
+      description: "Starting a new chat session",
+    });
+  };
+
   if (isLoadingBots) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -76,36 +84,52 @@ const Index = () => {
             <div className="absolute top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
               <div className="h-14 flex items-center justify-between px-4">
                 <div className="flex items-center gap-2">
-                  <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select a bot" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bots?.map((bot) => (
-                        <SelectItem key={bot.id} value={bot.id}>
-                          {bot.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => navigate('/bots')}
                     className="h-8 w-8"
+                    onClick={() => navigate('/archive')}
                   >
-                    <Bot className="h-4 w-4" />
+                    <History className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => navigate('/archive')}
                     className="h-8 w-8"
+                    onClick={() => navigate('/')}
+                  >
+                    <Home className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => navigate('/bots')}
+                  >
+                    <BotIcon className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => navigate('/archive')}
                   >
                     <Archive className="h-4 w-4" />
                   </Button>
+                </div>
+                <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select a bot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bots?.map((bot) => (
+                      <SelectItem key={bot.id} value={bot.id}>
+                        {bot.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -133,6 +157,14 @@ const Index = () => {
                     className="h-8 w-8"
                   >
                     <LogOut className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleNewChat}
+                  >
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
