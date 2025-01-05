@@ -7,19 +7,50 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ModelSelector } from "@/components/bot/ModelSelector";
 import { useMemorySettings } from "@/hooks/useMemorySettings";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { MemorySettings } from "@/hooks/useMemorySettings";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AvatarUploader } from "@/components/AvatarUploader";
+import { useTheme } from "next-themes";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { settings, isLoading, saveSettings } = useMemorySettings();
+  const { theme, setTheme } = useTheme();
   const [formData, setFormData] = useState<MemorySettings>({
     model: "openrouter",
     api_key: "",
     instructions: "",
   });
+  const [userProfile, setUserProfile] = useState<{
+    avatar?: string;
+    language?: string;
+  }>({});
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     if (settings) {
@@ -31,6 +62,31 @@ const Settings = () => {
       });
     }
   }, [settings]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('avatar, language')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(profile || {});
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile settings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -68,6 +124,86 @@ const Settings = () => {
     }));
   };
 
+  const handleLanguageChange = async (value: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ language: value })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setUserProfile(prev => ({ ...prev, language: value }));
+      toast({
+        title: "Success",
+        description: "Language preference updated",
+      });
+    } catch (error) {
+      console.error('Error updating language:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update language preference",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAvatarChange = async (avatarUrl: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar: avatarUrl })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setUserProfile(prev => ({ ...prev, avatar: avatarUrl }));
+      toast({
+        title: "Success",
+        description: "Avatar updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update avatar",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteAllChats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('chat_history')
+        .update({ deleted: 'yes' })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "All chats have been deleted",
+      });
+    } catch (error) {
+      console.error('Error deleting chats:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete chats",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -84,74 +220,171 @@ const Settings = () => {
       </div>
       
       <div className="container mx-auto px-4 py-8">
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Memory Bot Configuration</h2>
-            {isLoading ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin" />
-              </div>
-            ) : (
+        <Tabs defaultValue="account" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="account">Account Settings</TabsTrigger>
+            <TabsTrigger value="personalization">Personalization</TabsTrigger>
+            <TabsTrigger value="memory">Memory Configuration</TabsTrigger>
+            <TabsTrigger value="subscription">Subscription</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="account" className="space-y-6">
+            <Card className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Profile Settings</h2>
+              {isProfileLoading ? (
+                <div className="flex items-center justify-center p-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Avatar</label>
+                    <AvatarUploader
+                      avatar={userProfile.avatar}
+                      onAvatarChange={handleAvatarChange}
+                    />
+                  </div>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete All Chats
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete all your chat history.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteAllChats}>
+                          Delete All
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  <Button variant="destructive" onClick={handleLogout} className="w-full">
+                    Logout
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="personalization" className="space-y-6">
+            <Card className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Personalization Settings</h2>
               <div className="space-y-4">
-                <ModelSelector 
-                  bot={{
-                    id: "memory-settings",
-                    name: "Memory Settings",
-                    instructions: "",
-                    starters: [],
-                    model: formData.model,
-                    apiKey: "",
-                    openRouterModel: formData.open_router_model,
-                  }}
-                  onModelChange={(model) => 
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      model: model === "gemini" ? "gemini" : "openrouter" 
-                    }))
-                  }
-                  onOpenRouterModelChange={(model) => 
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      open_router_model: model 
-                    }))
-                  }
-                  isMemorySelector
-                />
-                
                 <div>
-                  <label className="block text-sm font-medium mb-1">API Key</label>
-                  <Input
-                    type="password"
-                    value={formData.api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your API key"
-                  />
+                  <label className="block text-sm font-medium mb-2">Theme</label>
+                  <Select value={theme} onValueChange={setTheme}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="light">Light</SelectItem>
+                      <SelectItem value="dark">Dark</SelectItem>
+                      <SelectItem value="system">System</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Memory Instructions</label>
-                  <Textarea
-                    value={formData.instructions}
-                    onChange={handleInstructionsChange}
-                    placeholder="Enter memory instructions..."
-                    rows={4}
-                  />
+                  <label className="block text-sm font-medium mb-2">Language</label>
+                  <Select value={userProfile.language || 'en'} onValueChange={handleLanguageChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="fr">Français</SelectItem>
+                      <SelectItem value="de">Deutsch</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-
-                <Button onClick={handleSaveMemorySettings}>
-                  Save Memory Settings
-                </Button>
               </div>
-            )}
-          </Card>
+            </Card>
+          </TabsContent>
 
-          <Card className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Account</h2>
-            <Button variant="destructive" onClick={handleLogout}>
-              Logout
-            </Button>
-          </Card>
-        </div>
+          <TabsContent value="memory" className="space-y-6">
+            <Card className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Memory Bot Configuration</h2>
+              {isLoading ? (
+                <div className="flex items-center justify-center p-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <ModelSelector 
+                    bot={{
+                      id: "memory-settings",
+                      name: "Memory Settings",
+                      instructions: "",
+                      starters: [],
+                      model: formData.model,
+                      apiKey: "",
+                      openRouterModel: formData.open_router_model,
+                    }}
+                    onModelChange={(model) => 
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        model: model === "gemini" ? "gemini" : "openrouter" 
+                      }))
+                    }
+                    onOpenRouterModelChange={(model) => 
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        open_router_model: model 
+                      }))
+                    }
+                    isMemorySelector
+                  />
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">API Key</label>
+                    <Input
+                      type="password"
+                      value={formData.api_key}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your API key"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Memory Instructions</label>
+                    <Textarea
+                      value={formData.instructions}
+                      onChange={handleInstructionsChange}
+                      placeholder="Enter memory instructions..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <Button onClick={handleSaveMemorySettings}>
+                    Save Memory Settings
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="subscription" className="space-y-6">
+            <Card className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Subscription</h2>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  Subscription features coming soon!
+                </p>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
