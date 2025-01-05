@@ -35,7 +35,7 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
         throw error;
       }
 
-      // Ensure we have a setting for each user role with proper typing
+      // Create default settings for each user role
       const newSettings: ModelSubscriptionSetting[] = USER_ROLES.map(role => {
         const existingSetting = data?.find(s => s.user_role === role);
         if (existingSetting) {
@@ -45,7 +45,7 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
             reset_period: existingSetting.reset_period as ResetPeriod,
             reset_amount: existingSetting.reset_amount || 1,
             units_per_period: existingSetting.units_per_period
-          } as ModelSubscriptionSetting;
+          };
         }
         
         return {
@@ -56,8 +56,8 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
           reset_period: 'daily' as ResetPeriod,
           reset_amount: 1,
           limit_type: 'tokens' as LimitType,
-          model: '' // Add empty model string as it's required by the database
-        } as ModelSubscriptionSetting;
+          model: '' // Empty string as default
+        };
       });
 
       setSettings(newSettings);
@@ -89,14 +89,14 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
 
       if (deleteError) throw deleteError;
 
-      // Process settings one by one to handle unique constraint
+      // Process settings one by one
       for (const setting of settings) {
         const { error: insertError } = await supabase
           .from('model_subscription_settings')
           .insert({
             id: setting.id,
             bot_id: botId,
-            model: setting.model || '',
+            model: setting.model || botId, // Use botId as model if not specified
             units_per_period: setting.units_per_period,
             reset_period: setting.reset_period,
             reset_amount: setting.reset_amount,
