@@ -59,19 +59,18 @@ export const MessageList = ({
     return MessageCircle;
   };
 
-  // Add null check for messages
   if (!Array.isArray(messages)) {
     console.warn("Messages prop is not an array:", messages);
     return null;
   }
 
   return (
-    <div className="relative flex flex-col h-full overflow-hidden">
-      <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
+    <div className="relative flex flex-col h-full">
+      <ScrollArea className="flex-1 h-[calc(100vh-12rem)]">
         <div 
           ref={scrollRef}
           className={cn(
-            "px-4 py-4",
+            "px-4 py-4 pb-24", // Added more bottom padding to prevent content from being hidden
             messages.length === 0 ? "flex flex-col items-center justify-center h-full" : "space-y-4"
           )}
         >
