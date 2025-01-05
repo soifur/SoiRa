@@ -42,14 +42,14 @@ export const Navigation = () => {
           </Link>
           <Link 
             to="/bots" 
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className="flex items-center justify-center w-10 h-10 transition-colors hover:text-primary"
             aria-label="Models"
           >
             <Bot className="h-5 w-5" />
           </Link>
           <Link 
             to="/archive" 
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className="flex items-center justify-center w-10 h-10 transition-colors hover:text-primary"
             aria-label="Archive"
           >
             <Archive className="h-5 w-5" />
