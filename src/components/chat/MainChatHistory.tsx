@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
-import { ChatHistoryContent } from "./history/ChatHistoryContent";
+import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
 import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
+import { ProfileSection } from "./ProfileSection";
+import { Button } from "../ui/button";
+import { Bot, Archive } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -50,6 +55,7 @@ export const MainChatHistory = ({
 
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (sessionToken) {
@@ -57,6 +63,7 @@ export const MainChatHistory = ({
     }
   }, [sessionToken, botId]);
 
+  // Save expanded states to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
   }, [expandedGroups]);
@@ -65,6 +72,7 @@ export const MainChatHistory = ({
     localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
   }, [expandedModels]);
 
+  // When chat data is loaded, expand all model groups by default
   useEffect(() => {
     const modelNames = Object.keys(chatsByModelAndDate);
     if (modelNames.length > 0) {
@@ -101,6 +109,7 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
+      // Group chats by model and then by date
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
         const modelName = chat.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
@@ -178,7 +187,10 @@ export const MainChatHistory = ({
   };
 
   const handleSelectChat = async (chatId: string) => {
+    console.log("Selecting chat:", chatId);
+    
     try {
+      // Fetch the chat to get its bot_id
       const { data: chat, error } = await supabase
         .from('chat_history')
         .select('bot_id')
@@ -188,6 +200,7 @@ export const MainChatHistory = ({
       if (error) throw error;
 
       if (chat && chat.bot_id) {
+        console.log("Setting selected bot ID:", chat.bot_id);
         setSelectedBotId(chat.bot_id);
       }
 
@@ -214,18 +227,78 @@ export const MainChatHistory = ({
       isOpen ? "translate-x-0" : "-translate-x-full",
       isMobile ? "w-full" : "w-80"
     )}>
-      <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
-      <ChatHistoryContent
-        chatsByModelAndDate={chatsByModelAndDate}
-        expandedGroups={expandedGroups}
-        expandedModels={expandedModels}
-        currentChatId={currentChatId}
-        onSelectChat={handleSelectChat}
-        onDeleteChat={handleDelete}
-        onToggleGroup={toggleGroup}
-        onToggleModel={toggleModel}
-        onClose={onClose}
-      />
+      <div className="flex flex-col h-full">
+        <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
+        
+        <ScrollArea className="flex-1">
+          {isMobile && (
+            <div className="p-4 border-b border-border">
+              <div className="space-y-2">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start hover:bg-accent"
+                  onClick={() => {
+                    navigate('/bots');
+                    onClose();
+                  }}
+                >
+                  <Bot className="mr-2 h-4 w-4" />
+                  My Bots
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start hover:bg-accent"
+                  onClick={() => {
+                    navigate('/archive');
+                    onClose();
+                  }}
+                >
+                  <Archive className="mr-2 h-4 w-4" />
+                  Archive
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          <div className="p-4 space-y-4">
+            {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
+              <ChatHistoryGroup
+                key={modelName}
+                label={modelName}
+                chats={[]}
+                isExpanded={expandedModels.has(modelName)}
+                onToggle={() => toggleModel(modelName)}
+                currentChatId={currentChatId}
+                onSelectChat={handleSelectChat}
+                onDeleteChat={handleDelete}
+                isModelGroup={true}
+              >
+                {DATE_GROUP_ORDER.map((dateGroup) => {
+                  const chats = dateGroups[dateGroup] || [];
+                  if (chats.length === 0) return null;
+                  
+                  return (
+                    <ChatHistoryGroup
+                      key={`${modelName}-${dateGroup}`}
+                      label={dateGroup}
+                      chats={chats}
+                      isExpanded={expandedGroups.has(dateGroup)}
+                      onToggle={() => toggleGroup(dateGroup)}
+                      currentChatId={currentChatId}
+                      onSelectChat={handleSelectChat}
+                      onDeleteChat={handleDelete}
+                    />
+                  );
+                })}
+              </ChatHistoryGroup>
+            ))}
+          </div>
+        </ScrollArea>
+        
+        <div className="mt-auto border-t border-border">
+          <ProfileSection showViewPlans={isMobile} />
+        </div>
+      </div>
     </div>
   );
 };
