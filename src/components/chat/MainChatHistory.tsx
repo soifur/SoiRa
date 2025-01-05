@@ -18,9 +18,9 @@ interface MainChatHistoryProps {
   onClose: () => void;
 }
 
-interface ChatsByDate {
-  [key in DateGroup]?: any[];
-}
+type ChatsByDate = {
+  [K in DateGroup]?: any[];
+};
 
 export const MainChatHistory = ({
   sessionToken,
