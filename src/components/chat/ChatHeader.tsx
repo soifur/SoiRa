@@ -22,8 +22,8 @@ export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps
   const handleEmbed = () => {
     if (!selectedBotId) {
       toast({
-        title: "No bot selected",
-        description: "Please select a bot first",
+        title: "No model selected",
+        description: "Please select a model first",
         variant: "destructive",
       });
       return;
@@ -47,7 +47,7 @@ export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps
     <div className="flex justify-between items-center">
       <Select value={selectedBotId} onValueChange={onBotSelect}>
         <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Select a bot" />
+          <SelectValue placeholder="Select a model" />
         </SelectTrigger>
         <SelectContent>
           {bots.map((bot) => (

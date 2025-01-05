@@ -32,7 +32,6 @@ export const MainChatHeader = ({
   const { theme, setTheme } = useTheme();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
 
-  // Deduplicate bots based on ID
   useEffect(() => {
     if (bots) {
       const botsMap = new Map();
@@ -64,7 +63,7 @@ export const MainChatHeader = ({
             className="flex items-center gap-2"
           >
             <Bot className="h-4 w-4" />
-            Bots
+            Models
           </Button>
           <Button
             variant="ghost"
@@ -79,7 +78,7 @@ export const MainChatHeader = ({
 
         <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Select a bot" />
+            <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
             {uniqueBots.map((bot) => (
