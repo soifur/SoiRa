@@ -84,7 +84,7 @@ export const MainChatHeader = ({
         </div>
 
         <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-          <SelectTrigger className="w-[300px] h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+          <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
