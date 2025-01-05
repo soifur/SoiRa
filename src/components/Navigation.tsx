@@ -40,26 +40,24 @@ export const Navigation = () => {
           <Link to="/" className="flex items-center space-x-2">
             <span className="inline-block font-bold">SoiRa</span>
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="text-muted-foreground hover:text-primary"
-          >
-            <Link to="/bots">
+          <Link to="/bots">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-primary"
+            >
               <Bot className="h-5 w-5" />
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="text-muted-foreground hover:text-primary"
-          >
-            <Link to="/archive">
+            </Button>
+          </Link>
+          <Link to="/archive">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-primary"
+            >
               <Archive className="h-5 w-5" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <Button
@@ -70,16 +68,15 @@ export const Navigation = () => {
             <SunIcon className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <MoonIcon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="text-muted-foreground hover:text-primary"
-          >
-            <Link to="/settings">
+          <Link to="/settings">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-primary"
+            >
               <Settings className="h-5 w-5" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
