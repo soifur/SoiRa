@@ -28,7 +28,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Update isPublished when bot changes (e.g., when editing an existing bot)
     setIsPublished(!!bot.model);
   }, [bot]);
 
@@ -73,12 +72,10 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handlePublishToggle = (checked: boolean) => {
     setIsPublished(checked);
-    // When unpublishing, clear model-related fields in the editingBot state
+    // Keep all settings, just update the published state
     setEditingBot(prevBot => ({
       ...prevBot,
-      model: checked ? prevBot.model : undefined,
-      openRouterModel: checked ? prevBot.openRouterModel : undefined,
-      apiKey: checked ? prevBot.apiKey : "",
+      model: checked ? prevBot.model || undefined : undefined,
     }));
   };
 
@@ -97,12 +94,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       const botToSave = {
         ...editingBot,
         model: isPublished ? editingBot.model : undefined,
-        openRouterModel: isPublished ? editingBot.openRouterModel : undefined,
-        apiKey: isPublished ? editingBot.apiKey : "",
-        memory_enabled: editingBot.memory_enabled ?? false,
       };
 
-      // For new bots, we don't need to update the shared config
       if (!botToSave.id) {
         onSave(botToSave);
         return;
@@ -177,7 +170,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           onChange={(e) => setEditingBot({ ...editingBot, apiKey: e.target.value })}
           placeholder="Enter your API key"
           className="dark:bg-[#1e1e1e] dark:border-gray-700"
-          disabled={!isPublished}
         />
       </div>
 

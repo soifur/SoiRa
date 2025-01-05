@@ -18,6 +18,8 @@ interface ChatHeaderProps {
 
 export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps) => {
   const { toast } = useToast();
+  // Filter to only show published bots (those with a model)
+  const publishedBots = bots.filter(bot => bot.model);
 
   const handleEmbed = () => {
     if (!selectedBotId) {
@@ -50,7 +52,7 @@ export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps
           <SelectValue placeholder="Select a model" />
         </SelectTrigger>
         <SelectContent>
-          {bots.map((bot) => (
+          {publishedBots.map((bot) => (
             <SelectItem key={bot.id} value={bot.id}>
               {bot.name}
             </SelectItem>
