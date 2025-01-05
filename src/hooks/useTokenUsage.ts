@@ -147,7 +147,7 @@ export const useTokenUsage = () => {
         showErrorToast("Usage Error", "Failed to fetch usage data");
         return {
           canProceed: true,
-          limitType: settings.limit_type || 'tokens',
+          limitType: settings.limit_type as LimitType || 'tokens',
           resetPeriod: settings.reset_period,
           currentUsage: 0,
           limit: settings.units_per_period
