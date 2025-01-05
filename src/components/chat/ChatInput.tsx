@@ -99,7 +99,7 @@ export const ChatInput = ({
             "h-10 w-10 rounded-full shrink-0",
             "bg-foreground dark:bg-background",
             "text-background dark:text-foreground",
-            "hover:bg-foreground/90 dark:hover:bg-background/90",
+            "hover:bg-foreground/90 dark:hover:bg-white",
             "shadow-lg"
           )}
         >
