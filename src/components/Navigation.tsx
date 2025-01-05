@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { Bot, Archive } from "lucide-react";
+import { Bot, Archive, Folder } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ProfileMenu } from "./ProfileMenu";
 
@@ -20,6 +20,15 @@ export const Navigation = () => {
               className="text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               <Bot className="h-5 w-5" />
+            </Button>
+          </Link>
+          <Link to="/folders">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              <Folder className="h-5 w-5" />
             </Button>
           </Link>
           <Link to="/archive">
