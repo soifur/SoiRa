@@ -9,6 +9,7 @@ import { createMessage } from "@/utils/messageUtils";
 import { saveChatHistory, handleMessageSend } from "@/utils/chatOperations";
 import { useChatState } from "@/hooks/useChatState";
 import { supabase } from "@/integrations/supabase/client";
+import { useTokenUsage } from "@/hooks/useTokenUsage";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -16,6 +17,7 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
+  const { checkTokenUsage } = useTokenUsage();
   const {
     messages,
     setMessages,
@@ -41,6 +43,17 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     if (!message.trim()) return;
 
     try {
+      // Check token usage before proceeding
+      const canProceed = await checkTokenUsage(bot.model, 1); // Check for 1 message
+      if (!canProceed) {
+        toast({
+          title: "Usage Limit Reached",
+          description: "You've reached your message limit for this period.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setIsLoading(true);
       setIsStreaming(true);
 
@@ -73,11 +86,13 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       const nextSequenceNumber = (nextSequence?.sequence_number || 0) + 1;
 
+      // Save chat history with messages_used increment
       await saveChatHistory(
         chatId,
         bot.id,
         [...newMessages, createMessage("assistant", response, true, bot.avatar)],
-        nextSequenceNumber
+        nextSequenceNumber,
+        1 // Increment messages_used by 1
       );
 
       const chatKey = `chat_${bot.id}_${chatId}`;

@@ -31,7 +31,7 @@ export const useTokenUsage = () => {
       return data;
     } catch (error) {
       console.error('Error checking token usage:', error);
-      return true; // Allow usage on error to prevent blocking users
+      return false; // Prevent usage on error to enforce limits
     }
   };
 
