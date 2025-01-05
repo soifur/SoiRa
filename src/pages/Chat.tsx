@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
-import { Bot, ChatMessage } from "@/components/chat/types/chatTypes";
+import { Bot, ChatMessage, Message } from "@/components/chat/types/chatTypes";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 
 const Chat = () => {
@@ -154,6 +154,18 @@ const Chat = () => {
     setChatId(null);
   };
 
+  // Convert ChatMessage[] to Message[] for MessageList
+  const convertToMessages = (chatMessages: ChatMessage[]): Message[] => {
+    return chatMessages.map(msg => ({
+      id: msg.id || uuidv4(), // Ensure id is always present
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp,
+      isBot: msg.role === 'assistant',
+      avatar: msg.role === 'assistant' ? selectedBot?.avatar : undefined
+    }));
+  };
+
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto">
       <div className="flex justify-end p-4">
@@ -168,7 +180,7 @@ const Chat = () => {
       </div>
       <div className="flex-1 overflow-hidden">
         <MessageList
-          messages={messages}
+          messages={convertToMessages(messages)}
           isLoading={isLoading}
           selectedBot={selectedBot}
           disabled={isExceeded}
