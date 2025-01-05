@@ -3,10 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { DateGroup, getDateGroup } from "@/utils/dateUtils";
 
-type ChatsByModelAndDate = {
-  [modelName: string]: {
-    [K in DateGroup]?: any[];
-  };
+export type ChatsByModelAndDate = {
+  [modelName: string]: Partial<Record<DateGroup, any[]>>;
 };
 
 const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';

@@ -4,9 +4,10 @@ import { MobileNavigation } from "./MobileNavigation";
 import { ChatHistoryGroup } from "./ChatHistoryGroup";
 import { DateGroup, DATE_GROUP_ORDER } from "@/utils/dateUtils";
 import { ProfileSection } from "../ProfileSection";
+import { ChatsByModelAndDate } from "@/hooks/chat/useChatHistoryState";
 
 interface ChatHistoryContentProps {
-  chatsByModelAndDate: Record<string, Record<DateGroup, any[]>>;
+  chatsByModelAndDate: ChatsByModelAndDate;
   expandedGroups: Set<string>;
   expandedModels: Set<string>;
   currentChatId: string | null;
