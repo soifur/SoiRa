@@ -71,8 +71,8 @@ export const MainChatHeader = ({
   ];
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="h-14 flex items-center justify-between px-4 max-w-[1200px] mx-auto">
+    <div className="fixed top-0 left-0 right-0 z-50">
+      <div className="h-14 flex items-center justify-between px-4 max-w-[1200px] mx-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -112,6 +112,14 @@ export const MainChatHeader = ({
         </Select>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => navigate('/archive')}
+          >
+            <History className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
