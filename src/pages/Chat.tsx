@@ -5,7 +5,6 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
@@ -43,7 +42,22 @@ const Chat = () => {
       }
 
       if (bot) {
-        setSelectedBot(bot as Bot);
+        // Transform the bot data to match the Bot interface
+        const transformedBot: Bot = {
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private",
+          memory_enabled: bot.memory_enabled,
+          published: bot.published,
+          default_bot: bot.default_bot,
+        };
+        setSelectedBot(transformedBot);
       }
     };
 
