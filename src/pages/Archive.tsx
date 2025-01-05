@@ -10,14 +10,16 @@ import { ChatDialog } from "@/components/archive/ChatDialog";
 import { ChatRecord } from "@/components/archive/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Bot, Filter, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 
 const Archive = () => {
   const { bots } = useBots();
   const [selectedBotId, setSelectedBotId] = useState<string>("all");
   const [selectedChat, setSelectedChat] = useState<ChatRecord | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ const Archive = () => {
 
   const fetchChatHistory = async () => {
     try {
+      setIsLoading(true);
       const { data: session } = await supabase.auth.getSession();
       
       const { data, error } = await supabase
@@ -65,6 +68,8 @@ const Archive = () => {
         description: "Failed to fetch chat history",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -104,45 +109,79 @@ const Archive = () => {
 
   return (
     <div className="h-[100dvh] flex flex-col bg-background">
-      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/")}
+            className="shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-xl font-semibold">Chat Archive</h1>
-        </div>
-        <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-          <SelectTrigger className={`${isMobile ? 'w-[140px]' : 'w-[200px]'}`}>
-            <SelectValue placeholder="Filter by bot" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Chats</SelectItem>
-            {bots.map((bot) => (
-              <SelectItem key={bot.id} value={bot.id}>
-                {bot.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="space-y-4 p-4 max-w-6xl mx-auto">
-            {filteredHistory.map((record) => (
-              <ChatListItem
-                key={record.id}
-                record={record}
-                bot={getSelectedBot(record.botId)}
-                onClick={() => setSelectedChat(record)}
-                onDelete={() => handleDeleteChat(record.id)}
-              />
-            ))}
+          <div className="flex flex-col">
+            <h1 className="text-xl font-semibold flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              Chat Archive
+            </h1>
+            <p className="text-sm text-muted-foreground hidden md:block">
+              View and manage your chat history
+            </p>
           </div>
-        </ScrollArea>
+        </div>
+        <Card className="flex items-center gap-2 p-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+            <SelectTrigger className={`${isMobile ? 'w-[140px]' : 'w-[200px]'} border-none`}>
+              <SelectValue placeholder="Filter by bot" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Chats</SelectItem>
+              {bots.map((bot) => (
+                <SelectItem key={bot.id} value={bot.id}>
+                  {bot.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
+      </div>
+
+      <div className="flex-1 overflow-hidden relative">
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredHistory.length === 0 ? (
+          <div className="absolute inset-0 flex items-center justify-center flex-col gap-4 p-4 text-center">
+            <Bot className="h-12 w-12 text-muted-foreground" />
+            <div>
+              <h3 className="text-lg font-semibold">No chats found</h3>
+              <p className="text-sm text-muted-foreground">
+                {selectedBotId === "all" 
+                  ? "Your chat archive is empty"
+                  : "No chats found for this bot"}
+              </p>
+            </div>
+            <Button onClick={() => navigate("/")} variant="outline">
+              Start a new chat
+            </Button>
+          </div>
+        ) : (
+          <ScrollArea className="h-full">
+            <div className="space-y-4 p-4 max-w-4xl mx-auto">
+              {filteredHistory.map((record) => (
+                <ChatListItem
+                  key={record.id}
+                  record={record}
+                  bot={getSelectedBot(record.botId)}
+                  onClick={() => setSelectedChat(record)}
+                  onDelete={() => handleDeleteChat(record.id)}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+        )}
       </div>
 
       <ChatDialog
