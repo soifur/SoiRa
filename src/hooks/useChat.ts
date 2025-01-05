@@ -98,17 +98,21 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
         setCurrentChatId(chatId);
       }
 
+      const finalMessages = [...newMessages, createMessage("assistant", response)];
+      const userMessageCount = finalMessages.filter(msg => msg.role === 'user').length;
+
       const chatData = {
         id: chatId,
         bot_id: selectedBot.id,
-        messages: [...newMessages, createMessage("assistant", response)].map(msg => ({
+        messages: finalMessages.map(msg => ({
           ...msg,
           timestamp: msg.timestamp?.toISOString(),
         })),
         user_id: user?.id,
         session_token: !user ? sessionToken : null,
         sequence_number: 1,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        messages_used: userMessageCount // Explicitly set the messages_used count
       };
 
       const { error } = await supabase
