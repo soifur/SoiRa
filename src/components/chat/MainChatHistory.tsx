@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ChatHistoryContent } from "./history/ChatHistoryContent";
+import { ProfileSection } from "./ProfileSection";
 import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
 
 interface MainChatHistoryProps {
@@ -214,18 +215,25 @@ export const MainChatHistory = ({
       isOpen ? "translate-x-0" : "-translate-x-full",
       isMobile ? "w-full" : "w-80"
     )}>
-      <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
-      <ChatHistoryContent
-        chatsByModelAndDate={chatsByModelAndDate}
-        expandedGroups={expandedGroups}
-        expandedModels={expandedModels}
-        currentChatId={currentChatId}
-        onSelectChat={handleSelectChat}
-        onDeleteChat={handleDelete}
-        onToggleGroup={toggleGroup}
-        onToggleModel={toggleModel}
-        onClose={onClose}
-      />
+      <div className="flex flex-col h-full">
+        <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
+        <div className="flex-1 overflow-hidden">
+          <ChatHistoryContent
+            chatsByModelAndDate={chatsByModelAndDate}
+            expandedGroups={expandedGroups}
+            expandedModels={expandedModels}
+            currentChatId={currentChatId}
+            onSelectChat={handleSelectChat}
+            onDeleteChat={handleDelete}
+            onToggleGroup={toggleGroup}
+            onToggleModel={toggleModel}
+            onClose={onClose}
+          />
+        </div>
+        <div className="flex-none border-t">
+          <ProfileSection showViewPlans={true} />
+        </div>
+      </div>
     </div>
   );
 };

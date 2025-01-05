@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
+import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Message {
@@ -21,7 +21,6 @@ interface MessageListProps {
   onStarterClick?: (value: string) => void;
   isLoading?: boolean;
   isStreaming?: boolean;
-  onClearChat?: () => void;
 }
 
 export const MessageList = ({ 
@@ -30,8 +29,7 @@ export const MessageList = ({
   starters = [], 
   onStarterClick, 
   isLoading,
-  isStreaming,
-  onClearChat 
+  isStreaming 
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
@@ -70,7 +68,7 @@ export const MessageList = ({
         <div 
           ref={scrollRef}
           className={cn(
-            "px-4 py-4 pb-20",
+            "px-4 py-4 pb-32",
             messages.length === 0 ? "flex flex-col items-center justify-center h-full" : "space-y-4"
           )}
         >
@@ -125,16 +123,6 @@ export const MessageList = ({
                 </div>
               ))}
             </div>
-          )}
-          {onClearChat && messages.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClearChat}
-              className="absolute top-2 right-2 hover:bg-destructive/10"
-            >
-              <Trash2 className="h-5 w-5 text-destructive" />
-            </Button>
           )}
         </div>
       </ScrollArea>
