@@ -16,25 +16,45 @@ export const SetPasswordDialog = ({ userId, trigger }: SetPasswordDialogProps) =
   const { toast } = useToast();
 
   const handleSetPassword = async () => {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword
-    });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.email !== 'soifur2@gmail.com') {
+        toast({
+          title: "Error",
+          description: "Only super admin can set user passwords",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    if (error) {
+      const { error } = await supabase.auth.admin.updateUserById(
+        userId,
+        { password: newPassword }
+      );
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsOpen(false);
+      setNewPassword("");
+      toast({
+        title: "Success",
+        description: "Password updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Error setting password:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to update password. Please try again.",
         variant: "destructive",
       });
-      return;
     }
-
-    setIsOpen(false);
-    setNewPassword("");
-    toast({
-      title: "Success",
-      description: "Password updated successfully",
-    });
   };
 
   return (
