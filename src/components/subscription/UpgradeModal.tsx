@@ -8,13 +8,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SubscriptionTierCard } from "./SubscriptionTierCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Add type for subscription tier
 interface SubscriptionTier {
   id: string;
   name: string;
@@ -26,6 +26,7 @@ interface SubscriptionTier {
 
 export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
@@ -58,21 +59,25 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   });
 
   const handleUpgrade = (tierId: string) => {
-    // For now, just navigate to the upgrade page
-    // This will be replaced with actual payment integration
     navigate('/upgrade');
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className={cn(
+        "max-w-4xl overflow-y-auto",
+        isMobile && "h-[90vh] p-4"
+      )}>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-6">
             Choose Your Plan
           </DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className={cn(
+          "grid gap-6",
+          isMobile ? "grid-cols-1" : "grid-cols-3"
+        )}>
           {subscriptionTiers?.map((tier) => (
             <SubscriptionTierCard
               key={tier.id}

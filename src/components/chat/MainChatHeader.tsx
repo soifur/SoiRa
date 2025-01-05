@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus, Settings, Bot, Archive, Folder, Users } from "lucide-react";
+import { Clock, Plus, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,15 +13,18 @@ import { useNavigate } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { UserRole } from "@/types/user";
 
 interface MainChatHeaderProps {
-  selectedBotId: string | null;
-  setSelectedBotId: (id: string) => void;
+  selectedBotId?: string | null;
+  setSelectedBotId?: (id: string) => void;
   bots?: BotType[];
-  onNewChat: () => void;
-  onSignOut: () => void;
-  onToggleHistory: () => void;
-  showHistory: boolean;
+  onNewChat?: () => void;
+  onSignOut?: () => void;
+  onToggleHistory?: () => void;
+  showHistory?: boolean;
 }
 
 export const MainChatHeader = ({
@@ -37,6 +40,23 @@ export const MainChatHeader = ({
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
 
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
   useEffect(() => {
     if (bots) {
       const botsMap = new Map();
@@ -48,6 +68,11 @@ export const MainChatHeader = ({
       setUniqueBots(Array.from(botsMap.values()));
     }
   }, [bots]);
+
+  const role = userProfile?.role as UserRole;
+  const isSuperAdmin = role === 'super_admin';
+  const isAdmin = role === 'admin';
+  const isPaidUser = role === 'paid_user';
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -68,85 +93,8 @@ export const MainChatHeader = ({
                 <Clock className="h-4 w-4" />
               </Button>
 
-              <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-                <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueBots.map((bot) => (
-                    <SelectItem key={bot.id} value={bot.id}>
-                      {bot.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-dropdown-hover"
-                onClick={onNewChat}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-4">
-                {!showHistory && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                      onClick={onToggleHistory}
-                    >
-                      <Clock className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                      onClick={onNewChat}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/bots')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Bot className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/folders')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Folder className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/users')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Users className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/archive')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
-                
-                <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
+              {selectedBotId && setSelectedBotId && (
+                <Select value={selectedBotId} onValueChange={setSelectedBotId}>
                   <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
                     <SelectValue placeholder="Select a model" />
                   </SelectTrigger>
@@ -158,16 +106,67 @@ export const MainChatHeader = ({
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+
+              {onNewChat && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-dropdown-hover"
+                  onClick={onNewChat}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                {!showHistory && onToggleHistory && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-dropdown-hover"
+                      onClick={onToggleHistory}
+                    >
+                      <Clock className="h-4 w-4" />
+                    </Button>
+                    {onNewChat && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-dropdown-hover"
+                        onClick={onNewChat}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </>
+                )}
+
+                {selectedBotId && setSelectedBotId && (
+                  <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+                    <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+                      <SelectValue placeholder="Select a model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueBots.map((bot) => (
+                        <SelectItem key={bot.id} value={bot.id}>
+                          {bot.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </>
           )}
         </div>
 
-        {!isMobile && (
-          <div className="flex-1 flex items-center justify-end gap-2">
-            <ProfileMenu />
-          </div>
-        )}
+        <div className="flex-1 flex items-center justify-end gap-2">
+          <ProfileMenu />
+        </div>
       </div>
     </div>
   );
