@@ -17,6 +17,7 @@ interface ChatHistoryGroupProps {
   onSelectChat: (chatId: string) => void;
   onDeleteChat: (chatId: string, e: React.MouseEvent) => void;
   isModelGroup?: boolean;
+  children?: React.ReactNode;
 }
 
 export const ChatHistoryGroup = ({
@@ -28,6 +29,7 @@ export const ChatHistoryGroup = ({
   onSelectChat,
   onDeleteChat,
   isModelGroup = false,
+  children,
 }: ChatHistoryGroupProps) => {
   const getChatTitle = (messages: any[]) => {
     const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
@@ -35,7 +37,7 @@ export const ChatHistoryGroup = ({
     return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   };
 
-  if (chats.length === 0) return null;
+  if (chats.length === 0 && !children) return null;
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -54,6 +56,7 @@ export const ChatHistoryGroup = ({
         </span>
       </CollapsibleTrigger>
       <CollapsibleContent className="pl-4 space-y-2 mt-2">
+        {children}
         {chats.map((chat) => (
           <ChatHistoryItem
             key={chat.id}
