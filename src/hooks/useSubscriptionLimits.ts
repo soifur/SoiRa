@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { addDays, subDays } from 'date-fns';
 import { LimitType } from '@/types/subscription';
+import { Message } from "@/components/chat/types/chatTypes";
 
 interface SubscriptionLimit {
   isExceeded: boolean;
@@ -91,7 +92,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
       // Calculate total usage
       let totalUsage = 0;
       if (settings.limit_type === 'messages') {
-        totalUsage = usage?.reduce((acc, chat) => acc + (chat.messages_used || 1), 0) || 0;
+        totalUsage = usage?.reduce((acc, chat) => acc + (chat.messages_used || 0), 0) || 0;
       } else {
         totalUsage = usage?.reduce((acc, chat) => acc + (chat.tokens_used || 0), 0) || 0;
       }

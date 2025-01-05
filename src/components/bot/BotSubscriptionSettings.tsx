@@ -83,9 +83,9 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
           settings.map(setting => ({
             id: setting.id,
             bot_id: botId,
-            model: setting.model || '', // Ensure model is always provided
+            model: setting.model || '',
             units_per_period: setting.units_per_period,
-            reset_period: setting.reset_period,
+            reset_period: setting.reset_period as "daily" | "weekly" | "monthly" | "never",
             reset_amount: setting.reset_amount,
             lifetime_max_units: setting.lifetime_max_units,
             limit_type: setting.limit_type,
