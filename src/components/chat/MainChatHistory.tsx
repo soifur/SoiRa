@@ -107,11 +107,11 @@ export const MainChatHistory = ({
 
   return (
     <div className={cn(
-      "fixed top-0 left-0 h-screen z-40 bg-background/95 dark:bg-zinc-900/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:supports-[backdrop-filter]:bg-zinc-900/60 shadow-lg transition-transform duration-300 ease-in-out border-r",
+      "fixed top-0 left-0 h-screen z-40 bg-zinc-950 dark:bg-zinc-950 shadow-lg transition-transform duration-300 ease-in-out border-r",
       isOpen ? "translate-x-0" : "-translate-x-full",
       isMobile ? "w-full" : "w-80"
     )}>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full pt-14"> {/* Added pt-14 to account for the header height */}
         <div className="flex-none p-4 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

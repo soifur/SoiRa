@@ -13,6 +13,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileMenu } from "@/components/ProfileMenu";
+import { cn } from "@/lib/utils";
 
 interface MainChatHeaderProps {
   selectedBotId: string | null;
@@ -52,23 +53,31 @@ export const MainChatHeader = ({
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
-        <div className="flex-1 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-dropdown-hover"
-            onClick={onToggleHistory}
-          >
-            <Clock className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-dropdown-hover"
-            onClick={onNewChat}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+        <div className={cn(
+          "flex-1 flex items-center gap-4",
+          "transition-[margin] duration-300 ease-in-out",
+          showHistory ? "ml-80" : "ml-0"
+        )}>
+          {!showHistory && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-dropdown-hover"
+                onClick={onToggleHistory}
+              >
+                <Clock className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-dropdown-hover"
+                onClick={onNewChat}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -87,7 +96,11 @@ export const MainChatHeader = ({
           </Button>
         </div>
 
-        <div className="absolute left-1/2 transform -translate-x-1/2">
+        <div className={cn(
+          "absolute left-1/2 transform -translate-x-1/2",
+          "transition-[margin] duration-300 ease-in-out",
+          showHistory ? "ml-40" : "ml-0"
+        )}>
           <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
             <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
               <SelectValue placeholder="Select a model" />
