@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { Bot } from "@/hooks/useBots";
@@ -21,13 +21,19 @@ export const ChatContainer = ({
   sendMessage,
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
+  const [mergedMessages, setMergedMessages] = useState<Message[]>([]);
   
+  // Update merged messages whenever messages prop changes
+  useEffect(() => {
+    setMergedMessages(messages);
+  }, [messages]);
+
   return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-hidden mt-14">
         {selectedBot ? (
           <MessageList
-            messages={messages}
+            messages={mergedMessages}
             selectedBot={selectedBot}
             starters={selectedBot.starters || []}
             onStarterClick={sendMessage}
