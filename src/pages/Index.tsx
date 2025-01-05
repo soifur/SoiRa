@@ -8,7 +8,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Bot as BotType } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { EmbeddedChatHeader } from "@/components/chat/embedded/EmbeddedChatHeader";
+import { History, Sun, Moon, Settings, LogOut, Bot, Archive } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -45,14 +53,11 @@ const Index = () => {
     }
   });
 
-  const selectedBot = bots?.find(bot => bot.id === selectedBotId);
+  const selectedBot = bots?.find(bot => bot.id === selectedBotId) || null;
 
-  const handleClearChat = () => {
-    // Implement clear chat functionality
-  };
-
-  const handleNewChat = () => {
-    // Implement new chat functionality
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
   };
 
   if (isLoadingBots) {
@@ -68,16 +73,71 @@ const Index = () => {
       <Card className="w-full h-[100dvh] overflow-hidden relative">
         <div className="flex h-full">
           <div className="flex-1 flex flex-col h-full relative w-full">
-            <div className="absolute top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <EmbeddedChatHeader
-                bot={selectedBot || { name: "", starters: [] }}
-                onClearChat={handleClearChat}
-                onToggleHistory={() => navigate('/archive')}
-                onNewChat={handleNewChat}
-                showHistory={false}
-              />
+            <div className="absolute top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+              <div className="h-14 flex items-center justify-between px-4">
+                <div className="flex items-center gap-2">
+                  <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select a bot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bots?.map((bot) => (
+                        <SelectItem key={bot.id} value={bot.id}>
+                          {bot.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate('/bots')}
+                    className="h-8 w-8"
+                  >
+                    <Bot className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate('/archive')}
+                    className="h-8 w-8"
+                  >
+                    <Archive className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="h-8 w-8"
+                  >
+                    {theme === 'dark' ? (
+                      <Sun className="h-4 w-4" />
+                    ) : (
+                      <Moon className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate('/settings')}
+                    className="h-8 w-8"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleSignOut}
+                    className="h-8 w-8"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 overflow-hidden mt-16 mb-24">
+            <div className="flex-1 overflow-hidden mt-14 mb-24">
               {selectedBot ? (
                 <MessageList
                   messages={[]}
