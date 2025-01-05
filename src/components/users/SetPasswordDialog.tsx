@@ -16,10 +16,9 @@ export const SetPasswordDialog = ({ userId, trigger }: SetPasswordDialogProps) =
   const { toast } = useToast();
 
   const handleSetPassword = async () => {
-    const { error } = await supabase.auth.admin.updateUserById(
-      userId,
-      { password: newPassword }
-    );
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
 
     if (error) {
       toast({
