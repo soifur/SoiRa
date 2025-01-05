@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Share2, Trash } from "lucide-react";
 import { BotCategory } from "@/types/categoryTypes";
 import { useCategories } from "@/hooks/useCategories";
-import { ShareCategoryDialog } from "./ShareCategoryDialog";
-import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface CategoryCardProps {
@@ -12,9 +10,32 @@ interface CategoryCardProps {
 }
 
 export const CategoryCard = ({ category }: CategoryCardProps) => {
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { deleteCategory } = useCategories();
   const { toast } = useToast();
+
+  const handleShare = () => {
+    if (!category.short_key) {
+      toast({
+        title: "Error",
+        description: "This category cannot be shared",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const embedCode = `<iframe
+      src="${window.location.origin}/embed/category/${category.short_key}"
+      width="100%"
+      height="600px"
+      frameborder="0"
+    ></iframe>`;
+
+    navigator.clipboard.writeText(embedCode);
+    toast({
+      title: "Success",
+      description: "Embed code copied to clipboard",
+    });
+  };
 
   const handleDelete = async () => {
     try {
@@ -41,7 +62,7 @@ export const CategoryCard = ({ category }: CategoryCardProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsShareDialogOpen(true)}
+            onClick={handleShare}
           >
             <Share2 className="h-4 w-4" />
           </Button>
@@ -55,14 +76,10 @@ export const CategoryCard = ({ category }: CategoryCardProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">{category.description}</p>
+        <p className="text-sm text-muted-foreground">
+          {category.description || "No description provided"}
+        </p>
       </CardContent>
-
-      <ShareCategoryDialog
-        isOpen={isShareDialogOpen}
-        onClose={() => setIsShareDialogOpen(false)}
-        category={category}
-      />
     </Card>
   );
 };

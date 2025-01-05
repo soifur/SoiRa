@@ -9,6 +9,7 @@ import { useBots } from "@/hooks/useBots";
 import { Bot } from "@/hooks/useBots";
 import { BotCard } from "@/components/categories/BotCard";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -34,7 +35,14 @@ export const CategoryDialog = ({ open, onOpenChange }: CategoryDialogProps) => {
 
       // Assign selected bots to the category
       for (const bot of selectedBots) {
-        await assignBotToCategory(bot.id, category.id);
+        const { error } = await supabase
+          .from('bot_category_assignments')
+          .insert({
+            bot_id: bot.id,
+            category_id: category.id,
+          });
+        
+        if (error) throw error;
       }
 
       toast({
