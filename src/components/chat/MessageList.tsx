@@ -37,7 +37,7 @@ export const MessageList = ({
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (lastMessageRef.current && !isLoading) {
+    if (lastMessageRef.current) {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages, isLoading]);
@@ -66,11 +66,11 @@ export const MessageList = ({
 
   return (
     <div className="relative flex flex-col h-full">
-      <ScrollArea className="flex-1 h-[calc(100vh-12rem)]">
+      <ScrollArea className="flex-1 h-[calc(100vh-14rem)]">
         <div 
           ref={scrollRef}
           className={cn(
-            "px-4 py-4 pb-24", // Added more bottom padding to prevent content from being hidden
+            "px-4 py-4 pb-32", // Increased bottom padding to ensure messages don't go under input
             messages.length === 0 ? "flex flex-col items-center justify-center h-full" : "space-y-4"
           )}
         >
