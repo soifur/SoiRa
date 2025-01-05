@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { Bot, Archive, Folder, Users } from "lucide-react";
+import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ProfileMenu } from "./ProfileMenu";
 
@@ -29,6 +29,15 @@ export const Navigation = () => {
               className="text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               <Folder className="h-5 w-5" />
+            </Button>
+          </Link>
+          <Link to="/subscriptions">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              <CreditCard className="h-5 w-5" />
             </Button>
           </Link>
           <Link to="/users">
