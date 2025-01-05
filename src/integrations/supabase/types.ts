@@ -30,6 +30,44 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_user_limits: {
+        Row: {
+          bot_id: string | null
+          created_at: string
+          id: string
+          message_limit: number | null
+          token_limit: number | null
+          updated_at: string
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          bot_id?: string | null
+          created_at?: string
+          id?: string
+          message_limit?: number | null
+          token_limit?: number | null
+          updated_at?: string
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          bot_id?: string | null
+          created_at?: string
+          id?: string
+          message_limit?: number | null
+          token_limit?: number | null
+          updated_at?: string
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_user_limits_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bots: {
         Row: {
           api_key: string
@@ -39,11 +77,13 @@ export type Database = {
           id: string
           instructions: string | null
           memory_enabled: boolean | null
+          message_limit: number | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model: string | null
           published: boolean | null
           starters: string[] | null
+          token_limit: number | null
           updated_at: string
           user_id: string
           voice_enabled: boolean | null
@@ -56,11 +96,13 @@ export type Database = {
           id?: string
           instructions?: string | null
           memory_enabled?: boolean | null
+          message_limit?: number | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model?: string | null
           published?: boolean | null
           starters?: string[] | null
+          token_limit?: number | null
           updated_at?: string
           user_id: string
           voice_enabled?: boolean | null
@@ -73,11 +115,13 @@ export type Database = {
           id?: string
           instructions?: string | null
           memory_enabled?: boolean | null
+          message_limit?: number | null
           model?: Database["public"]["Enums"]["bot_model"]
           name?: string
           open_router_model?: string | null
           published?: boolean | null
           starters?: string[] | null
+          token_limit?: number | null
           updated_at?: string
           user_id?: string
           voice_enabled?: boolean | null
@@ -92,6 +136,7 @@ export type Database = {
           deleted: string | null
           id: string
           messages: Json
+          messages_used: number | null
           sequence_number: number
           session_token: string | null
           share_key: string | null
@@ -106,6 +151,7 @@ export type Database = {
           deleted?: string | null
           id?: string
           messages?: Json
+          messages_used?: number | null
           sequence_number: number
           session_token?: string | null
           share_key?: string | null
@@ -120,6 +166,7 @@ export type Database = {
           deleted?: string | null
           id?: string
           messages?: Json
+          messages_used?: number | null
           sequence_number?: number
           session_token?: string | null
           share_key?: string | null
@@ -250,29 +297,35 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          lifetime_max_tokens: number | null
+          lifetime_max_units: number | null
+          limit_type: string | null
           model: string
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
-          tokens_per_period: number
+          units_per_period: number
           updated_at: string
+          user_role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
           created_at?: string
           id?: string
-          lifetime_max_tokens?: number | null
+          lifetime_max_units?: number | null
+          limit_type?: string | null
           model: string
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
-          tokens_per_period: number
+          units_per_period: number
           updated_at?: string
+          user_role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
           created_at?: string
           id?: string
-          lifetime_max_tokens?: number | null
+          lifetime_max_units?: number | null
+          limit_type?: string | null
           model?: string
           reset_period?: Database["public"]["Enums"]["subscription_reset_period"]
-          tokens_per_period?: number
+          units_per_period?: number
           updated_at?: string
+          user_role?: Database["public"]["Enums"]["user_role"]
         }
         Relationships: []
       }
