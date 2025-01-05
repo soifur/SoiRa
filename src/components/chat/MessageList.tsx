@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Message } from "./types/chatTypes";
 import { Bot } from "@/hooks/useBots";
 import { ChatMessage } from "./ChatMessage";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Message } from "./types/chatTypes";
 
 export interface MessageListProps {
   messages: Message[];
@@ -95,10 +95,11 @@ export const MessageList = ({
               )}
             >
               <ChatMessage
-                message={message}
-                isLast={isLastMessage}
-                botName={selectedBot.name}
-                botAvatar={selectedBot.avatar}
+                message={message.content}
+                isBot={message.role === 'assistant'}
+                avatar={selectedBot.avatar}
+                isLoading={isLoading && isLastMessage}
+                isStreaming={isStreaming && isLastMessage}
               />
             </div>
           );

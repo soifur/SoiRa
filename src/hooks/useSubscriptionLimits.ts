@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { addDays, isAfter, parseISO, subDays } from 'date-fns';
 import { LimitType, ResetPeriod, UserRole } from '@/types/subscription';
+import { Message } from '@/components/chat/types/chatTypes';
 
 interface SubscriptionLimit {
   isExceeded: boolean;
@@ -26,7 +27,6 @@ export const useSubscriptionLimits = (botId: string | null) => {
     if (!botId) return;
     
     try {
-      // Get current user's profile to check role
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -40,7 +40,6 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       console.log("Checking limits for user role:", profile.role);
 
-      // Get subscription settings for this bot and user role
       const { data: settings } = await supabase
         .from('model_subscription_settings')
         .select('*')
@@ -55,7 +54,6 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       console.log("Found subscription settings:", settings);
 
-      // Calculate the period start date based on reset_amount and reset_period
       let periodStart = new Date();
       const resetAmount = settings.reset_amount || 1;
       
@@ -76,7 +74,6 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       console.log("Checking usage since:", periodStart.toISOString());
 
-      // Get usage within the period
       const { data: usage, error: usageError } = await supabase
         .from('chat_history')
         .select('messages, messages_used, tokens_used, created_at')
@@ -88,12 +85,11 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       console.log("Found usage records:", usage);
 
-      // Calculate total usage
       let totalUsage = 0;
       if (settings.limit_type === 'messages') {
         totalUsage = usage?.reduce((acc, chat) => {
-          // Count only user messages from the messages array
-          const userMessages = chat.messages.filter((msg: any) => msg.role === 'user').length;
+          const messages = chat.messages as Message[];
+          const userMessages = messages ? messages.filter(msg => msg.role === 'user').length : 0;
           return acc + userMessages;
         }, 0) || 0;
       } else {
@@ -106,7 +102,6 @@ export const useSubscriptionLimits = (botId: string | null) => {
       let resetDate = null;
 
       if (isExceeded) {
-        // Calculate reset date based on the oldest message in the current period
         const oldestMessage = usage?.sort((a, b) => 
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         )[0];
@@ -148,7 +143,6 @@ export const useSubscriptionLimits = (botId: string | null) => {
     }
   };
 
-  // Check limits on mount and when botId changes
   useEffect(() => {
     checkSubscriptionLimits();
   }, [botId]);

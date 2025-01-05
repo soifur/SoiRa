@@ -9,6 +9,7 @@ import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
+import { Message } from "@/components/chat/types/chatTypes";
 
 interface ChatMessage {
   role: string;
@@ -163,6 +164,8 @@ const Chat = () => {
         <MessageList
           messages={messages}
           isLoading={isLoading}
+          selectedBot={selectedBotId}
+          starters={[]}
         />
       </div>
       <div className="p-4">

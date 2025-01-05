@@ -1,4 +1,4 @@
-import { Message } from "@/components/chat/MessageList";
+import { Message } from "@/components/chat/types/chatTypes";
 
 export interface ChatRecord {
   id: string;
