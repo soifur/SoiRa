@@ -56,9 +56,10 @@ export const MessageList = ({
       >
         {messages.length === 0 && starters && starters.length > 0 && (
           <div className="flex flex-col items-center h-full">
-            <div className="text-center mt-[30vh]">
-              <h2 className="text-2xl font-semibold mb-2">What can I help with?</h2>
-              <div className="flex flex-col gap-2 mt-6">
+            <div className="mt-[30vh]">
+              <h2 className="text-2xl font-semibold mb-2">{selectedBot.name}</h2>
+              <h3 className="text-lg text-muted-foreground mb-6">What can I help with?</h3>
+              <div className="flex flex-col gap-2">
                 {starters.map((starter, index) => (
                   <Button
                     key={index}
