@@ -5,11 +5,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChatHistoryItem } from "./ChatHistoryItem";
+import { DateGroup } from "@/utils/dateUtils";
 
 interface ChatHistoryGroupProps {
-  botId: string;
-  botName: string;
-  model: string;
+  label: string;
   chats: any[];
   isExpanded: boolean;
   onToggle: () => void;
@@ -19,9 +18,7 @@ interface ChatHistoryGroupProps {
 }
 
 export const ChatHistoryGroup = ({
-  botId,
-  botName,
-  model,
+  label,
   chats,
   isExpanded,
   onToggle,
@@ -35,6 +32,8 @@ export const ChatHistoryGroup = ({
     return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   };
 
+  if (chats.length === 0) return null;
+
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className="flex items-center w-full p-2 rounded-lg hover:bg-accent">
@@ -43,7 +42,7 @@ export const ChatHistoryGroup = ({
         ) : (
           <ChevronRight className="h-4 w-4 mr-2" />
         )}
-        <span className="font-medium">{botName}</span>
+        <span className="font-medium">{label}</span>
         <span className="ml-2 text-xs text-muted-foreground">
           ({chats.length})
         </span>

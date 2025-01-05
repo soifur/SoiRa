@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
+import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -17,11 +18,8 @@ interface MainChatHistoryProps {
   onClose: () => void;
 }
 
-interface ChatGroup {
-  botId: string;
-  botName: string;
-  model: string;
-  chats: any[];
+interface ChatsByDate {
+  [key in DateGroup]?: any[];
 }
 
 export const MainChatHistory = ({
@@ -33,8 +31,8 @@ export const MainChatHistory = ({
   isOpen,
   onClose,
 }: MainChatHistoryProps) => {
-  const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [chatsByDate, setChatsByDate] = useState<ChatsByDate>({});
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Today", "Yesterday"]));
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -70,26 +68,17 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
-      // Group chats by bot
-      const groups = (data || []).reduce((acc: ChatGroup[], chat) => {
-        const botInfo = chat.bot || { name: 'Unknown Bot', model: 'unknown' };
-        
-        const existingGroup = acc.find(g => g.botId === chat.bot_id);
-        
-        if (existingGroup) {
-          existingGroup.chats.push(chat);
-        } else {
-          acc.push({
-            botId: chat.bot_id,
-            botName: botInfo.name,
-            model: botInfo.model,
-            chats: [chat]
-          });
+      // Group chats by date
+      const grouped = (data || []).reduce((acc: ChatsByDate, chat) => {
+        const dateGroup = getDateGroup(chat.created_at);
+        if (!acc[dateGroup]) {
+          acc[dateGroup] = [];
         }
+        acc[dateGroup]!.push(chat);
         return acc;
-      }, []);
+      }, {});
 
-      setChatGroups(groups);
+      setChatsByDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);
       toast({
@@ -126,13 +115,13 @@ export const MainChatHistory = ({
     }
   };
 
-  const toggleGroup = (botId: string) => {
+  const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(botId)) {
-        newSet.delete(botId);
+      if (newSet.has(groupName)) {
+        newSet.delete(groupName);
       } else {
-        newSet.add(botId);
+        newSet.add(groupName);
       }
       return newSet;
     });
@@ -148,12 +137,13 @@ export const MainChatHistory = ({
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
-            {chatGroups.map((group) => (
+            {DATE_GROUP_ORDER.map((groupName) => (
               <ChatHistoryGroup
-                key={group.botId}
-                {...group}
-                isExpanded={expandedGroups.has(group.botId)}
-                onToggle={() => toggleGroup(group.botId)}
+                key={groupName}
+                label={groupName}
+                chats={chatsByDate[groupName] || []}
+                isExpanded={expandedGroups.has(groupName)}
+                onToggle={() => toggleGroup(groupName)}
                 currentChatId={currentChatId}
                 onSelectChat={onSelectChat}
                 onDeleteChat={handleDelete}
