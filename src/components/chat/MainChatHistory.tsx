@@ -9,8 +9,10 @@ import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
 import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
 import { ProfileSection } from "./ProfileSection";
 import { Button } from "../ui/button";
-import { Bot, Archive } from "lucide-react";
+import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { UserRole } from "@/types/user";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -219,6 +221,27 @@ export const MainChatHistory = ({
     }
   };
 
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const role = userProfile?.role as UserRole;
+  const isSuperAdmin = role === 'super_admin';
+  const isAdmin = role === 'admin';
+
   return (
     <div className={cn(
       "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
@@ -234,28 +257,71 @@ export const MainChatHistory = ({
           {isMobile && (
             <div className="p-4 border-b border-border">
               <div className="space-y-2">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start hover:bg-accent"
-                  onClick={() => {
-                    navigate('/bots');
-                    onClose();
-                  }}
-                >
-                  <Bot className="mr-2 h-4 w-4" />
-                  My Bots
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start hover:bg-accent"
-                  onClick={() => {
-                    navigate('/archive');
-                    onClose();
-                  }}
-                >
-                  <Archive className="mr-2 h-4 w-4" />
-                  Archive
-                </Button>
+                {(isSuperAdmin || isAdmin) && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start hover:bg-accent"
+                    onClick={() => {
+                      navigate('/bots');
+                      onClose();
+                    }}
+                  >
+                    <Bot className="mr-2 h-4 w-4" />
+                    My Bots
+                  </Button>
+                )}
+                {isSuperAdmin && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start hover:bg-accent"
+                      onClick={() => {
+                        navigate('/folders');
+                        onClose();
+                      }}
+                    >
+                      <Folder className="mr-2 h-4 w-4" />
+                      Folders
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start hover:bg-accent"
+                      onClick={() => {
+                        navigate('/subscriptions');
+                        onClose();
+                      }}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Subscriptions
+                    </Button>
+                  </>
+                )}
+                {(isSuperAdmin || isAdmin) && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start hover:bg-accent"
+                      onClick={() => {
+                        navigate('/users');
+                        onClose();
+                      }}
+                    >
+                      <Users className="mr-2 h-4 w-4" />
+                      Users
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start hover:bg-accent"
+                      onClick={() => {
+                        navigate('/archive');
+                        onClose();
+                      }}
+                    >
+                      <Archive className="mr-2 h-4 w-4" />
+                      Archive
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}

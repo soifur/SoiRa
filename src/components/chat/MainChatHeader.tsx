@@ -13,6 +13,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { UserRole } from "@/types/user";
 
 interface MainChatHeaderProps {
   selectedBotId?: string | null;
@@ -38,6 +41,27 @@ export const MainChatHeader = ({
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
   const isChat = location.pathname === '/';
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const role = userProfile?.role as UserRole;
+  const isSuperAdmin = role === 'super_admin';
+  const isAdmin = role === 'admin';
 
   useEffect(() => {
     if (bots) {
@@ -121,46 +145,56 @@ export const MainChatHeader = ({
                     </Button>
                   </>
                 )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/bots')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Bot className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/folders')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Folder className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/subscriptions')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <CreditCard className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/users')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Users className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/archive')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
+                {(isSuperAdmin || isAdmin) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate('/bots')}
+                    className="h-8 w-8 hover:bg-dropdown-hover"
+                  >
+                    <Bot className="h-4 w-4" />
+                  </Button>
+                )}
+                {isSuperAdmin && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate('/folders')}
+                      className="h-8 w-8 hover:bg-dropdown-hover"
+                    >
+                      <Folder className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate('/subscriptions')}
+                      className="h-8 w-8 hover:bg-dropdown-hover"
+                    >
+                      <CreditCard className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                {(isSuperAdmin || isAdmin) && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate('/users')}
+                      className="h-8 w-8 hover:bg-dropdown-hover"
+                    >
+                      <Users className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => navigate('/archive')}
+                      className="h-8 w-8 hover:bg-dropdown-hover"
+                    >
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
                 
                 {isChat && selectedBotId && setSelectedBotId && (
                   <Select value={selectedBotId} onValueChange={setSelectedBotId}>
