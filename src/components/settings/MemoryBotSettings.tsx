@@ -27,14 +27,18 @@ export const MemoryBotSettings = () => {
             <ModelSelector
               bot={{
                 id: 'memory',
-                model: settings.model,
+                model: settings.model === 'gemini' ? 'gemini' : 'openrouter',
                 openRouterModel: settings.open_router_model,
                 name: 'Memory Bot',
                 instructions: '',
                 starters: [],
                 apiKey: settings.api_key || ''
               }}
-              onModelChange={(model) => saveSettings({ ...settings, model })}
+              onModelChange={(model) => {
+                if (model === 'gemini' || model === 'openrouter') {
+                  saveSettings({ ...settings, model });
+                }
+              }}
               onOpenRouterModelChange={(model) => saveSettings({ ...settings, open_router_model: model })}
               isMemorySelector
             />
