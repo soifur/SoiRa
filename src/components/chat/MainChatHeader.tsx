@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Clock, Plus, Settings, Bot, Archive, Folder, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,22 +34,9 @@ export const MainChatHeader = ({
 }: MainChatHeaderProps) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
-
-  useEffect(() => {
-    if (bots) {
-      const botsMap = new Map();
-      bots.forEach(bot => {
-        if (!botsMap.has(bot.id)) {
-          botsMap.set(bot.id, bot);
-        }
-      });
-      setUniqueBots(Array.from(botsMap.values()));
-    }
-  }, [bots]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
         <div className={cn(
           "flex-1 flex items-center gap-4",
@@ -73,7 +59,7 @@ export const MainChatHeader = ({
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
                 <SelectContent>
-                  {uniqueBots.map((bot) => (
+                  {bots?.map((bot) => (
                     <SelectItem key={bot.id} value={bot.id}>
                       {bot.name}
                     </SelectItem>
@@ -151,7 +137,7 @@ export const MainChatHeader = ({
                     <SelectValue placeholder="Select a model" />
                   </SelectTrigger>
                   <SelectContent>
-                    {uniqueBots.map((bot) => (
+                    {bots?.map((bot) => (
                       <SelectItem key={bot.id} value={bot.id}>
                         {bot.name}
                       </SelectItem>

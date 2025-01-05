@@ -51,7 +51,7 @@ export const ChatLayout = ({
         showHistory={showHistory}
       />
       <MainChatHistory
-        sessionToken={null} // We'll handle this in the parent
+        sessionToken={null}
         botId={selectedBotId}
         onSelectChat={handleSelectChat}
         onNewChat={handleNewChat}
@@ -60,7 +60,7 @@ export const ChatLayout = ({
         onClose={() => setShowHistory(false)}
         setSelectedBotId={setSelectedBotId}
       />
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden pt-14">
         <ChatContainer
           selectedBot={selectedBot}
           messages={messages}
