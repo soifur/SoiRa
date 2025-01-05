@@ -40,18 +40,26 @@ export const Navigation = () => {
           <Link to="/" className="flex items-center space-x-2">
             <span className="inline-block font-bold">SoiRa</span>
           </Link>
-          <Link 
-            to="/bots" 
-            className="flex items-center justify-center w-10 h-10 transition-colors hover:text-primary"
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="text-muted-foreground hover:text-primary"
           >
-            <Bot className="h-5 w-5" />
-          </Link>
-          <Link 
-            to="/archive" 
-            className="flex items-center justify-center w-10 h-10 transition-colors hover:text-primary"
+            <Link to="/bots">
+              <Bot className="h-5 w-5" />
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="text-muted-foreground hover:text-primary"
           >
-            <Archive className="h-5 w-5" />
-          </Link>
+            <Link to="/archive">
+              <Archive className="h-5 w-5" />
+            </Link>
+          </Button>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <Button
@@ -71,7 +79,6 @@ export const Navigation = () => {
           >
             <Link to="/settings">
               <Settings className="h-5 w-5" />
-              <span className="sr-only">Settings</span>
             </Link>
           </Button>
           <Button
@@ -81,7 +88,6 @@ export const Navigation = () => {
             className="text-muted-foreground hover:text-primary"
           >
             <LogOutIcon className="h-5 w-5" />
-            <span className="sr-only">Logout</span>
           </Button>
         </div>
       </div>
