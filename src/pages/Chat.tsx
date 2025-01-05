@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { Message } from "@/components/chat/types/chatTypes";
+import { Bot } from "@/hooks/useBots";
 
 interface ChatMessage {
   role: string;
@@ -23,8 +24,32 @@ const Chat = () => {
   const { botId: selectedBotId } = useParams();
   const { toast } = useToast();
   const [chatId, setChatId] = useState<string | null>(null);
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 
-  // Load existing chat on mount
+  // Load bot details
+  useEffect(() => {
+    const loadBot = async () => {
+      if (!selectedBotId) return;
+
+      const { data: bot, error } = await supabase
+        .from('bots')
+        .select('*')
+        .eq('id', selectedBotId)
+        .single();
+
+      if (error) {
+        console.error("Error loading bot:", error);
+        return;
+      }
+
+      if (bot) {
+        setSelectedBot(bot as Bot);
+      }
+    };
+
+    loadBot();
+  }, [selectedBotId]);
+
   useEffect(() => {
     const loadExistingChat = async () => {
       if (!selectedBotId) return;
@@ -148,6 +173,10 @@ const Chat = () => {
     }
   };
 
+  if (!selectedBot) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto">
       <div className="flex justify-end p-4">
@@ -164,14 +193,14 @@ const Chat = () => {
         <MessageList
           messages={messages}
           isLoading={isLoading}
-          selectedBot={selectedBotId}
+          selectedBot={selectedBot}
           starters={[]}
         />
       </div>
       <div className="p-4">
         <ChatInput
           onSend={sendMessage}
-          disabled={isLoading || !selectedBotId}
+          disabled={isLoading || !selectedBot}
           isLoading={isLoading}
         />
       </div>

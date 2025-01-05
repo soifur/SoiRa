@@ -88,7 +88,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
       let totalUsage = 0;
       if (settings.limit_type === 'messages') {
         totalUsage = usage?.reduce((acc, chat) => {
-          const messages = chat.messages as Message[];
+          const messages = chat.messages as unknown as Message[];
           const userMessages = messages ? messages.filter(msg => msg.role === 'user').length : 0;
           return acc + userMessages;
         }, 0) || 0;
