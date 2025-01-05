@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus, Settings, Bot, Archive, Folder, Users } from "lucide-react";
+import { Clock, Plus, Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -128,6 +128,14 @@ export const MainChatHeader = ({
                   className="h-8 w-8 hover:bg-dropdown-hover"
                 >
                   <Folder className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/subscriptions')}
+                  className="h-8 w-8 hover:bg-dropdown-hover"
+                >
+                  <CreditCard className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
