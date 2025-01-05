@@ -24,9 +24,18 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
   });
+  const [isPublished, setIsPublished] = useState(false);
   const { toast } = useToast();
 
   const handleModelChange = (model: BotModel) => {
+    if (!isPublished) {
+      toast({
+        title: "Error",
+        description: "Please enable publishing to select a model",
+        variant: "destructive",
+      });
+      return;
+    }
     setEditingBot({ 
       ...editingBot, 
       model: model,
@@ -58,6 +67,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const handleSave = async () => {
+    if (isPublished && !editingBot.model) {
+      toast({
+        title: "Error",
+        description: "Please select a model before saving a published bot",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // For new bots, we don't need to update the shared config
       if (!editingBot.id) {
@@ -104,10 +122,30 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         </div>
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="publish-mode"
+          checked={isPublished}
+          onCheckedChange={setIsPublished}
+        />
+        <Label htmlFor="publish-mode">Enable Publishing</Label>
+      </div>
+
       <ModelSelector 
         bot={editingBot}
         onModelChange={handleModelChange}
-        onOpenRouterModelChange={(model) => setEditingBot({ ...editingBot, openRouterModel: model })}
+        onOpenRouterModelChange={(model) => {
+          if (!isPublished) {
+            toast({
+              title: "Error",
+              description: "Please enable publishing to select a model",
+              variant: "destructive",
+            });
+            return;
+          }
+          setEditingBot({ ...editingBot, openRouterModel: model });
+        }}
+        disabled={!isPublished}
       />
 
       <div>

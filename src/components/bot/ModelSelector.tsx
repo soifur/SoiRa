@@ -13,6 +13,7 @@ interface ModelSelectorProps {
   onModelChange: (model: "gemini" | "claude" | "openai" | "openrouter") => void;
   onOpenRouterModelChange: (model: string) => void;
   isMemorySelector?: boolean;
+  disabled?: boolean;
 }
 
 interface OpenRouterModel {
@@ -25,7 +26,13 @@ interface OpenRouterModel {
   context_length?: number;
 }
 
-export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isMemorySelector = false }: ModelSelectorProps) => {
+export const ModelSelector = ({ 
+  bot, 
+  onModelChange, 
+  onOpenRouterModelChange, 
+  isMemorySelector = false,
+  disabled = false 
+}: ModelSelectorProps) => {
   const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -109,8 +116,9 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
           onValueChange={(value: "gemini" | "claude" | "openai" | "openrouter") =>
             onModelChange(value)
           }
+          disabled={disabled}
         >
-          <SelectTrigger>
+          <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
@@ -130,8 +138,9 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
           <Select
             value={bot.openRouterModel}
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
+            disabled={disabled}
           >
-            <SelectTrigger>
+            <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
             <SelectContent className="max-h-[300px] overflow-y-auto">
