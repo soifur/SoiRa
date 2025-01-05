@@ -128,47 +128,6 @@ export type Database = {
           },
         ]
       }
-      lessons: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          prerequisites: Json | null
-          quiz_bot_id: string
-          sequence_number: number
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          prerequisites?: Json | null
-          quiz_bot_id: string
-          sequence_number: number
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          prerequisites?: Json | null
-          quiz_bot_id?: string
-          sequence_number?: number
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lessons_quiz_bot_id_fkey"
-            columns: ["quiz_bot_id"]
-            isOneToOne: false
-            referencedRelation: "quiz_bots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       memory_bot_settings: {
         Row: {
           api_key: string
@@ -207,215 +166,30 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          managed_by: string | null
           role: Database["public"]["Enums"]["user_role"]
+          subscription_status: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
           id: string
+          managed_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          subscription_status?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          managed_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          subscription_status?: string | null
           updated_at?: string
         }
         Relationships: []
-      }
-      questions: {
-        Row: {
-          branching_logic: Json | null
-          correct_answers: Json
-          created_at: string
-          feedback_correct: string | null
-          feedback_incorrect: string | null
-          id: string
-          lesson_id: string | null
-          options: Json
-          quiz_bot_id: string
-          sequence_number: number
-          text: string
-          type: Database["public"]["Enums"]["question_type"]
-          updated_at: string
-        }
-        Insert: {
-          branching_logic?: Json | null
-          correct_answers?: Json
-          created_at?: string
-          feedback_correct?: string | null
-          feedback_incorrect?: string | null
-          id?: string
-          lesson_id?: string | null
-          options?: Json
-          quiz_bot_id: string
-          sequence_number: number
-          text: string
-          type: Database["public"]["Enums"]["question_type"]
-          updated_at?: string
-        }
-        Update: {
-          branching_logic?: Json | null
-          correct_answers?: Json
-          created_at?: string
-          feedback_correct?: string | null
-          feedback_incorrect?: string | null
-          id?: string
-          lesson_id?: string | null
-          options?: Json
-          quiz_bot_id?: string
-          sequence_number?: number
-          text?: string
-          type?: Database["public"]["Enums"]["question_type"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "questions_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "questions_quiz_bot_id_fkey"
-            columns: ["quiz_bot_id"]
-            isOneToOne: false
-            referencedRelation: "quiz_bots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      quiz_bots: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          instructions: string | null
-          passing_score: number
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          instructions?: string | null
-          passing_score?: number
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          instructions?: string | null
-          passing_score?: number
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      quiz_configurations: {
-        Row: {
-          bot_id: string
-          branching_logic: Json | null
-          created_at: string
-          description: string | null
-          id: string
-          passing_score: number
-          questions: Json
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          bot_id: string
-          branching_logic?: Json | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          passing_score?: number
-          questions?: Json
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          bot_id?: string
-          branching_logic?: Json | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          passing_score?: number
-          questions?: Json
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quiz_configurations_bot_id_fkey"
-            columns: ["bot_id"]
-            isOneToOne: false
-            referencedRelation: "bots"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      quiz_history: {
-        Row: {
-          answers: Json
-          created_at: string
-          id: string
-          quiz_id: string
-          score: number | null
-          session_token: string | null
-          status: Database["public"]["Enums"]["quiz_status"] | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          answers?: Json
-          created_at?: string
-          id?: string
-          quiz_id: string
-          score?: number | null
-          session_token?: string | null
-          status?: Database["public"]["Enums"]["quiz_status"] | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          answers?: Json
-          created_at?: string
-          id?: string
-          quiz_id?: string
-          score?: number | null
-          session_token?: string | null
-          status?: Database["public"]["Enums"]["quiz_status"] | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "quiz_history_quiz_id_fkey"
-            columns: ["quiz_id"]
-            isOneToOne: false
-            referencedRelation: "quiz_configurations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quiz_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       shared_bots: {
         Row: {
@@ -520,60 +294,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
-      }
-      user_progress: {
-        Row: {
-          answers: Json | null
-          completed_lessons: Json | null
-          created_at: string
-          current_lesson_id: string | null
-          id: string
-          learning_style: Database["public"]["Enums"]["learning_style"] | null
-          quiz_bot_id: string
-          session_token: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          answers?: Json | null
-          completed_lessons?: Json | null
-          created_at?: string
-          current_lesson_id?: string | null
-          id?: string
-          learning_style?: Database["public"]["Enums"]["learning_style"] | null
-          quiz_bot_id: string
-          session_token?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          answers?: Json | null
-          completed_lessons?: Json | null
-          created_at?: string
-          current_lesson_id?: string | null
-          id?: string
-          learning_style?: Database["public"]["Enums"]["learning_style"] | null
-          quiz_bot_id?: string
-          session_token?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_progress_current_lesson_id_fkey"
-            columns: ["current_lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_progress_quiz_bot_id_fkey"
-            columns: ["quiz_bot_id"]
-            isOneToOne: false
-            referencedRelation: "quiz_bots"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
