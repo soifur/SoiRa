@@ -40,7 +40,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || isLoading) return;
 
     try {
       console.log("Checking token usage before sending message");
