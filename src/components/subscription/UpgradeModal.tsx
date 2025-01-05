@@ -6,10 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import { SubscriptionTierCard } from "./SubscriptionTierCard";
 
 interface UpgradeModalProps {
@@ -67,10 +64,6 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-          <X className="h-6 w-6" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
         <DialogHeader>
           <DialogTitle className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
             Choose Your Plan
