@@ -13,6 +13,7 @@ interface ChatInputProps {
   onInputChange?: (value: string) => void;
   onSubmit?: (e: React.FormEvent) => void;
   value?: string;
+  onUpgradeClick?: () => void;
 }
 
 export const ChatInput = ({ 
@@ -22,7 +23,8 @@ export const ChatInput = ({
   isLoading,
   onInputChange,
   onSubmit,
-  value 
+  value,
+  onUpgradeClick 
 }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
@@ -98,7 +100,12 @@ export const ChatInput = ({
           />
           {isUsageLimitExceeded && (
             <button
-              onClick={() => navigate('/upgrade')}
+              onClick={(e) => {
+                e.preventDefault();
+                if (onUpgradeClick) {
+                  onUpgradeClick();
+                }
+              }}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
               type="button"
             >

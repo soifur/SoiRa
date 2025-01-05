@@ -1,18 +1,18 @@
-import { useState } from "react";
-import { MessageList } from "@/components/chat/MessageList";
+import React from "react";
+import { Bot as BotType } from "@/hooks/useBots";
+import { Message } from "@/hooks/useChat";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { Bot } from "@/hooks/useBots";
-import { Message } from "@/components/chat/types/chatTypes";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { MessageList } from "@/components/chat/MessageList";
 
 interface ChatContainerProps {
-  selectedBot: Bot | undefined;
+  selectedBot: BotType | undefined;
   messages: Message[];
   isLoading: boolean;
   isStreaming: boolean;
   sendMessage: (message: string) => void;
   disabled?: boolean;
   disabledReason?: string;
+  onUpgradeClick?: () => void;
 }
 
 export const ChatContainer = ({
@@ -22,43 +22,24 @@ export const ChatContainer = ({
   isStreaming,
   sendMessage,
   disabled,
-  disabledReason
+  disabledReason,
+  onUpgradeClick
 }: ChatContainerProps) => {
-  const isMobile = useIsMobile();
-  
   return (
-    <div className="relative flex flex-col h-full">
-      <div className="flex-1 overflow-hidden mt-14">
-        {selectedBot ? (
-          <MessageList
-            messages={messages}
-            selectedBot={selectedBot}
-            starters={selectedBot.starters || []}
-            onStarterClick={disabled ? undefined : sendMessage}
-            isLoading={isLoading}
-            isStreaming={isStreaming}
-            disabled={disabled}
-            disabledReason={disabledReason}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center text-muted-foreground">
-            Select a model to start chatting
-          </div>
-        )}
-      </div>
-      <div className="sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-        <div className="max-w-3xl mx-auto">
-          <ChatInput
-            onSend={sendMessage}
-            disabled={!selectedBot || disabled}
-            isLoading={isLoading}
-            placeholder={
-              disabled ? disabledReason :
-              selectedBot ? "Type your message..." : 
-              "Select a model to start chatting"
-            }
-          />
-        </div>
+    <div className="flex flex-col h-full overflow-hidden relative">
+      <MessageList
+        messages={messages}
+        isLoading={isLoading}
+        isStreaming={isStreaming}
+      />
+      <div className="p-4 md:p-6">
+        <ChatInput
+          onSend={sendMessage}
+          disabled={disabled || !selectedBot}
+          placeholder={disabledReason || (!selectedBot ? "Select a bot to start chatting" : undefined)}
+          isLoading={isLoading}
+          onUpgradeClick={onUpgradeClick}
+        />
       </div>
     </div>
   );
