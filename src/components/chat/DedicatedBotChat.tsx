@@ -52,11 +52,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim() || isLoading || isStreaming) {
+    if (!message.trim() || isLoading || isStreaming || usageExceeded) {
       console.log("Preventing message send:", { 
         isEmpty: !message.trim(), 
         isLoading, 
-        isStreaming 
+        isStreaming,
+        usageExceeded 
       });
       return;
     }
@@ -65,7 +66,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     
     try {
       console.log("Checking token usage before sending message");
-      const usageResult = await checkTokenUsage(bot.model, 1);
+      const usageResult = await checkTokenUsage(bot.id, 1); // Use bot.id instead of bot.model
       
       setUsageInfo({
         currentUsage: usageResult.currentUsage,
@@ -165,17 +166,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           </AlertDescription>
         </Alert>
       )}
-      
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={clearChat}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
       
       <div className="flex-1 overflow-hidden flex flex-col">
         <MessageList
