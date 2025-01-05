@@ -173,3 +173,8 @@
 .message-animation {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+/* Dark mode override for text-destructive */
+.dark .text-destructive {
+  color: white;
+}
