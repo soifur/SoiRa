@@ -29,6 +29,11 @@ interface ChatGroup {
   chats: any[];
 }
 
+interface BotData {
+  name: string;
+  model: string;
+}
+
 export const MainChatHistory = ({
   sessionToken,
   botId,
@@ -77,7 +82,12 @@ export const MainChatHistory = ({
 
       // Group chats by bot
       const groups = (data || []).reduce((acc: ChatGroup[], chat) => {
-        const botInfo = chat.bots || { name: 'Unknown Bot', model: 'unknown' };
+        const botInfo = chat.bots as BotData | null;
+        if (!botInfo) {
+          console.warn('Missing bot info for chat:', chat.id);
+          return acc;
+        }
+
         const existingGroup = acc.find(g => g.botId === chat.bot_id);
         
         if (existingGroup) {
@@ -85,8 +95,8 @@ export const MainChatHistory = ({
         } else {
           acc.push({
             botId: chat.bot_id,
-            botName: botInfo.name,
-            model: botInfo.model,
+            botName: botInfo.name || 'Unknown Bot',
+            model: botInfo.model || 'unknown',
             chats: [chat]
           });
         }
