@@ -23,8 +23,8 @@ export const ChatContainer = ({
   const isMobile = useIsMobile();
   
   return (
-    <>
-      <div className="flex-1 overflow-hidden mt-14">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+      <div className="flex-1 overflow-hidden relative">
         {selectedBot ? (
           <MessageList
             messages={messages}
@@ -40,7 +40,7 @@ export const ChatContainer = ({
           </div>
         )}
       </div>
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+      <div className="sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t z-10">
         <div className="max-w-3xl mx-auto">
           <ChatInput
             onSend={sendMessage}
@@ -50,6 +50,6 @@ export const ChatContainer = ({
           />
         </div>
       </div>
-    </>
+    </div>
   );
 };
