@@ -97,12 +97,13 @@ export const ChatInput = ({
           disabled={disabled || isLoading}
           className={cn(
             "h-10 w-10 rounded-full shrink-0",
-            "bg-gray-900 hover:bg-gray-800",
-            "dark:bg-primary dark:hover:bg-primary/90",
+            "bg-foreground dark:bg-background",
+            "text-background dark:text-foreground",
+            "hover:bg-foreground/90 dark:hover:bg-background/90",
             "shadow-lg"
           )}
         >
-          <Send className="h-4 w-4 text-white" />
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </form>

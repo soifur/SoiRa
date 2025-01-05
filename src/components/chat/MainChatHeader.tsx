@@ -50,17 +50,9 @@ export const MainChatHeader = ({
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            size="sm"
-            className="font-semibold"
-            onClick={() => navigate('/')}
-          >
-            SoiRa
-          </Button>
-          <Button
-            variant="ghost"
             size="icon"
             onClick={() => navigate('/bots')}
-            className="text-muted-foreground hover:text-primary"
+            className="text-foreground hover:text-foreground/80"
           >
             <Bot className="h-4 w-4" />
           </Button>
@@ -68,14 +60,14 @@ export const MainChatHeader = ({
             variant="ghost"
             size="icon"
             onClick={() => navigate('/archive')}
-            className="text-muted-foreground hover:text-primary"
+            className="text-foreground hover:text-foreground/80"
           >
             <Archive className="h-4 w-4" />
           </Button>
         </div>
 
         <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-          <SelectTrigger className="w-[300px]">
+          <SelectTrigger className="w-[300px] h-9 text-sm">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
