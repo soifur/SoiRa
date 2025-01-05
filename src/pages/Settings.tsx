@@ -31,6 +31,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import type { Database } from "@/integrations/supabase/types";
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -42,10 +45,7 @@ const Settings = () => {
     api_key: "",
     instructions: "",
   });
-  const [userProfile, setUserProfile] = useState<{
-    avatar?: string;
-    language?: string;
-  }>({});
+  const [userProfile, setUserProfile] = useState<Partial<Profile>>({});
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   useEffect(() => {
