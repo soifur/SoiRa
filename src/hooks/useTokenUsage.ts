@@ -1,10 +1,11 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { LimitType, ResetPeriod } from "@/types/subscriptionSettings";
 
 interface TokenUsageResponse {
   canProceed: boolean;
-  limitType: 'tokens' | 'messages';
-  resetPeriod: 'daily' | 'weekly' | 'monthly' | 'never';
+  limitType: LimitType;
+  resetPeriod: ResetPeriod;
   currentUsage: number;
   limit: number;
 }
@@ -123,8 +124,8 @@ export const useTokenUsage = () => {
 
       return {
         canProceed,
-        limitType: settings.limit_type,
-        resetPeriod: settings.reset_period,
+        limitType: settings.limit_type as LimitType,
+        resetPeriod: settings.reset_period as ResetPeriod,
         currentUsage,
         limit: settings.units_per_period
       };
