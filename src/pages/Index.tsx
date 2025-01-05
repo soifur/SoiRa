@@ -24,8 +24,8 @@ const Index = () => {
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) throw new Error("No authenticated session");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No authenticated session");
 
       const { data, error } = await supabase
         .from('bots')
@@ -58,7 +58,7 @@ const Index = () => {
       if (selectedBotId) {
         const selectedBot = allBots.find(bot => bot.id === selectedBotId);
         if (selectedBot) {
-          const { data: session } = await supabase.auth.getSession();
+          const { data: { session } } = await supabase.auth.getSession();
           if (session?.user?.id) {
             const usageResult = await checkTokenUsage(selectedBot.id, 1);
             setCanSendMessages(usageResult.canProceed);
