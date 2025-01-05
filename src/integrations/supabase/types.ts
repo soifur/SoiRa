@@ -301,6 +301,7 @@ export type Database = {
           lifetime_max_units: number | null
           limit_type: string | null
           model: string
+          reset_amount: number | null
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
           units_per_period: number
           updated_at: string
@@ -313,6 +314,7 @@ export type Database = {
           lifetime_max_units?: number | null
           limit_type?: string | null
           model: string
+          reset_amount?: number | null
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
           units_per_period: number
           updated_at?: string
@@ -325,6 +327,7 @@ export type Database = {
           lifetime_max_units?: number | null
           limit_type?: string | null
           model?: string
+          reset_amount?: number | null
           reset_period?: Database["public"]["Enums"]["subscription_reset_period"]
           units_per_period?: number
           updated_at?: string

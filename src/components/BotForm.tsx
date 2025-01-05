@@ -12,6 +12,7 @@ import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
 import { ScrollArea } from "./ui/scroll-area";
+import { BotSubscriptionSettings } from "./bot/BotSubscriptionSettings";
 
 interface BotFormProps {
   bot: Bot;
@@ -143,6 +144,10 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               starters={editingBot.starters}
               onStartersChange={(starters) => handleBotChange({ starters })}
             />
+
+            {editingBot.id && (
+              <BotSubscriptionSettings botId={editingBot.id} />
+            )}
           </div>
         </div>
       </ScrollArea>
