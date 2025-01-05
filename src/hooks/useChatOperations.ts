@@ -14,27 +14,32 @@ export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (m
   const { checkTokenUsage } = useTokenUsage();
 
   const handleSendMessage = async (message: string, chatId: string) => {
-    console.log("📨 Attempting to send message...");
-    console.log("Message:", message);
-    console.log("Bot ID:", bot.id);
-    console.log("Chat ID:", chatId);
+    console.log("🚀 Starting message send process...");
+    console.log("📝 Message:", message);
+    console.log("🤖 Bot ID:", bot.id);
+    console.log("💬 Chat ID:", chatId);
+    console.log("📊 Current messages count:", messages.length);
     
     if (!message.trim() || isLoading || isStreaming) {
-      console.log("❌ Preventing message send due to loading state:", { 
-        isEmpty: !message.trim(), 
-        isLoading, 
+      console.log("❌ Message send prevented:", {
+        emptyMessage: !message.trim(),
+        isLoading,
         isStreaming
       });
-      return;
+      return false;
     }
 
     try {
-      console.log("🔍 Checking token usage before sending message");
+      console.log("🔍 Checking token usage limits...");
       const usageResult = await checkTokenUsage(bot.id, 1);
       console.log("📊 Usage check result:", usageResult);
       
       if (!usageResult.canProceed) {
-        console.log("❌ Token usage check failed - cannot proceed");
+        console.log("❌ Usage limit exceeded - cannot send message");
+        console.log("Current usage:", usageResult.currentUsage);
+        console.log("Limit:", usageResult.limit);
+        console.log("Reset period:", usageResult.resetPeriod);
+        
         toast({
           title: "Usage Limit Exceeded",
           description: `You've reached your ${usageResult.resetPeriod} limit of ${usageResult.limit} ${usageResult.limitType}.`,
@@ -43,6 +48,7 @@ export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (m
         return false;
       }
 
+      console.log("✅ Usage check passed - proceeding with message");
       setIsLoading(true);
       setIsStreaming(true);
 
@@ -50,6 +56,7 @@ export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (m
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
 
+      console.log("📨 Sending message to bot...");
       const { response, newMessages: updatedMessages } = await handleMessageSend(
         message,
         messages,
@@ -69,6 +76,7 @@ export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (m
         }
       );
 
+      console.log("💾 Saving chat history...");
       const { data: nextSequence } = await supabase
         .from('chat_history')
         .select('sequence_number')
@@ -87,9 +95,10 @@ export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (m
         1
       );
 
+      console.log("✅ Message handling completed successfully");
       return true;
     } catch (error) {
-      console.error("❌ Chat error:", error);
+      console.error("❌ Error in handleSendMessage:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to get response from AI",
