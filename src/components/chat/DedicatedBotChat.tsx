@@ -19,6 +19,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
 
@@ -46,7 +47,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         setMessages([]);
       }
     } else {
-      setMessages([]); // Reset messages for new chat
+      setMessages([]);
     }
   }, [bot.id, chatId, bot.avatar]);
 
@@ -69,29 +70,48 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const newMessages = [...messages, newUserMessage];
       setMessages(newMessages);
 
-      // Add temporary loading message
-      const loadingMessage = createMessage("assistant", "...", true, bot.avatar);
-      setMessages([...newMessages, loadingMessage]);
+      // Add temporary streaming message
+      const streamingMessage = createMessage("assistant", "", true, bot.avatar);
+      setMessages([...newMessages, streamingMessage]);
+      setIsStreaming(true);
 
-      let response: string;
+      let response: string = "";
 
       if (bot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(newMessages, bot);
+        await ChatService.sendOpenRouterMessage(
+          newMessages,
+          bot,
+          undefined,
+          (chunk: string) => {
+            response += chunk;
+            setMessages(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.role === "assistant") {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMessage, content: response }
+                ];
+              }
+              return prev;
+            });
+          }
+        );
       } else if (bot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(newMessages, bot);
+        // For Gemini, update the message all at once since it doesn't support streaming
+        setMessages(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === "assistant") {
+            return [
+              ...prev.slice(0, -1),
+              { ...lastMessage, content: response }
+            ];
+          }
+          return prev;
+        });
       } else {
         throw new Error("Unsupported model type");
       }
-
-      // Remove loading message and add actual response
-      const botResponse = createMessage("assistant", response, true, bot.avatar);
-      const updatedMessages = [...newMessages, botResponse];
-      
-      setMessages(updatedMessages);
-      
-      // Save to localStorage with unique chat ID
-      const chatKey = `chat_${bot.id}_${chatId}`;
-      localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
 
       // Get the next sequence number
       const { data: chatData } = await supabase
@@ -104,19 +124,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       const nextSequenceNumber = (chatData?.sequence_number || 0) + 1;
 
-      // Prepare messages for Supabase by converting Date objects to ISO strings
-      const supabaseMessages = updatedMessages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp?.toISOString(),
-      }));
-
       // Save to Supabase with avatar URL and sequence number
       const { error } = await supabase
         .from('chat_history')
         .upsert({
           id: chatId,
           bot_id: bot.id,
-          messages: supabaseMessages,
+          messages: [...newMessages, { ...streamingMessage, content: response }].map(msg => ({
+            ...msg,
+            timestamp: msg.timestamp?.toISOString(),
+          })),
           avatar_url: bot.avatar,
           sequence_number: nextSequenceNumber,
           updated_at: new Date().toISOString()
@@ -126,6 +143,11 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         console.error("Error saving chat history:", error);
         throw error;
       }
+
+      // Save to localStorage
+      const chatKey = `chat_${bot.id}_${chatId}`;
+      localStorage.setItem(chatKey, JSON.stringify([...newMessages, { ...streamingMessage, content: response }]));
+
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -135,6 +157,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       });
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -158,6 +181,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           starters={bot.starters}
           onStarterClick={sendMessage}
           isLoading={isLoading}
+          isStreaming={isStreaming}
         />
         <div ref={messagesEndRef} />
       </div>

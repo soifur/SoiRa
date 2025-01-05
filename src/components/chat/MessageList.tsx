@@ -20,15 +20,17 @@ interface MessageListProps {
   starters?: string[];
   onStarterClick?: (value: string) => void;
   isLoading?: boolean;
+  isStreaming?: boolean;
   onClearChat?: () => void;
 }
 
 export const MessageList = ({ 
-  messages = [], // Add default empty array
+  messages = [],
   selectedBot, 
   starters = [], 
   onStarterClick, 
   isLoading,
+  isStreaming,
   onClearChat 
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -116,6 +118,7 @@ export const MessageList = ({
                     isBot={message.role === "assistant"}
                     avatar={message.avatar || selectedBot?.avatar}
                     isLoading={index === messages.length - 1 && message.role === "assistant" && isLoading}
+                    isStreaming={index === messages.length - 1 && message.role === "assistant" && isStreaming}
                   />
                 </div>
               ))}
