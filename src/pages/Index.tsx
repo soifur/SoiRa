@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Bot } from "@/hooks/useBots";
@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useTokenUsage } from "@/hooks/useTokenUsage";
 import { ChatLayout } from "@/components/chat/ChatLayout";
 
@@ -56,47 +56,15 @@ const Index = () => {
     retry: false,
   });
 
-  // Fetch shared bots with error handling
-  const { data: sharedBots = [] } = useQuery({
-    queryKey: ['shared-bots'],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('shared_bots')
-          .select('*')
-          .eq('published', true)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        return data;
-      } catch (error) {
-        console.error('Error fetching shared bots:', error);
-        return [];
+  // Set default bot on load
+  useEffect(() => {
+    if (userBots && userBots.length > 0 && !selectedBotId) {
+      const defaultBot = userBots.find(bot => bot.default_bot);
+      if (defaultBot) {
+        setSelectedBotId(defaultBot.id);
       }
-    },
-    retry: false,
-  });
-
-  const allBots = [
-    ...(userBots || []),
-    ...(sharedBots || []).map(shared => ({
-      id: shared.share_key,
-      name: `${shared.bot_name} (Shared)`,
-      instructions: shared.instructions || "",
-      starters: shared.starters || [],
-      model: shared.model as Bot['model'],
-      apiKey: "",
-      openRouterModel: shared.open_router_model,
-      avatar: shared.avatar,
-      accessType: "public" as const,
-      memory_enabled: shared.memory_enabled,
-    }))
-  ];
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
+    }
+  }, [userBots, selectedBotId]);
 
   const {
     messages,
@@ -106,43 +74,11 @@ const Index = () => {
     handleNewChat,
     handleSelectChat,
     sendMessage
-  } = useChat(allBots.find(bot => bot.id === selectedBotId), sessionToken);
+  } = useChat(userBots.find(bot => bot.id === selectedBotId), sessionToken);
 
-  // Set default bot on load
-  useState(() => {
-    if (userBots && userBots.length > 0 && !selectedBotId) {
-      const defaultBot = userBots.find(bot => bot.default_bot);
-      if (defaultBot) {
-        setSelectedBotId(defaultBot.id);
-      }
-    }
-  });
-
-  const handleChatSelect = async (chatId: string) => {
-    try {
-      const { data: chat } = await supabase
-        .from('chat_history')
-        .select('bot_id')
-        .eq('id', chatId)
-        .maybeSingle();
-
-      if (chat?.bot_id) {
-        const botExists = allBots.some(bot => bot.id === chat.bot_id);
-        if (!botExists) {
-          toast({
-            title: "Bot not available",
-            description: "The bot associated with this chat is not currently available.",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        setSelectedBotId(chat.bot_id);
-        handleSelectChat(chatId);
-      }
-    } catch (error) {
-      console.error('Error selecting chat:', error);
-    }
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
   };
 
   return (
@@ -152,13 +88,13 @@ const Index = () => {
           <ChatLayout
             selectedBotId={selectedBotId}
             setSelectedBotId={setSelectedBotId}
-            allBots={allBots}
+            allBots={userBots}
             messages={messages}
             isLoading={isLoading}
             isStreaming={isStreaming}
             currentChatId={currentChatId}
             handleNewChat={handleNewChat}
-            handleSelectChat={handleChatSelect}
+            handleSelectChat={handleSelectChat}
             sendMessage={sendMessage}
             onSignOut={handleSignOut}
             showHistory={showHistory}
