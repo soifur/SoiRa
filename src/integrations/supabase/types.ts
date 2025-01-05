@@ -41,6 +41,7 @@ export type Database = {
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model: string | null
+          published: boolean | null
           starters: string[] | null
           updated_at: string
           user_id: string
@@ -56,6 +57,7 @@ export type Database = {
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model?: string | null
+          published?: boolean | null
           starters?: string[] | null
           updated_at?: string
           user_id: string
@@ -71,6 +73,7 @@ export type Database = {
           model?: Database["public"]["Enums"]["bot_model"]
           name?: string
           open_router_model?: string | null
+          published?: boolean | null
           starters?: string[] | null
           updated_at?: string
           user_id?: string
@@ -220,6 +223,7 @@ export type Database = {
           memory_model: string | null
           model: string
           open_router_model: string | null
+          published: boolean | null
           share_key: string
           short_key: string | null
           starters: string[] | null
@@ -240,6 +244,7 @@ export type Database = {
           memory_model?: string | null
           model: string
           open_router_model?: string | null
+          published?: boolean | null
           share_key: string
           short_key?: string | null
           starters?: string[] | null
@@ -260,6 +265,7 @@ export type Database = {
           memory_model?: string | null
           model?: string
           open_router_model?: string | null
+          published?: boolean | null
           share_key?: string
           short_key?: string | null
           starters?: string[] | null

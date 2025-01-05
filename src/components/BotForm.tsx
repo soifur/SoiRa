@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Bot } from "@/hooks/useBots";
 import { ModelSelector } from "./bot/ModelSelector";
-import { AvatarUploader } from "./AvatarUploader";
 import { StartersInput } from "./bot/StartersInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useToast } from "./ui/use-toast";
 import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
+import { BotBasicInfo } from "./bot/BotBasicInfo";
+import { BotPublishToggle } from "./bot/BotPublishToggle";
+import { BotApiSettings } from "./bot/BotApiSettings";
 
 interface BotFormProps {
   bot: Bot;
@@ -17,22 +18,20 @@ interface BotFormProps {
   onCancel: () => void;
 }
 
-type BotModel = "gemini" | "claude" | "openai" | "openrouter";
-
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
+    published: bot.published ?? true,
   });
-  const [isPublished, setIsPublished] = useState(!!bot.model);
   const { toast } = useToast();
 
-  useEffect(() => {
-    setIsPublished(!!bot.model);
-  }, [bot]);
+  const handleBotChange = (updates: Partial<Bot>) => {
+    setEditingBot(prev => ({ ...prev, ...updates }));
+  };
 
-  const handleModelChange = (model: BotModel) => {
-    if (!isPublished) {
+  const handleModelChange = (model: Bot['model']) => {
+    if (!editingBot.published) {
       toast({
         title: "Error",
         description: "Please enable publishing to select a model",
@@ -40,22 +39,21 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       });
       return;
     }
-    setEditingBot({ 
-      ...editingBot, 
-      model: model,
+    handleBotChange({ 
+      model,
       openRouterModel: model === "openrouter" ? editingBot.openRouterModel : undefined 
     });
   };
 
   const handleMemoryToggle = async (checked: boolean) => {
     if (!editingBot.id) {
-      setEditingBot({ ...editingBot, memory_enabled: checked });
+      handleBotChange({ memory_enabled: checked });
       return;
     }
 
     try {
       await updateBotMemorySettings(editingBot.id, checked);
-      setEditingBot({ ...editingBot, memory_enabled: checked });
+      handleBotChange({ memory_enabled: checked });
       toast({
         title: "Success",
         description: "Memory settings updated successfully",
@@ -71,16 +69,14 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const handlePublishToggle = (checked: boolean) => {
-    setIsPublished(checked);
-    // Keep all settings, just update the published state
-    setEditingBot(prevBot => ({
-      ...prevBot,
-      model: checked ? prevBot.model || undefined : undefined,
-    }));
+    handleBotChange({
+      published: checked,
+      model: checked ? editingBot.model : undefined
+    });
   };
 
   const handleSave = async () => {
-    if (isPublished && !editingBot.model) {
+    if (editingBot.published && !editingBot.model) {
       toast({
         title: "Error",
         description: "Please select a model before saving a published bot",
@@ -90,19 +86,13 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
 
     try {
-      // Create a new bot object with the correct published state
-      const botToSave = {
-        ...editingBot,
-        model: isPublished ? editingBot.model : undefined,
-      };
-
-      if (!botToSave.id) {
-        onSave(botToSave);
+      if (!editingBot.id) {
+        onSave(editingBot);
         return;
       }
 
-      await updateBotAndSharedConfig(botToSave);
-      onSave(botToSave);
+      await updateBotAndSharedConfig(editingBot);
+      onSave(editingBot);
       toast({
         title: "Success",
         description: "Bot updated successfully",
@@ -119,37 +109,18 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <AvatarUploader 
-          avatar={editingBot.avatar}
-          onAvatarChange={(avatar) => setEditingBot({ ...editingBot, avatar })}
-        />
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Name</label>
-          <Input
-            value={editingBot.name}
-            onChange={(e) => setEditingBot({ ...editingBot, name: e.target.value })}
-            placeholder="Bot name"
-            className="dark:bg-[#1e1e1e] dark:border-gray-700"
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="publish-mode"
-          checked={isPublished}
-          onCheckedChange={handlePublishToggle}
-          className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
-        />
-        <Label htmlFor="publish-mode">Enable Publishing</Label>
-      </div>
+      <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
+      
+      <BotPublishToggle 
+        isPublished={editingBot.published ?? true}
+        onPublishChange={handlePublishToggle}
+      />
 
       <ModelSelector 
         bot={editingBot}
         onModelChange={handleModelChange}
         onOpenRouterModelChange={(model) => {
-          if (!isPublished) {
+          if (!editingBot.published) {
             toast({
               title: "Error",
               description: "Please enable publishing to select a model",
@@ -157,27 +128,21 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             });
             return;
           }
-          setEditingBot({ ...editingBot, openRouterModel: model });
+          handleBotChange({ openRouterModel: model });
         }}
-        disabled={!isPublished}
+        disabled={!editingBot.published}
       />
 
-      <div>
-        <label className="block text-sm font-medium mb-1">API Key</label>
-        <Input
-          type="password"
-          value={editingBot.apiKey}
-          onChange={(e) => setEditingBot({ ...editingBot, apiKey: e.target.value })}
-          placeholder="Enter your API key"
-          className="dark:bg-[#1e1e1e] dark:border-gray-700"
-        />
-      </div>
+      <BotApiSettings 
+        apiKey={editingBot.apiKey}
+        onApiKeyChange={(apiKey) => handleBotChange({ apiKey })}
+      />
 
       <div>
         <label className="block text-sm font-medium mb-1">Instructions</label>
         <Textarea
           value={editingBot.instructions}
-          onChange={(e) => setEditingBot({ ...editingBot, instructions: e.target.value })}
+          onChange={(e) => handleBotChange({ instructions: e.target.value })}
           placeholder="Enter instructions for the bot..."
           rows={4}
           className="dark:bg-[#1e1e1e] dark:border-gray-700"
@@ -196,7 +161,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
       <StartersInput 
         starters={editingBot.starters}
-        onStartersChange={(starters) => setEditingBot({ ...editingBot, starters })}
+        onStartersChange={(starters) => handleBotChange({ starters })}
       />
 
       <div className="flex justify-end gap-2">

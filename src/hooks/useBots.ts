@@ -15,6 +15,7 @@ export interface Bot {
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
+  published?: boolean;
 }
 
 export const useBots = () => {
