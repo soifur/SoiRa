@@ -55,11 +55,11 @@ export const MessageList = ({
         ref={scrollRef}
       >
         {messages.length === 0 && starters && starters.length > 0 && (
-          <div className="flex flex-col items-center justify-center h-full space-y-4">
-            <h3 className="text-lg font-semibold">
+          <div className="flex flex-col items-center justify-center h-full">
+            <h3 className="text-lg font-semibold mb-4">
               Start a conversation with {selectedBot.name}
             </h3>
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap gap-2">
               {starters.map((starter, index) => (
                 <Button
                   key={index}
