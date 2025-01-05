@@ -230,9 +230,11 @@ export const MainChatHistory = ({
             onClose={onClose}
           />
         </div>
-        <div className="flex-none border-t">
-          <ProfileSection showViewPlans={true} />
-        </div>
+        {isMobile && (
+          <div className="flex-none border-t">
+            <ProfileSection showViewPlans={true} />
+          </div>
+        )}
       </div>
     </div>
   );

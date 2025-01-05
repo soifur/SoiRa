@@ -22,19 +22,17 @@ export const ChatContainer = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
-      <div className="flex-1 relative">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] pt-14">
+      <div className="flex-1 overflow-hidden relative">
         {selectedBot ? (
-          <div className="absolute inset-0">
-            <MessageList
-              messages={messages}
-              selectedBot={selectedBot}
-              starters={selectedBot.starters || []}
-              onStarterClick={sendMessage}
-              isLoading={isLoading}
-              isStreaming={isStreaming}
-            />
-          </div>
+          <MessageList
+            messages={messages}
+            selectedBot={selectedBot}
+            starters={selectedBot.starters || []}
+            onStarterClick={sendMessage}
+            isLoading={isLoading}
+            isStreaming={isStreaming}
+          />
         ) : (
           <div className="h-full flex items-center justify-center text-muted-foreground">
             Select a model to start chatting

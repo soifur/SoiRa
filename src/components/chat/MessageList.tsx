@@ -63,8 +63,8 @@ export const MessageList = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1">
+    <div className="h-full overflow-hidden">
+      <ScrollArea className="h-full">
         <div 
           ref={scrollRef}
           className={cn(
