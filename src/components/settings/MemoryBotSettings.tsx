@@ -13,11 +13,6 @@ export const MemoryBotSettings = () => {
     return <div>Loading...</div>;
   }
 
-  const handleSave = async () => {
-    if (!settings) return;
-    await saveSettings(settings);
-  };
-
   return (
     <Card className="p-6">
       <div className="space-y-6">
@@ -67,7 +62,9 @@ export const MemoryBotSettings = () => {
           />
         </div>
 
-        <Button onClick={handleSave} className="w-full">Save Changes</Button>
+        <Button onClick={() => saveSettings(settings)} className="w-full">
+          Save Changes
+        </Button>
       </div>
     </Card>
   );
