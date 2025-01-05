@@ -14,6 +14,16 @@ interface UpgradeModalProps {
   onClose: () => void;
 }
 
+// Add type for subscription tier
+interface SubscriptionTier {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  features: string[] | string;
+  is_active: boolean;
+}
+
 export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   const navigate = useNavigate();
 
@@ -43,7 +53,7 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
         .order('price', { ascending: true });
 
       if (error) throw error;
-      return data;
+      return data as SubscriptionTier[];
     }
   });
 
@@ -69,7 +79,7 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
               name={tier.name}
               description={tier.description}
               price={tier.price}
-              features={tier.features}
+              features={Array.isArray(tier.features) ? tier.features : [tier.features]}
               isComingSoon={tier.name === 'Pro'}
               isCurrentPlan={tier.name === 'Free' && userProfile?.subscription_status === 'free'}
               onSelect={() => handleUpgrade(tier.id)}
