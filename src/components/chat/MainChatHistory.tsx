@@ -25,6 +25,9 @@ type ChatsByModelAndDate = {
   };
 };
 
+const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
+const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
+
 export const MainChatHistory = ({
   sessionToken,
   botId,
@@ -36,8 +39,16 @@ export const MainChatHistory = ({
   setSelectedBotId,
 }: MainChatHistoryProps) => {
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Today", "Yesterday"]));
-  const [expandedModels, setExpandedModels] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
+    const savedGroups = localStorage.getItem(EXPANDED_GROUPS_KEY);
+    return savedGroups ? new Set(JSON.parse(savedGroups)) : new Set(DATE_GROUP_ORDER);
+  });
+
+  const [expandedModels, setExpandedModels] = useState<Set<string>>(() => {
+    const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
+    return savedModels ? new Set(JSON.parse(savedModels)) : new Set();
+  });
+
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -46,6 +57,26 @@ export const MainChatHistory = ({
       fetchChatHistory();
     }
   }, [sessionToken, botId]);
+
+  // Save expanded states to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
+  }, [expandedGroups]);
+
+  useEffect(() => {
+    localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
+  }, [expandedModels]);
+
+  // When chat data is loaded, expand all model groups by default
+  useEffect(() => {
+    const modelNames = Object.keys(chatsByModelAndDate);
+    if (modelNames.length > 0) {
+      const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
+      if (!savedModels) {
+        setExpandedModels(new Set(modelNames));
+      }
+    }
+  }, [chatsByModelAndDate]);
 
   const fetchChatHistory = async () => {
     try {
