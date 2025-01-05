@@ -71,6 +71,18 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
   };
 
+  const handlePublishToggle = (checked: boolean) => {
+    setIsPublished(checked);
+    if (!checked) {
+      // Clear model-related fields when unpublishing
+      setEditingBot({ 
+        ...editingBot, 
+        model: undefined,
+        openRouterModel: undefined 
+      });
+    }
+  };
+
   const handleSave = async () => {
     if (isPublished && !editingBot.model) {
       toast({
@@ -132,7 +144,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         <Switch
           id="publish-mode"
           checked={isPublished}
-          onCheckedChange={setIsPublished}
+          onCheckedChange={handlePublishToggle}
           className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
         />
         <Label htmlFor="publish-mode">Enable Publishing</Label>
