@@ -22,7 +22,7 @@ export const ChatContainer = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] pt-14">
       <div className="flex-1 overflow-hidden relative">
         {selectedBot ? (
           <MessageList
