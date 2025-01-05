@@ -2,24 +2,44 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2, Share2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Share2, Tag } from "lucide-react";
 import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
 import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
+import { useCategories } from "@/hooks/useCategories";
+import { CategoryBadge } from "@/components/categories/CategoryBadge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [embedDialogBot, setEmbedDialogBot] = useState<Bot | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const { toast } = useToast();
   const { bots, saveBot, deleteBot } = useBots();
+  const { 
+    categories, 
+    getBotCategories, 
+    assignBotToCategory, 
+    removeBotFromCategory 
+  } = useCategories();
 
   const handleSave = async (bot: Bot) => {
     const updatedBot = await saveBot({ ...bot, accessType: bot.accessType || "private" });
     setEditingBot(null);
     
-    // Update the selected bot if it was being edited
     if (selectedBot && selectedBot.id === bot.id) {
       setSelectedBot(updatedBot);
     }
@@ -98,8 +118,29 @@ const Bots = () => {
                     <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                       {truncateInstructions(bot.instructions)}
                     </p>
+                    <div className="flex gap-1 mt-2 flex-wrap">
+                      {getBotCategories(bot.id).map((category) => (
+                        <CategoryBadge
+                          key={category.id}
+                          category={category}
+                          onRemove={() => removeBotFromCategory(bot.id, category.id)}
+                        />
+                      ))}
+                    </div>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCategoryDialogOpen(true);
+                        setSelectedBot(bot);
+                      }}
+                    >
+                      <Tag className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -156,6 +197,43 @@ const Bots = () => {
         onClose={() => setEmbedDialogBot(null)}
         bot={embedDialogBot as Bot}
       />
+
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manage Categories</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="text-sm text-muted-foreground">
+              Select categories for {selectedBot?.name}
+            </div>
+            <div className="grid gap-2">
+              {categories.map((category) => {
+                const isAssigned = selectedBot && 
+                  getBotCategories(selectedBot.id).some(c => c.id === category.id);
+                
+                return (
+                  <Button
+                    key={category.id}
+                    variant={isAssigned ? "secondary" : "outline"}
+                    className="justify-start"
+                    onClick={() => {
+                      if (!selectedBot) return;
+                      if (isAssigned) {
+                        removeBotFromCategory(selectedBot.id, category.id);
+                      } else {
+                        assignBotToCategory(selectedBot.id, category.id);
+                      }
+                    }}
+                  >
+                    {category.name}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
