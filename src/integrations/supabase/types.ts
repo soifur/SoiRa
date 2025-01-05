@@ -95,6 +95,7 @@ export type Database = {
           sequence_number: number
           session_token: string | null
           share_key: string | null
+          tokens_used: number | null
           updated_at: string | null
           user_id: string | null
         }
@@ -108,6 +109,7 @@ export type Database = {
           sequence_number: number
           session_token?: string | null
           share_key?: string | null
+          tokens_used?: number | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -121,6 +123,7 @@ export type Database = {
           sequence_number?: number
           session_token?: string | null
           share_key?: string | null
+          tokens_used?: number | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -240,6 +243,36 @@ export type Database = {
           open_router_model?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      model_subscription_settings: {
+        Row: {
+          created_at: string
+          id: string
+          lifetime_max_tokens: number | null
+          model: string
+          reset_period: Database["public"]["Enums"]["subscription_reset_period"]
+          tokens_per_period: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lifetime_max_tokens?: number | null
+          model: string
+          reset_period: Database["public"]["Enums"]["subscription_reset_period"]
+          tokens_per_period: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lifetime_max_tokens?: number | null
+          model?: string
+          reset_period?: Database["public"]["Enums"]["subscription_reset_period"]
+          tokens_per_period?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -400,6 +433,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_token_usage: {
+        Args: {
+          p_user_id: string
+          p_model: string
+          p_tokens: number
+        }
+        Returns: boolean
+      }
       generate_short_key: {
         Args: {
           length?: number
@@ -419,6 +460,7 @@ export type Database = {
       question_type: "text" | "single_choice" | "multiple_choice"
       quiz_question_type: "text" | "checkbox"
       quiz_status: "not_started" | "in_progress" | "completed"
+      subscription_reset_period: "daily" | "weekly" | "monthly" | "never"
       user_role: "super_admin" | "admin" | "user" | "paid_user"
     }
     CompositeTypes: {
