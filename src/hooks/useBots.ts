@@ -47,12 +47,13 @@ export const useBots = () => {
         name: bot.name,
         instructions: bot.instructions || "",
         starters: bot.starters || [],
-        model: bot.model as "gemini" | "claude" | "openai" | "openrouter",
+        model: bot.model as BaseModel,
         apiKey: bot.api_key,
         openRouterModel: bot.open_router_model,
         avatar: bot.avatar,
         accessType: "private",
         memory_enabled: bot.memory_enabled,
+        published: bot.published,
       }));
 
       setBots(transformedBots);

@@ -67,6 +67,10 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
   };
 
+  const handlePublishToggle = async (checked: boolean) => {
+    handleBotChange({ published: checked });
+  };
+
   const handleSave = async () => {
     try {
       if (!editingBot.id) {
@@ -98,7 +102,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           
           <BotPublishToggle 
             isPublished={editingBot.published}
-            onPublishChange={(published) => handleBotChange({ published })}
+            onPublishChange={handlePublishToggle}
           />
 
           <ModelSelector 
