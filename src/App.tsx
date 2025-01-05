@@ -10,7 +10,7 @@ import SharedCategory from "@/pages/SharedCategory";
 import Settings from "@/pages/Settings";
 import Archive from "@/pages/Archive";
 import Chat from "@/pages/Chat";
-import EmbeddedChatUI from "@/components/chat/embedded/EmbeddedChatUI";
+import EmbeddedChatContainer from "@/components/chat/embedded/EmbeddedChatContainer";
 
 function App() {
   return (
@@ -18,22 +18,10 @@ function App() {
       <ThemeProvider defaultTheme="dark" attribute="class">
         <Routes>
           {/* Embedded routes without navigation */}
-          <Route 
-            path="/embed/:shortKey" 
-            element={
-              <EmbeddedChatContainer />
-            } 
-          />
+          <Route path="/embed/:shortKey" element={<EmbeddedChatContainer />} />
           
           {/* Regular routes with navigation */}
-          <Route
-            element={
-              <>
-                <Navigation />
-                <Toaster />
-              </>
-            }
-          >
+          <Route element={<Navigation />}>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/bots" element={<Bots />} />
@@ -44,6 +32,7 @@ function App() {
             <Route path="/chat" element={<Chat />} />
           </Route>
         </Routes>
+        <Toaster />
       </ThemeProvider>
     </BrowserRouter>
   );

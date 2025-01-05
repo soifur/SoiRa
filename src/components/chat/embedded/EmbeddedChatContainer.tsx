@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import EmbeddedChatUI from "./EmbeddedChatUI";
-import { Bot } from "../types/chatTypes";
+import type { Bot } from "../types/chatTypes";
 
 const EmbeddedChatContainer = () => {
   const { shortKey } = useParams();
@@ -30,7 +30,7 @@ const EmbeddedChatContainer = () => {
           name: sharedBot.bot_name,
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
-          model: sharedBot.model,
+          model: sharedBot.model as Bot["model"],
           open_router_model: sharedBot.open_router_model,
           avatar: sharedBot.avatar,
           voice_enabled: sharedBot.voice_enabled || false,
