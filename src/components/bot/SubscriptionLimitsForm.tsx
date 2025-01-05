@@ -47,7 +47,7 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
   useEffect(() => {
     fetchUserRole();
     fetchSubscriptionSettings();
-  }, [model]);
+  }, [model]); // Re-fetch when model changes
 
   const fetchUserRole = async () => {
     try {
@@ -70,6 +70,8 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
   };
 
   const fetchSubscriptionSettings = async () => {
+    if (!model) return; // Don't fetch if no model is selected
+
     try {
       const { data, error } = await supabase
         .from('model_subscription_settings')
@@ -93,10 +95,24 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
       }
     } catch (error) {
       console.error('Error fetching subscription settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch subscription settings",
+        variant: "destructive",
+      });
     }
   };
 
   const handleSubscriptionSettingChange = async (updates: Partial<SubscriptionSettings>) => {
+    if (!model) {
+      toast({
+        title: "Error",
+        description: "Please select a model first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const currentSettings = subscriptionSettings[selectedRole];
     const newSettings = { ...currentSettings, ...updates };
     
@@ -147,7 +163,7 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Subscription Settings</h3>
+      <h3 className="text-lg font-medium">Subscription Settings for {model}</h3>
       
       {canModifySettings && (
         <div className="space-y-2">
