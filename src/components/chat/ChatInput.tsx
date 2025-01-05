@@ -97,9 +97,9 @@ export const ChatInput = ({
           disabled={disabled || isLoading}
           className={cn(
             "h-10 w-10 rounded-full shrink-0",
-            "bg-foreground dark:bg-background",
-            "text-background dark:text-foreground",
-            "hover:bg-foreground/90 dark:hover:bg-white",
+            "bg-black dark:bg-white",
+            "text-white dark:text-black",
+            "hover:bg-black/90 dark:hover:bg-white/90",
             "shadow-lg"
           )}
         >
