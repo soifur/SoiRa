@@ -50,30 +50,31 @@ export const MessageList = ({
   return (
     <div className="flex flex-col h-full">
       <ScrollArea 
-        className="flex-1 p-4"
+        className="flex-1"
         onScroll={handleScroll}
         ref={scrollRef}
       >
         {messages.length === 0 && starters && starters.length > 0 && (
-          <div className="flex flex-col items-center justify-center h-full">
-            <h3 className="text-lg font-semibold mb-4">
-              Start a conversation with {selectedBot.name}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {starters.map((starter, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className={cn(
-                    "text-sm",
-                    disabled && "opacity-50 cursor-not-allowed"
-                  )}
-                  onClick={() => !disabled && onStarterClick?.(starter)}
-                  disabled={disabled}
-                >
-                  {starter}
-                </Button>
-              ))}
+          <div className="flex flex-col items-center h-full">
+            <div className="text-center mt-[30vh]">
+              <h2 className="text-2xl font-semibold mb-2">What can I help with?</h2>
+              <div className="flex flex-col gap-2 mt-6">
+                {starters.map((starter, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className={cn(
+                      "w-full text-left h-12 px-4 bg-background hover:bg-accent",
+                      disabled && "opacity-50 cursor-not-allowed"
+                    )}
+                    onClick={() => !disabled && onStarterClick?.(starter)}
+                    disabled={disabled}
+                  >
+                    <span className="mr-2">💬</span>
+                    {starter}
+                  </Button>
+                ))}
+              </div>
             </div>
             {disabled && disabledReason && (
               <p className="text-sm text-destructive mt-4">
