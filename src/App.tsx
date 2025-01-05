@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Navigation } from "@/components/Navigation";
 import { ThemeProvider } from "next-themes";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +47,6 @@ function App() {
           <meta name="description" content="SoiRa AI - Your AI Assistant" />
         </Helmet>
         <Router>
-          {isAuthenticated && <Navigation />}
           <Routes>
             <Route
               path="/"
