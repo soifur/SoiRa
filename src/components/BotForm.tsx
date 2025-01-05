@@ -93,7 +93,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
 
     try {
-      // Ensure model-related fields are cleared when unpublishing
+      // Create a new bot object with the correct published state
       const botToSave = {
         ...editingBot,
         model: isPublished ? editingBot.model : undefined,
