@@ -20,6 +20,8 @@ interface MainChatHeaderProps {
   bots?: BotType[];
   onNewChat: () => void;
   onSignOut: () => void;
+  onToggleHistory: () => void;
+  showHistory: boolean;
 }
 
 export const MainChatHeader = ({
@@ -28,6 +30,8 @@ export const MainChatHeader = ({
   bots,
   onNewChat,
   onSignOut,
+  onToggleHistory,
+  showHistory,
 }: MainChatHeaderProps) => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -53,7 +57,7 @@ export const MainChatHeader = ({
             variant="ghost"
             size="icon"
             className="h-8 w-8 hover:bg-dropdown-hover"
-            onClick={() => navigate('/archive')}
+            onClick={onToggleHistory}
           >
             <Clock className="h-4 w-4" />
           </Button>

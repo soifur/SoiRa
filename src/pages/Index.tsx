@@ -8,9 +8,11 @@ import { Bot as BotType } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
+import { MainChatHistory } from "@/components/chat/MainChatHistory";
 import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
+import { useSessionToken } from "@/hooks/useSessionToken";
 
 // Since this file is quite long (223 lines), let's split it into smaller components
 // First, let's extract the chat functionality into a separate component
@@ -49,9 +51,11 @@ const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [chatId] = useState(() => uuidv4());
+  const { sessionToken } = useSessionToken();
 
   // Query for user's bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
@@ -128,6 +132,31 @@ const Index = () => {
     });
   };
 
+  const handleSelectChat = async (selectedChatId: string) => {
+    try {
+      const { data: chat } = await supabase
+        .from('chat_history')
+        .select('*')
+        .eq('id', selectedChatId)
+        .single();
+
+      if (chat && chat.messages) {
+        setMessages(chat.messages.map((msg: any) => ({
+          ...msg,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+          id: msg.id || uuidv4()
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat",
+        variant: "destructive",
+      });
+    }
+  };
+
   const sendMessage = async (message: string) => {
     if (!selectedBot || !message.trim()) return;
 
@@ -152,10 +181,6 @@ const Index = () => {
       const botMessage = createMessage("assistant", response, true);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
-
-      // Save chat history
-      const chatKey = `chat_${selectedBot.id}_${chatId}`;
-      localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
 
       await saveChatHistory(updatedMessages, selectedBot);
 
@@ -202,14 +227,6 @@ const Index = () => {
     }
   };
 
-  if (isLoadingUserBots || isLoadingSharedBots) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Card className="w-full h-[100dvh] overflow-hidden relative">
@@ -221,6 +238,17 @@ const Index = () => {
               bots={allBots}
               onNewChat={handleNewChat}
               onSignOut={handleSignOut}
+              onToggleHistory={() => setShowHistory(!showHistory)}
+              showHistory={showHistory}
+            />
+            <MainChatHistory
+              sessionToken={sessionToken}
+              botId={selectedBotId}
+              onSelectChat={handleSelectChat}
+              onNewChat={handleNewChat}
+              currentChatId={chatId}
+              isOpen={showHistory}
+              onClose={() => setShowHistory(false)}
             />
             <ChatSection
               selectedBot={selectedBot}
