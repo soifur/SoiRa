@@ -85,7 +85,7 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
             units_per_period: setting.units_per_period,
             reset_period: setting.reset_period,
             lifetime_max_units: setting.lifetime_max_units,
-            limit_type: setting.limit_type || 'tokens',
+            limit_type: (setting.limit_type || 'tokens') as LimitType,
             user_role: setting.user_role
           };
         });
