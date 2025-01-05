@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export interface Folder {
   id: string;
-  title: string;
+  title: string;  // Required field
   description: string | null;
   back_half: string | null;
   allow_signups: boolean;
@@ -39,7 +39,7 @@ export const useFolders = () => {
   });
 
   const createFolder = useMutation({
-    mutationFn: async (folder: Partial<Folder>) => {
+    mutationFn: async (folder: Pick<Folder, 'title'> & Partial<Omit<Folder, 'title'>>) => {
       const { data, error } = await supabase
         .from('folders')
         .insert(folder)
