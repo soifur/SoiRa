@@ -59,7 +59,7 @@ export const MessageList = ({
             <h3 className="text-lg font-semibold">
               Start a conversation with {selectedBot.name}
             </h3>
-            <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
+            <div className="flex flex-wrap justify-center gap-2">
               {starters.map((starter, index) => (
                 <Button
                   key={index}
