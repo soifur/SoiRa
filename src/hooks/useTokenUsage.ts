@@ -32,14 +32,14 @@ export const useTokenUsage = () => {
       console.log("Model:", model);
       console.log("Estimated tokens:", estimatedTokens);
 
-      // First, get the user's role
-      const { data: profile } = await supabase
+      // First, get the user's role from profiles
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userData.user.id)
         .single();
 
-      if (!profile) {
+      if (profileError || !profile) {
         console.log("No profile found for user");
         throw new Error("User profile not found");
       }
@@ -47,14 +47,14 @@ export const useTokenUsage = () => {
       console.log("User role:", profile.role);
 
       // Get subscription settings for the model and user role
-      const { data: settings } = await supabase
+      const { data: settings, error: settingsError } = await supabase
         .from('model_subscription_settings')
         .select('*')
         .eq('model', model)
         .eq('user_role', profile.role)
         .single();
 
-      if (!settings) {
+      if (settingsError || !settings) {
         console.log("No subscription settings found for model and role");
         throw new Error("Subscription settings not found");
       }
@@ -82,12 +82,17 @@ export const useTokenUsage = () => {
       console.log("Period start:", periodStart.toISOString());
 
       // Get current usage for the period
-      const { data: usage } = await supabase
+      const { data: usage, error: usageError } = await supabase
         .from('chat_history')
         .select(settings.limit_type === 'messages' ? 'messages_used' : 'tokens_used')
         .eq('user_id', userData.user.id)
         .eq('bot_id', model)
         .gte('created_at', periodStart.toISOString());
+
+      if (usageError) {
+        console.error("Error fetching usage:", usageError);
+        throw new Error("Failed to fetch usage data");
+      }
 
       console.log("Raw usage data:", usage);
 
