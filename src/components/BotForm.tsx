@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Bot } from "@/hooks/useBots";
@@ -12,7 +12,6 @@ import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
 import { ScrollArea } from "./ui/scroll-area";
-import { SubscriptionLimitsForm } from "./bot/SubscriptionLimitsForm";
 
 interface BotFormProps {
   bot: Bot;
@@ -26,8 +25,17 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     memory_enabled: bot.memory_enabled ?? false,
     published: bot.published ?? false
   });
-  
   const { toast } = useToast();
+
+  // Update editingBot when bot prop changes
+  useEffect(() => {
+    setEditingBot(prev => ({
+      ...prev,
+      ...bot,
+      memory_enabled: bot.memory_enabled ?? false,
+      published: bot.published ?? false
+    }));
+  }, [bot]);
 
   const handleBotChange = (updates: Partial<Bot>) => {
     setEditingBot(prev => ({ ...prev, ...updates }));
@@ -109,8 +117,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               apiKey={editingBot.apiKey}
               onApiKeyChange={(apiKey) => handleBotChange({ apiKey })}
             />
-
-            <SubscriptionLimitsForm model={editingBot.model} />
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">Instructions</label>

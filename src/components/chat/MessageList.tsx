@@ -22,7 +22,6 @@ interface MessageListProps {
   isLoading?: boolean;
   isStreaming?: boolean;
   onClearChat?: () => void;
-  disabled?: boolean;
 }
 
 export const MessageList = ({ 
@@ -32,8 +31,7 @@ export const MessageList = ({
   onStarterClick, 
   isLoading,
   isStreaming,
-  onClearChat,
-  disabled = false
+  onClearChat 
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
@@ -96,11 +94,9 @@ export const MessageList = ({
                         "text-sm md:text-base w-full",
                         "rounded-xl md:rounded-2xl hover:bg-accent/50 transition-colors",
                         "bg-background/50 backdrop-blur-sm border-muted-foreground/20",
-                        "whitespace-normal text-left",
-                        disabled && "opacity-50 cursor-not-allowed"
+                        "whitespace-normal text-left"
                       )}
-                      onClick={() => !disabled && onStarterClick && onStarterClick(starter)}
-                      disabled={disabled}
+                      onClick={() => onStarterClick && onStarterClick(starter)}
                     >
                       <Icon className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
                       <span className="text-left break-words">{starter}</span>

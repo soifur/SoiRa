@@ -1,14 +1,15 @@
-import { useToast } from "@/hooks/use-toast";
+import { useState, useRef, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
+import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
-import { useChatState } from "@/hooks/useChatState";
-import { useTokenUsage } from "@/hooks/useTokenUsage";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { UsageLimitAlert } from "./UsageLimitAlert";
-import { useChatOperations } from "@/hooks/useChatOperations";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { v4 as uuidv4 } from 'uuid';
+import { supabase } from "@/integrations/supabase/client";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -16,59 +17,39 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const { checkTokenUsage } = useTokenUsage();
-  const [usageExceeded, setUsageExceeded] = useState(false);
-  const [usageInfo, setUsageInfo] = useState<{
-    currentUsage: number;
-    limit: number;
-    resetPeriod: string;
-    limitType: string;
-  } | null>(null);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [chatId] = useState(() => uuidv4());
 
-  const {
-    messages,
-    setMessages,
-    messagesEndRef,
-    chatId
-  } = useChatState(bot);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  const {
-    isLoading,
-    isStreaming,
-    handleSendMessage
-  } = useChatOperations(bot, messages, setMessages);
-
-  // Check usage limits on component mount and after each message
   useEffect(() => {
-    const checkLimits = async () => {
-      if (!bot?.id) return;
-      
-      try {
-        const usageResult = await checkTokenUsage(bot.id, 1);
-        
-        if (usageResult) {
-          setUsageInfo({
-            currentUsage: usageResult.currentUsage,
-            limit: usageResult.limit,
-            resetPeriod: usageResult.resetPeriod,
-            limitType: usageResult.limitType
-          });
-          
-          setUsageExceeded(!usageResult.canProceed);
-        }
-      } catch (error) {
-        console.error("Error checking usage limits:", error);
-        toast({
-          title: "Error",
-          description: "Failed to check usage limits",
-          variant: "destructive",
-        });
-      }
-    };
+    scrollToBottom();
+  }, [messages]);
 
-    checkLimits();
-  }, [bot?.id, messages.length]);
+  useEffect(() => {
+    const chatKey = `chat_${bot.id}_${chatId}`;
+    const savedMessages = localStorage.getItem(chatKey);
+    if (savedMessages) {
+      try {
+        const parsedMessages = JSON.parse(savedMessages);
+        setMessages(parsedMessages.map((msg: any) => ({
+          ...msg,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+          avatar: msg.role === "assistant" ? (msg.avatar || bot.avatar) : undefined
+        })));
+      } catch (error) {
+        console.error("Error parsing saved messages:", error);
+        setMessages([]);
+      }
+    } else {
+      setMessages([]);
+    }
+  }, [bot.id, chatId, bot.avatar]);
 
   const clearChat = () => {
     setMessages([]);
@@ -81,32 +62,126 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (usageExceeded) {
-      console.log("Cannot send message - usage limit exceeded");
-      return;
-    }
-    
-    const success = await handleSendMessage(message, chatId);
-    if (!success) {
-      setUsageExceeded(true);
+    if (!message.trim()) return;
+
+    try {
+      setIsLoading(true);
+      const newUserMessage = createMessage("user", message);
+      const newMessages = [...messages, newUserMessage];
+      setMessages(newMessages);
+
+      // Add temporary streaming message
+      const streamingMessage = createMessage("assistant", "", true, bot.avatar);
+      setMessages([...newMessages, streamingMessage]);
+      setIsStreaming(true);
+
+      let response: string = "";
+
+      if (bot.model === "openrouter") {
+        await ChatService.sendOpenRouterMessage(
+          newMessages,
+          bot,
+          undefined,
+          (chunk: string) => {
+            response += chunk;
+            setMessages(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.role === "assistant") {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMessage, content: response }
+                ];
+              }
+              return prev;
+            });
+          }
+        );
+      } else if (bot.model === "gemini") {
+        response = await ChatService.sendGeminiMessage(newMessages, bot);
+        // For Gemini, update the message all at once since it doesn't support streaming
+        setMessages(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === "assistant") {
+            return [
+              ...prev.slice(0, -1),
+              { ...lastMessage, content: response }
+            ];
+          }
+          return prev;
+        });
+      } else {
+        throw new Error("Unsupported model type");
+      }
+
+      // Get the next sequence number
+      const { data: chatData } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', bot.id)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      const nextSequenceNumber = (chatData?.sequence_number || 0) + 1;
+
+      // Save to Supabase with avatar URL and sequence number
+      const { error } = await supabase
+        .from('chat_history')
+        .upsert({
+          id: chatId,
+          bot_id: bot.id,
+          messages: [...newMessages, { ...streamingMessage, content: response }].map(msg => ({
+            ...msg,
+            timestamp: msg.timestamp?.toISOString(),
+          })),
+          avatar_url: bot.avatar,
+          sequence_number: nextSequenceNumber,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error("Error saving chat history:", error);
+        throw error;
+      }
+
+      // Save to localStorage
+      const chatKey = `chat_${bot.id}_${chatId}`;
+      localStorage.setItem(chatKey, JSON.stringify([...newMessages, { ...streamingMessage, content: response }]));
+
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to get response from AI",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
   return (
     <Card className="flex flex-col h-full p-4 bg-card">
-      {usageExceeded && usageInfo && (
-        <UsageLimitAlert usageInfo={usageInfo} />
-      )}
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={clearChat}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
       
       <div className="flex-1 overflow-hidden flex flex-col">
         <MessageList
-          messages={messages}
+          messages={formatMessages(messages)}
           selectedBot={bot}
           starters={bot.starters}
           onStarterClick={sendMessage}
           isLoading={isLoading}
           isStreaming={isStreaming}
-          onClearChat={clearChat}
         />
         <div ref={messagesEndRef} />
       </div>
@@ -114,9 +189,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       <div className="mt-4">
         <ChatInput
           onSend={sendMessage}
-          disabled={isLoading || isStreaming || usageExceeded}
+          disabled={isLoading}
           isLoading={isLoading}
-          placeholder={usageExceeded ? "Usage limit exceeded" : "Type your message..."}
+          placeholder="Type your message..."
         />
       </div>
     </Card>

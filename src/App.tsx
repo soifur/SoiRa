@@ -80,7 +80,7 @@ const ProtectedRoute = ({
       description: "You don't have permission to access this page",
       variant: "destructive",
     });
-    return <Navigate to="/" />;
+    return <Navigate to="/login" />;
   }
 
   return <>{children}</>;
@@ -129,7 +129,7 @@ function App() {
             <Route
               path="/bots"
               element={
-                <ProtectedRoute allowedRoles={['super_admin']}>
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'paid_user']}>
                   <Bots />
                 </ProtectedRoute>
               }
@@ -153,7 +153,7 @@ function App() {
             <Route
               path="/settings"
               element={
-                <ProtectedRoute allowedRoles={['super_admin']}>
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'paid_user', 'user']}>
                   <Settings />
                 </ProtectedRoute>
               }
