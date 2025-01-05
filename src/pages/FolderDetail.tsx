@@ -56,7 +56,22 @@ const FolderDetail = () => {
         .eq('folder_id', id);
 
       if (error) throw error;
-      return data.map(fb => fb.bots as Bot);
+      
+      return data.map(fb => {
+        const bot = fb.bots;
+        return {
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private" as const,
+          memory_enabled: bot.memory_enabled,
+        } as Bot;
+      });
     }
   });
 

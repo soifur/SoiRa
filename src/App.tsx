@@ -6,7 +6,7 @@ import Settings from "./pages/Settings";
 import Folders from "./pages/Folders";
 import FolderDetail from "./pages/FolderDetail";
 import CustomFolder from "./pages/CustomFolder";
-import Navigation from "./components/Navigation";
+import { Navigation } from "./components/Navigation";
 
 function App() {
   return (

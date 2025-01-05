@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { useChat } from "@/hooks/useChat";
 import { useSessionToken } from "@/hooks/useSessionToken";
-import { Login } from "@/pages/Login";
+import Login from "@/pages/Login";
 
 const CustomFolder = () => {
   const { backHalf } = useParams();
@@ -61,7 +61,22 @@ const CustomFolder = () => {
         .eq('folder_id', folder.id);
 
       if (error) throw error;
-      return data.map(fb => fb.bots as Bot);
+      
+      return data.map(fb => {
+        const bot = fb.bots;
+        return {
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private" as const,
+          memory_enabled: bot.memory_enabled,
+        } as Bot;
+      });
     },
     enabled: !!folder
   });
