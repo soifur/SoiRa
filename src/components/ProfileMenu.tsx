@@ -90,10 +90,14 @@ export const ProfileMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-          <Avatar>
-            <AvatarImage src={avatarUrl || ''} alt="Profile" />
-            <AvatarFallback>{initials}</AvatarFallback>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Avatar className="h-7 w-7">
+            <AvatarImage 
+              src={avatarUrl || ''} 
+              alt="Profile" 
+              className="object-cover"
+            />
+            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
