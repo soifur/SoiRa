@@ -8,8 +8,13 @@ export const useTokenUsage = () => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
-        return true; // Allow usage for non-authenticated users
+        console.log("No authenticated user, skipping token check");
+        return false; // Don't allow usage for non-authenticated users
       }
+
+      console.log("Checking token usage for user:", userData.user.id);
+      console.log("Model:", model);
+      console.log("Estimated tokens:", estimatedTokens);
 
       const { data, error } = await supabase
         .rpc('check_token_usage', {
@@ -18,7 +23,12 @@ export const useTokenUsage = () => {
           p_tokens: estimatedTokens
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error from check_token_usage:", error);
+        throw error;
+      }
+
+      console.log("Token usage check result:", data);
 
       if (!data) {
         toast({
@@ -31,6 +41,11 @@ export const useTokenUsage = () => {
       return data;
     } catch (error) {
       console.error('Error checking token usage:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check usage limits. Access denied for safety.",
+        variant: "destructive",
+      });
       return false; // Prevent usage on error to enforce limits
     }
   };

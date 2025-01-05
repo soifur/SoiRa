@@ -43,17 +43,15 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     if (!message.trim()) return;
 
     try {
-      // Check token usage before proceeding
-      const canProceed = await checkTokenUsage(bot.model, 1); // Check for 1 message
+      console.log("Checking token usage before sending message");
+      const canProceed = await checkTokenUsage(bot.model, 1);
+      
       if (!canProceed) {
-        toast({
-          title: "Usage Limit Reached",
-          description: "You've reached your message limit for this period.",
-          variant: "destructive",
-        });
-        return;
+        console.log("Token usage check failed - cannot proceed");
+        return; // The toast is already shown in useTokenUsage
       }
 
+      console.log("Token usage check passed - proceeding with message");
       setIsLoading(true);
       setIsStreaming(true);
 
