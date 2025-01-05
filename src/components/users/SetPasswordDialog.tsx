@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -45,11 +45,12 @@ export const SetPasswordDialog = ({ userId, trigger }: SetPasswordDialogProps) =
         }
       );
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update password');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update password');
       }
+
+      const data = await response.json();
 
       setIsOpen(false);
       setNewPassword("");
@@ -77,6 +78,9 @@ export const SetPasswordDialog = ({ userId, trigger }: SetPasswordDialogProps) =
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Set New Password</DialogTitle>
+          <DialogDescription>
+            Enter a new password for this user. This action can only be performed by super admins.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <Input
