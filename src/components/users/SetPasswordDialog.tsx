@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface SetPasswordDialogProps {
   userId: string;
@@ -13,32 +13,42 @@ interface SetPasswordDialogProps {
 export const SetPasswordDialog = ({ userId, trigger }: SetPasswordDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSetPassword = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== 'soifur2@gmail.com') {
+      setIsLoading(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast({
           title: "Error",
-          description: "Only super admin can set user passwords",
+          description: "You must be logged in to perform this action",
           variant: "destructive",
         });
         return;
       }
 
-      const { error } = await supabase.auth.admin.updateUserById(
-        userId,
-        { password: newPassword }
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            password: newPassword,
+          }),
+        }
       );
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update password');
       }
 
       setIsOpen(false);
@@ -51,9 +61,11 @@ export const SetPasswordDialog = ({ userId, trigger }: SetPasswordDialogProps) =
       console.error('Error setting password:', error);
       toast({
         title: "Error",
-        description: "Failed to update password. Please try again.",
+        description: error.message || "Failed to update password. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,16 +79,18 @@ export const SetPasswordDialog = ({ userId, trigger }: SetPasswordDialogProps) =
           <DialogTitle>Set New Password</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Input
-              placeholder="New Password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </div>
-          <Button onClick={handleSetPassword} className="w-full">
-            Set Password
+          <Input
+            type="password"
+            placeholder="Enter new password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <Button 
+            onClick={handleSetPassword} 
+            className="w-full"
+            disabled={isLoading || !newPassword}
+          >
+            {isLoading ? "Updating..." : "Set Password"}
           </Button>
         </div>
       </DialogContent>
