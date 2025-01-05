@@ -108,20 +108,22 @@ export const useMessageHandling = (
         } else {
           throw new Error(`Unsupported model type: ${bot.model}`);
         }
+
+        if (!botResponse || botResponse.trim() === "") {
+          throw new Error("The bot returned an empty response. Please try again or check your API configuration.");
+        }
+
       } catch (error) {
         console.error("Error getting bot response:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to get response from the bot. Please try again.";
         toast({
           title: "Error",
-          description: "Failed to get response from the bot. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
         // Remove the loading message
         setMessages(newMessages);
         return;
-      }
-
-      if (!botResponse) {
-        throw new Error("Empty response from bot");
       }
 
       const finalBotMessage = createMessage("assistant", botResponse, false, bot.avatar);
