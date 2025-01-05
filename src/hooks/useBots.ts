@@ -20,6 +20,7 @@ export interface Bot {
 export const useBots = () => {
   const { toast } = useToast();
   const [bots, setBots] = useState<Bot[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch bots from Supabase on component mount
   useEffect(() => {
@@ -28,6 +29,7 @@ export const useBots = () => {
 
   const fetchBots = async () => {
     try {
+      setIsLoading(true);
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) return;
 
@@ -60,6 +62,8 @@ export const useBots = () => {
         description: "Failed to fetch bots. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -159,5 +163,5 @@ export const useBots = () => {
     }
   };
 
-  return { bots, saveBot, deleteBot };
+  return { bots, saveBot, deleteBot, isLoading };
 };
