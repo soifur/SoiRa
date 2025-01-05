@@ -167,11 +167,13 @@ export const MainChatHistory = ({
         {Object.entries(groupedChats).map(([date, chats]) => (
           <ChatHistoryGroup
             key={date}
-            date={date}
+            label={date}
             chats={chats}
+            isExpanded={true}
+            onToggle={() => {}}
             currentChatId={currentChatId}
             onSelectChat={onSelectChat}
-            setSelectedBotId={setSelectedBotId}
+            onDeleteChat={() => {}}
           />
         ))}
       </ScrollArea>
