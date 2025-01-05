@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserRole } from "@/types/user";
 
 export const CreateUserDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,12 +14,13 @@ export const CreateUserDialog = () => {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState<UserRole>("user");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const handleCreateUser = async () => {
     try {
-      // Instead of using auth.admin, we'll use the regular sign up
+      // First create the user
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -38,7 +41,23 @@ export const CreateUserDialog = () => {
         return;
       }
 
-      // The profile will be created automatically by the database trigger
+      // Then update their role in the profiles table
+      if (signUpData.user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ role })
+          .eq('id', signUpData.user.id);
+
+        if (updateError) {
+          toast({
+            title: "Error",
+            description: "Failed to set user role",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setIsOpen(false);
       resetForm();
@@ -60,6 +79,7 @@ export const CreateUserDialog = () => {
     setPassword("");
     setFirstName("");
     setLastName("");
+    setRole("user");
   };
 
   return (
@@ -101,6 +121,19 @@ export const CreateUserDialog = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="paid_user">Paid User</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="super_admin">Super Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button onClick={handleCreateUser} className="w-full">
             Create User
