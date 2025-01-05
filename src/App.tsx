@@ -18,7 +18,12 @@ function App() {
       <ThemeProvider defaultTheme="dark" attribute="class">
         <Routes>
           {/* Embedded routes without navigation */}
-          <Route path="/embed/:shortKey" element={<EmbeddedChatUI />} />
+          <Route 
+            path="/embed/:shortKey" 
+            element={
+              <EmbeddedChatContainer />
+            } 
+          />
           
           {/* Regular routes with navigation */}
           <Route
