@@ -63,8 +63,7 @@ export const useTokenUsage = () => {
         .from('chat_history')
         .select(settings.limit_type === 'messages' ? 'messages_used' : 'tokens_used')
         .eq('user_id', userData.user.id)
-        .gte('created_at', periodStart)
-        .execute();
+        .gte('created_at', periodStart);
 
       const currentUsage = usage?.reduce((acc, curr) => 
         acc + (settings.limit_type === 'messages' ? curr.messages_used : curr.tokens_used), 0
@@ -79,7 +78,7 @@ export const useTokenUsage = () => {
 
       return {
         canProceed,
-        limitType: settings.limit_type,
+        limitType: settings.limit_type as 'tokens' | 'messages',
         resetPeriod: settings.reset_period,
         currentUsage,
         limit: settings.units_per_period
