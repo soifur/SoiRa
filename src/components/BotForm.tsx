@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Bot } from "@/hooks/useBots";
 import { ModelSelector } from "./bot/ModelSelector";
-import { AvatarUploader } from "./bot/AvatarUploader";
+import { AvatarUploader } from "./AvatarUploader";
 import { StartersInput } from "./bot/StartersInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
@@ -35,6 +35,11 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const handleMemoryToggle = async (checked: boolean) => {
+    if (!editingBot.id) {
+      setEditingBot({ ...editingBot, memory_enabled: checked });
+      return;
+    }
+
     try {
       await updateBotMemorySettings(editingBot.id, checked);
       setEditingBot({ ...editingBot, memory_enabled: checked });
@@ -54,6 +59,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleSave = async () => {
     try {
+      // For new bots, we don't need to update the shared config
+      if (!editingBot.id) {
+        onSave({
+          ...editingBot,
+          memory_enabled: editingBot.memory_enabled ?? false,
+        });
+        return;
+      }
+
       await updateBotAndSharedConfig(editingBot);
       onSave({
         ...editingBot,
@@ -78,7 +92,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       <div className="flex items-center gap-4">
         <AvatarUploader 
           avatar={editingBot.avatar}
-          botId={editingBot.id}
           onAvatarChange={(avatar) => setEditingBot({ ...editingBot, avatar })}
         />
         <div className="flex-1">

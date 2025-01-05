@@ -28,9 +28,9 @@ export const AvatarUploader = ({ avatar, onAvatarChange }: AvatarUploaderProps) 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Generate a unique filename using user ID and timestamp
+      // Generate a unique filename using timestamp and random string
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+      const fileName = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       // Delete existing avatar if it exists
       if (avatar) {
@@ -61,7 +61,7 @@ export const AvatarUploader = ({ avatar, onAvatarChange }: AvatarUploaderProps) 
       
       toast({
         title: "Success",
-        description: "Avatar updated successfully",
+        description: "Avatar uploaded successfully",
       });
     } catch (error) {
       console.error('Error uploading avatar:', error);
