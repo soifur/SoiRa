@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { SubscriptionTierCard } from "./SubscriptionTierCard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface UpgradeModalProps {
   isOpen: boolean;
