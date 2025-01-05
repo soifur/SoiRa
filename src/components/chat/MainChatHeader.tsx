@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus, Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
+import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -39,28 +39,6 @@ export const MainChatHeader = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
-
-  const { data: userProfile } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const role = userProfile?.role as UserRole;
-  const isSuperAdmin = role === 'super_admin';
-  const isAdmin = role === 'admin';
-  const isPaidUser = role === 'paid_user';
 
   useEffect(() => {
     if (bots) {
@@ -106,69 +84,14 @@ export const MainChatHeader = ({
                 </SelectContent>
               </Select>
 
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                  onClick={onNewChat}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-
-                {(isSuperAdmin || isAdmin || isPaidUser) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate('/bots')}
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                  >
-                    <Bot className="h-4 w-4" />
-                  </Button>
-                )}
-
-                {isSuperAdmin && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/folders')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Folder className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/subscriptions')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-
-                {(isSuperAdmin || isAdmin) && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/users')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Users className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/archive')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Archive className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-dropdown-hover"
+                onClick={onNewChat}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
           ) : (
             <>
@@ -190,58 +113,6 @@ export const MainChatHeader = ({
                       onClick={onNewChat}
                     >
                       <Plus className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-                {(isSuperAdmin || isAdmin || isPaidUser) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate('/bots')}
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                  >
-                    <Bot className="h-4 w-4" />
-                  </Button>
-                )}
-
-                {isSuperAdmin && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/folders')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Folder className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/subscriptions')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-
-                {(isSuperAdmin || isAdmin) && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/users')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Users className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/archive')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Archive className="h-4 w-4" />
                     </Button>
                   </>
                 )}
