@@ -223,7 +223,6 @@ export const MainChatHistory = ({
     )}>
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
-        <ProfileSection showViewPlans={isMobile} />
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
@@ -259,6 +258,7 @@ export const MainChatHistory = ({
             ))}
           </div>
         </ScrollArea>
+        <ProfileSection showViewPlans={isMobile} />
       </div>
     </div>
   );
