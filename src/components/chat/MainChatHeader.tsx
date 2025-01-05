@@ -58,21 +58,19 @@ export const MainChatHeader = ({
           </Button>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => navigate('/bots')}
-            className="flex items-center gap-2"
+            className="text-muted-foreground hover:text-primary"
           >
             <Bot className="h-4 w-4" />
-            Models
           </Button>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => navigate('/archive')}
-            className="flex items-center gap-2"
+            className="text-muted-foreground hover:text-primary"
           >
             <Archive className="h-4 w-4" />
-            Archive
           </Button>
         </div>
 
