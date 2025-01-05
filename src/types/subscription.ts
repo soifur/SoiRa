@@ -1,14 +1,12 @@
 export interface ModelSubscriptionSetting {
   id: string;
   model: string;
-  tokens_per_period: number;
+  units_per_period: number;
   reset_period: 'daily' | 'weekly' | 'monthly' | 'never';
-  lifetime_max_tokens?: number;
+  lifetime_max_units?: number;
+  limit_type?: string;
+  user_role?: 'super_admin' | 'admin' | 'user' | 'paid_user';
+  bot_id?: string;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface TokenUsageResponse {
-  allowed: boolean;
-  message?: string;
 }

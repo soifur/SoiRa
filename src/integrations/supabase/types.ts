@@ -295,6 +295,7 @@ export type Database = {
       }
       model_subscription_settings: {
         Row: {
+          bot_id: string | null
           created_at: string
           id: string
           lifetime_max_units: number | null
@@ -306,6 +307,7 @@ export type Database = {
           user_role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
+          bot_id?: string | null
           created_at?: string
           id?: string
           lifetime_max_units?: number | null
@@ -317,6 +319,7 @@ export type Database = {
           user_role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
+          bot_id?: string | null
           created_at?: string
           id?: string
           lifetime_max_units?: number | null
@@ -327,7 +330,15 @@ export type Database = {
           updated_at?: string
           user_role?: Database["public"]["Enums"]["user_role"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "model_subscription_settings_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
