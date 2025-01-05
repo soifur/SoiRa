@@ -8,20 +8,21 @@ import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
 import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
 import { useNavigate } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [embedDialogBot, setEmbedDialogBot] = useState<Bot | null>(null);
   const { toast } = useToast();
-  const { bots, saveBot, deleteBot } = useBots();
+  const { bots, saveBot, deleteBot, isLoading } = useBots();
   const navigate = useNavigate();
 
   const handleSave = async (bot: Bot) => {
     const updatedBot = await saveBot({ ...bot, accessType: bot.accessType || "private" });
     setEditingBot(null);
     
-    // Update the selected bot if it was being edited
     if (selectedBot && selectedBot.id === bot.id) {
       setSelectedBot(updatedBot);
     }
@@ -41,10 +42,74 @@ const Bots = () => {
     if (!instructions) return "";
     const splitInstructions = instructions.split('\n');
     if (splitInstructions.length <= lines) return instructions;
-    
-    const truncated = splitInstructions.slice(0, lines).join('\n');
-    return `${truncated}...`;
+    return `${splitInstructions.slice(0, lines).join('\n')}...`;
   };
+
+  const BotCard = ({ bot }: { bot: Bot }) => (
+    <Card 
+      key={bot.id} 
+      className={`p-4 transition-all hover:shadow-md ${
+        selectedBot?.id === bot.id ? 'ring-2 ring-primary' : ''
+      }`}
+      onClick={() => setSelectedBot(bot)}
+    >
+      <div className="flex items-start gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            {bot.avatar && (
+              <img 
+                src={bot.avatar} 
+                alt={bot.name} 
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            )}
+            <h3 className="font-semibold">{bot.name}</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-2">
+            Model: {bot.model}
+          </p>
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {truncateInstructions(bot.instructions)}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEmbedDialogBot(bot);
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit(bot);
+            }}
+          >
+            <Edit2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteBot(bot.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
 
   return (
     <div className="flex flex-col h-screen">
@@ -59,102 +124,66 @@ const Bots = () => {
           </Button>
           <h1 className="text-xl font-semibold">My Chatbots</h1>
         </div>
+        <Button
+          onClick={() =>
+            setEditingBot({
+              id: "",
+              name: "",
+              instructions: "",
+              starters: [],
+              model: "gemini",
+              apiKey: "",
+              accessType: "private",
+            })
+          }
+        >
+          <Plus className="mr-2 h-4 w-4" /> New Bot
+        </Button>
       </div>
 
-      <div className="flex gap-6 h-[calc(100vh-4rem)] p-4">
-        <div className="w-1/2 flex flex-col gap-4 overflow-y-auto">
-          <div className="flex justify-between items-center">
-            <Button
-              onClick={() =>
-                setEditingBot({
-                  id: "",
-                  name: "",
-                  instructions: "",
-                  starters: [],
-                  model: "gemini",
-                  apiKey: "",
-                  accessType: "private",
-                })
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" /> New Bot
-            </Button>
-          </div>
+      <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden">
+        <div className="w-full md:w-1/2 lg:w-2/5 border-r">
+          <ScrollArea className="h-full p-4">
+            <div className="space-y-4">
+              {editingBot && (
+                <Card className="p-4 mb-4">
+                  <h2 className="text-xl font-semibold mb-4">
+                    {editingBot.id ? "Edit Bot" : "Create New Bot"}
+                  </h2>
+                  <BotForm
+                    bot={editingBot}
+                    onSave={handleSave}
+                    onCancel={() => setEditingBot(null)}
+                  />
+                </Card>
+              )}
 
-          {editingBot && (
-            <Card className="p-4">
-              <h2 className="text-xl font-semibold mb-4">
-                {editingBot.id ? "Edit Bot" : "Create New Bot"}
-              </h2>
-              <BotForm
-                bot={editingBot}
-                onSave={handleSave}
-                onCancel={() => setEditingBot(null)}
-              />
-            </Card>
-          )}
-
-          <div className="grid gap-2">
-            {bots.map((bot) => (
-              <Card 
-                key={bot.id} 
-                className={`p-2 cursor-pointer transition-colors hover:bg-accent/50 ${
-                  selectedBot?.id === bot.id ? 'border-primary' : ''
-                }`}
-                onClick={() => setSelectedBot(bot)}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 mr-4">
-                    <h3 className="text-sm font-semibold">{bot.name}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {bot.model}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                      {truncateInstructions(bot.instructions)}
-                    </p>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEmbedDialogBot(bot);
-                      }}
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(bot);
-                      }}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteBot(bot.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="p-4">
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-1/3" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
-              </Card>
-            ))}
-          </div>
+              ) : (
+                <div className="grid gap-4">
+                  {bots.map((bot) => (
+                    <BotCard key={bot.id} bot={bot} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </div>
 
-        <div className="w-1/2 border-l border-border">
+        <div className="w-full md:w-1/2 lg:w-3/5 h-full">
           {selectedBot ? (
             <DedicatedBotChat key={selectedBot.id} bot={selectedBot} />
           ) : (
