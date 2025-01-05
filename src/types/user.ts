@@ -6,4 +6,6 @@ export type UserProfile = {
   role: UserRole;
   blocked: boolean;
   created_at: string;
+  first_name: string | null;
+  last_name: string | null;
 };

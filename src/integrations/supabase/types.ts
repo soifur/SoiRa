@@ -249,8 +249,10 @@ export type Database = {
           blocked: boolean | null
           created_at: string
           email: string
+          first_name: string | null
           id: string
           language: string | null
+          last_name: string | null
           managed_by: string | null
           role: Database["public"]["Enums"]["user_role"]
           subscription_status: string | null
@@ -261,8 +263,10 @@ export type Database = {
           blocked?: boolean | null
           created_at?: string
           email: string
+          first_name?: string | null
           id: string
           language?: string | null
+          last_name?: string | null
           managed_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           subscription_status?: string | null
@@ -273,8 +277,10 @@ export type Database = {
           blocked?: boolean | null
           created_at?: string
           email?: string
+          first_name?: string | null
           id?: string
           language?: string | null
+          last_name?: string | null
           managed_by?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           subscription_status?: string | null

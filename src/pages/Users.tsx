@@ -14,17 +14,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserProfile, UserRole } from "@/types/user";
 import { RoleSelector } from "@/components/users/RoleSelector";
 import { UserActions } from "@/components/users/UserActions";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { CreateUserDialog } from "@/components/users/CreateUserDialog";
 
 const Users = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserPassword, setNewUserPassword] = useState("");
 
   const { data: currentUser, isLoading: isLoadingCurrentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -56,32 +50,6 @@ const Users = () => {
     },
     enabled: !!currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin'),
   });
-
-  const handleCreateUser = async () => {
-    const { data, error } = await supabase.auth.admin.createUser({
-      email: newUserEmail,
-      password: newUserPassword,
-      email_confirm: true
-    });
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    queryClient.invalidateQueries({ queryKey: ['users'] });
-    setIsCreateDialogOpen(false);
-    setNewUserEmail("");
-    setNewUserPassword("");
-    toast({
-      title: "Success",
-      description: "User created successfully",
-    });
-  };
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     const { error } = await supabase
@@ -199,43 +167,14 @@ const Users = () => {
       <main className="container mx-auto px-4 py-24">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">Users Management</h1>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>Create User</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New User</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Email"
-                    type="email"
-                    value={newUserEmail}
-                    onChange={(e) => setNewUserEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Password"
-                    type="password"
-                    value={newUserPassword}
-                    onChange={(e) => setNewUserPassword(e.target.value)}
-                  />
-                </div>
-                <Button onClick={handleCreateUser} className="w-full">
-                  Create User
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <CreateUserDialog />
         </div>
         
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
@@ -246,6 +185,9 @@ const Users = () => {
             <TableBody>
               {users?.map((user) => (
                 <TableRow key={user.id}>
+                  <TableCell>
+                    {user.first_name} {user.last_name}
+                  </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <RoleSelector
