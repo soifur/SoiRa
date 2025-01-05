@@ -230,7 +230,8 @@ export const MainChatHistory = ({
             onClose={onClose}
           />
         </div>
-        {isMobile && (
+        {/* Only show ProfileSection on desktop */}
+        {!isMobile && (
           <div className="flex-none border-t">
             <ProfileSection showViewPlans={true} />
           </div>
