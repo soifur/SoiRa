@@ -9,7 +9,7 @@ interface BotPublishToggleProps {
 
 export const BotPublishToggle = ({ isPublished, onPublishChange }: BotPublishToggleProps) => {
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2 py-2">
       <Switch
         id="publish-mode"
         checked={isPublished}

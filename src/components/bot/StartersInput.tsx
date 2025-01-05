@@ -29,10 +29,10 @@ export const StartersInput = ({ starters, onStartersChange }: StartersInputProps
   };
 
   return (
-    <div className="w-full space-y-4"> {/* Added full width and increased spacing */}
+    <div className="space-y-4">
       <label className="block text-sm font-medium">Conversation Starters</label>
-      <div className="flex gap-2 w-full"> {/* Added full width */}
-        <div className="flex-1 min-w-0"> {/* Added min-w-0 to prevent overflow */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex-1">
           <Input
             value={newStarter}
             onChange={(e) => setNewStarter(e.target.value)}
@@ -43,14 +43,17 @@ export const StartersInput = ({ starters, onStartersChange }: StartersInputProps
         </div>
         <Button 
           onClick={addStarter}
-          className="whitespace-nowrap"
+          className="w-full sm:w-auto whitespace-nowrap"
         >
-          Add
+          Add Starter
         </Button>
       </div>
-      <div className="space-y-2 w-full"> {/* Added full width */}
+      <div className="grid gap-2">
         {starters.map((starter, index) => (
-          <div key={index} className="flex items-center gap-2 p-2 rounded dark:bg-[#1e1e1e] dark:border-gray-700 border w-full">
+          <div 
+            key={index} 
+            className="flex items-center gap-2 p-3 rounded bg-background border dark:bg-[#1e1e1e] dark:border-gray-700"
+          >
             <span className="flex-1 min-w-0 break-words">{starter}</span>
             <Button
               variant="ghost"

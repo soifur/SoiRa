@@ -22,7 +22,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published
+    published: bot.published ?? false
   });
   const { toast } = useToast();
 
@@ -32,7 +32,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       ...prev,
       ...bot,
       memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published
+      published: bot.published ?? false
     }));
   }, [bot]);
 
@@ -91,56 +91,57 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto pb-32 px-4 min-h-screen"> {/* Added min-h-screen */}
-      <div className="space-y-6"> {/* Added wrapper div with more spacing */}
-        <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
-        
-        <BotPublishToggle 
-          isPublished={editingBot.published}
-          onPublishChange={(published) => handleBotChange({ published })}
-        />
+    <div className="flex flex-col min-h-screen bg-background">
+      <div className="flex-1 container max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <div className="grid gap-6">
+          <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
+          
+          <BotPublishToggle 
+            isPublished={editingBot.published}
+            onPublishChange={(published) => handleBotChange({ published })}
+          />
 
-        <ModelSelector 
-          bot={editingBot}
-          onModelChange={handleModelChange}
-          onOpenRouterModelChange={(model) => handleBotChange({ openRouterModel: model })}
-        />
+          <ModelSelector 
+            bot={editingBot}
+            onModelChange={handleModelChange}
+            onOpenRouterModelChange={(model) => handleBotChange({ openRouterModel: model })}
+          />
 
-        <BotApiSettings 
-          apiKey={editingBot.apiKey}
-          onApiKeyChange={(apiKey) => handleBotChange({ apiKey })}
-        />
+          <BotApiSettings 
+            apiKey={editingBot.apiKey}
+            onApiKeyChange={(apiKey) => handleBotChange({ apiKey })}
+          />
 
-        <div className="w-full"> {/* Added full width wrapper */}
-          <label className="block text-sm font-medium mb-1">Instructions</label>
-          <Textarea
-            value={editingBot.instructions}
-            onChange={(e) => handleBotChange({ instructions: e.target.value })}
-            placeholder="Enter instructions for the bot..."
-            rows={4}
-            className="w-full dark:bg-[#1e1e1e] dark:border-gray-700"
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Instructions</label>
+            <Textarea
+              value={editingBot.instructions}
+              onChange={(e) => handleBotChange({ instructions: e.target.value })}
+              placeholder="Enter instructions for the bot..."
+              rows={4}
+              className="w-full resize-y min-h-[100px] dark:bg-[#1e1e1e] dark:border-gray-700"
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="memory-mode"
+              checked={editingBot.memory_enabled}
+              onCheckedChange={handleMemoryToggle}
+              className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
+            />
+            <Label htmlFor="memory-mode">Enable Memory Mode</Label>
+          </div>
+
+          <StartersInput 
+            starters={editingBot.starters}
+            onStartersChange={(starters) => handleBotChange({ starters })}
           />
         </div>
-
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="memory-mode"
-            checked={editingBot.memory_enabled}
-            onCheckedChange={handleMemoryToggle}
-            className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
-          />
-          <Label htmlFor="memory-mode">Enable Memory Mode</Label>
-        </div>
-
-        <StartersInput 
-          starters={editingBot.starters}
-          onStartersChange={(starters) => handleBotChange({ starters })}
-        />
       </div>
 
-      {/* Fixed position footer for buttons with increased z-index and padding */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-50">
-        <div className="max-w-3xl mx-auto flex justify-end gap-2">
+      <div className="sticky bottom-0 w-full bg-background border-t p-4 mt-8">
+        <div className="container max-w-4xl mx-auto flex justify-end gap-4">
           <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
