@@ -42,27 +42,23 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   // Check usage limits on component mount and after each message
   useEffect(() => {
     const checkLimits = async () => {
+      if (!bot?.id) return;
+      
       try {
-        console.log("🔄 Checking usage limits...");
-        console.log("Bot ID:", bot.id);
-        console.log("Messages length:", messages.length);
-        
         const usageResult = await checkTokenUsage(bot.id, 1);
-        console.log("📊 Usage check result:", usageResult);
         
-        setUsageInfo({
-          currentUsage: usageResult.currentUsage,
-          limit: usageResult.limit,
-          resetPeriod: usageResult.resetPeriod,
-          limitType: usageResult.limitType
-        });
-        
-        const exceeded = !usageResult.canProceed;
-        console.log("❗ Usage exceeded:", exceeded);
-        setUsageExceeded(exceeded);
-        
+        if (usageResult) {
+          setUsageInfo({
+            currentUsage: usageResult.currentUsage,
+            limit: usageResult.limit,
+            resetPeriod: usageResult.resetPeriod,
+            limitType: usageResult.limitType
+          });
+          
+          setUsageExceeded(!usageResult.canProceed);
+        }
       } catch (error) {
-        console.error("❌ Error checking usage limits:", error);
+        console.error("Error checking usage limits:", error);
         toast({
           title: "Error",
           description: "Failed to check usage limits",
@@ -72,7 +68,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     };
 
     checkLimits();
-  }, [bot.id, messages.length]);
+  }, [bot?.id, messages.length]);
 
   const clearChat = () => {
     setMessages([]);
@@ -86,7 +82,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
   const sendMessage = async (message: string) => {
     if (usageExceeded) {
-      console.log("❌ Cannot send message - usage limit exceeded");
+      console.log("Cannot send message - usage limit exceeded");
       return;
     }
     

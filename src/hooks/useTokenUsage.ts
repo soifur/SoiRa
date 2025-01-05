@@ -35,7 +35,7 @@ export const useTokenUsage = () => {
       if (sessionError) {
         showErrorToast("Authentication Error", "Failed to verify user session");
         return {
-          canProceed: true,
+          canProceed: false,
           limitType: 'tokens',
           resetPeriod: 'monthly',
           currentUsage: 0,
@@ -63,7 +63,7 @@ export const useTokenUsage = () => {
       if (profileError) {
         showErrorToast("Profile Error", "Failed to fetch user profile");
         return {
-          canProceed: true,
+          canProceed: false,
           limitType: 'tokens',
           resetPeriod: 'monthly',
           currentUsage: 0,
@@ -81,7 +81,7 @@ export const useTokenUsage = () => {
       if (botError || !bot?.model) {
         showErrorToast("Bot Error", "Failed to fetch bot information");
         return {
-          canProceed: true,
+          canProceed: false,
           limitType: 'tokens',
           resetPeriod: 'monthly',
           currentUsage: 0,
@@ -100,7 +100,7 @@ export const useTokenUsage = () => {
       if (settingsError) {
         showErrorToast("Settings Error", "Failed to fetch subscription settings");
         return {
-          canProceed: true,
+          canProceed: false,
           limitType: 'tokens',
           resetPeriod: 'monthly',
           currentUsage: 0,
@@ -146,7 +146,7 @@ export const useTokenUsage = () => {
       if (usageError) {
         showErrorToast("Usage Error", "Failed to fetch usage data");
         return {
-          canProceed: true,
+          canProceed: false,
           limitType: settings.limit_type as LimitType || 'tokens',
           resetPeriod: settings.reset_period,
           currentUsage: 0,
@@ -180,7 +180,7 @@ export const useTokenUsage = () => {
     } catch (error) {
       console.error("Token usage check failed:", error);
       return {
-        canProceed: true,
+        canProceed: false,
         limitType: 'tokens',
         resetPeriod: 'monthly',
         currentUsage: 0,
