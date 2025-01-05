@@ -1,6 +1,6 @@
 import React from "react";
 import { Bot as BotType } from "@/hooks/useBots";
-import { Message } from "@/hooks/useChat";
+import { Message } from "@/components/chat/types/chatTypes";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { MessageList } from "@/components/chat/MessageList";
 
