@@ -5,6 +5,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
