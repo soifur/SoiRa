@@ -77,7 +77,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-[9999] max-h-96 min-w-[320px] overflow-hidden rounded-xl border shadow-lg",
-        "bg-popover text-popover-foreground",
+        "bg-dropdown text-popover-foreground",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -129,8 +129,8 @@ const SelectItem = React.forwardRef<
     className={cn(
       "relative flex w-full cursor-default select-none items-center rounded-lg py-2 pl-8 pr-4 text-[14px]",
       "outline-none transition-colors",
-      "hover:bg-accent hover:text-accent-foreground",
-      "focus:bg-accent focus:text-accent-foreground",
+      "hover:bg-dropdown-hover hover:text-accent-foreground",
+      "focus:bg-dropdown-hover focus:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}

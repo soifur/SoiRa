@@ -24,6 +24,8 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --dropdown: 0 0% 100%;
+    --dropdown-hover: 0 0% 96%;
   }
 
   .dark {
@@ -46,6 +48,8 @@
     --border: 240 2% 13%;
     --input: 240 2% 13%;
     --ring: 216 12.2% 83.9%;
+    --dropdown: 240 2% 16%;
+    --dropdown-hover: 240 2% 20%;
   }
 }
 
