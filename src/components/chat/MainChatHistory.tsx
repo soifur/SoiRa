@@ -107,7 +107,7 @@ export const MainChatHistory = ({
 
   return (
     <div className={cn(
-      "fixed top-14 left-0 h-[calc(100vh-3.5rem)] z-40 bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
+      "fixed top-0 left-0 h-screen z-40 bg-background/95 dark:bg-zinc-900/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:supports-[backdrop-filter]:bg-zinc-900/60 shadow-lg transition-transform duration-300 ease-in-out border-r",
       isOpen ? "translate-x-0" : "-translate-x-full",
       isMobile ? "w-full" : "w-80"
     )}>

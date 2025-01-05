@@ -13,7 +13,7 @@ import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { useSessionToken } from "@/hooks/useSessionToken";
-import { Message, ChatHistoryData } from "@/components/chat/types/chatTypes";
+import { Message } from "@/components/chat/types/chatTypes";
 
 // Since this file is quite long (223 lines), let's split it into smaller components
 // First, let's extract the chat functionality into a separate component
@@ -63,7 +63,6 @@ const Index = () => {
   const [chatId] = useState(() => uuidv4());
   const { sessionToken } = useSessionToken();
 
-  // Query for user's bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
     queryFn: async () => {
@@ -185,11 +184,31 @@ const Index = () => {
         throw new Error("Unsupported model type");
       }
 
-      const botMessage = createMessage("assistant", response, true);
+      const botMessage = createMessage("assistant", response);
       const updatedMessages = [...newMessages, botMessage];
       setMessages(updatedMessages);
 
-      await saveChatHistory(updatedMessages, selectedBot);
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const chatData = {
+        id: chatId,
+        bot_id: selectedBot.id,
+        messages: updatedMessages.map(msg => ({
+          ...msg,
+          timestamp: msg.timestamp?.toISOString(),
+        })),
+        user_id: user?.id,
+        session_token: !user ? sessionToken : null,
+        sequence_number: 1,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('chat_history')
+        .upsert(chatData);
+
+      if (error) throw error;
 
     } catch (error) {
       console.error("Chat error:", error);
@@ -200,39 +219,6 @@ const Index = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const saveChatHistory = async (messages: Message[], bot: BotType) => {
-    try {
-      const { data: latestChat } = await supabase
-        .from('chat_history')
-        .select('sequence_number')
-        .eq('bot_id', bot.id)
-        .order('sequence_number', { ascending: false })
-        .limit(1)
-        .single();
-
-      const nextSequenceNumber = (latestChat?.sequence_number || 0) + 1;
-
-      const chatData: Partial<ChatHistoryData> = {
-        id: chatId,
-        bot_id: bot.id,
-        messages: messages.map(msg => ({
-          ...msg,
-          timestamp: msg.timestamp?.toISOString(),
-        })),
-        sequence_number: nextSequenceNumber,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
-        .from('chat_history')
-        .upsert(chatData);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error saving chat history:", error);
     }
   };
 
