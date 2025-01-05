@@ -12,12 +12,13 @@ export const useChatState = (selectedBotId: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [chatId] = useState(() => uuidv4());
+  const [chatId, setChatId] = useState<string | null>(null);
   const { sessionToken } = useSessionToken();
   const { allBots } = useBotsData();
   const { toast } = useToast();
 
   const handleNewChat = () => {
+    setChatId(null);
     setMessages([]);
     toast({
       title: "New Chat",
@@ -47,6 +48,7 @@ export const useChatState = (selectedBotId: string | null) => {
           avatar: msg.avatar
         }));
         setMessages(typedMessages);
+        setChatId(selectedChatId);
       }
     } catch (error) {
       console.error('Error loading chat:', error);
@@ -102,9 +104,14 @@ export const useChatState = (selectedBotId: string | null) => {
       }
 
       const { data: { user } } = await supabase.auth.getUser();
+      const currentChatId = chatId || uuidv4();
+
+      if (!chatId) {
+        setChatId(currentChatId);
+      }
 
       const chatData = {
-        id: chatId,
+        id: currentChatId,
         bot_id: selectedBotId,
         messages: [...newMessages, createMessage("assistant", response)].map(msg => ({
           ...msg,
