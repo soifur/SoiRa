@@ -40,7 +40,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim() || isLoading || isStreaming) return;
+    if (!message.trim() || isLoading || isStreaming) {
+      console.log("Preventing message send:", { 
+        isEmpty: !message.trim(), 
+        isLoading, 
+        isStreaming 
+      });
+      return;
+    }
 
     try {
       setIsLoading(true);
