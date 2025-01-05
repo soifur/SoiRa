@@ -22,6 +22,8 @@ interface MessageListProps {
   isLoading?: boolean;
   isStreaming?: boolean;
   onClearChat?: () => void;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export const MessageList = ({ 
@@ -31,7 +33,9 @@ export const MessageList = ({
   onStarterClick, 
   isLoading,
   isStreaming,
-  onClearChat 
+  onClearChat,
+  disabled,
+  disabledReason
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);

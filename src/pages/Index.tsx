@@ -123,6 +123,11 @@ const Index = () => {
     checkSubscriptionLimits();
   };
 
+  const handleChatSelect = (chatId: string) => {
+    handleSelectChat(chatId);
+    setShowHistory(false);
+  };
+
   const LimitExceededMessage = () => (
     <div className="fixed bottom-24 left-0 right-0 p-4 bg-destructive/10 backdrop-blur">
       <div className="max-w-3xl mx-auto flex items-center justify-between">
