@@ -9,12 +9,14 @@ import { MainChatHistory } from "@/components/chat/MainChatHistory";
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
+  const { toast } = useToast();
 
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
@@ -104,6 +106,44 @@ const Index = () => {
     sendMessage
   } = useChat(selectedBot, sessionToken);
 
+  const handleChatSelect = async (chatId: string) => {
+    try {
+      // Fetch the chat to get its bot_id
+      const { data: chat, error } = await supabase
+        .from('chat_history')
+        .select('bot_id')
+        .eq('id', chatId)
+        .single();
+
+      if (error) throw error;
+
+      if (chat && chat.bot_id) {
+        // Check if the bot exists in the available bots
+        const botExists = allBots.some(bot => bot.id === chat.bot_id);
+        if (!botExists) {
+          toast({
+            title: "Bot not available",
+            description: "The bot associated with this chat is not currently available.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Set the selected bot
+        setSelectedBotId(chat.bot_id);
+        // Load the chat
+        handleSelectChat(chatId);
+      }
+    } catch (error) {
+      console.error('Error selecting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Card className="w-full h-[100dvh] overflow-hidden relative">
@@ -121,7 +161,7 @@ const Index = () => {
             <MainChatHistory
               sessionToken={sessionToken}
               botId={selectedBotId}
-              onSelectChat={handleSelectChat}
+              onSelectChat={handleChatSelect}
               onNewChat={handleNewChat}
               currentChatId={currentChatId}
               isOpen={showHistory}
