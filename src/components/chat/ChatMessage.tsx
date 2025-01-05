@@ -66,7 +66,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
             !isBot && "px-6 py-4 rounded-2xl bg-primary text-primary-foreground",
             isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm w-full",
             isBot && isEmbedded && "px-6 py-4",
-            isStreaming && "animate-pulse"
+            isStreaming && "after:content-['▋'] after:ml-1 after:animate-[blink_1s_infinite]"
           )}
         >
           <ReactMarkdown
