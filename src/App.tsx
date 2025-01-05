@@ -9,6 +9,8 @@ import Chat from "@/pages/Chat";
 import Archive from "@/pages/Archive";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
+import Users from "@/pages/Users";
+import Folders from "@/pages/Folders";
 import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { Helmet } from "react-helmet";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -67,6 +69,14 @@ function App() {
             <Route
               path="/settings"
               element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/folders"
+              element={isAuthenticated ? <Folders /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/users"
+              element={isAuthenticated ? <Users /> : <Navigate to="/login" />}
             />
             <Route path="/embed/:botId" element={<EmbeddedBotChat />} />
             <Route
