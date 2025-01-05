@@ -99,8 +99,7 @@ export const MainChatHistory = ({
     }
   };
 
-  const handleDelete = async (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDelete = async (chatId: string) => {
     try {
       const { error } = await supabase
         .from('chat_history')
@@ -149,6 +148,14 @@ export const MainChatHistory = ({
     });
   };
 
+  const handleSelectChat = (chatId: string) => {
+    console.log("Selecting chat:", chatId);
+    onSelectChat(chatId);
+    if (isMobile) {
+      onClose();
+    }
+  };
+
   return (
     <div className={cn(
       "fixed top-0 left-0 h-screen z-[200] bg-zinc-950 dark:bg-zinc-950 shadow-lg transition-transform duration-300 ease-in-out border-r",
@@ -167,7 +174,7 @@ export const MainChatHistory = ({
                 isExpanded={expandedModels.has(modelName)}
                 onToggle={() => toggleModel(modelName)}
                 currentChatId={currentChatId}
-                onSelectChat={onSelectChat}
+                onSelectChat={handleSelectChat}
                 onDeleteChat={handleDelete}
                 isModelGroup={true}
               >
@@ -183,7 +190,7 @@ export const MainChatHistory = ({
                       isExpanded={expandedGroups.has(dateGroup)}
                       onToggle={() => toggleGroup(dateGroup)}
                       currentChatId={currentChatId}
-                      onSelectChat={onSelectChat}
+                      onSelectChat={handleSelectChat}
                       onDeleteChat={handleDelete}
                     />
                   );
