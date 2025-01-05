@@ -1,19 +1,20 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ResetPeriod } from "@/types/subscription";
 
 interface SubscriptionResetPeriodProps {
-  period: string;
+  period: ResetPeriod;
   amount: number;
-  onPeriodChange: (value: string) => void;
-  onAmountChange: (value: number) => void;
+  onPeriodChange: (period: ResetPeriod) => void;
+  onAmountChange: (amount: number) => void;
 }
 
-export const SubscriptionResetPeriod = ({ 
-  period, 
-  amount, 
-  onPeriodChange, 
-  onAmountChange 
+export const SubscriptionResetPeriod = ({
+  period,
+  amount,
+  onPeriodChange,
+  onAmountChange,
 }: SubscriptionResetPeriodProps) => {
   return (
     <div className="space-y-2">
@@ -23,11 +24,11 @@ export const SubscriptionResetPeriod = ({
           type="number"
           value={amount}
           onChange={(e) => onAmountChange(parseInt(e.target.value))}
-          className="w-24"
           min={1}
+          className="w-24"
         />
         <Select value={period} onValueChange={onPeriodChange}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -35,6 +36,7 @@ export const SubscriptionResetPeriod = ({
             <SelectItem value="daily">Daily</SelectItem>
             <SelectItem value="weekly">Weekly</SelectItem>
             <SelectItem value="monthly">Monthly</SelectItem>
+            <SelectItem value="never">Never</SelectItem>
           </SelectContent>
         </Select>
       </div>

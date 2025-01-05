@@ -1,9 +1,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { LimitType } from "@/types/subscription";
 
 interface SubscriptionLimitTypeProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: LimitType;
+  onChange: (value: LimitType) => void;
 }
 
 export const SubscriptionLimitType = ({ value, onChange }: SubscriptionLimitTypeProps) => {
@@ -15,8 +16,8 @@ export const SubscriptionLimitType = ({ value, onChange }: SubscriptionLimitType
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="messages">Messages</SelectItem>
           <SelectItem value="tokens">Tokens</SelectItem>
+          <SelectItem value="messages">Messages</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -19,12 +19,12 @@ export const RoleSubscriptionSettings = ({
       <h3 className="font-medium capitalize">{userRole.replace('_', ' ')} Settings</h3>
       <div className="grid gap-4">
         <SubscriptionLimitType
-          value={settings.limit_type || 'tokens'}
+          value={settings.limit_type}
           onChange={(limit_type) => onSettingsChange({ ...settings, limit_type })}
         />
         <SubscriptionResetPeriod
           period={settings.reset_period}
-          amount={settings.reset_amount || 1}
+          amount={settings.reset_amount}
           onPeriodChange={(reset_period) => onSettingsChange({ ...settings, reset_period })}
           onAmountChange={(reset_amount) => onSettingsChange({ ...settings, reset_amount })}
         />
