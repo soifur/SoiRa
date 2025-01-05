@@ -16,6 +16,7 @@ interface MainChatHistoryProps {
   currentChatId: string | null;
   isOpen: boolean;
   onClose: () => void;
+  setSelectedBotId: (botId: string) => void;
 }
 
 type ChatsByModelAndDate = {
@@ -32,6 +33,7 @@ export const MainChatHistory = ({
   currentChatId,
   isOpen,
   onClose,
+  setSelectedBotId,
 }: MainChatHistoryProps) => {
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Today", "Yesterday"]));
@@ -148,11 +150,36 @@ export const MainChatHistory = ({
     });
   };
 
-  const handleSelectChat = (chatId: string) => {
+  const handleSelectChat = async (chatId: string) => {
     console.log("Selecting chat:", chatId);
-    onSelectChat(chatId);
-    if (isMobile) {
-      onClose();
+    
+    try {
+      // Fetch the chat to get its bot_id
+      const { data: chat, error } = await supabase
+        .from('chat_history')
+        .select('bot_id')
+        .eq('id', chatId)
+        .single();
+
+      if (error) throw error;
+
+      if (chat && chat.bot_id) {
+        console.log("Setting selected bot ID:", chat.bot_id);
+        setSelectedBotId(chat.bot_id);
+      }
+
+      onSelectChat(chatId);
+      
+      if (isMobile) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error selecting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat",
+        variant: "destructive",
+      });
     }
   };
 
