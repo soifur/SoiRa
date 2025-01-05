@@ -1,46 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
-import { ChatHistoryContent } from "./history/ChatHistoryContent";
-import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
+import { DateGroup, getDateGroup } from "@/utils/dateUtils";
 
-interface MainChatHistoryProps {
-  sessionToken: string | null;
-  botId: string | null;
-  onSelectChat: (chatId: string) => void;
-  onNewChat: () => void;
-  currentChatId: string | null;
-  isOpen: boolean;
-  onClose: () => void;
-  setSelectedBotId: (botId: string) => void;
-}
-
-type ChatsByModelAndDate = {
-  [modelName: string]: {
-    [K in DateGroup]?: any[];
-  };
+export type ChatsByModelAndDate = {
+  [modelName: string]: Partial<Record<DateGroup, any[]>>;
 };
 
 const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
 const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
 
-export const MainChatHistory = ({
-  sessionToken,
-  botId,
-  onSelectChat,
-  onNewChat,
-  currentChatId,
-  isOpen,
-  onClose,
-  setSelectedBotId,
-}: MainChatHistoryProps) => {
+export const useChatHistoryState = (sessionToken: string | null, botId: string | null) => {
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const savedGroups = localStorage.getItem(EXPANDED_GROUPS_KEY);
-    return savedGroups ? new Set(JSON.parse(savedGroups)) : new Set(DATE_GROUP_ORDER);
+    return savedGroups ? new Set(JSON.parse(savedGroups)) : new Set([]);
   });
 
   const [expandedModels, setExpandedModels] = useState<Set<string>>(() => {
@@ -49,7 +23,6 @@ export const MainChatHistory = ({
   });
 
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (sessionToken) {
@@ -64,16 +37,6 @@ export const MainChatHistory = ({
   useEffect(() => {
     localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
   }, [expandedModels]);
-
-  useEffect(() => {
-    const modelNames = Object.keys(chatsByModelAndDate);
-    if (modelNames.length > 0) {
-      const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
-      if (!savedModels) {
-        setExpandedModels(new Set(modelNames));
-      }
-    }
-  }, [chatsByModelAndDate]);
 
   const fetchChatHistory = async () => {
     try {
@@ -177,55 +140,13 @@ export const MainChatHistory = ({
     });
   };
 
-  const handleSelectChat = async (chatId: string) => {
-    try {
-      const { data: chat, error } = await supabase
-        .from('chat_history')
-        .select('bot_id')
-        .eq('id', chatId)
-        .single();
-
-      if (error) throw error;
-
-      if (chat && chat.bot_id) {
-        setSelectedBotId(chat.bot_id);
-      }
-
-      onSelectChat(chatId);
-      
-      if (isMobile) {
-        onClose();
-      }
-    } catch (error) {
-      console.error('Error selecting chat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load chat",
-        variant: "destructive",
-      });
-    }
+  return {
+    chatsByModelAndDate,
+    expandedGroups,
+    expandedModels,
+    handleDelete,
+    toggleGroup,
+    toggleModel,
+    fetchChatHistory
   };
-
-  return (
-    <div className={cn(
-      "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
-      "dark:bg-zinc-950",
-      "light:bg-white light:border-gray-200",
-      isOpen ? "translate-x-0" : "-translate-x-full",
-      isMobile ? "w-full" : "w-80"
-    )}>
-      <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
-      <ChatHistoryContent
-        chatsByModelAndDate={chatsByModelAndDate}
-        expandedGroups={expandedGroups}
-        expandedModels={expandedModels}
-        currentChatId={currentChatId}
-        onSelectChat={handleSelectChat}
-        onDeleteChat={handleDelete}
-        onToggleGroup={toggleGroup}
-        onToggleModel={toggleModel}
-        onClose={onClose}
-      />
-    </div>
-  );
 };
