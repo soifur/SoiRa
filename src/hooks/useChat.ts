@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "./useBots";
+import { useTokenUsage } from "./useTokenUsage";
 
 export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -13,6 +14,7 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { checkTokenUsage } = useTokenUsage();
 
   const handleNewChat = () => {
     setMessages([]);
@@ -57,6 +59,19 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
     if (!selectedBot || !message.trim()) return;
 
     try {
+      // Check token usage before proceeding
+      const estimatedTokens = message.length / 4; // Rough estimate
+      const isAllowed = await checkTokenUsage(selectedBot.model, estimatedTokens);
+      
+      if (!isAllowed) {
+        toast({
+          title: "Usage Limit Reached",
+          description: "You've reached your usage limit for this model. Please try again later or upgrade your subscription.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setIsLoading(true);
       setIsStreaming(true);
       const userMessage = createMessage("user", message);
@@ -108,7 +123,9 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
         user_id: user?.id,
         session_token: !user ? sessionToken : null,
         sequence_number: 1,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        tokens_used: estimatedTokens, // Add token usage tracking
+        messages_used: 1 // Add message count tracking
       };
 
       const { error } = await supabase
