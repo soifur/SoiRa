@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { useQuery } from "@tanstack/react-query";
+import { Bot as BotType } from "@/hooks/useBots";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -17,7 +18,7 @@ const Index = () => {
   const { toast } = useToast();
 
   // Fetch bots
-  const { data: bots } = useQuery({
+  const { data: bots, isLoading: isLoadingBots } = useQuery({
     queryKey: ['bots'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -26,7 +27,20 @@ const Index = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+
+      // Transform the data to match our Bot interface
+      return data.map((bot): BotType => ({
+        id: bot.id,
+        name: bot.name,
+        instructions: bot.instructions || "",
+        starters: bot.starters || [],
+        model: bot.model,
+        apiKey: bot.api_key,
+        openRouterModel: bot.open_router_model,
+        avatar: bot.avatar,
+        accessType: "private",
+        memory_enabled: bot.memory_enabled,
+      }));
     }
   });
 
