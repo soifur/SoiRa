@@ -1,21 +1,11 @@
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
-
-type LimitType = 'tokens' | 'messages';
-type ResetPeriod = 'daily' | 'weekly' | 'monthly' | 'never';
-
-interface SubscriptionSettings {
-  units_per_period: number;
-  reset_period: ResetPeriod;
-  lifetime_max_units?: number;
-  limit_type: LimitType;
-  user_role: UserRole;
-}
+import { SubscriptionSettings } from "@/types/subscriptionSettings";
+import { SubscriptionSettingsFields } from "./subscription/SubscriptionSettingsFields";
 
 interface SubscriptionLimitsFormProps {
   model: string;
@@ -43,7 +33,7 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
       user_role: 'admin'
     },
     super_admin: {
-      units_per_period: -1, // unlimited
+      units_per_period: -1,
       reset_period: 'never',
       limit_type: 'tokens',
       user_role: 'super_admin'
@@ -93,10 +83,10 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
         data.forEach(setting => {
           newSettings[setting.user_role] = {
             units_per_period: setting.units_per_period,
-            reset_period: setting.reset_period as ResetPeriod,
+            reset_period: setting.reset_period,
             lifetime_max_units: setting.lifetime_max_units,
-            limit_type: (setting.limit_type as LimitType) || 'tokens',
-            user_role: setting.user_role as UserRole
+            limit_type: setting.limit_type || 'tokens',
+            user_role: setting.user_role
           };
         });
         setSubscriptionSettings(newSettings);
@@ -109,15 +99,23 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
   const handleSubscriptionSettingChange = async (updates: Partial<SubscriptionSettings>) => {
     const currentSettings = subscriptionSettings[selectedRole];
     const newSettings = { ...currentSettings, ...updates };
+    
     setSubscriptionSettings(prev => ({
       ...prev,
       [selectedRole]: newSettings
     }));
     
     try {
+      // First try to delete any existing record
+      await supabase
+        .from('model_subscription_settings')
+        .delete()
+        .match({ model, user_role: selectedRole });
+
+      // Then insert the new record
       const { error } = await supabase
         .from('model_subscription_settings')
-        .upsert({
+        .insert({
           model,
           user_role: selectedRole,
           units_per_period: newSettings.units_per_period,
@@ -142,7 +140,6 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
     }
   };
 
-  // Only super_admin can modify settings
   const canModifySettings = userRole === 'super_admin';
 
   return (
@@ -169,70 +166,11 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
         </div>
       )}
 
-      <div className="grid gap-4">
-        <div className="space-y-2">
-          <Label>Limit Type</Label>
-          <Select
-            value={subscriptionSettings[selectedRole].limit_type}
-            onValueChange={(value: LimitType) => handleSubscriptionSettingChange({ limit_type: value })}
-            disabled={!canModifySettings}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="tokens">Tokens</SelectItem>
-              <SelectItem value="messages">Messages</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Units per Period</Label>
-          <Input
-            type="number"
-            value={subscriptionSettings[selectedRole].units_per_period}
-            onChange={(e) => handleSubscriptionSettingChange({ 
-              units_per_period: parseInt(e.target.value) 
-            })}
-            disabled={!canModifySettings}
-            className="dark:bg-[#1e1e1e] dark:border-gray-700"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Reset Period</Label>
-          <Select
-            value={subscriptionSettings[selectedRole].reset_period}
-            onValueChange={(value: ResetPeriod) => handleSubscriptionSettingChange({ reset_period: value })}
-            disabled={!canModifySettings}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="never">Never</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Lifetime Maximum Units (Optional)</Label>
-          <Input
-            type="number"
-            value={subscriptionSettings[selectedRole].lifetime_max_units || ''}
-            onChange={(e) => handleSubscriptionSettingChange({ 
-              lifetime_max_units: e.target.value ? parseInt(e.target.value) : undefined 
-            })}
-            placeholder="No limit"
-            disabled={!canModifySettings}
-            className="dark:bg-[#1e1e1e] dark:border-gray-700"
-          />
-        </div>
-      </div>
+      <SubscriptionSettingsFields
+        settings={subscriptionSettings[selectedRole]}
+        onSettingChange={handleSubscriptionSettingChange}
+        disabled={!canModifySettings}
+      />
 
       {!canModifySettings && (
         <p className="text-sm text-muted-foreground mt-4">
