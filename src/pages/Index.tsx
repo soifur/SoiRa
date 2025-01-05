@@ -8,11 +8,17 @@ import { Bot as BotType } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
+import { ChatService } from "@/services/ChatService";
+import { createMessage } from "@/utils/messageUtils";
+import { v4 as uuidv4 } from 'uuid';
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [chatId] = useState(() => uuidv4());
 
   // Query for user's bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
@@ -57,7 +63,6 @@ const Index = () => {
     }
   });
 
-  // Combine user's bots and shared bots
   const allBots = [
     ...(userBots || []),
     ...(sharedBots || []).map(shared => ({
@@ -74,7 +79,7 @@ const Index = () => {
     }))
   ];
 
-  const selectedBot = allBots.find(bot => bot.id === selectedBotId) || null;
+  const selectedBot = allBots.find(bot => bot.id === selectedBotId);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -83,10 +88,85 @@ const Index = () => {
 
   const handleNewChat = () => {
     setSelectedBotId(null);
+    setMessages([]);
     toast({
       title: "New Chat",
       description: "Starting a new chat session",
     });
+  };
+
+  const sendMessage = async (message: string) => {
+    if (!selectedBot || !message.trim()) return;
+
+    try {
+      setIsLoading(true);
+      const userMessage = createMessage("user", message);
+      const newMessages = [...messages, userMessage];
+      setMessages(newMessages);
+      
+      const loadingMessage = createMessage("assistant", "...", true);
+      setMessages([...newMessages, loadingMessage]);
+
+      let response: string;
+      if (selectedBot.model === "openrouter") {
+        response = await ChatService.sendOpenRouterMessage(newMessages, selectedBot);
+      } else if (selectedBot.model === "gemini") {
+        response = await ChatService.sendGeminiMessage(newMessages, selectedBot);
+      } else {
+        throw new Error("Unsupported model type");
+      }
+
+      const botMessage = createMessage("assistant", response, true);
+      const updatedMessages = [...newMessages, botMessage];
+      setMessages(updatedMessages);
+
+      // Save chat history
+      const chatKey = `chat_${selectedBot.id}_${chatId}`;
+      localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+
+      await saveChatHistory(updatedMessages, selectedBot);
+
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveChatHistory = async (messages: any[], bot: BotType) => {
+    try {
+      const { data: latestChat } = await supabase
+        .from('chat_history')
+        .select('sequence_number')
+        .eq('bot_id', bot.id)
+        .order('sequence_number', { ascending: false })
+        .limit(1)
+        .single();
+
+      const nextSequenceNumber = (latestChat?.sequence_number || 0) + 1;
+
+      const { error } = await supabase
+        .from('chat_history')
+        .upsert({
+          id: chatId,
+          bot_id: bot.id,
+          messages: messages.map(msg => ({
+            ...msg,
+            timestamp: msg.timestamp?.toISOString(),
+          })),
+          sequence_number: nextSequenceNumber,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+    }
   };
 
   if (isLoadingUserBots || isLoadingSharedBots) {
@@ -112,9 +192,10 @@ const Index = () => {
             <div className="flex-1 overflow-hidden mt-14 mb-24">
               {selectedBot ? (
                 <MessageList
-                  messages={[]}
+                  messages={messages}
                   selectedBot={selectedBot}
                   starters={selectedBot.starters || []}
+                  onStarterClick={sendMessage}
                 />
               ) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
@@ -125,9 +206,9 @@ const Index = () => {
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
               <div className="max-w-3xl mx-auto">
                 <ChatInput
-                  onSend={() => {}}
+                  onSend={sendMessage}
                   disabled={!selectedBot}
-                  isLoading={false}
+                  isLoading={isLoading}
                   placeholder={selectedBot ? "Type your message..." : "Select a bot to start chatting"}
                 />
               </div>

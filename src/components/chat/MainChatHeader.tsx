@@ -21,12 +21,6 @@ interface MainChatHeaderProps {
   onSignOut: () => void;
 }
 
-interface SharedBot {
-  id: string;
-  bot_name: string;
-  share_key: string;
-}
-
 export const MainChatHeader = ({
   selectedBotId,
   setSelectedBotId,
@@ -36,43 +30,24 @@ export const MainChatHeader = ({
 }: MainChatHeaderProps) => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-  const [sharedBots, setSharedBots] = useState<SharedBot[]>([]);
+  const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
 
+  // Deduplicate bots based on ID
   useEffect(() => {
-    const fetchSharedBots = async () => {
-      const { data, error } = await supabase
-        .from('shared_bots')
-        .select('id, bot_name, share_key')
-        .order('bot_name');
-
-      if (error) {
-        console.error('Error fetching shared bots:', error);
-        return;
-      }
-
-      setSharedBots(data);
-    };
-
-    fetchSharedBots();
-  }, []);
-
-  // Combine user's bots and shared bots for the selector
-  const allBots = [
-    ...(bots || []).map(bot => ({
-      id: bot.id,
-      name: bot.name,
-      isShared: false
-    })),
-    ...sharedBots.map(bot => ({
-      id: bot.share_key,
-      name: `${bot.bot_name} (Shared)`,
-      isShared: true
-    }))
-  ];
+    if (bots) {
+      const botsMap = new Map();
+      bots.forEach(bot => {
+        if (!botsMap.has(bot.id)) {
+          botsMap.set(bot.id, bot);
+        }
+      });
+      setUniqueBots(Array.from(botsMap.values()));
+    }
+  }, [bots]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
-      <div className="h-14 flex items-center justify-between px-4 max-w-[1200px] mx-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="h-14 flex items-center justify-between px-4 max-w-[1200px] mx-auto">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -103,7 +78,7 @@ export const MainChatHeader = ({
             <SelectValue placeholder="Select a bot" />
           </SelectTrigger>
           <SelectContent>
-            {allBots.map((bot) => (
+            {uniqueBots.map((bot) => (
               <SelectItem key={bot.id} value={bot.id}>
                 {bot.name}
               </SelectItem>
