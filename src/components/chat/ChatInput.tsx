@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -12,7 +13,6 @@ interface ChatInputProps {
   onInputChange?: (value: string) => void;
   onSubmit?: (e: React.FormEvent) => void;
   value?: string;
-  onUpgradeClick?: () => void;
 }
 
 export const ChatInput = ({ 
@@ -22,10 +22,10 @@ export const ChatInput = ({
   isLoading,
   onInputChange,
   onSubmit,
-  value,
-  onUpgradeClick 
+  value 
 }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +98,7 @@ export const ChatInput = ({
           />
           {isUsageLimitExceeded && (
             <button
-              onClick={onUpgradeClick}
+              onClick={() => navigate('/upgrade')}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
               type="button"
             >

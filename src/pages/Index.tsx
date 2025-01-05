@@ -148,10 +148,6 @@ const Index = () => {
     </div>
   );
 
-  const handleUpgradeClick = () => {
-    setShowUpgradeModal(true);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Card className="w-full h-[100dvh] overflow-hidden relative">
@@ -185,7 +181,6 @@ const Index = () => {
                 sendMessage={handleSendMessage}
                 disabled={isExceeded}
                 disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
-                onUpgradeClick={handleUpgradeClick}
               />
               {isExceeded && <LimitExceededMessage />}
             </div>
