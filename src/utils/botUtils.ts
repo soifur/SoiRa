@@ -13,7 +13,8 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
       api_key: bot.apiKey,
       open_router_model: bot.openRouterModel,
       avatar: bot.avatar,
-      memory_enabled: bot.memory_enabled
+      memory_enabled: bot.memory_enabled,
+      published: bot.published
     })
     .eq('id', bot.id);
 
@@ -33,11 +34,12 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
       .update({
         bot_name: bot.name,
         instructions: bot.instructions,
-        starters: bot.starters, // This was missing in the shared_bots update
+        starters: bot.starters,
         model: bot.model,
         open_router_model: bot.openRouterModel,
         avatar: bot.avatar,
-        memory_enabled: bot.memory_enabled
+        memory_enabled: bot.memory_enabled,
+        published: bot.published
       })
       .eq('bot_id', bot.id);
 

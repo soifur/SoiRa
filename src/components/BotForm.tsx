@@ -57,8 +57,25 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
   };
 
-  const handlePublishToggle = (checked: boolean) => {
-    handleBotChange({ published: checked });
+  const handlePublishToggle = async (checked: boolean) => {
+    try {
+      const updatedBot = { ...editingBot, published: checked };
+      if (editingBot.id) {
+        await updateBotAndSharedConfig(updatedBot);
+        toast({
+          title: "Success",
+          description: "Publishing status updated successfully",
+        });
+      }
+      handleBotChange({ published: checked });
+    } catch (error) {
+      console.error("Error updating publishing status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update publishing status",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSave = async () => {
