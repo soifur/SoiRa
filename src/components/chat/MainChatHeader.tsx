@@ -47,8 +47,8 @@ export const MainChatHeader = ({
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="h-14 flex items-center justify-between px-4 max-w-[1200px] mx-auto">
-        <div className="flex items-center gap-4">
+      <div className="h-14 flex items-center px-4">
+        <div className="flex-1 flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -83,20 +83,22 @@ export const MainChatHeader = ({
           </Button>
         </div>
 
-        <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-          <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            {uniqueBots.map((bot) => (
-              <SelectItem key={bot.id} value={bot.id}>
-                {bot.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
+            <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+              <SelectValue placeholder="Select a model" />
+            </SelectTrigger>
+            <SelectContent>
+              {uniqueBots.map((bot) => (
+                <SelectItem key={bot.id} value={bot.id}>
+                  {bot.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex-1 flex items-center justify-end gap-2">
           <ProfileMenu />
         </div>
       </div>
