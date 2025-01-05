@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { MainChatHeader } from "@/components/chat/MainChatHeader";
+import { Navigation } from "@/components/Navigation";
 import {
   Table,
   TableBody,
@@ -137,15 +137,7 @@ const Users = () => {
   if (isLoadingCurrentUser || isLoadingUsers) {
     return (
       <div className="min-h-screen bg-background">
-        <MainChatHeader
-          selectedBotId={null}
-          setSelectedBotId={() => {}}
-          bots={[]}
-          onNewChat={() => {}}
-          onSignOut={() => {}}
-          onToggleHistory={() => {}}
-          showHistory={false}
-        />
+        <Navigation />
         <main className="container mx-auto px-4 py-24">
           <div className="flex items-center justify-center">
             <p>Loading...</p>
@@ -160,15 +152,7 @@ const Users = () => {
   if (!canManageUsers) {
     return (
       <div className="min-h-screen bg-background">
-        <MainChatHeader
-          selectedBotId={null}
-          setSelectedBotId={() => {}}
-          bots={[]}
-          onNewChat={() => {}}
-          onSignOut={() => {}}
-          onToggleHistory={() => {}}
-          showHistory={false}
-        />
+        <Navigation />
         <main className="container mx-auto px-4 py-24">
           <h1 className="text-4xl font-bold mb-8">Unauthorized</h1>
           <p>You don't have permission to access this page.</p>
@@ -179,15 +163,7 @@ const Users = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <MainChatHeader
-        selectedBotId={null}
-        setSelectedBotId={() => {}}
-        bots={[]}
-        onNewChat={() => {}}
-        onSignOut={() => {}}
-        onToggleHistory={() => {}}
-        showHistory={false}
-      />
+      <Navigation />
       <main className="container mx-auto px-4 py-24">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">Users Management</h1>
