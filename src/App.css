@@ -173,3 +173,8 @@
 .message-animation {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+/* Add styles for the limit exceeded message in dark mode */
+.dark .limit-exceeded-message {
+  @apply text-white;
+}
