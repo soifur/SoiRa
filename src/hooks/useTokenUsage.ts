@@ -77,10 +77,10 @@ export const useTokenUsage = () => {
       }
       console.log("📅 Period start date:", periodStart.toISOString());
 
-      // Get current usage
+      // Get current usage based on limit type
       const { data: usage, error: usageError } = await supabase
         .from('chat_history')
-        .select(settings.limit_type === 'messages' ? 'messages_used' : 'tokens_used')
+        .select('tokens_used, messages_used')
         .eq('user_id', user?.id)
         .eq('bot_id', model)
         .gte('created_at', periodStart.toISOString());
@@ -90,6 +90,7 @@ export const useTokenUsage = () => {
         throw usageError;
       }
 
+      // Calculate current usage based on limit type
       const currentUsage = usage?.reduce((acc: number, curr: UsageData) => {
         if (settings.limit_type === 'messages') {
           return acc + (curr.messages_used || 0);
@@ -99,12 +100,18 @@ export const useTokenUsage = () => {
 
       console.log("📊 Current usage:", currentUsage);
       console.log("📊 Period limit:", settings.units_per_period);
+      console.log("📊 Limit type:", settings.limit_type);
 
+      // Calculate units to check based on limit type
       const unitsToCheck = settings.limit_type === 'messages' ? 1 : estimatedTokens;
+      
+      // Check if adding the new units would exceed the limit
       const canProceed = currentUsage + unitsToCheck <= settings.units_per_period;
 
       console.log("🎯 Units to check:", unitsToCheck);
       console.log("✅ Can proceed:", canProceed);
+      console.log("Current usage:", currentUsage);
+      console.log("Limit:", settings.units_per_period);
 
       return {
         canProceed,
