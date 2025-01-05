@@ -19,10 +19,6 @@ export const useChatOperations = (
 
   const handleSendMessage = async (message: string, chatId: string) => {
     console.log("🚀 Starting message send process...");
-    console.log("📝 Message:", message);
-    console.log("🤖 Bot ID:", bot.id);
-    console.log("💬 Chat ID:", chatId);
-    console.log("📊 Current messages count:", messages.length);
     
     if (!message.trim() || isLoading || isStreaming) {
       console.log("❌ Message send prevented:", {
@@ -40,19 +36,9 @@ export const useChatOperations = (
       
       if (!usageResult.canProceed) {
         console.log("❌ Usage limit exceeded - cannot send message");
-        console.log("Current usage:", usageResult.currentUsage);
-        console.log("Limit:", usageResult.limit);
-        console.log("Reset period:", usageResult.resetPeriod);
-        
-        toast({
-          title: "Usage Limit Exceeded",
-          description: `You've reached your ${usageResult.resetPeriod} limit of ${usageResult.limit} ${usageResult.limitType}.`,
-          variant: "destructive",
-        });
         return false;
       }
 
-      console.log("✅ Usage check passed - proceeding with message");
       setIsLoading(true);
       setIsStreaming(true);
 
@@ -89,13 +75,16 @@ export const useChatOperations = (
         .single();
 
       const nextSequenceNumber = (nextSequence?.sequence_number || 0) + 1;
+      const tokensUsed = usageResult.limitType === 'tokens' ? 1 : 0;
+      const messagesUsed = usageResult.limitType === 'messages' ? 1 : 0;
 
       await saveChatHistory(
         chatId,
         bot.id,
         [...updatedMessages, createMessage("assistant", response, true, bot.avatar)],
         nextSequenceNumber,
-        1
+        messagesUsed,
+        tokensUsed
       );
 
       console.log("✅ Message handling completed successfully");

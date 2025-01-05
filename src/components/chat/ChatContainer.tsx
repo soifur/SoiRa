@@ -44,9 +44,15 @@ export const ChatContainer = ({
         <div className="max-w-3xl mx-auto">
           <ChatInput
             onSend={sendMessage}
-            disabled={!selectedBot}
+            disabled={!selectedBot || isLoading || isStreaming}
             isLoading={isLoading}
-            placeholder={selectedBot ? "Type your message..." : "Select a model to start chatting"}
+            placeholder={
+              !selectedBot 
+                ? "Select a model to start chatting" 
+                : isLoading || isStreaming 
+                  ? "Please wait..." 
+                  : "Type your message..."
+            }
           />
         </div>
       </div>

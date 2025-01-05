@@ -9,7 +9,8 @@ export const saveChatHistory = async (
   botId: string,
   messages: Message[],
   sequenceNumber: number,
-  messagesUsed: number = 0
+  messagesUsed: number = 0,
+  tokensUsed: number = 0
 ) => {
   const { data: { user } } = await supabase.auth.getUser();
   
@@ -22,7 +23,8 @@ export const saveChatHistory = async (
     })),
     user_id: user?.id,
     sequence_number: sequenceNumber,
-    messages_used: messagesUsed
+    messages_used: messagesUsed,
+    tokens_used: tokensUsed
   };
 
   const { error } = await supabase
