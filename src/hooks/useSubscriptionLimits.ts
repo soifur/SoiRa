@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { addDays, subDays } from 'date-fns';
 import { LimitType } from '@/types/subscription';
-import { Message } from "@/components/chat/types/chatTypes";
 
 interface SubscriptionLimit {
   isExceeded: boolean;
@@ -41,7 +40,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       console.log("Checking limits for user role:", profile.role);
 
-      // Get subscription settings for this bot and user role
+      // Get subscription settings for this specific bot and user role
       const { data: settings } = await supabase
         .from('model_subscription_settings')
         .select('*')
@@ -77,7 +76,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       console.log("Checking usage since:", periodStart.toISOString());
 
-      // Get usage within the period
+      // Get usage within the period for this specific bot
       const { data: usage, error: usageError } = await supabase
         .from('chat_history')
         .select('messages_used, tokens_used, created_at')
@@ -89,7 +88,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       console.log("Found usage records:", usage);
 
-      // Calculate total usage
+      // Calculate total usage for this specific bot
       let totalUsage = 0;
       if (settings.limit_type === 'messages') {
         totalUsage = usage?.reduce((acc, chat) => acc + (chat.messages_used || 0), 0) || 0;
@@ -127,7 +126,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
         
         toast({
           title: "Usage Limit Exceeded",
-          description: `You have exceeded your ${settings.limit_type} limit of ${settings.units_per_period}. ${resetDate ? `Your access will be restored on ${resetDate.toLocaleDateString()}.` : ''}`,
+          description: `You have exceeded your ${settings.limit_type} limit of ${settings.units_per_period} for this bot. ${resetDate ? `Your access will be restored on ${resetDate.toLocaleDateString()}.` : ''}`,
           variant: "destructive",
         });
       }

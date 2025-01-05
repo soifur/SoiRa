@@ -85,7 +85,7 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
             bot_id: botId,
             model: setting.model || '',
             units_per_period: setting.units_per_period,
-            reset_period: setting.reset_period as "daily" | "weekly" | "monthly" | "never",
+            reset_period: setting.reset_period,
             reset_amount: setting.reset_amount,
             lifetime_max_units: setting.lifetime_max_units,
             limit_type: setting.limit_type,
@@ -99,6 +99,9 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
         title: "Success",
         description: "Subscription settings saved successfully",
       });
+      
+      // Refresh settings to ensure we have the latest data
+      fetchSettings();
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
