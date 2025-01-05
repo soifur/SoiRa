@@ -12,6 +12,7 @@ import { useChat } from "@/hooks/useChat";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Button } from "@/components/ui/button";
+import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -19,6 +20,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
   const { toast } = useToast();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
@@ -138,7 +140,7 @@ const Index = () => {
         <Button 
           variant="destructive" 
           size="sm"
-          onClick={() => navigate('/upgrade')}
+          onClick={() => setShowUpgradeModal(true)}
         >
           Upgrade Now
         </Button>
@@ -185,6 +187,10 @@ const Index = () => {
           </div>
         </div>
       </Card>
+      <UpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
+      />
     </div>
   );
 };

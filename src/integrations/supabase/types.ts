@@ -462,6 +462,42 @@ export type Database = {
           },
         ]
       }
+      subscription_tiers: {
+        Row: {
+          created_at: string
+          description: string
+          features: Json
+          id: string
+          is_active: boolean | null
+          message_multiplier: number
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          features?: Json
+          id?: string
+          is_active?: boolean | null
+          message_multiplier?: number
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          features?: Json
+          id?: string
+          is_active?: boolean | null
+          message_multiplier?: number
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_context: {
         Row: {
           bot_id: string

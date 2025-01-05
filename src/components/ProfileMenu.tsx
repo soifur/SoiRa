@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Sun, Moon, Settings, LogOut, CreditCard } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
+import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 
 export const ProfileMenu = () => {
   const { theme, setTheme } = useTheme();
@@ -20,6 +21,8 @@ export const ProfileMenu = () => {
   const { toast } = useToast();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("U");
+
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     fetchUserAvatar();
@@ -121,20 +124,21 @@ export const ProfileMenu = () => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9">
-          <Avatar className="h-8 w-8">
-            <AvatarImage 
-              src={avatarUrl || ''} 
-              alt="Profile" 
-              className="object-cover"
-            />
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <Avatar className="h-8 w-8">
+              <AvatarImage 
+                src={avatarUrl || ''} 
+                alt="Profile" 
+                className="object-cover"
+              />
+              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem 
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           className="flex items-center gap-2 px-3 py-2.5"
@@ -154,22 +158,27 @@ export const ProfileMenu = () => {
           Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator className="my-1" />
-        <DropdownMenuItem 
-          onClick={() => navigate('/upgrade')}
-          className="flex items-center gap-2 px-3 py-2.5"
-        >
-          <CreditCard className="h-4 w-4" />
-          Upgrade Plan
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="my-1" />
-        <DropdownMenuItem 
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-2.5"
-        >
-          <LogOut className="h-4 w-4" />
-          Log Out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem 
+            onClick={() => setShowUpgradeModal(true)}
+            className="flex items-center gap-2 px-3 py-2.5"
+          >
+            <CreditCard className="h-4 w-4" />
+            Upgrade Plan
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="my-1" />
+          <DropdownMenuItem 
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2.5"
+          >
+            <LogOut className="h-4 w-4" />
+            Log Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <UpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
+      />
+    </>
   );
 };
