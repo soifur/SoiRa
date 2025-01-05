@@ -81,9 +81,18 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase
+      // First, delete existing settings for this bot
+      const { error: deleteError } = await supabase
         .from('model_subscription_settings')
-        .upsert(
+        .delete()
+        .eq('bot_id', botId);
+
+      if (deleteError) throw deleteError;
+
+      // Then insert new settings
+      const { error: insertError } = await supabase
+        .from('model_subscription_settings')
+        .insert(
           settings.map(setting => ({
             id: setting.id,
             bot_id: botId,
@@ -94,11 +103,10 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
             lifetime_max_units: setting.lifetime_max_units,
             limit_type: setting.limit_type,
             user_role: setting.user_role,
-          })),
-          { onConflict: 'id' }
+          }))
         );
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast({
         title: "Success",
