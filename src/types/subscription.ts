@@ -1,4 +1,4 @@
-export type ResetPeriod = 'daily' | 'weekly' | 'monthly' | 'never';
+export type ResetPeriod = 'hourly' | 'daily' | 'weekly' | 'monthly' | 'never';
 export type LimitType = 'messages' | 'tokens';
 export type UserRole = 'super_admin' | 'admin' | 'user' | 'paid_user';
 
