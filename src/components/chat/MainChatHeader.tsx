@@ -92,71 +92,65 @@ export const MainChatHeader = ({
             </div>
           ) : (
             <>
-              {!showHistory && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                    onClick={onToggleHistory}
-                  >
-                    <Clock className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                    onClick={onNewChat}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/bots')}
-                className="h-8 w-8 hover:bg-dropdown-hover"
-              >
-                <Bot className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/archive')}
-                className="h-8 w-8 hover:bg-dropdown-hover"
-              >
-                <Archive className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-4">
+                {!showHistory && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-dropdown-hover"
+                      onClick={onToggleHistory}
+                    >
+                      <Clock className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 hover:bg-dropdown-hover"
+                      onClick={onNewChat}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/bots')}
+                  className="h-8 w-8 hover:bg-dropdown-hover"
+                >
+                  <Bot className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/archive')}
+                  className="h-8 w-8 hover:bg-dropdown-hover"
+                >
+                  <Archive className="h-4 w-4" />
+                </Button>
+                
+                <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
+                  <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueBots.map((bot) => (
+                      <SelectItem key={bot.id} value={bot.id}>
+                        {bot.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </>
           )}
         </div>
 
         {!isMobile && (
-          <>
-            <div className={cn(
-              "absolute left-1/2 transform -translate-x-1/2",
-              "transition-[margin] duration-300 ease-in-out",
-              showHistory ? "ml-40" : "ml-0"
-            )}>
-              <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-                <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueBots.map((bot) => (
-                    <SelectItem key={bot.id} value={bot.id}>
-                      {bot.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex-1 flex items-center justify-end gap-2">
-              <ProfileMenu />
-            </div>
-          </>
+          <div className="flex-1 flex items-center justify-end gap-2">
+            <ProfileMenu />
+          </div>
         )}
       </div>
     </div>
