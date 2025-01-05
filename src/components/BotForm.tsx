@@ -22,7 +22,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published // Remove the default true value
+    published: bot.published ?? false // Initialize with the actual published state
   });
   const { toast } = useToast();
 
@@ -32,7 +32,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       ...prev,
       ...bot,
       memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published // Remove the default true value
+      published: bot.published ?? false // Keep the actual published state
     }));
   }, [bot]);
 
@@ -91,11 +91,11 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-3xl mx-auto pb-20 px-4"> {/* Added padding and max-width */}
       <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
       
       <BotPublishToggle 
-        isPublished={editingBot.published}
+        isPublished={editingBot.published ?? false}
         onPublishChange={(published) => handleBotChange({ published })}
       />
 
@@ -136,11 +136,14 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         onStartersChange={(starters) => handleBotChange({ starters })}
       />
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>Save</Button>
+      {/* Fixed position footer for buttons */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-10">
+        <div className="max-w-3xl mx-auto flex justify-end gap-2">
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>Save</Button>
+        </div>
       </div>
     </div>
   );
