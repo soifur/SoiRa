@@ -42,13 +42,17 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
     // Ensure we have a setting for each user role with proper typing
     const newSettings: ModelSubscriptionSetting[] = USER_ROLES.map(role => {
       const existingSetting = data?.find(s => s.user_role === role);
-      return existingSetting ? {
-        ...existingSetting,
-        limit_type: (existingSetting.limit_type || 'tokens') as LimitType,
-        reset_period: existingSetting.reset_period,
-        reset_amount: existingSetting.reset_amount || 1,
-        units_per_period: existingSetting.units_per_period
-      } : {
+      if (existingSetting) {
+        return {
+          ...existingSetting,
+          limit_type: (existingSetting.limit_type || 'tokens') as LimitType,
+          reset_period: existingSetting.reset_period,
+          reset_amount: existingSetting.reset_amount || 1,
+          units_per_period: existingSetting.units_per_period
+        } as ModelSubscriptionSetting;
+      }
+      
+      return {
         id: crypto.randomUUID(),
         bot_id: botId,
         user_role: role,
@@ -56,7 +60,7 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
         reset_period: 'daily',
         reset_amount: 1,
         limit_type: 'tokens',
-      };
+      } as ModelSubscriptionSetting;
     });
 
     setSettings(newSettings);
