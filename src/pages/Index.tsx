@@ -17,6 +17,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
   const { toast } = useToast();
+  const { checkTokenUsage } = useTokenUsage();
 
   // Fetch bots with error handling
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
@@ -56,12 +57,37 @@ const Index = () => {
     retry: false,
   });
 
-  // Set default bot on load
+  // Check usage limits whenever a bot is selected
+  const handleBotSelect = async (botId: string) => {
+    try {
+      const usageResult = await checkTokenUsage(botId, 1);
+      if (!usageResult.canProceed) {
+        toast({
+          title: "Usage Limit Reached",
+          description: `You've reached your ${usageResult.resetPeriod} limit of ${usageResult.limit} ${usageResult.limitType}`,
+          variant: "destructive",
+        });
+        setCanSendMessages(false);
+      } else {
+        setCanSendMessages(true);
+      }
+      setSelectedBotId(botId);
+    } catch (error) {
+      console.error('Error checking usage limits:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check usage limits",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Set default bot on load and check its usage limits
   useEffect(() => {
     if (userBots && userBots.length > 0 && !selectedBotId) {
       const defaultBot = userBots.find(bot => bot.default_bot);
       if (defaultBot) {
-        setSelectedBotId(defaultBot.id);
+        handleBotSelect(defaultBot.id);
       }
     }
   }, [userBots, selectedBotId]);
@@ -87,7 +113,7 @@ const Index = () => {
         <div className="flex h-full">
           <ChatLayout
             selectedBotId={selectedBotId}
-            setSelectedBotId={setSelectedBotId}
+            setSelectedBotId={handleBotSelect}
             allBots={userBots}
             messages={messages}
             isLoading={isLoading}
