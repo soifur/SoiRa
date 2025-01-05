@@ -92,18 +92,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     console.log("Is streaming?", isStreaming);
     console.log("Usage exceeded?", usageExceeded);
     
-    if (!message.trim() || isLoading || isStreaming || usageExceeded) {
-      console.log("❌ Preventing message send:", { 
+    if (!message.trim() || isLoading || isStreaming) {
+      console.log("❌ Preventing message send due to loading state:", { 
         isEmpty: !message.trim(), 
         isLoading, 
-        isStreaming,
-        usageExceeded 
+        isStreaming
       });
       return;
     }
 
-    setIsLoading(true);
-    
+    // Check usage limits before proceeding
     try {
       console.log("🔍 Checking token usage before sending message");
       const usageResult = await checkTokenUsage(bot.id, 1);
@@ -119,12 +117,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       if (!usageResult.canProceed) {
         console.log("❌ Token usage check failed - cannot proceed");
         setUsageExceeded(true);
-        setIsLoading(false);
+        toast({
+          title: "Usage Limit Exceeded",
+          description: `You've reached your ${usageResult.resetPeriod} limit of ${usageResult.limit} ${usageResult.limitType}.`,
+          variant: "destructive",
+        });
         return;
       }
 
+      setIsLoading(true);
       setUsageExceeded(false);
-      console.log("Token usage check passed - proceeding with message");
       setIsStreaming(true);
 
       const userMessage = createMessage("user", message);
