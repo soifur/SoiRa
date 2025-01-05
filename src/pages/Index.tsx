@@ -146,10 +146,14 @@ const Index = () => {
         .single();
 
       if (chat && chat.messages) {
-        const typedMessages = (chat.messages as Message[]).map((msg: Message) => ({
-          ...msg,
+        // Explicitly type and convert the messages from JSON
+        const typedMessages = (chat.messages as any[]).map((msg): Message => ({
+          id: msg.id || uuidv4(),
+          role: msg.role,
+          content: msg.content,
           timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-          id: msg.id || uuidv4()
+          isBot: msg.isBot,
+          avatar: msg.avatar
         }));
         setMessages(typedMessages);
       }
