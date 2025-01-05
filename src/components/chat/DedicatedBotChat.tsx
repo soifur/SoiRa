@@ -40,19 +40,20 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim() || isLoading) return;
+    if (!message.trim() || isLoading || isStreaming) return;
 
     try {
+      setIsLoading(true);
       console.log("Checking token usage before sending message");
       const canProceed = await checkTokenUsage(bot.model, 1);
       
       if (!canProceed) {
         console.log("Token usage check failed - cannot proceed");
+        setIsLoading(false);
         return;
       }
 
       console.log("Token usage check passed - proceeding with message");
-      setIsLoading(true);
       setIsStreaming(true);
 
       const userMessage = createMessage("user", message);
@@ -144,7 +145,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       <div className="mt-4">
         <ChatInput
           onSend={sendMessage}
-          disabled={isLoading}
+          disabled={isLoading || isStreaming}
           isLoading={isLoading}
           placeholder="Type your message..."
         />

@@ -49,7 +49,7 @@ export const useTokenUsage = () => {
         return false;
       }
 
-      return true;
+      return data === true;
     } catch (error) {
       console.error('Error checking token usage:', error);
       toast({
