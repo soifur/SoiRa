@@ -1,10 +1,9 @@
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import { createMessage } from "@/utils/messageUtils";
 import { saveChatHistory, handleMessageSend } from "@/utils/chatOperations";
 import { useChatState } from "@/hooks/useChatState";

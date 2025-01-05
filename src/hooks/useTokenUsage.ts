@@ -20,21 +20,6 @@ interface TokensUsage {
 export const useTokenUsage = () => {
   const { toast } = useToast();
 
-  const getPeriodStart = (resetPeriod: string): string => {
-    const now = new Date();
-    switch (resetPeriod) {
-      case 'daily':
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      case 'weekly':
-        const day = now.getDay();
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate() - day).toISOString();
-      case 'monthly':
-        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      default:
-        return new Date(1970, 0, 1).toISOString();
-    }
-  };
-
   const checkTokenUsage = async (model: string, estimatedTokens: number): Promise<TokenUsageResponse> => {
     try {
       const { data: userData } = await supabase.auth.getUser();
@@ -47,6 +32,7 @@ export const useTokenUsage = () => {
       console.log("Model:", model);
       console.log("Estimated tokens:", estimatedTokens);
 
+      // First, get the user's role
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -60,6 +46,7 @@ export const useTokenUsage = () => {
 
       console.log("User role:", profile.role);
 
+      // Get subscription settings for the model and user role
       const { data: settings } = await supabase
         .from('model_subscription_settings')
         .select('*')
@@ -74,15 +61,33 @@ export const useTokenUsage = () => {
 
       console.log("Subscription settings:", settings);
 
-      const periodStart = getPeriodStart(settings.reset_period);
-      console.log("Period start:", periodStart);
+      // Calculate period start based on reset period
+      const now = new Date();
+      let periodStart = new Date();
+      switch (settings.reset_period) {
+        case 'daily':
+          periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'weekly':
+          const day = now.getDay();
+          periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
+          break;
+        case 'monthly':
+          periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        default:
+          periodStart = new Date(1970, 0, 1);
+      }
 
+      console.log("Period start:", periodStart.toISOString());
+
+      // Get current usage for the period
       const { data: usage } = await supabase
         .from('chat_history')
         .select(settings.limit_type === 'messages' ? 'messages_used' : 'tokens_used')
         .eq('user_id', userData.user.id)
-        .eq('bot_id', model) // Add this line to filter by specific model/bot
-        .gte('created_at', periodStart);
+        .eq('bot_id', model)
+        .gte('created_at', periodStart.toISOString());
 
       console.log("Raw usage data:", usage);
 
