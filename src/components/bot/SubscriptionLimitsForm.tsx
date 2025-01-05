@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
-import { SubscriptionSettings } from "@/types/subscriptionSettings";
+import { SubscriptionSettings, LimitType } from "@/types/subscriptionSettings";
 import { SubscriptionSettingsFields } from "./subscription/SubscriptionSettingsFields";
 
 interface SubscriptionLimitsFormProps {
@@ -121,7 +121,7 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
           units_per_period: newSettings.units_per_period,
           reset_period: newSettings.reset_period,
           lifetime_max_units: newSettings.lifetime_max_units,
-          limit_type: newSettings.limit_type
+          limit_type: newSettings.limit_type as LimitType
         });
 
       if (error) throw error;

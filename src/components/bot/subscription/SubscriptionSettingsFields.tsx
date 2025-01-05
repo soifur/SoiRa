@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SubscriptionSettings } from "@/types/subscriptionSettings";
+import { SubscriptionSettings, LimitType, ResetPeriod } from "@/types/subscriptionSettings";
 
 interface SubscriptionSettingsFieldsProps {
   settings: SubscriptionSettings;
@@ -20,7 +20,7 @@ export const SubscriptionSettingsFields = ({
         <Label>Limit Type</Label>
         <Select
           value={settings.limit_type}
-          onValueChange={(value) => onSettingChange({ limit_type: value as 'tokens' | 'messages' })}
+          onValueChange={(value) => onSettingChange({ limit_type: value as LimitType })}
           disabled={disabled}
         >
           <SelectTrigger>
