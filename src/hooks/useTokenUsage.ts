@@ -9,7 +9,12 @@ export const useTokenUsage = () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         console.log("No authenticated user, skipping token check");
-        return false; // Don't allow usage for non-authenticated users
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to use this feature.",
+          variant: "destructive",
+        });
+        return false;
       }
 
       console.log("Checking token usage for user:", userData.user.id);
@@ -25,7 +30,12 @@ export const useTokenUsage = () => {
 
       if (error) {
         console.error("Error from check_token_usage:", error);
-        throw error;
+        toast({
+          title: "Error",
+          description: "Failed to check usage limits. Access denied for safety.",
+          variant: "destructive",
+        });
+        return false;
       }
 
       console.log("Token usage check result:", data);
@@ -36,6 +46,7 @@ export const useTokenUsage = () => {
           description: "You've reached your usage limit for this model. Please try again later or upgrade your subscription.",
           variant: "destructive",
         });
+        return false;
       }
 
       return data;
@@ -46,7 +57,7 @@ export const useTokenUsage = () => {
         description: "Failed to check usage limits. Access denied for safety.",
         variant: "destructive",
       });
-      return false; // Prevent usage on error to enforce limits
+      return false;
     }
   };
 

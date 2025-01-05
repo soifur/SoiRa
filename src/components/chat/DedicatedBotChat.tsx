@@ -48,14 +48,18 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       
       if (!canProceed) {
         console.log("Token usage check failed - cannot proceed");
-        return; // The toast is already shown in useTokenUsage
+        return;
       }
 
       console.log("Token usage check passed - proceeding with message");
       setIsLoading(true);
       setIsStreaming(true);
 
-      const { response, newMessages } = await handleMessageSend(
+      const userMessage = createMessage("user", message);
+      const newMessages = [...messages, userMessage];
+      setMessages(newMessages);
+
+      const { response, newMessages: updatedMessages } = await handleMessageSend(
         message,
         messages,
         bot,
@@ -88,7 +92,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       await saveChatHistory(
         chatId,
         bot.id,
-        [...newMessages, createMessage("assistant", response, true, bot.avatar)],
+        [...updatedMessages, createMessage("assistant", response, true, bot.avatar)],
         nextSequenceNumber,
         1 // Increment messages_used by 1
       );
@@ -96,7 +100,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const chatKey = `chat_${bot.id}_${chatId}`;
       localStorage.setItem(
         chatKey,
-        JSON.stringify([...newMessages, { ...createMessage("assistant", response, true, bot.avatar) }])
+        JSON.stringify([...updatedMessages, { ...createMessage("assistant", response, true, bot.avatar) }])
       );
 
     } catch (error) {
