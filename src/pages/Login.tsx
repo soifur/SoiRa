@@ -9,24 +9,27 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (email !== "soifur2@gmail.com" && !isSignUp) {
-      toast({
-        variant: "destructive",
-        title: "Access Denied",
-        description: "This application is restricted to authorized users only.",
-      });
-      return;
-    }
-
     try {
+      if (email !== "soifur2@gmail.com" && !isSignUp) {
+        toast({
+          variant: "destructive",
+          title: "Access Denied",
+          description: "This application is restricted to authorized users only.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -44,12 +47,17 @@ const Login = () => {
         });
         setIsSignUp(false);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message === 'Invalid login credentials') {
+            throw new Error('Invalid email or password');
+          }
+          throw error;
+        }
 
         toast({
           title: "Welcome back!",
@@ -58,11 +66,14 @@ const Login = () => {
         navigate("/");
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         variant: "destructive",
         title: "Error",
         description: error.message,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -84,6 +95,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -93,12 +105,17 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
           <div className="space-y-4">
-            <Button type="submit" className="w-full">
-              {isSignUp ? "Sign up" : "Sign in"}
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : (isSignUp ? "Sign up" : "Sign in")}
             </Button>
             {!isSignUp && (
               <Button
@@ -106,6 +123,7 @@ const Login = () => {
                 variant="outline"
                 className="w-full"
                 onClick={() => setIsSignUp(true)}
+                disabled={isLoading}
               >
                 Create new account
               </Button>
@@ -116,6 +134,7 @@ const Login = () => {
                 variant="outline"
                 className="w-full"
                 onClick={() => setIsSignUp(false)}
+                disabled={isLoading}
               >
                 Back to login
               </Button>
