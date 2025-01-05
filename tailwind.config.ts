@@ -51,6 +51,10 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
+        },
+        chatgpt: {
+          DEFAULT: '#202123',
+          hover: '#2A2B32'
         }
       },
       borderRadius: {
