@@ -256,6 +256,7 @@ export type Database = {
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
           units_per_period: number
           updated_at: string
+          user_role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
           created_at?: string
@@ -266,6 +267,7 @@ export type Database = {
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
           units_per_period: number
           updated_at?: string
+          user_role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
           created_at?: string
@@ -276,6 +278,7 @@ export type Database = {
           reset_period?: Database["public"]["Enums"]["subscription_reset_period"]
           units_per_period?: number
           updated_at?: string
+          user_role?: Database["public"]["Enums"]["user_role"]
         }
         Relationships: []
       }

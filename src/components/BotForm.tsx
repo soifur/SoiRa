@@ -30,6 +30,7 @@ interface SubscriptionSettings {
   reset_period: ResetPeriod;
   lifetime_max_units?: number;
   limit_type: LimitType;
+  user_role?: string;
 }
 
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
@@ -46,17 +47,50 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   });
   
   const { toast } = useToast();
+  const [userRole, setUserRole] = useState<string>('user');
 
   useEffect(() => {
+    fetchUserRole();
     fetchSubscriptionSettings();
   }, [editingBot.model]);
 
+  const fetchUserRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserRole(profile.role);
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+    }
+  };
+
   const fetchSubscriptionSettings = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) return;
+
       const { data, error } = await supabase
         .from('model_subscription_settings')
         .select('*')
         .eq('model', editingBot.model)
+        .eq('user_role', profile.role)
         .single();
 
       if (error) throw error;
@@ -66,7 +100,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           units_per_period: data.units_per_period,
           reset_period: data.reset_period as ResetPeriod,
           lifetime_max_units: data.lifetime_max_units,
-          limit_type: (data.limit_type as LimitType) || 'tokens'
+          limit_type: (data.limit_type as LimitType) || 'tokens',
+          user_role: data.user_role
         });
       }
     } catch (error) {
@@ -141,6 +176,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         .from('model_subscription_settings')
         .upsert({
           model: editingBot.model,
+          user_role: userRole,
           ...newSettings
         });
 
