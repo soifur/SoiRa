@@ -58,6 +58,15 @@
   }
 }
 
+/* Add this new class for the limit message */
+.limit-message {
+  @apply text-sm text-destructive;
+}
+
+:is(.dark .limit-message) {
+  @apply text-white;
+}
+
 .chat-container {
   @apply flex flex-col h-[100dvh] max-w-[1200px] mx-auto p-4;
 }
