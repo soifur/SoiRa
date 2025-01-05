@@ -65,22 +65,6 @@ export const MainChatHeader = ({
           >
             <Archive className="h-4 w-4" />
           </Button>
-        </div>
-
-        <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-          <SelectTrigger className="w-[300px] h-9 text-sm">
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            {uniqueBots.map((bot) => (
-              <SelectItem key={bot.id} value={bot.id}>
-                {bot.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -97,6 +81,22 @@ export const MainChatHeader = ({
           >
             <Plus className="h-4 w-4" />
           </Button>
+        </div>
+
+        <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
+          <SelectTrigger className="w-[300px] h-9 text-sm">
+            <SelectValue placeholder="Select a model" />
+          </SelectTrigger>
+          <SelectContent>
+            {uniqueBots.map((bot) => (
+              <SelectItem key={bot.id} value={bot.id}>
+                {bot.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="flex items-center gap-2">
           <ProfileMenu />
         </div>
       </div>
