@@ -10,6 +10,9 @@ import { saveChatHistory, handleMessageSend } from "@/utils/chatOperations";
 import { useChatState } from "@/hooks/useChatState";
 import { supabase } from "@/integrations/supabase/client";
 import { useTokenUsage } from "@/hooks/useTokenUsage";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -17,7 +20,16 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { checkTokenUsage } = useTokenUsage();
+  const [usageExceeded, setUsageExceeded] = useState(false);
+  const [usageInfo, setUsageInfo] = useState<{
+    currentUsage: number;
+    limit: number;
+    resetPeriod: string;
+    limitType: string;
+  } | null>(null);
+
   const {
     messages,
     setMessages,
@@ -53,14 +65,23 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     
     try {
       console.log("Checking token usage before sending message");
-      const canProceed = await checkTokenUsage(bot.model, 1);
+      const usageResult = await checkTokenUsage(bot.model, 1);
       
-      if (!canProceed) {
+      setUsageInfo({
+        currentUsage: usageResult.currentUsage,
+        limit: usageResult.limit,
+        resetPeriod: usageResult.resetPeriod,
+        limitType: usageResult.limitType
+      });
+      
+      if (!usageResult.canProceed) {
         console.log("Token usage check failed - cannot proceed");
+        setUsageExceeded(true);
         setIsLoading(false);
         return;
       }
 
+      setUsageExceeded(false);
       console.log("Token usage check passed - proceeding with message");
       setIsStreaming(true);
 
@@ -97,13 +118,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       const nextSequenceNumber = (nextSequence?.sequence_number || 0) + 1;
 
-      // Save chat history with messages_used increment
       await saveChatHistory(
         chatId,
         bot.id,
         [...updatedMessages, createMessage("assistant", response, true, bot.avatar)],
         nextSequenceNumber,
-        1 // Increment messages_used by 1
+        1
       );
 
       const chatKey = `chat_${bot.id}_${chatId}`;
@@ -127,6 +147,25 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
   return (
     <Card className="flex flex-col h-full p-4 bg-card">
+      {usageExceeded && usageInfo && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTitle>Usage Limit Exceeded</AlertTitle>
+          <AlertDescription className="flex flex-col gap-2">
+            <p>
+              You've reached your {usageInfo.resetPeriod} limit of {usageInfo.limit} {usageInfo.limitType}.
+              Current usage: {usageInfo.currentUsage} {usageInfo.limitType}.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/upgrade')}
+              className="w-fit"
+            >
+              Upgrade Now
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex justify-end mb-4">
         <Button
           variant="ghost"
@@ -153,9 +192,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       <div className="mt-4">
         <ChatInput
           onSend={sendMessage}
-          disabled={isLoading || isStreaming}
+          disabled={isLoading || isStreaming || usageExceeded}
           isLoading={isLoading}
-          placeholder="Type your message..."
+          placeholder={usageExceeded ? "Usage limit exceeded" : "Type your message..."}
         />
       </div>
     </Card>
