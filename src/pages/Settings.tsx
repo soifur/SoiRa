@@ -10,11 +10,11 @@ const Settings = () => {
       <h1 className="text-3xl font-bold">Settings</h1>
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 md:grid-cols-4">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="memory">Memory Bot</TabsTrigger>
-          <TabsTrigger value="instructions">Custom Instructions</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
+        <TabsList className="w-full flex flex-wrap md:flex-nowrap gap-2">
+          <TabsTrigger value="profile" className="flex-1">Profile</TabsTrigger>
+          <TabsTrigger value="memory" className="flex-1">Memory Bot</TabsTrigger>
+          <TabsTrigger value="instructions" className="flex-1">Custom Instructions</TabsTrigger>
+          <TabsTrigger value="subscription" className="flex-1">Subscription</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="mt-6">

@@ -348,6 +348,7 @@ export type Database = {
           avatar: string | null
           blocked: boolean | null
           created_at: string
+          custom_instructions: string | null
           email: string
           first_name: string | null
           id: string
@@ -362,6 +363,7 @@ export type Database = {
           avatar?: string | null
           blocked?: boolean | null
           created_at?: string
+          custom_instructions?: string | null
           email: string
           first_name?: string | null
           id: string
@@ -376,6 +378,7 @@ export type Database = {
           avatar?: string | null
           blocked?: boolean | null
           created_at?: string
+          custom_instructions?: string | null
           email?: string
           first_name?: string | null
           id?: string
