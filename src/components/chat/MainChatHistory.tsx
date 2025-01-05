@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { History, Plus, X, Trash2 } from "lucide-react";
+import { History, Plus, X, Trash2, ChevronRight, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -17,6 +22,13 @@ interface MainChatHistoryProps {
   onClose: () => void;
 }
 
+interface ChatGroup {
+  botId: string;
+  botName: string;
+  model: string;
+  chats: any[];
+}
+
 export const MainChatHistory = ({
   sessionToken,
   botId,
@@ -26,12 +38,13 @@ export const MainChatHistory = ({
   isOpen,
   onClose,
 }: MainChatHistoryProps) => {
-  const [chatHistory, setChatHistory] = useState<any[]>([]);
+  const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (sessionToken || botId) {
+    if (sessionToken) {
       fetchChatHistory();
     }
   }, [sessionToken, botId]);
@@ -40,29 +53,47 @@ export const MainChatHistory = ({
     try {
       let query = supabase
         .from('chat_history')
-        .select('*')
+        .select(`
+          *,
+          bots:bot_id (
+            name,
+            model
+          )
+        `)
         .eq('deleted', 'no')
         .order('created_at', { ascending: false });
 
-      // Get user ID if authenticated
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // If authenticated, get chats by user_id
         query = query.eq('user_id', user.id);
       } else if (sessionToken) {
-        // If not authenticated but has session token, get chats by session_token
         query = query.eq('session_token', sessionToken);
-      }
-
-      if (botId) {
-        query = query.eq('bot_id', botId);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      setChatHistory(data || []);
+
+      // Group chats by bot
+      const groups = (data || []).reduce((acc: ChatGroup[], chat) => {
+        const botInfo = chat.bots || { name: 'Unknown Bot', model: 'unknown' };
+        const existingGroup = acc.find(g => g.botId === chat.bot_id);
+        
+        if (existingGroup) {
+          existingGroup.chats.push(chat);
+        } else {
+          acc.push({
+            botId: chat.bot_id,
+            botName: botInfo.name,
+            model: botInfo.model,
+            chats: [chat]
+          });
+        }
+        return acc;
+      }, []);
+
+      setChatGroups(groups);
     } catch (error) {
       console.error('Error fetching chat history:', error);
       toast({
@@ -105,6 +136,18 @@ export const MainChatHistory = ({
     return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   };
 
+  const toggleGroup = (botId: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(botId)) {
+        newSet.delete(botId);
+      } else {
+        newSet.add(botId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className={cn(
       "fixed top-0 left-0 h-screen z-[200] bg-zinc-950 dark:bg-zinc-950 shadow-lg transition-transform duration-300 ease-in-out border-r",
@@ -139,32 +182,53 @@ export const MainChatHistory = ({
           </div>
         </div>
         <ScrollArea className="flex-1">
-          <div className="p-4 space-y-2">
-            {chatHistory.map((chat) => (
-              <div
-                key={chat.id}
-                className={cn(
-                  "p-3 rounded-lg cursor-pointer transition-colors group relative",
-                  "hover:bg-accent",
-                  currentChatId === chat.id ? "bg-accent" : "bg-card"
-                )}
-                onClick={() => onSelectChat(chat.id)}
+          <div className="p-4 space-y-4">
+            {chatGroups.map((group) => (
+              <Collapsible
+                key={group.botId}
+                open={expandedGroups.has(group.botId)}
+                onOpenChange={() => toggleGroup(group.botId)}
               >
-                <p className="text-sm text-muted-foreground line-clamp-2 pr-8">
-                  {getChatTitle(chat.messages)}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "absolute top-1/2 -translate-y-1/2 right-2 h-6 w-6 transition-opacity",
-                    isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                <CollapsibleTrigger className="flex items-center w-full p-2 rounded-lg hover:bg-accent">
+                  {expandedGroups.has(group.botId) ? (
+                    <ChevronDown className="h-4 w-4 mr-2" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 mr-2" />
                   )}
-                  onClick={(e) => handleDelete(chat.id, e)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
+                  <span className="font-medium">{group.botName}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    ({group.chats.length})
+                  </span>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 space-y-2 mt-2">
+                  {group.chats.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className={cn(
+                        "p-3 rounded-lg cursor-pointer transition-colors group relative",
+                        "hover:bg-accent",
+                        currentChatId === chat.id ? "bg-accent" : "bg-card"
+                      )}
+                      onClick={() => onSelectChat(chat.id)}
+                    >
+                      <p className="text-sm text-muted-foreground line-clamp-2 pr-8">
+                        {getChatTitle(chat.messages)}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "absolute top-1/2 -translate-y-1/2 right-2 h-6 w-6 transition-opacity",
+                          isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        )}
+                        onClick={(e) => handleDelete(chat.id, e)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
             ))}
           </div>
         </ScrollArea>
