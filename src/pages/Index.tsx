@@ -21,6 +21,9 @@ const Index = () => {
   const { data: bots, isLoading: isLoadingBots } = useQuery({
     queryKey: ['bots'],
     queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) throw new Error("No authenticated session");
+
       const { data, error } = await supabase
         .from('bots')
         .select('*')
@@ -63,6 +66,14 @@ const Index = () => {
       });
     }
   };
+
+  if (isLoadingBots) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
