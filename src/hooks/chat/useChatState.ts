@@ -6,6 +6,7 @@ import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { useSessionToken } from "@/hooks/useSessionToken";
+import { useBotsData } from "@/hooks/useBotsData";
 
 export const useChatState = (selectedBotId: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -13,6 +14,7 @@ export const useChatState = (selectedBotId: string | null) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [chatId] = useState(() => uuidv4());
   const { sessionToken } = useSessionToken();
+  const { allBots } = useBotsData();
   const { toast } = useToast();
 
   const handleNewChat = () => {
@@ -69,8 +71,13 @@ export const useChatState = (selectedBotId: string | null) => {
       const loadingMessage = createMessage("assistant", "", true);
       setMessages([...newMessages, loadingMessage]);
 
+      const selectedBot = allBots.find(bot => bot.id === selectedBotId);
+      if (!selectedBot) {
+        throw new Error("Selected bot not found");
+      }
+
       let response = "";
-      if (selectedBot?.model === "openrouter") {
+      if (selectedBot.model === "openrouter") {
         response = await ChatService.sendOpenRouterMessage(
           newMessages,
           selectedBot,
@@ -88,7 +95,7 @@ export const useChatState = (selectedBotId: string | null) => {
             });
           }
         );
-      } else if (selectedBot?.model === "gemini") {
+      } else if (selectedBot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(newMessages, selectedBot);
         const botMessage = createMessage("assistant", response);
         setMessages([...newMessages, botMessage]);
