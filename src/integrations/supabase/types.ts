@@ -6,47 +6,9 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type UserRole = "super_admin" | "admin" | "user"
-export type BotModel = "gemini" | "claude" | "openai" | "openrouter"
-
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          email: string
-          role: UserRole
-          created_at: string
-          updated_at: string
-          managed_by: string | null
-          subscription_status: string | null
-          avatar: string | null
-          language: string | null
-        }
-        Insert: {
-          id: string
-          email: string
-          role?: UserRole
-          created_at?: string
-          updated_at?: string
-          managed_by?: string | null
-          subscription_status?: string | null
-          avatar?: string | null
-          language?: string | null
-        }
-        Update: {
-          id?: string
-          email?: string
-          role?: UserRole
-          created_at?: string
-          updated_at?: string
-          managed_by?: string | null
-          subscription_status?: string | null
-          avatar?: string | null
-          language?: string | null
-        }
-      }
       bot_api_keys: {
         Row: {
           api_key: string
@@ -206,6 +168,42 @@ export interface Database {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          email: string
+          id: string
+          language: string | null
+          managed_by: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          subscription_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          email: string
+          id: string
+          language?: string | null
+          managed_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          language?: string | null
+          managed_by?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shared_bots: {
         Row: {
           api_key_id: string | null
@@ -262,7 +260,7 @@ export interface Database {
           memory_model?: string | null
           model?: string
           open_router_model?: string | null
-          share_key: string
+          share_key?: string
           short_key?: string | null
           starters?: string[] | null
           voice_enabled?: boolean | null
@@ -323,11 +321,112 @@ export interface Database {
       }
     }
     Enums: {
-      bot_model: BotModel
-      user_role: UserRole
+      bot_model: "gemini" | "claude" | "openai" | "openrouter"
+      learning_style: "visual" | "auditory" | "reading" | "kinesthetic"
+      question_type: "text" | "single_choice" | "multiple_choice"
+      quiz_question_type: "text" | "checkbox"
+      quiz_status: "not_started" | "in_progress" | "completed"
+      user_role: "super_admin" | "admin" | "user"
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
 
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
+type PublicSchema = Database[Extract<keyof Database, "public">]
+
+export type Tables<
+  PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
+    | { schema: keyof Database },
+  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never

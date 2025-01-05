@@ -10,12 +10,64 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Settings, LogOut, CreditCard, User } from "lucide-react";
+import { Sun, Moon, Settings, LogOut, CreditCard } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
 
 export const ProfileMenu = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [initials, setInitials] = useState<string>("U");
+
+  useEffect(() => {
+    fetchUserAvatar();
+  }, []);
+
+  const fetchUserAvatar = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // First check if user has a custom avatar in profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('avatar')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.avatar) {
+        setAvatarUrl(profile.avatar);
+        return;
+      }
+
+      // If no custom avatar, check for provider avatar
+      const provider = user.app_metadata.provider;
+      const providerAvatar = user.user_metadata.avatar_url;
+
+      if (providerAvatar) {
+        setAvatarUrl(providerAvatar);
+        
+        // Update profile with provider avatar if none exists
+        const { error } = await supabase
+          .from('profiles')
+          .update({ avatar: providerAvatar })
+          .eq('id', user.id);
+
+        if (error) console.error('Error updating profile avatar:', error);
+      }
+
+      // Set initials from email or name
+      const name = user.user_metadata.full_name || user.email;
+      if (name) {
+        const initial = name.charAt(0).toUpperCase();
+        setInitials(initial);
+      }
+    } catch (error) {
+      console.error('Error fetching avatar:', error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -38,8 +90,11 @@ export const ProfileMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <User className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+          <Avatar>
+            <AvatarImage src={avatarUrl || ''} alt="Profile" />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
