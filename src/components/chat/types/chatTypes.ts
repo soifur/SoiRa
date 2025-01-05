@@ -21,8 +21,6 @@ export interface Bot {
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
-  token_limit?: number | null;
-  message_limit?: number | null;
 }
 
 export interface ChatHistoryItem {

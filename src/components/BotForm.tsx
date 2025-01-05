@@ -11,7 +11,6 @@ import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUt
 import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
-import { BotUserLimits } from "./bot/BotUserLimits";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface BotFormProps {
@@ -129,8 +128,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                 className="w-full resize-y min-h-[100px] dark:bg-[#1e1e1e] dark:border-gray-700"
               />
             </div>
-
-            {editingBot.id && <BotUserLimits botId={editingBot.id} />}
 
             <div className="flex items-center space-x-2">
               <Switch

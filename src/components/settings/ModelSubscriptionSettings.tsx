@@ -12,7 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelSubscriptionSetting } from "@/types/subscription";
+
+interface ModelSubscriptionSetting {
+  id: string;
+  model: string;
+  tokens_per_period: number;
+  reset_period: 'daily' | 'weekly' | 'monthly' | 'never';
+  lifetime_max_tokens?: number;
+}
 
 export const ModelSubscriptionSettings = () => {
   const [settings, setSettings] = useState<ModelSubscriptionSetting[]>([]);
@@ -51,11 +58,9 @@ export const ModelSubscriptionSettings = () => {
         .upsert({
           id: setting.id,
           model: setting.model,
-          units_per_period: setting.units_per_period,
+          tokens_per_period: setting.tokens_per_period,
           reset_period: setting.reset_period,
-          lifetime_max_units: setting.lifetime_max_units,
-          limit_type: setting.limit_type || 'tokens',
-          user_role: setting.user_role || 'user'
+          lifetime_max_tokens: setting.lifetime_max_tokens,
         });
 
       if (error) throw error;
@@ -80,10 +85,8 @@ export const ModelSubscriptionSettings = () => {
     const newSetting: ModelSubscriptionSetting = {
       id: crypto.randomUUID(),
       model: '',
-      units_per_period: 1000,
+      tokens_per_period: 1000,
       reset_period: 'monthly',
-      user_role: 'user',
-      limit_type: 'tokens'
     };
     setSettings([...settings, newSetting]);
   };
@@ -118,13 +121,13 @@ export const ModelSubscriptionSettings = () => {
               </div>
 
               <div>
-                <Label>Units per Period</Label>
+                <Label>Tokens per Period</Label>
                 <Input
                   type="number"
-                  value={setting.units_per_period}
+                  value={setting.tokens_per_period}
                   onChange={(e) => {
                     const updated = settings.map((s) =>
-                      s.id === setting.id ? { ...s, units_per_period: parseInt(e.target.value) } : s
+                      s.id === setting.id ? { ...s, tokens_per_period: parseInt(e.target.value) } : s
                     );
                     setSettings(updated);
                   }}
@@ -155,62 +158,18 @@ export const ModelSubscriptionSettings = () => {
               </div>
 
               <div>
-                <Label>Lifetime Maximum Units (Optional)</Label>
+                <Label>Lifetime Maximum Tokens (Optional)</Label>
                 <Input
                   type="number"
-                  value={setting.lifetime_max_units || ''}
+                  value={setting.lifetime_max_tokens || ''}
                   onChange={(e) => {
                     const updated = settings.map((s) =>
-                      s.id === setting.id ? { ...s, lifetime_max_units: parseInt(e.target.value) || undefined } : s
+                      s.id === setting.id ? { ...s, lifetime_max_tokens: parseInt(e.target.value) || undefined } : s
                     );
                     setSettings(updated);
                   }}
                   placeholder="Leave empty for no limit"
                 />
-              </div>
-
-              <div>
-                <Label>User Role</Label>
-                <Select
-                  value={setting.user_role}
-                  onValueChange={(value: ModelSubscriptionSetting['user_role']) => {
-                    const updated = settings.map((s) =>
-                      s.id === setting.id ? { ...s, user_role: value } : s
-                    );
-                    setSettings(updated);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="paid_user">Paid User</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="super_admin">Super Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Limit Type</Label>
-                <Select
-                  value={setting.limit_type || 'tokens'}
-                  onValueChange={(value: string) => {
-                    const updated = settings.map((s) =>
-                      s.id === setting.id ? { ...s, limit_type: value } : s
-                    );
-                    setSettings(updated);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tokens">Tokens</SelectItem>
-                    <SelectItem value="messages">Messages</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <Button onClick={() => handleSave(setting)}>Save</Button>
