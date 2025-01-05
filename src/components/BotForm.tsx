@@ -6,12 +6,12 @@ import { ModelSelector } from "./bot/ModelSelector";
 import { StartersInput } from "./bot/StartersInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
-import { Input } from "./ui/input";
 import { useToast } from "./ui/use-toast";
 import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
 import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
+import { BotUserLimits } from "./bot/BotUserLimits";
 import { ScrollArea } from "./ui/scroll-area";
 
 interface BotFormProps {
@@ -24,9 +24,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published ?? false,
-    token_limit: bot.token_limit ?? null,
-    message_limit: bot.message_limit ?? null
+    published: bot.published ?? false
   });
   const { toast } = useToast();
 
@@ -36,9 +34,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       ...prev,
       ...bot,
       memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published ?? false,
-      token_limit: bot.token_limit ?? null,
-      message_limit: bot.message_limit ?? null
+      published: bot.published ?? false
     }));
   }, [bot]);
 
@@ -134,28 +130,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Token Limit</label>
-                <Input
-                  type="number"
-                  value={editingBot.token_limit || ''}
-                  onChange={(e) => handleBotChange({ token_limit: e.target.value ? parseInt(e.target.value) : null })}
-                  placeholder="Enter token limit (optional)"
-                  className="dark:bg-[#1e1e1e] dark:border-gray-700"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Message Limit</label>
-                <Input
-                  type="number"
-                  value={editingBot.message_limit || ''}
-                  onChange={(e) => handleBotChange({ message_limit: e.target.value ? parseInt(e.target.value) : null })}
-                  placeholder="Enter message limit (optional)"
-                  className="dark:bg-[#1e1e1e] dark:border-gray-700"
-                />
-              </div>
-            </div>
+            {editingBot.id && <BotUserLimits botId={editingBot.id} />}
 
             <div className="flex items-center space-x-2">
               <Switch

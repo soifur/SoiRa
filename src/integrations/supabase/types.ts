@@ -30,6 +30,44 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_user_limits: {
+        Row: {
+          bot_id: string | null
+          created_at: string
+          id: string
+          message_limit: number | null
+          token_limit: number | null
+          updated_at: string
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          bot_id?: string | null
+          created_at?: string
+          id?: string
+          message_limit?: number | null
+          token_limit?: number | null
+          updated_at?: string
+          user_role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          bot_id?: string | null
+          created_at?: string
+          id?: string
+          message_limit?: number | null
+          token_limit?: number | null
+          updated_at?: string
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_user_limits_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bots: {
         Row: {
           api_key: string

@@ -17,8 +17,6 @@ export interface Bot {
   memory_enabled?: boolean;
   published?: boolean;
   default_bot?: boolean;
-  token_limit?: number | null;
-  message_limit?: number | null;
 }
 
 export const useBots = () => {
