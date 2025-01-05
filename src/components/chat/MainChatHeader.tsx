@@ -1,4 +1,4 @@
-import { History, Plus, Sun, Moon, Settings, LogOut, Bot, Archive, Home } from "lucide-react";
+import { Clock, Plus, Sun, Moon, Settings, LogOut, Bot, Archive, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -61,14 +61,18 @@ export const MainChatHeader = ({
             variant="ghost"
             size="sm"
             onClick={() => navigate('/bots')}
+            className="flex items-center gap-2"
           >
+            <Bot className="h-4 w-4" />
             Bots
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/archive')}
+            className="flex items-center gap-2"
           >
+            <Archive className="h-4 w-4" />
             Archive
           </Button>
         </div>
@@ -93,7 +97,7 @@ export const MainChatHeader = ({
             className="h-8 w-8"
             onClick={() => navigate('/archive')}
           >
-            <History className="h-4 w-4" />
+            <Clock className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"

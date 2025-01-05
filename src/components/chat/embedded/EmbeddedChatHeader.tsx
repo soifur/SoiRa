@@ -1,10 +1,10 @@
-import { History, Plus, X } from "lucide-react";
+import { Clock, Plus, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Bot } from "@/hooks/useBots";
+import { Bot as BotType } from "@/hooks/useBots";
 import { cn } from "@/lib/utils";
 
 interface EmbeddedChatHeaderProps {
-  bot: Bot;
+  bot: BotType;
   onClearChat?: () => void;
   onToggleHistory: () => void;
   onNewChat?: () => void;
@@ -27,7 +27,7 @@ export const EmbeddedChatHeader = ({
           className="h-8 w-8"
           onClick={onToggleHistory}
         >
-          <History className="h-5 w-5" />
+          <Clock className="h-5 w-5" />
         </Button>
       </div>
       <span className="font-semibold text-sm">{bot.name}</span>
