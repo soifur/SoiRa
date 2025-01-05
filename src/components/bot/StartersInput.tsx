@@ -29,34 +29,34 @@ export const StartersInput = ({ starters, onStartersChange }: StartersInputProps
   };
 
   return (
-    <div>
-      <label className="block text-sm font-medium mb-1">Conversation Starters</label>
-      <div className="flex gap-2 mb-2">
-        <div className="flex-1">
+    <div className="w-full space-y-4"> {/* Added full width and increased spacing */}
+      <label className="block text-sm font-medium">Conversation Starters</label>
+      <div className="flex gap-2 w-full"> {/* Added full width */}
+        <div className="flex-1 min-w-0"> {/* Added min-w-0 to prevent overflow */}
           <Input
             value={newStarter}
             onChange={(e) => setNewStarter(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Add a conversation starter"
-            className="dark:bg-[#1e1e1e] dark:border-gray-700 w-full"
+            className="w-full dark:bg-[#1e1e1e] dark:border-gray-700"
           />
         </div>
         <Button 
           onClick={addStarter}
-          className="shrink-0" // Prevent button from shrinking
+          className="whitespace-nowrap"
         >
           Add
         </Button>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 w-full"> {/* Added full width */}
         {starters.map((starter, index) => (
-          <div key={index} className="flex items-center gap-2 p-2 rounded dark:bg-[#1e1e1e] dark:border-gray-700 border">
-            <span className="flex-1 break-words">{starter}</span>
+          <div key={index} className="flex items-center gap-2 p-2 rounded dark:bg-[#1e1e1e] dark:border-gray-700 border w-full">
+            <span className="flex-1 min-w-0 break-words">{starter}</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => removeStarter(index)}
-              className="shrink-0" // Prevent button from shrinking
+              className="shrink-0"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
