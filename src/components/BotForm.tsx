@@ -73,14 +73,13 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handlePublishToggle = (checked: boolean) => {
     setIsPublished(checked);
-    if (!checked) {
-      // Clear model-related fields when unpublishing
-      setEditingBot({ 
-        ...editingBot, 
-        model: undefined,
-        openRouterModel: undefined 
-      });
-    }
+    // When unpublishing, clear model-related fields in the editingBot state
+    setEditingBot(prevBot => ({
+      ...prevBot,
+      model: checked ? prevBot.model : undefined,
+      openRouterModel: checked ? prevBot.openRouterModel : undefined,
+      apiKey: checked ? prevBot.apiKey : "",
+    }));
   };
 
   const handleSave = async () => {
@@ -94,20 +93,23 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
 
     try {
+      // Ensure model-related fields are cleared when unpublishing
+      const botToSave = {
+        ...editingBot,
+        model: isPublished ? editingBot.model : undefined,
+        openRouterModel: isPublished ? editingBot.openRouterModel : undefined,
+        apiKey: isPublished ? editingBot.apiKey : "",
+        memory_enabled: editingBot.memory_enabled ?? false,
+      };
+
       // For new bots, we don't need to update the shared config
-      if (!editingBot.id) {
-        onSave({
-          ...editingBot,
-          memory_enabled: editingBot.memory_enabled ?? false,
-        });
+      if (!botToSave.id) {
+        onSave(botToSave);
         return;
       }
 
-      await updateBotAndSharedConfig(editingBot);
-      onSave({
-        ...editingBot,
-        memory_enabled: editingBot.memory_enabled ?? false,
-      });
+      await updateBotAndSharedConfig(botToSave);
+      onSave(botToSave);
       toast({
         title: "Success",
         description: "Bot updated successfully",
@@ -175,6 +177,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           onChange={(e) => setEditingBot({ ...editingBot, apiKey: e.target.value })}
           placeholder="Enter your API key"
           className="dark:bg-[#1e1e1e] dark:border-gray-700"
+          disabled={!isPublished}
         />
       </div>
 
