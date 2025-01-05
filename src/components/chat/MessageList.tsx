@@ -68,7 +68,7 @@ export const MessageList = ({
         <div 
           ref={scrollRef}
           className={cn(
-            "px-4 py-4 pb-20",
+            "px-4 py-4",
             messages.length === 0 ? "flex flex-col items-center justify-center h-full" : "space-y-4"
           )}
         >

@@ -142,7 +142,7 @@ const Bots = () => {
       </div>
 
       <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] overflow-hidden">
-        <div className="w-full md:w-1/2 lg:w-2/5 border-r">
+        <div className="w-full md:w-1/2 border-r">
           <ScrollArea className="h-full p-4">
             <div className="space-y-4">
               {editingBot && (
@@ -183,7 +183,7 @@ const Bots = () => {
           </ScrollArea>
         </div>
 
-        <div className="w-full md:w-1/2 lg:w-3/5 h-full">
+        <div className="w-full md:w-1/2 h-full">
           {selectedBot ? (
             <DedicatedBotChat key={selectedBot.id} bot={selectedBot} />
           ) : (
