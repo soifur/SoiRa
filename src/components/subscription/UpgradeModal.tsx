@@ -14,7 +14,6 @@ interface UpgradeModalProps {
   onClose: () => void;
 }
 
-// Add type for subscription tier
 interface SubscriptionTier {
   id: string;
   name: string;
@@ -58,21 +57,19 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   });
 
   const handleUpgrade = (tierId: string) => {
-    // For now, just navigate to the upgrade page
-    // This will be replaced with actual payment integration
     navigate('/upgrade');
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-6">
+          <DialogTitle className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
             Choose Your Plan
           </DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {subscriptionTiers?.map((tier) => (
             <SubscriptionTierCard
               key={tier.id}
