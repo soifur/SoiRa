@@ -11,6 +11,7 @@ interface ChatContainerProps {
   isLoading: boolean;
   isStreaming: boolean;
   sendMessage: (message: string) => void;
+  disabled?: boolean;
 }
 
 export const ChatContainer = ({
@@ -19,6 +20,7 @@ export const ChatContainer = ({
   isLoading,
   isStreaming,
   sendMessage,
+  disabled,
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
   
@@ -44,11 +46,13 @@ export const ChatContainer = ({
         <div className="max-w-3xl mx-auto">
           <ChatInput
             onSend={sendMessage}
-            disabled={!selectedBot || isLoading || isStreaming}
+            disabled={!selectedBot || isLoading || isStreaming || disabled}
             isLoading={isLoading}
             placeholder={
               !selectedBot 
                 ? "Select a model to start chatting" 
+                : disabled
+                ? "Usage limit reached"
                 : isLoading || isStreaming 
                   ? "Please wait..." 
                   : "Type your message..."

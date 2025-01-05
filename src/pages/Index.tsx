@@ -10,13 +10,16 @@ import { ChatContainer } from "@/components/chat/ChatContainer";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
 import { useToast } from "@/components/ui/use-toast";
+import { useTokenUsage } from "@/hooks/useTokenUsage";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [canSendMessages, setCanSendMessages] = useState(true);
   const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
   const { toast } = useToast();
+  const { checkTokenUsage } = useTokenUsage();
 
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
@@ -48,6 +51,32 @@ const Index = () => {
       }));
     }
   });
+
+  // Effect to check token usage when a bot is selected
+  useEffect(() => {
+    const checkUsage = async () => {
+      if (selectedBotId) {
+        const selectedBot = allBots.find(bot => bot.id === selectedBotId);
+        if (selectedBot) {
+          const { data: session } = await supabase.auth.getSession();
+          if (session?.user?.id) {
+            const usageResult = await checkTokenUsage(selectedBot.id, 1);
+            setCanSendMessages(usageResult.canProceed);
+            
+            if (!usageResult.canProceed) {
+              toast({
+                title: "Usage Limit Reached",
+                description: `You've reached your ${usageResult.resetPeriod} limit of ${usageResult.limit} ${usageResult.limitType}`,
+                variant: "destructive",
+              });
+            }
+          }
+        }
+      }
+    };
+
+    checkUsage();
+  }, [selectedBotId, toast, checkTokenUsage]);
 
   // Effect to set the default bot on load
   useEffect(() => {
@@ -108,7 +137,6 @@ const Index = () => {
 
   const handleChatSelect = async (chatId: string) => {
     try {
-      // Fetch the chat to get its bot_id
       const { data: chat, error } = await supabase
         .from('chat_history')
         .select('bot_id')
@@ -118,7 +146,6 @@ const Index = () => {
       if (error) throw error;
 
       if (chat && chat.bot_id) {
-        // Check if the bot exists in the available bots
         const botExists = allBots.some(bot => bot.id === chat.bot_id);
         if (!botExists) {
           toast({
@@ -129,9 +156,7 @@ const Index = () => {
           return;
         }
         
-        // Set the selected bot
         setSelectedBotId(chat.bot_id);
-        // Load the chat
         handleSelectChat(chatId);
       }
     } catch (error) {
@@ -175,6 +200,7 @@ const Index = () => {
                 isLoading={isLoading}
                 isStreaming={isStreaming}
                 sendMessage={sendMessage}
+                disabled={!canSendMessages}
               />
             </div>
           </div>
