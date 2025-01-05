@@ -39,12 +39,15 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
       return;
     }
 
-    // Ensure we have a setting for each user role
+    // Ensure we have a setting for each user role with proper typing
     const newSettings: ModelSubscriptionSetting[] = USER_ROLES.map(role => {
       const existingSetting = data?.find(s => s.user_role === role);
       return existingSetting ? {
         ...existingSetting,
-        limit_type: existingSetting.limit_type as LimitType
+        limit_type: (existingSetting.limit_type || 'tokens') as LimitType,
+        reset_period: existingSetting.reset_period,
+        reset_amount: existingSetting.reset_amount || 1,
+        units_per_period: existingSetting.units_per_period
       } : {
         id: crypto.randomUUID(),
         bot_id: botId,
@@ -71,10 +74,12 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
     try {
       const { error } = await supabase
         .from('model_subscription_settings')
-        .upsert(settings.map(setting => ({
-          ...setting,
-          bot_id: botId
-        })));
+        .upsert(
+          settings.map(setting => ({
+            ...setting,
+            bot_id: botId,
+          }))
+        );
 
       if (error) throw error;
 
