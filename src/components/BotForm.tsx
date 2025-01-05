@@ -6,6 +6,7 @@ import { ModelSelector } from "./bot/ModelSelector";
 import { StartersInput } from "./bot/StartersInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 import { useToast } from "./ui/use-toast";
 import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
 import { BotBasicInfo } from "./bot/BotBasicInfo";
@@ -23,7 +24,9 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published ?? false
+    published: bot.published ?? false,
+    token_limit: bot.token_limit ?? null,
+    message_limit: bot.message_limit ?? null
   });
   const { toast } = useToast();
 
@@ -33,7 +36,9 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       ...prev,
       ...bot,
       memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published ?? false
+      published: bot.published ?? false,
+      token_limit: bot.token_limit ?? null,
+      message_limit: bot.message_limit ?? null
     }));
   }, [bot]);
 
@@ -127,6 +132,29 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                 rows={4}
                 className="w-full resize-y min-h-[100px] dark:bg-[#1e1e1e] dark:border-gray-700"
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Token Limit</label>
+                <Input
+                  type="number"
+                  value={editingBot.token_limit || ''}
+                  onChange={(e) => handleBotChange({ token_limit: e.target.value ? parseInt(e.target.value) : null })}
+                  placeholder="Enter token limit (optional)"
+                  className="dark:bg-[#1e1e1e] dark:border-gray-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">Message Limit</label>
+                <Input
+                  type="number"
+                  value={editingBot.message_limit || ''}
+                  onChange={(e) => handleBotChange({ message_limit: e.target.value ? parseInt(e.target.value) : null })}
+                  placeholder="Enter message limit (optional)"
+                  className="dark:bg-[#1e1e1e] dark:border-gray-700"
+                />
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">

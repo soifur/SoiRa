@@ -39,11 +39,13 @@ export type Database = {
           id: string
           instructions: string | null
           memory_enabled: boolean | null
+          message_limit: number | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model: string | null
           published: boolean | null
           starters: string[] | null
+          token_limit: number | null
           updated_at: string
           user_id: string
           voice_enabled: boolean | null
@@ -56,11 +58,13 @@ export type Database = {
           id?: string
           instructions?: string | null
           memory_enabled?: boolean | null
+          message_limit?: number | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model?: string | null
           published?: boolean | null
           starters?: string[] | null
+          token_limit?: number | null
           updated_at?: string
           user_id: string
           voice_enabled?: boolean | null
@@ -73,11 +77,13 @@ export type Database = {
           id?: string
           instructions?: string | null
           memory_enabled?: boolean | null
+          message_limit?: number | null
           model?: Database["public"]["Enums"]["bot_model"]
           name?: string
           open_router_model?: string | null
           published?: boolean | null
           starters?: string[] | null
+          token_limit?: number | null
           updated_at?: string
           user_id?: string
           voice_enabled?: boolean | null
