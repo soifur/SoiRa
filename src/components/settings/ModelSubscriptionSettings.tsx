@@ -20,7 +20,11 @@ interface ModelSubscriptionSetting {
   reset_period: 'daily' | 'weekly' | 'monthly' | 'never';
   lifetime_max_units?: number;
   limit_type: 'tokens' | 'messages';
+  created_at?: string;
+  updated_at?: string;
 }
+
+type LimitType = 'tokens' | 'messages';
 
 export const ModelSubscriptionSettings = () => {
   const [settings, setSettings] = useState<ModelSubscriptionSetting[]>([]);
@@ -39,7 +43,15 @@ export const ModelSubscriptionSettings = () => {
         .order('model');
 
       if (error) throw error;
-      setSettings(data || []);
+
+      // Ensure the data matches our expected types
+      const typedSettings: ModelSubscriptionSetting[] = (data || []).map(item => ({
+        ...item,
+        limit_type: (item.limit_type as LimitType) || 'tokens',
+        reset_period: item.reset_period as 'daily' | 'weekly' | 'monthly' | 'never',
+      }));
+
+      setSettings(typedSettings);
     } catch (error) {
       console.error('Error fetching settings:', error);
       toast({
@@ -127,7 +139,7 @@ export const ModelSubscriptionSettings = () => {
                 <Label>Limit Type</Label>
                 <Select
                   value={setting.limit_type}
-                  onValueChange={(value: 'tokens' | 'messages') => {
+                  onValueChange={(value: LimitType) => {
                     const updated = settings.map((s) =>
                       s.id === setting.id ? { ...s, limit_type: value } : s
                     );
