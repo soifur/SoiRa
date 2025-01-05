@@ -44,16 +44,26 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   useEffect(() => {
     const checkLimits = async () => {
       try {
+        console.log("🔄 Checking usage limits...");
+        console.log("Bot ID:", bot.id);
+        console.log("Messages length:", messages.length);
+        
         const usageResult = await checkTokenUsage(bot.id, 1);
+        console.log("📊 Usage check result:", usageResult);
+        
         setUsageInfo({
           currentUsage: usageResult.currentUsage,
           limit: usageResult.limit,
           resetPeriod: usageResult.resetPeriod,
           limitType: usageResult.limitType
         });
-        setUsageExceeded(!usageResult.canProceed);
+        
+        const exceeded = !usageResult.canProceed;
+        console.log("❗ Usage exceeded:", exceeded);
+        setUsageExceeded(exceeded);
+        
       } catch (error) {
-        console.error("Error checking usage limits:", error);
+        console.error("❌ Error checking usage limits:", error);
         toast({
           title: "Error",
           description: "Failed to check usage limits",
@@ -76,8 +86,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   };
 
   const sendMessage = async (message: string) => {
+    console.log("📨 Attempting to send message...");
+    console.log("Message empty?", !message.trim());
+    console.log("Is loading?", isLoading);
+    console.log("Is streaming?", isStreaming);
+    console.log("Usage exceeded?", usageExceeded);
+    
     if (!message.trim() || isLoading || isStreaming || usageExceeded) {
-      console.log("Preventing message send:", { 
+      console.log("❌ Preventing message send:", { 
         isEmpty: !message.trim(), 
         isLoading, 
         isStreaming,
@@ -89,8 +105,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     setIsLoading(true);
     
     try {
-      console.log("Checking token usage before sending message");
+      console.log("🔍 Checking token usage before sending message");
       const usageResult = await checkTokenUsage(bot.id, 1);
+      console.log("📊 Usage check result:", usageResult);
       
       setUsageInfo({
         currentUsage: usageResult.currentUsage,
@@ -100,7 +117,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       });
       
       if (!usageResult.canProceed) {
-        console.log("Token usage check failed - cannot proceed");
+        console.log("❌ Token usage check failed - cannot proceed");
         setUsageExceeded(true);
         setIsLoading(false);
         return;
@@ -158,7 +175,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       );
 
     } catch (error) {
-      console.error("Chat error:", error);
+      console.error("❌ Chat error:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to get response from AI",
