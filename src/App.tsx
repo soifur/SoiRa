@@ -15,6 +15,7 @@ import EmbeddedBotChat from "@/components/chat/EmbeddedBotChat";
 import { Helmet } from "react-helmet";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { UserRole } from "./types/user";
+import { useToast } from "./components/ui/use-toast";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -26,7 +27,8 @@ const ProtectedRoute = ({
   children: React.ReactNode;
   allowedRoles?: UserRole[];
 }) => {
-  const { data: session } = useQuery({
+  const { toast } = useToast();
+  const { data: session, isLoading: isSessionLoading } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -34,7 +36,7 @@ const ProtectedRoute = ({
     },
   });
 
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['profile', session?.user?.id],
     enabled: !!session?.user?.id,
     queryFn: async () => {
@@ -44,17 +46,41 @@ const ProtectedRoute = ({
         .eq('id', session?.user?.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch user profile",
+          variant: "destructive",
+        });
+        throw error;
+      }
       return data;
     },
   });
+
+  // Show loading state while checking authentication
+  if (isSessionLoading || isProfileLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!session) {
     return <Navigate to="/login" />;
   }
 
-  if (!profile || !allowedRoles.includes(profile.role as UserRole)) {
-    return <Navigate to="/" />;
+  if (!profile) {
+    console.error('No profile found for user:', session.user.id);
+    return <Navigate to="/login" />;
+  }
+
+  if (!allowedRoles.includes(profile.role as UserRole)) {
+    console.error('User role not allowed:', profile.role);
+    toast({
+      title: "Access Denied",
+      description: "You don't have permission to access this page",
+      variant: "destructive",
+    });
+    return <Navigate to="/login" />;
   }
 
   return <>{children}</>;
@@ -94,7 +120,11 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={isAuthenticated ? <Index /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'paid_user', 'user']}>
+                  <Index />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/bots"
@@ -106,7 +136,11 @@ function App() {
             />
             <Route
               path="/chat"
-              element={isAuthenticated ? <Chat /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'paid_user', 'user']}>
+                  <Chat />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/archive"
@@ -118,7 +152,11 @@ function App() {
             />
             <Route
               path="/settings"
-              element={isAuthenticated ? <Settings /> : <Navigate to="/login" />}
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'paid_user', 'user']}>
+                  <Settings />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/folders"
