@@ -1,6 +1,13 @@
 import { Json } from "@/integrations/supabase/types";
 import { BaseModel } from "@/hooks/useBots";
 
+export interface ChatMessage {
+  role: string;
+  content: string;
+  timestamp?: Date;
+  id?: string;
+}
+
 export interface Message {
   id: string;
   role: string;
@@ -25,7 +32,7 @@ export interface Bot {
 
 export interface ChatHistoryItem {
   id: string;
-  messages: Message[];
+  messages: ChatMessage[];
   created_at: string;
   sequence_number: number;
 }

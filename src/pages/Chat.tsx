@@ -8,17 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
-import { Bot } from "@/hooks/useBots";
+import { Bot, ChatMessage } from "@/components/chat/types/chatTypes";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 
-interface ChatMessage {
-  role: string;
-  content: string;
-  timestamp?: string;
-}
-
 const Chat = () => {
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { botId: selectedBotId } = useParams();
   const { toast } = useToast();
@@ -61,8 +55,6 @@ const Chat = () => {
           avatar: bot.avatar,
           accessType: "private",
           memory_enabled: bot.memory_enabled,
-          published: bot.published,
-          default_bot: bot.default_bot,
         });
       }
     };
@@ -86,10 +78,12 @@ const Chat = () => {
 
         if (existingChat) {
           setChatId(existingChat.id);
-          const chatMessages = (existingChat.messages as ChatMessage[]).map((msg: ChatMessage) => ({
-            ...msg,
+          // Properly type cast the messages from JSON
+          const chatMessages = (existingChat.messages as any[]).map((msg): ChatMessage => ({
+            role: msg.role,
+            content: msg.content,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-            id: uuidv4()
+            id: msg.id || uuidv4()
           }));
           setMessages(chatMessages);
         } else {
@@ -104,7 +98,7 @@ const Chat = () => {
     loadExistingChat();
   }, [selectedBotId]);
 
-  const saveChatHistory = async (updatedMessages: typeof messages) => {
+  const saveChatHistory = async (updatedMessages: ChatMessage[]) => {
     try {
       if (!selectedBotId) return;
 
@@ -122,7 +116,8 @@ const Chat = () => {
         messages: updatedMessages.map(msg => ({
           role: msg.role,
           content: msg.content,
-          timestamp: msg.timestamp?.toISOString()
+          timestamp: msg.timestamp?.toISOString(),
+          id: msg.id
         })),
         user_id: (await supabase.auth.getUser()).data.user?.id,
         sequence_number: (latestChat?.sequence_number || 0) + 1,
@@ -159,37 +154,6 @@ const Chat = () => {
     setChatId(null);
   };
 
-  const sendMessage = async (message: string) => {
-    if (!message.trim() || isExceeded) return;
-
-    try {
-      setIsLoading(true);
-      const userMessage = createMessage("user", message);
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
-      
-      const loadingMessage = createMessage("assistant", "...", true);
-      setMessages([...newMessages, loadingMessage]);
-
-      // Simulate bot response
-      const botResponse = "This is a simulated response."; // Replace with actual bot response logic
-
-      const botMessage = createMessage("assistant", botResponse, true);
-      const updatedMessages = [...newMessages, botMessage];
-      setMessages(updatedMessages);
-      await saveChatHistory(updatedMessages);
-    } catch (error) {
-      console.error("Chat error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to process message",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto">
       <div className="flex justify-end p-4">
@@ -213,7 +177,18 @@ const Chat = () => {
       </div>
       <div className="p-4">
         <ChatInput
-          onSend={sendMessage}
+          onSend={async (message: string) => {
+            if (!message.trim() || isExceeded) return;
+            const newMessage: ChatMessage = {
+              role: 'user',
+              content: message,
+              timestamp: new Date(),
+              id: uuidv4()
+            };
+            const updatedMessages = [...messages, newMessage];
+            setMessages(updatedMessages);
+            await saveChatHistory(updatedMessages);
+          }}
           disabled={isLoading || !selectedBot || isExceeded}
           isLoading={isLoading}
         />
