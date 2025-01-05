@@ -77,7 +77,7 @@ export const MainChatHeader = ({
         </div>
 
         <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-[300px]">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
