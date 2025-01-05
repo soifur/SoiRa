@@ -11,6 +11,8 @@ interface ChatContainerProps {
   isLoading: boolean;
   isStreaming: boolean;
   sendMessage: (message: string) => void;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export const ChatContainer = ({
@@ -19,6 +21,8 @@ export const ChatContainer = ({
   isLoading,
   isStreaming,
   sendMessage,
+  disabled,
+  disabledReason
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
   
@@ -30,9 +34,11 @@ export const ChatContainer = ({
             messages={messages}
             selectedBot={selectedBot}
             starters={selectedBot.starters || []}
-            onStarterClick={sendMessage}
+            onStarterClick={disabled ? undefined : sendMessage}
             isLoading={isLoading}
             isStreaming={isStreaming}
+            disabled={disabled}
+            disabledReason={disabledReason}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-muted-foreground">
@@ -44,9 +50,13 @@ export const ChatContainer = ({
         <div className="max-w-3xl mx-auto">
           <ChatInput
             onSend={sendMessage}
-            disabled={!selectedBot}
+            disabled={!selectedBot || disabled}
             isLoading={isLoading}
-            placeholder={selectedBot ? "Type your message..." : "Select a model to start chatting"}
+            placeholder={
+              disabled ? disabledReason :
+              selectedBot ? "Type your message..." : 
+              "Select a model to start chatting"
+            }
           />
         </div>
       </div>

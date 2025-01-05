@@ -9,7 +9,9 @@ import { MainChatHistory } from "@/components/chat/MainChatHistory";
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -106,43 +108,38 @@ const Index = () => {
     sendMessage
   } = useChat(selectedBot, sessionToken);
 
-  const handleChatSelect = async (chatId: string) => {
-    try {
-      // Fetch the chat to get its bot_id
-      const { data: chat, error } = await supabase
-        .from('chat_history')
-        .select('bot_id')
-        .eq('id', chatId)
-        .single();
+  const {
+    isExceeded,
+    resetDate,
+    currentUsage,
+    maxUsage,
+    limitType,
+    checkSubscriptionLimits
+  } = useSubscriptionLimits(selectedBotId);
 
-      if (error) throw error;
-
-      if (chat && chat.bot_id) {
-        // Check if the bot exists in the available bots
-        const botExists = allBots.some(bot => bot.id === chat.bot_id);
-        if (!botExists) {
-          toast({
-            title: "Bot not available",
-            description: "The bot associated with this chat is not currently available.",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Set the selected bot
-        setSelectedBotId(chat.bot_id);
-        // Load the chat
-        handleSelectChat(chatId);
-      }
-    } catch (error) {
-      console.error('Error selecting chat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load chat",
-        variant: "destructive",
-      });
-    }
+  // Update sendMessage to check limits after sending
+  const handleSendMessage = async (message: string) => {
+    await sendMessage(message);
+    checkSubscriptionLimits();
   };
+
+  const LimitExceededMessage = () => (
+    <div className="fixed bottom-24 left-0 right-0 p-4 bg-destructive/10 backdrop-blur">
+      <div className="max-w-3xl mx-auto flex items-center justify-between">
+        <p className="text-sm text-destructive">
+          You have exceeded your {limitType} limit of {maxUsage}.
+          {resetDate && ` Access will be restored on ${resetDate.toLocaleDateString()}`}
+        </p>
+        <Button 
+          variant="destructive" 
+          size="sm"
+          onClick={() => navigate('/upgrade')}
+        >
+          Upgrade Now
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -174,8 +171,11 @@ const Index = () => {
                 messages={messages}
                 isLoading={isLoading}
                 isStreaming={isStreaming}
-                sendMessage={sendMessage}
+                sendMessage={handleSendMessage}
+                disabled={isExceeded}
+                disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
               />
+              {isExceeded && <LimitExceededMessage />}
             </div>
           </div>
         </div>
