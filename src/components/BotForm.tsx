@@ -11,6 +11,7 @@ import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUt
 import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface BotFormProps {
   bot: Bot;
@@ -95,56 +96,58 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div className="flex-1 container max-w-4xl mx-auto px-4 py-8 space-y-8">
-        <div className="grid gap-6">
-          <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
-          
-          <BotPublishToggle 
-            isPublished={editingBot.published}
-            onPublishChange={handlePublishToggle}
-          />
+    <div className="flex flex-col h-full bg-background">
+      <ScrollArea className="flex-1 px-4 py-8">
+        <div className="container max-w-4xl mx-auto space-y-8">
+          <div className="grid gap-6">
+            <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
+            
+            <BotPublishToggle 
+              isPublished={editingBot.published}
+              onPublishChange={handlePublishToggle}
+            />
 
-          <ModelSelector 
-            bot={editingBot}
-            onModelChange={handleModelChange}
-            onOpenRouterModelChange={(model) => handleBotChange({ openRouterModel: model })}
-          />
+            <ModelSelector 
+              bot={editingBot}
+              onModelChange={handleModelChange}
+              onOpenRouterModelChange={(model) => handleBotChange({ openRouterModel: model })}
+            />
 
-          <BotApiSettings 
-            apiKey={editingBot.apiKey}
-            onApiKeyChange={(apiKey) => handleBotChange({ apiKey })}
-          />
+            <BotApiSettings 
+              apiKey={editingBot.apiKey}
+              onApiKeyChange={(apiKey) => handleBotChange({ apiKey })}
+            />
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Instructions</label>
-            <Textarea
-              value={editingBot.instructions}
-              onChange={(e) => handleBotChange({ instructions: e.target.value })}
-              placeholder="Enter instructions for the bot..."
-              rows={4}
-              className="w-full resize-y min-h-[100px] dark:bg-[#1e1e1e] dark:border-gray-700"
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Instructions</label>
+              <Textarea
+                value={editingBot.instructions}
+                onChange={(e) => handleBotChange({ instructions: e.target.value })}
+                placeholder="Enter instructions for the bot..."
+                rows={4}
+                className="w-full resize-y min-h-[100px] dark:bg-[#1e1e1e] dark:border-gray-700"
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="memory-mode"
+                checked={editingBot.memory_enabled}
+                onCheckedChange={handleMemoryToggle}
+                className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
+              />
+              <Label htmlFor="memory-mode">Enable Memory Mode</Label>
+            </div>
+
+            <StartersInput 
+              starters={editingBot.starters}
+              onStartersChange={(starters) => handleBotChange({ starters })}
             />
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="memory-mode"
-              checked={editingBot.memory_enabled}
-              onCheckedChange={handleMemoryToggle}
-              className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
-            />
-            <Label htmlFor="memory-mode">Enable Memory Mode</Label>
-          </div>
-
-          <StartersInput 
-            starters={editingBot.starters}
-            onStartersChange={(starters) => handleBotChange({ starters })}
-          />
         </div>
-      </div>
+      </ScrollArea>
 
-      <div className="sticky bottom-0 w-full bg-background border-t p-4 mt-8">
+      <div className="sticky bottom-0 w-full bg-background border-t p-4">
         <div className="container max-w-4xl mx-auto flex justify-end gap-4">
           <Button variant="outline" onClick={onCancel}>
             Cancel
