@@ -246,6 +246,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar: string | null
+          blocked: boolean | null
           created_at: string
           email: string
           id: string
@@ -257,6 +258,7 @@ export type Database = {
         }
         Insert: {
           avatar?: string | null
+          blocked?: boolean | null
           created_at?: string
           email: string
           id: string
@@ -268,6 +270,7 @@ export type Database = {
         }
         Update: {
           avatar?: string | null
+          blocked?: boolean | null
           created_at?: string
           email?: string
           id?: string
@@ -410,7 +413,7 @@ export type Database = {
       question_type: "text" | "single_choice" | "multiple_choice"
       quiz_question_type: "text" | "checkbox"
       quiz_status: "not_started" | "in_progress" | "completed"
-      user_role: "super_admin" | "admin" | "user"
+      user_role: "super_admin" | "admin" | "user" | "paid_user"
     }
     CompositeTypes: {
       [_ in never]: never
