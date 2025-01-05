@@ -178,3 +178,8 @@
 .dark .limit-exceeded-message {
   @apply text-white;
 }
+
+/* Style for the banner text in dark mode */
+.dark .banner-text {
+  @apply text-white;
+}
