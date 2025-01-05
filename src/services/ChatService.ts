@@ -51,7 +51,7 @@ export class ChatService {
               : []),
             ...sanitizedMessages,
           ],
-          stream: !!onStream,
+          stream: true, // Always enable streaming
         }),
       });
 
@@ -61,52 +61,46 @@ export class ChatService {
         throw new Error('Failed to process request');
       }
 
-      if (onStream) {
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error("No response body");
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No response body");
 
-        let accumulatedResponse = '';
-        let buffer = '';
+      let accumulatedResponse = '';
+      let buffer = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = new TextDecoder().decode(value);
+        buffer += chunk;
         
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = new TextDecoder().decode(value);
-          buffer += chunk;
-          
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-          
-          for (const line of lines) {
-            if (line.trim() === '') continue;
-            if (line.startsWith('data: ')) {
-              const data = line.slice(5).trim();
-              if (data === '[DONE]') continue;
-              
-              try {
-                const parsed = JSON.parse(data);
-                const content = parsed.choices?.[0]?.delta?.content;
-                if (content) {
-                  accumulatedResponse += content;
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          if (line.startsWith('data: ')) {
+            const data = line.slice(5).trim();
+            if (data === '[DONE]') continue;
+            
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                accumulatedResponse += content;
+                if (onStream) {
                   onStream(content);
                 }
-              } catch (e) {
-                console.warn('Error parsing streaming response');
               }
+            } catch (e) {
+              console.warn('Error parsing streaming response:', e);
             }
           }
         }
-        
-        return accumulatedResponse;
-      } else {
-        const data = await response.json();
-        if (!data?.choices?.[0]?.message?.content) {
-          throw new Error('Invalid response format from API');
-        }
-
-        return data.choices[0].message.content;
       }
+      
+      return accumulatedResponse;
+
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return "Message cancelled by user.";

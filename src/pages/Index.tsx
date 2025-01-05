@@ -15,12 +15,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { Message } from "@/components/chat/types/chatTypes";
 
-// Since this file is quite long (223 lines), let's split it into smaller components
-// First, let's extract the chat functionality into a separate component
-const ChatSection = ({ selectedBot, messages, isLoading, sendMessage }: {
+const ChatSection = ({ selectedBot, messages, isLoading, isStreaming, sendMessage }: {
   selectedBot: BotType | undefined;
   messages: Message[];
   isLoading: boolean;
+  isStreaming: boolean;
   sendMessage: (message: string) => void;
 }) => {
   return (
@@ -32,6 +31,8 @@ const ChatSection = ({ selectedBot, messages, isLoading, sendMessage }: {
             selectedBot={selectedBot}
             starters={selectedBot.starters || []}
             onStarterClick={sendMessage}
+            isLoading={isLoading}
+            isStreaming={isStreaming}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-muted-foreground">
@@ -57,6 +58,7 @@ const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -172,25 +174,38 @@ const Index = () => {
 
     try {
       setIsLoading(true);
+      setIsStreaming(true);
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
       
-      const loadingMessage = createMessage("assistant", "...", true);
+      const loadingMessage = createMessage("assistant", "", true);
       setMessages([...newMessages, loadingMessage]);
 
-      let response: string;
+      let response = "";
       if (selectedBot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(newMessages, selectedBot);
+        response = await ChatService.sendOpenRouterMessage(
+          newMessages,
+          selectedBot,
+          undefined,
+          (chunk: string) => {
+            setMessages(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.role === "assistant") {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMessage, content: lastMessage.content + chunk }
+                ];
+              }
+              return prev;
+            });
+          }
+        );
       } else if (selectedBot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(newMessages, selectedBot);
-      } else {
-        throw new Error("Unsupported model type");
+        const botMessage = createMessage("assistant", response);
+        setMessages([...newMessages, botMessage]);
       }
-
-      const botMessage = createMessage("assistant", response);
-      const updatedMessages = [...newMessages, botMessage];
-      setMessages(updatedMessages);
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -198,7 +213,7 @@ const Index = () => {
       const chatData = {
         id: chatId,
         bot_id: selectedBot.id,
-        messages: updatedMessages.map(msg => ({
+        messages: [...newMessages, createMessage("assistant", response)].map(msg => ({
           ...msg,
           timestamp: msg.timestamp?.toISOString(),
         })),
@@ -223,6 +238,7 @@ const Index = () => {
       });
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -253,6 +269,7 @@ const Index = () => {
               selectedBot={selectedBot}
               messages={messages}
               isLoading={isLoading}
+              isStreaming={isStreaming}
               sendMessage={sendMessage}
             />
           </div>
