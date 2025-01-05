@@ -93,7 +93,6 @@ const Index = () => {
     }
   });
 
-  // Query for shared bots
   const { data: sharedBots = [], isLoading: isLoadingSharedBots } = useQuery({
     queryKey: ['shared-bots'],
     queryFn: async () => {
@@ -148,7 +147,6 @@ const Index = () => {
         .single();
 
       if (chat && chat.messages) {
-        // Explicitly type and convert the messages from JSON
         const typedMessages = (chat.messages as any[]).map((msg): Message => ({
           id: msg.id || uuidv4(),
           role: msg.role,
@@ -207,7 +205,6 @@ const Index = () => {
         setMessages([...newMessages, botMessage]);
       }
 
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
       const chatData = {
@@ -264,6 +261,7 @@ const Index = () => {
               currentChatId={chatId}
               isOpen={showHistory}
               onClose={() => setShowHistory(false)}
+              setSelectedBotId={setSelectedBotId}
             />
             <ChatSection
               selectedBot={selectedBot}
