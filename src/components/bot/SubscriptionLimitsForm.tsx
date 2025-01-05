@@ -33,9 +33,9 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
       user_role: 'admin'
     },
     super_admin: {
-      units_per_period: -1,
-      reset_period: 'never',
-      limit_type: 'tokens',
+      units_per_period: 1,
+      reset_period: 'monthly',
+      limit_type: 'messages',
       user_role: 'super_admin'
     }
   });
@@ -81,12 +81,12 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
       if (data) {
         const newSettings = { ...subscriptionSettings };
         data.forEach(setting => {
-          newSettings[setting.user_role] = {
+          newSettings[setting.user_role as UserRole] = {
             units_per_period: setting.units_per_period,
             reset_period: setting.reset_period,
             lifetime_max_units: setting.lifetime_max_units,
             limit_type: (setting.limit_type || 'tokens') as LimitType,
-            user_role: setting.user_role
+            user_role: setting.user_role as UserRole
           };
         });
         setSubscriptionSettings(newSettings);
@@ -121,7 +121,7 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
           units_per_period: newSettings.units_per_period,
           reset_period: newSettings.reset_period,
           lifetime_max_units: newSettings.lifetime_max_units,
-          limit_type: newSettings.limit_type as LimitType
+          limit_type: newSettings.limit_type
         });
 
       if (error) throw error;
@@ -130,6 +130,9 @@ export const SubscriptionLimitsForm = ({ model, onSettingsChange }: Subscription
         title: "Success",
         description: "Subscription settings updated successfully",
       });
+
+      // Refresh settings to ensure they're properly synced
+      fetchSubscriptionSettings();
     } catch (error) {
       console.error('Error updating subscription settings:', error);
       toast({
