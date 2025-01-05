@@ -92,8 +92,9 @@ export const useTokenUsage = () => {
       }
 
       // Calculate current usage based on limit type
+      const limitType = settings.limit_type as LimitType || 'tokens';
       const currentUsage = usage?.reduce((acc: number, curr: UsageData) => {
-        if (settings.limit_type === 'messages') {
+        if (limitType === 'messages') {
           return acc + (curr.messages_used || 0);
         }
         return acc + (curr.tokens_used || 0);
@@ -101,10 +102,10 @@ export const useTokenUsage = () => {
 
       console.log("📊 Current usage:", currentUsage);
       console.log("📊 Period limit:", settings.units_per_period);
-      console.log("📊 Limit type:", settings.limit_type);
+      console.log("📊 Limit type:", limitType);
 
       // Calculate units to check based on limit type
-      const unitsToCheck = settings.limit_type === 'messages' ? 1 : estimatedTokens;
+      const unitsToCheck = limitType === 'messages' ? 1 : estimatedTokens;
       
       // Check if adding the new units would exceed the limit
       const canProceed = currentUsage + unitsToCheck <= settings.units_per_period;
@@ -117,14 +118,14 @@ export const useTokenUsage = () => {
       if (!canProceed) {
         toast({
           title: "Usage Limit Reached",
-          description: `You've reached your ${settings.reset_period} limit of ${settings.units_per_period} ${settings.limit_type}.`,
+          description: `You've reached your ${settings.reset_period} limit of ${settings.units_per_period} ${limitType}.`,
           variant: "destructive",
         });
       }
 
       return {
         canProceed,
-        limitType: settings.limit_type as LimitType,
+        limitType,
         resetPeriod: settings.reset_period as ResetPeriod,
         currentUsage,
         limit: settings.units_per_period
