@@ -38,7 +38,7 @@ export const MessageList = ({
 
   useEffect(() => {
     if (lastMessageRef.current && !isLoading) {
-      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages, isLoading]);
 
@@ -66,12 +66,15 @@ export const MessageList = ({
   }
 
   return (
-    <div className="relative h-full flex flex-col overflow-hidden">
-      <ScrollArea className="flex-1">
-        <div className={cn(
-          "h-full p-4",
-          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
-        )}>
+    <div className="relative flex flex-col h-full overflow-hidden">
+      <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
+        <div 
+          ref={scrollRef}
+          className={cn(
+            "px-4 py-4",
+            messages.length === 0 ? "flex flex-col items-center justify-center h-full" : "space-y-4"
+          )}
+        >
           {messages.length === 0 && starters && starters.length > 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
               {selectedBot && (
