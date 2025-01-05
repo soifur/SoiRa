@@ -8,13 +8,14 @@ import { useToast } from "@/components/ui/use-toast";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (email !== "soifur2@gmail.com") {
+    if (email !== "soifur2@gmail.com" && !isSignUp) {
       toast({
         variant: "destructive",
         title: "Access Denied",
@@ -24,18 +25,38 @@ const Login = () => {
     }
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              role: 'user'
+            }
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Welcome back!",
-        description: "Successfully logged in.",
-      });
-      navigate("/");
+        toast({
+          title: "Success!",
+          description: "Please check your email to verify your account.",
+        });
+        setIsSignUp(false);
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Welcome back!",
+          description: "Successfully logged in.",
+        });
+        navigate("/");
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -49,10 +70,12 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="w-full max-w-md space-y-8 p-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold">Welcome Back</h2>
-          <p className="text-muted-foreground mt-2">Please sign in to continue</p>
+          <h2 className="text-2xl font-bold">{isSignUp ? "Create Account" : "Welcome Back"}</h2>
+          <p className="text-muted-foreground mt-2">
+            {isSignUp ? "Please sign up to continue" : "Please sign in to continue"}
+          </p>
         </div>
-        <form onSubmit={handleLogin} className="mt-8 space-y-6">
+        <form onSubmit={handleAuth} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
               <Input
@@ -73,9 +96,31 @@ const Login = () => {
               />
             </div>
           </div>
-          <Button type="submit" className="w-full">
-            Sign in
-          </Button>
+          <div className="space-y-4">
+            <Button type="submit" className="w-full">
+              {isSignUp ? "Sign up" : "Sign in"}
+            </Button>
+            {!isSignUp && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => setIsSignUp(true)}
+              >
+                Create new account
+              </Button>
+            )}
+            {isSignUp && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => setIsSignUp(false)}
+              >
+                Back to login
+              </Button>
+            )}
+          </div>
         </form>
       </div>
     </div>
