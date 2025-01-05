@@ -42,27 +42,39 @@ export const ProfileMenu = () => {
           <User className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+      <DropdownMenuContent align="end" className="w-48 p-2">
+        <DropdownMenuItem 
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+        >
           {theme === "light" ? (
-            <Moon className="mr-2 h-4 w-4" />
+            <Moon className="h-4 w-4" />
           ) : (
-            <Sun className="mr-2 h-4 w-4" />
+            <Sun className="h-4 w-4" />
           )}
           {theme === "light" ? "Dark Mode" : "Light Mode"}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/settings')}>
-          <Settings className="mr-2 h-4 w-4" />
+        <DropdownMenuItem 
+          onClick={() => navigate('/settings')}
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+        >
+          <Settings className="h-4 w-4" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate('/upgrade')}>
-          <CreditCard className="mr-2 h-4 w-4" />
+        <DropdownMenuSeparator className="my-2" />
+        <DropdownMenuItem 
+          onClick={() => navigate('/upgrade')}
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+        >
+          <CreditCard className="h-4 w-4" />
           Upgrade Plan
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuSeparator className="my-2" />
+        <DropdownMenuItem 
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+        >
+          <LogOut className="h-4 w-4" />
           Log Out
         </DropdownMenuItem>
       </DropdownMenuContent>
