@@ -30,12 +30,40 @@ export const ProfileMenu = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // First check if user has a custom avatar in profiles
+      // First ensure the profile exists
+      const { data: existingProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error checking profile:', profileError);
+        return;
+      }
+
+      // If profile doesn't exist, create it
+      if (!existingProfile) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: user.id,
+            email: user.email,
+            role: 'user',
+          }]);
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          return;
+        }
+      }
+
+      // Now fetch the profile (either existing or newly created)
       const { data: profile } = await supabase
         .from('profiles')
         .select('avatar')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profile?.avatar) {
         setAvatarUrl(profile.avatar);
@@ -66,6 +94,11 @@ export const ProfileMenu = () => {
       }
     } catch (error) {
       console.error('Error fetching avatar:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile",
+        variant: "destructive",
+      });
     }
   };
 
