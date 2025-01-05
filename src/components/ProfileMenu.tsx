@@ -90,8 +90,8 @@ export const ProfileMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Avatar className="h-7 w-7">
+        <Button variant="ghost" size="icon" className="h-9 w-9">
+          <Avatar className="h-8 w-8">
             <AvatarImage 
               src={avatarUrl || ''} 
               alt="Profile" 
