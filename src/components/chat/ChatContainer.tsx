@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { Bot } from "@/hooks/useBots";
@@ -21,31 +21,13 @@ export const ChatContainer = ({
   sendMessage,
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
-  const [mergedMessages, setMergedMessages] = useState<Message[]>([]);
   
-  // Update merged messages whenever messages prop changes
-  useEffect(() => {
-    // Create a new Set of message IDs to track duplicates
-    const messageIds = new Set();
-    const uniqueMessages = messages.filter(message => {
-      // If we've seen this ID before, filter it out
-      if (messageIds.has(message.id)) {
-        return false;
-      }
-      // Add this ID to our set
-      messageIds.add(message.id);
-      return true;
-    });
-    
-    setMergedMessages(uniqueMessages);
-  }, [messages]);
-
   return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-hidden mt-14">
         {selectedBot ? (
           <MessageList
-            messages={mergedMessages}
+            messages={messages}
             selectedBot={selectedBot}
             starters={selectedBot.starters || []}
             onStarterClick={sendMessage}
