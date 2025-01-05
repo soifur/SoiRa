@@ -13,10 +13,16 @@ import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { useSessionToken } from "@/hooks/useSessionToken";
+import { Message, ChatHistoryData } from "@/components/chat/types/chatTypes";
 
 // Since this file is quite long (223 lines), let's split it into smaller components
 // First, let's extract the chat functionality into a separate component
-const ChatSection = ({ selectedBot, messages, isLoading, sendMessage }) => {
+const ChatSection = ({ selectedBot, messages, isLoading, sendMessage }: {
+  selectedBot: BotType | undefined;
+  messages: Message[];
+  isLoading: boolean;
+  sendMessage: (message: string) => void;
+}) => {
   return (
     <>
       <div className="flex-1 overflow-hidden mt-14 mb-24">
@@ -49,7 +55,7 @@ const ChatSection = ({ selectedBot, messages, isLoading, sendMessage }) => {
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
@@ -141,11 +147,12 @@ const Index = () => {
         .single();
 
       if (chat && chat.messages) {
-        setMessages(chat.messages.map((msg: any) => ({
+        const typedMessages = (chat.messages as Message[]).map((msg: Message) => ({
           ...msg,
           timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
           id: msg.id || uuidv4()
-        })));
+        }));
+        setMessages(typedMessages);
       }
     } catch (error) {
       console.error('Error loading chat:', error);
@@ -196,7 +203,7 @@ const Index = () => {
     }
   };
 
-  const saveChatHistory = async (messages: any[], bot: BotType) => {
+  const saveChatHistory = async (messages: Message[], bot: BotType) => {
     try {
       const { data: latestChat } = await supabase
         .from('chat_history')
@@ -208,18 +215,20 @@ const Index = () => {
 
       const nextSequenceNumber = (latestChat?.sequence_number || 0) + 1;
 
+      const chatData: Partial<ChatHistoryData> = {
+        id: chatId,
+        bot_id: bot.id,
+        messages: messages.map(msg => ({
+          ...msg,
+          timestamp: msg.timestamp?.toISOString(),
+        })),
+        sequence_number: nextSequenceNumber,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('chat_history')
-        .upsert({
-          id: chatId,
-          bot_id: bot.id,
-          messages: messages.map(msg => ({
-            ...msg,
-            timestamp: msg.timestamp?.toISOString(),
-          })),
-          sequence_number: nextSequenceNumber,
-          updated_at: new Date().toISOString()
-        });
+        .upsert(chatData);
 
       if (error) throw error;
     } catch (error) {
