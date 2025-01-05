@@ -9,12 +9,9 @@ interface TokenUsageResponse {
   limit: number;
 }
 
-interface TokenUsage {
-  tokens_used: number;
-}
-
-interface MessageUsage {
-  messages_used: number;
+interface UsageData {
+  tokens_used?: number;
+  messages_used?: number;
 }
 
 export const useTokenUsage = () => {
@@ -93,11 +90,11 @@ export const useTokenUsage = () => {
         throw usageError;
       }
 
-      const currentUsage = usage?.reduce((acc, curr) => {
+      const currentUsage = usage?.reduce((acc: number, curr: UsageData) => {
         if (settings.limit_type === 'messages') {
-          return acc + ((curr as MessageUsage).messages_used || 0);
+          return acc + (curr.messages_used || 0);
         }
-        return acc + ((curr as TokenUsage).tokens_used || 0);
+        return acc + (curr.tokens_used || 0);
       }, 0) || 0;
 
       console.log("📊 Current usage:", currentUsage);
