@@ -250,28 +250,31 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          lifetime_max_tokens: number | null
+          lifetime_max_units: number | null
+          limit_type: string | null
           model: string
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
-          tokens_per_period: number
+          units_per_period: number
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
-          lifetime_max_tokens?: number | null
+          lifetime_max_units?: number | null
+          limit_type?: string | null
           model: string
           reset_period: Database["public"]["Enums"]["subscription_reset_period"]
-          tokens_per_period: number
+          units_per_period: number
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
-          lifetime_max_tokens?: number | null
+          lifetime_max_units?: number | null
+          limit_type?: string | null
           model?: string
           reset_period?: Database["public"]["Enums"]["subscription_reset_period"]
-          tokens_per_period?: number
+          units_per_period?: number
           updated_at?: string
         }
         Relationships: []

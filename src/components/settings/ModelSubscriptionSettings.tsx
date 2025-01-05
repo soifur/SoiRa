@@ -16,9 +16,10 @@ import { supabase } from "@/integrations/supabase/client";
 interface ModelSubscriptionSetting {
   id: string;
   model: string;
-  tokens_per_period: number;
+  units_per_period: number;
   reset_period: 'daily' | 'weekly' | 'monthly' | 'never';
-  lifetime_max_tokens?: number;
+  lifetime_max_units?: number;
+  limit_type: 'tokens' | 'messages';
 }
 
 export const ModelSubscriptionSettings = () => {
@@ -58,9 +59,10 @@ export const ModelSubscriptionSettings = () => {
         .upsert({
           id: setting.id,
           model: setting.model,
-          tokens_per_period: setting.tokens_per_period,
+          units_per_period: setting.units_per_period,
           reset_period: setting.reset_period,
-          lifetime_max_tokens: setting.lifetime_max_tokens,
+          lifetime_max_units: setting.lifetime_max_units,
+          limit_type: setting.limit_type,
         });
 
       if (error) throw error;
@@ -85,8 +87,9 @@ export const ModelSubscriptionSettings = () => {
     const newSetting: ModelSubscriptionSetting = {
       id: crypto.randomUUID(),
       model: '',
-      tokens_per_period: 1000,
+      units_per_period: 1000,
       reset_period: 'monthly',
+      limit_type: 'tokens',
     };
     setSettings([...settings, newSetting]);
   };
@@ -121,13 +124,34 @@ export const ModelSubscriptionSettings = () => {
               </div>
 
               <div>
-                <Label>Tokens per Period</Label>
+                <Label>Limit Type</Label>
+                <Select
+                  value={setting.limit_type}
+                  onValueChange={(value: 'tokens' | 'messages') => {
+                    const updated = settings.map((s) =>
+                      s.id === setting.id ? { ...s, limit_type: value } : s
+                    );
+                    setSettings(updated);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tokens">By Token Count</SelectItem>
+                    <SelectItem value="messages">By Message Count</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>{setting.limit_type === 'tokens' ? 'Tokens' : 'Messages'} per Period</Label>
                 <Input
                   type="number"
-                  value={setting.tokens_per_period}
+                  value={setting.units_per_period}
                   onChange={(e) => {
                     const updated = settings.map((s) =>
-                      s.id === setting.id ? { ...s, tokens_per_period: parseInt(e.target.value) } : s
+                      s.id === setting.id ? { ...s, units_per_period: parseInt(e.target.value) } : s
                     );
                     setSettings(updated);
                   }}
@@ -158,13 +182,13 @@ export const ModelSubscriptionSettings = () => {
               </div>
 
               <div>
-                <Label>Lifetime Maximum Tokens (Optional)</Label>
+                <Label>Lifetime Maximum {setting.limit_type === 'tokens' ? 'Tokens' : 'Messages'} (Optional)</Label>
                 <Input
                   type="number"
-                  value={setting.lifetime_max_tokens || ''}
+                  value={setting.lifetime_max_units || ''}
                   onChange={(e) => {
                     const updated = settings.map((s) =>
-                      s.id === setting.id ? { ...s, lifetime_max_tokens: parseInt(e.target.value) || undefined } : s
+                      s.id === setting.id ? { ...s, lifetime_max_units: parseInt(e.target.value) || undefined } : s
                     );
                     setSettings(updated);
                   }}
