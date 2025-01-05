@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { MoonIcon, SunIcon, LogOutIcon, Settings, FolderIcon } from "lucide-react";
+import { MoonIcon, SunIcon, LogOutIcon, Settings } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,7 @@ export const Navigation = () => {
     }
   };
 
+  // Don't show navigation in embedded mode
   if (isEmbedded) return null;
 
   return (
@@ -41,9 +42,6 @@ export const Navigation = () => {
           </Link>
           <Link to="/bots" className="text-sm font-medium transition-colors hover:text-primary">
             Bots
-          </Link>
-          <Link to="/categories" className="text-sm font-medium transition-colors hover:text-primary">
-            Categories
           </Link>
           <Link to="/archive" className="text-sm font-medium transition-colors hover:text-primary">
             Archive
