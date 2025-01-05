@@ -25,7 +25,19 @@ export const ChatContainer = ({
   
   // Update merged messages whenever messages prop changes
   useEffect(() => {
-    setMergedMessages(messages);
+    // Create a new Set of message IDs to track duplicates
+    const messageIds = new Set();
+    const uniqueMessages = messages.filter(message => {
+      // If we've seen this ID before, filter it out
+      if (messageIds.has(message.id)) {
+        return false;
+      }
+      // Add this ID to our set
+      messageIds.add(message.id);
+      return true;
+    });
+    
+    setMergedMessages(uniqueMessages);
   }, [messages]);
 
   return (
