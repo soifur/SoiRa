@@ -16,32 +16,43 @@ export const CreateUserDialog = () => {
   const queryClient = useQueryClient();
 
   const handleCreateUser = async () => {
-    const { data, error } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        first_name: firstName,
-        last_name: lastName
-      }
-    });
+    try {
+      // Instead of using auth.admin, we'll use the regular sign up
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName
+          }
+        }
+      });
 
-    if (error) {
+      if (signUpError) {
+        toast({
+          title: "Error",
+          description: signUpError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // The profile will be created automatically by the database trigger
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setIsOpen(false);
+      resetForm();
+      toast({
+        title: "Success",
+        description: "User created successfully",
+      });
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message,
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
     }
-
-    queryClient.invalidateQueries({ queryKey: ['users'] });
-    setIsOpen(false);
-    resetForm();
-    toast({
-      title: "Success",
-      description: "User created successfully",
-    });
   };
 
   const resetForm = () => {
