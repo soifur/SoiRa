@@ -9,32 +9,22 @@ interface TokenUsageResponse {
   limit: number;
 }
 
-interface TokenUsage {
-  tokens_used: number;
-}
-
-interface MessageUsage {
-  messages_used: number;
-}
-
-type Usage = TokenUsage | MessageUsage;
-
 export const useTokenUsage = () => {
   const { toast } = useToast();
 
   const checkTokenUsage = async (model: string, estimatedTokens: number): Promise<TokenUsageResponse> => {
-    try {
-      console.log("🔍 Starting token usage check...");
-      console.log("Model:", model);
-      console.log("Estimated tokens:", estimatedTokens);
+    console.log("🔍 Starting token usage check in useTokenUsage hook");
+    console.log("Model:", model);
+    console.log("Estimated tokens:", estimatedTokens);
 
+    try {
       // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) {
         console.error("❌ Auth error:", userError);
         throw userError;
       }
-      console.log("👤 User ID:", user?.id);
+      console.log("👤 User found:", user?.id);
 
       // Get user's role from profiles
       const { data: profile, error: profileError } = await supabase
@@ -49,7 +39,7 @@ export const useTokenUsage = () => {
       }
       console.log("👑 User role:", profile?.role);
 
-      // Get subscription settings for the model and user role
+      // Get subscription settings
       const { data: settings, error: settingsError } = await supabase
         .from('model_subscription_settings')
         .select('*')
@@ -61,9 +51,9 @@ export const useTokenUsage = () => {
         console.error("❌ Settings fetch error:", settingsError);
         throw settingsError;
       }
-      console.log("⚙️ Subscription settings:", settings);
+      console.log("⚙️ Subscription settings found:", settings);
 
-      // Calculate period start based on reset_period
+      // Calculate period start
       const now = new Date();
       let periodStart = new Date();
       switch (settings.reset_period) {
@@ -80,9 +70,9 @@ export const useTokenUsage = () => {
         default:
           periodStart = new Date(1970, 0, 1);
       }
-      console.log("📅 Period start:", periodStart.toISOString());
+      console.log("📅 Period start date:", periodStart.toISOString());
 
-      // Get current usage for the period
+      // Get current usage
       const { data: usage, error: usageError } = await supabase
         .from('chat_history')
         .select(settings.limit_type === 'messages' ? 'messages_used' : 'tokens_used')
@@ -95,15 +85,11 @@ export const useTokenUsage = () => {
         throw usageError;
       }
 
-      const currentUsage = usage?.reduce((acc, curr: Usage) => {
-        if (settings.limit_type === 'messages' && 'messages_used' in curr) {
-          console.log("Adding messages used:", curr.messages_used);
+      const currentUsage = usage?.reduce((acc, curr) => {
+        if (settings.limit_type === 'messages') {
           return acc + (curr.messages_used || 0);
-        } else if (settings.limit_type === 'tokens' && 'tokens_used' in curr) {
-          console.log("Adding tokens used:", curr.tokens_used);
-          return acc + (curr.tokens_used || 0);
         }
-        return acc;
+        return acc + (curr.tokens_used || 0);
       }, 0) || 0;
 
       console.log("📊 Current usage:", currentUsage);

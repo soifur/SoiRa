@@ -7,7 +7,11 @@ import { saveChatHistory, handleMessageSend } from "@/utils/chatOperations";
 import { supabase } from "@/integrations/supabase/client";
 import { useTokenUsage } from "@/hooks/useTokenUsage";
 
-export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void) => {
+export const useChatOperations = (
+  bot: Bot, 
+  messages: Message[], 
+  setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void
+) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const { toast } = useToast();
@@ -53,8 +57,7 @@ export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (m
       setIsStreaming(true);
 
       const userMessage = createMessage("user", message);
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
+      setMessages(prev => [...prev, userMessage]);
 
       console.log("📨 Sending message to bot...");
       const { response, newMessages: updatedMessages } = await handleMessageSend(
@@ -63,7 +66,7 @@ export const useChatOperations = (bot: Bot, messages: Message[], setMessages: (m
         bot,
         (updatedMsgs: Message[]) => setMessages(updatedMsgs),
         (chunk: string) => {
-          setMessages((prev: Message[]) => {
+          setMessages((prev) => {
             const lastMessage = prev[prev.length - 1];
             if (lastMessage.role === "assistant") {
               return [
