@@ -148,7 +148,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Card className="w-full h-[100dvh] overflow-hidden relative">
         <div className="flex h-full">
-          <div className="flex-1 flex flex-col h-full relative w-full">
+          <div className="flex-1 flex flex-col h-full relative w-full overflow-hidden">
             <MainChatHeader
               selectedBotId={selectedBotId}
               setSelectedBotId={setSelectedBotId}
@@ -168,13 +168,15 @@ const Index = () => {
               onClose={() => setShowHistory(false)}
               setSelectedBotId={setSelectedBotId}
             />
-            <ChatContainer
-              selectedBot={selectedBot}
-              messages={messages}
-              isLoading={isLoading}
-              isStreaming={isStreaming}
-              sendMessage={sendMessage}
-            />
+            <div className="flex-1 relative overflow-hidden">
+              <ChatContainer
+                selectedBot={selectedBot}
+                messages={messages}
+                isLoading={isLoading}
+                isStreaming={isStreaming}
+                sendMessage={sendMessage}
+              />
+            </div>
           </div>
         </div>
       </Card>
