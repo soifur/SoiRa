@@ -49,8 +49,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       return;
     }
 
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
       console.log("Checking token usage before sending message");
       const canProceed = await checkTokenUsage(bot.model, 1);
       

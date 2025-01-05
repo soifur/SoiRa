@@ -40,7 +40,7 @@ export const useTokenUsage = () => {
 
       console.log("Token usage check result:", data);
 
-      if (!data) {
+      if (data !== true) {
         toast({
           title: "Usage Limit Reached",
           description: "You've reached your usage limit for this model. Please try again later or upgrade your subscription.",
@@ -49,7 +49,7 @@ export const useTokenUsage = () => {
         return false;
       }
 
-      return data === true;
+      return true;
     } catch (error) {
       console.error('Error checking token usage:', error);
       toast({
