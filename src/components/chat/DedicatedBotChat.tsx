@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTokenUsage } from "@/hooks/useTokenUsage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -40,6 +40,31 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     chatId
   } = useChatState(bot);
 
+  // Check usage limits on component mount and after each message
+  useEffect(() => {
+    const checkLimits = async () => {
+      try {
+        const usageResult = await checkTokenUsage(bot.id, 1);
+        setUsageInfo({
+          currentUsage: usageResult.currentUsage,
+          limit: usageResult.limit,
+          resetPeriod: usageResult.resetPeriod,
+          limitType: usageResult.limitType
+        });
+        setUsageExceeded(!usageResult.canProceed);
+      } catch (error) {
+        console.error("Error checking usage limits:", error);
+        toast({
+          title: "Error",
+          description: "Failed to check usage limits",
+          variant: "destructive",
+        });
+      }
+    };
+
+    checkLimits();
+  }, [bot.id, messages.length]);
+
   const clearChat = () => {
     setMessages([]);
     const chatKey = `chat_${bot.id}_${chatId}`;
@@ -65,7 +90,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     
     try {
       console.log("Checking token usage before sending message");
-      const usageResult = await checkTokenUsage(bot.id, 1); // Use bot.id instead of bot.model
+      const usageResult = await checkTokenUsage(bot.id, 1);
       
       setUsageInfo({
         currentUsage: usageResult.currentUsage,
@@ -174,6 +199,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           onStarterClick={sendMessage}
           isLoading={isLoading}
           isStreaming={isStreaming}
+          onClearChat={clearChat}
         />
         <div ref={messagesEndRef} />
       </div>
