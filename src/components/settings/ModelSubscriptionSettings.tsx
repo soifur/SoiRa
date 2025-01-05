@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelSubscriptionSetting } from "@/types/subscription";
+import { ModelSubscriptionSetting, LimitType, ResetPeriod, UserRole } from "@/types/subscription";
 
 export const ModelSubscriptionSettings = () => {
   const [settings, setSettings] = useState<ModelSubscriptionSetting[]>([]);
@@ -31,7 +31,14 @@ export const ModelSubscriptionSettings = () => {
         .order('model');
 
       if (error) throw error;
-      setSettings(data || []);
+      
+      // Ensure limit_type is properly typed
+      const typedData = data?.map(setting => ({
+        ...setting,
+        limit_type: setting.limit_type as LimitType
+      })) || [];
+      
+      setSettings(typedData);
     } catch (error) {
       console.error('Error fetching settings:', error);
       toast({
@@ -50,9 +57,10 @@ export const ModelSubscriptionSettings = () => {
         .from('model_subscription_settings')
         .upsert({
           id: setting.id,
-          model: setting.model,
+          model: setting.model || '',
           units_per_period: setting.units_per_period,
           reset_period: setting.reset_period,
+          reset_amount: setting.reset_amount,
           lifetime_max_units: setting.lifetime_max_units,
           limit_type: setting.limit_type,
           user_role: setting.user_role,
@@ -83,6 +91,7 @@ export const ModelSubscriptionSettings = () => {
       model: '',
       units_per_period: 1000,
       reset_period: 'monthly',
+      reset_amount: 1,
       limit_type: 'tokens',
       user_role: 'user',
     };
@@ -107,7 +116,7 @@ export const ModelSubscriptionSettings = () => {
               <div>
                 <Label>Model</Label>
                 <Input
-                  value={setting.model}
+                  value={setting.model || ''}
                   onChange={(e) => {
                     const updated = settings.map((s) =>
                       s.id === setting.id ? { ...s, model: e.target.value } : s
@@ -136,7 +145,7 @@ export const ModelSubscriptionSettings = () => {
                 <Label>Reset Period</Label>
                 <Select
                   value={setting.reset_period}
-                  onValueChange={(value: 'daily' | 'weekly' | 'monthly' | 'never') => {
+                  onValueChange={(value: ResetPeriod) => {
                     const updated = settings.map((s) =>
                       s.id === setting.id ? { ...s, reset_period: value } : s
                     );
@@ -153,6 +162,20 @@ export const ModelSubscriptionSettings = () => {
                     <SelectItem value="never">Never</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <Label>Reset Amount</Label>
+                <Input
+                  type="number"
+                  value={setting.reset_amount}
+                  onChange={(e) => {
+                    const updated = settings.map((s) =>
+                      s.id === setting.id ? { ...s, reset_amount: parseInt(e.target.value) } : s
+                    );
+                    setSettings(updated);
+                  }}
+                />
               </div>
 
               <div>
@@ -173,8 +196,8 @@ export const ModelSubscriptionSettings = () => {
               <div>
                 <Label>Limit Type</Label>
                 <Select
-                  value={setting.limit_type || 'tokens'}
-                  onValueChange={(value: string) => {
+                  value={setting.limit_type}
+                  onValueChange={(value: LimitType) => {
                     const updated = settings.map((s) =>
                       s.id === setting.id ? { ...s, limit_type: value } : s
                     );
@@ -194,8 +217,8 @@ export const ModelSubscriptionSettings = () => {
               <div>
                 <Label>User Role</Label>
                 <Select
-                  value={setting.user_role || 'user'}
-                  onValueChange={(value: 'super_admin' | 'admin' | 'user' | 'paid_user') => {
+                  value={setting.user_role}
+                  onValueChange={(value: UserRole) => {
                     const updated = settings.map((s) =>
                       s.id === setting.id ? { ...s, user_role: value } : s
                     );

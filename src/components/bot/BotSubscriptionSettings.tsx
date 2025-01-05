@@ -3,7 +3,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { RoleSubscriptionSettings } from "./subscription/RoleSubscriptionSettings";
-import { ModelSubscriptionSetting, UserRole } from "@/types/subscription";
+import { ModelSubscriptionSetting, UserRole, LimitType } from "@/types/subscription";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,7 +42,10 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
     // Ensure we have a setting for each user role
     const newSettings: ModelSubscriptionSetting[] = USER_ROLES.map(role => {
       const existingSetting = data?.find(s => s.user_role === role);
-      return existingSetting || {
+      return existingSetting ? {
+        ...existingSetting,
+        limit_type: existingSetting.limit_type as LimitType
+      } : {
         id: crypto.randomUUID(),
         bot_id: botId,
         user_role: role,
@@ -68,7 +71,10 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
     try {
       const { error } = await supabase
         .from('model_subscription_settings')
-        .upsert(settings);
+        .upsert(settings.map(setting => ({
+          ...setting,
+          bot_id: botId
+        })));
 
       if (error) throw error;
 
