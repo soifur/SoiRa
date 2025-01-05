@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,8 +24,13 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
   });
-  const [isPublished, setIsPublished] = useState(false);
+  const [isPublished, setIsPublished] = useState(!!bot.model);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Update isPublished when bot changes (e.g., when editing an existing bot)
+    setIsPublished(!!bot.model);
+  }, [bot]);
 
   const handleModelChange = (model: BotModel) => {
     if (!isPublished) {
@@ -118,6 +123,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             value={editingBot.name}
             onChange={(e) => setEditingBot({ ...editingBot, name: e.target.value })}
             placeholder="Bot name"
+            className="dark:bg-[#1e1e1e] dark:border-gray-700"
           />
         </div>
       </div>
@@ -127,6 +133,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           id="publish-mode"
           checked={isPublished}
           onCheckedChange={setIsPublished}
+          className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
         />
         <Label htmlFor="publish-mode">Enable Publishing</Label>
       </div>
@@ -155,6 +162,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           value={editingBot.apiKey}
           onChange={(e) => setEditingBot({ ...editingBot, apiKey: e.target.value })}
           placeholder="Enter your API key"
+          className="dark:bg-[#1e1e1e] dark:border-gray-700"
         />
       </div>
 
@@ -165,6 +173,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           onChange={(e) => setEditingBot({ ...editingBot, instructions: e.target.value })}
           placeholder="Enter instructions for the bot..."
           rows={4}
+          className="dark:bg-[#1e1e1e] dark:border-gray-700"
         />
       </div>
 
@@ -173,6 +182,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           id="memory-mode"
           checked={editingBot.memory_enabled}
           onCheckedChange={handleMemoryToggle}
+          className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
         />
         <Label htmlFor="memory-mode">Enable Memory Mode</Label>
       </div>

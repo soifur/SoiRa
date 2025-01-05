@@ -29,12 +29,13 @@ export const StartersInput = ({ starters, onStartersChange }: StartersInputProps
           value={newStarter}
           onChange={(e) => setNewStarter(e.target.value)}
           placeholder="Add a conversation starter"
+          className="dark:bg-[#1e1e1e] dark:border-gray-700"
         />
         <Button onClick={addStarter}>Add</Button>
       </div>
       <div className="space-y-2">
         {starters.map((starter, index) => (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="flex items-center gap-2 p-2 rounded dark:bg-[#1e1e1e] dark:border-gray-700 border">
             <span className="flex-1">{starter}</span>
             <Button
               variant="ghost"
