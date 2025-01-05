@@ -176,5 +176,5 @@
 
 /* Dark mode override for text-destructive */
 .dark .text-destructive {
-  color: white;
+  color: #ffffff !important;
 }
