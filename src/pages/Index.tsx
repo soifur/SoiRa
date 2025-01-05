@@ -1,16 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Bot as BotType } from "@/hooks/useBots";
+import { Bot } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { MainChatHeader } from "@/components/chat/MainChatHeader";
-import { MainChatHistory } from "@/components/chat/MainChatHistory";
-import { ChatContainer } from "@/components/chat/ChatContainer";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
 import { useToast } from "@/components/ui/use-toast";
 import { useTokenUsage } from "@/hooks/useTokenUsage";
+import { ChatLayout } from "@/components/chat/ChatLayout";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -19,87 +17,64 @@ const Index = () => {
   const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
   const { toast } = useToast();
-  const { checkTokenUsage } = useTokenUsage();
 
+  // Fetch bots with error handling
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("No authenticated session");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return [];
 
-      const { data, error } = await supabase
-        .from('bots')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+        const { data, error } = await supabase
+          .from('bots')
+          .select('*')
+          .eq('published', true)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
 
-      return data.map((bot): BotType => ({
-        id: bot.id,
-        name: bot.name,
-        instructions: bot.instructions || "",
-        starters: bot.starters || [],
-        model: bot.model,
-        apiKey: bot.api_key,
-        openRouterModel: bot.open_router_model,
-        avatar: bot.avatar,
-        accessType: "private",
-        memory_enabled: bot.memory_enabled,
-        published: bot.published,
-        default_bot: bot.default_bot,
-      }));
-    }
+        return data.map((bot): Bot => ({
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private",
+          memory_enabled: bot.memory_enabled,
+          published: bot.published,
+          default_bot: bot.default_bot,
+        }));
+      } catch (error) {
+        console.error('Error fetching bots:', error);
+        return [];
+      }
+    },
+    retry: false,
   });
 
-  // Effect to check token usage when a bot is selected
-  useEffect(() => {
-    const checkUsage = async () => {
-      if (selectedBotId) {
-        const selectedBot = allBots.find(bot => bot.id === selectedBotId);
-        if (selectedBot) {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user?.id) {
-            const usageResult = await checkTokenUsage(selectedBot.id, 1);
-            setCanSendMessages(usageResult.canProceed);
-            
-            if (!usageResult.canProceed) {
-              toast({
-                title: "Usage Limit Reached",
-                description: `You've reached your ${usageResult.resetPeriod} limit of ${usageResult.limit} ${usageResult.limitType}`,
-                variant: "destructive",
-              });
-            }
-          }
-        }
-      }
-    };
-
-    checkUsage();
-  }, [selectedBotId, toast, checkTokenUsage]);
-
-  // Effect to set the default bot on load
-  useEffect(() => {
-    if (userBots && userBots.length > 0 && !selectedBotId) {
-      const defaultBot = userBots.find(bot => bot.default_bot);
-      if (defaultBot) {
-        setSelectedBotId(defaultBot.id);
-      }
-    }
-  }, [userBots, selectedBotId]);
-
-  const { data: sharedBots = [], isLoading: isLoadingSharedBots } = useQuery({
+  // Fetch shared bots with error handling
+  const { data: sharedBots = [] } = useQuery({
     queryKey: ['shared-bots'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shared_bots')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('shared_bots')
+          .select('*')
+          .eq('published', true)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
-    }
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        console.error('Error fetching shared bots:', error);
+        return [];
+      }
+    },
+    retry: false,
   });
 
   const allBots = [
@@ -109,7 +84,7 @@ const Index = () => {
       name: `${shared.bot_name} (Shared)`,
       instructions: shared.instructions || "",
       starters: shared.starters || [],
-      model: shared.model as BotType['model'],
+      model: shared.model as Bot['model'],
       apiKey: "",
       openRouterModel: shared.open_router_model,
       avatar: shared.avatar,
@@ -117,8 +92,6 @@ const Index = () => {
       memory_enabled: shared.memory_enabled,
     }))
   ];
-
-  const selectedBot = allBots.find(bot => bot.id === selectedBotId);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -133,19 +106,27 @@ const Index = () => {
     handleNewChat,
     handleSelectChat,
     sendMessage
-  } = useChat(selectedBot, sessionToken);
+  } = useChat(allBots.find(bot => bot.id === selectedBotId), sessionToken);
+
+  // Set default bot on load
+  useState(() => {
+    if (userBots && userBots.length > 0 && !selectedBotId) {
+      const defaultBot = userBots.find(bot => bot.default_bot);
+      if (defaultBot) {
+        setSelectedBotId(defaultBot.id);
+      }
+    }
+  });
 
   const handleChatSelect = async (chatId: string) => {
     try {
-      const { data: chat, error } = await supabase
+      const { data: chat } = await supabase
         .from('chat_history')
         .select('bot_id')
         .eq('id', chatId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-
-      if (chat && chat.bot_id) {
+      if (chat?.bot_id) {
         const botExists = allBots.some(bot => bot.id === chat.bot_id);
         if (!botExists) {
           toast({
@@ -161,11 +142,6 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Error selecting chat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load chat",
-        variant: "destructive",
-      });
     }
   };
 
@@ -173,37 +149,22 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Card className="w-full h-[100dvh] overflow-hidden relative">
         <div className="flex h-full">
-          <div className="flex-1 flex flex-col h-full relative w-full overflow-hidden">
-            <MainChatHeader
-              selectedBotId={selectedBotId}
-              setSelectedBotId={setSelectedBotId}
-              bots={allBots}
-              onNewChat={handleNewChat}
-              onSignOut={handleSignOut}
-              onToggleHistory={() => setShowHistory(!showHistory)}
-              showHistory={showHistory}
-            />
-            <MainChatHistory
-              sessionToken={sessionToken}
-              botId={selectedBotId}
-              onSelectChat={handleChatSelect}
-              onNewChat={handleNewChat}
-              currentChatId={currentChatId}
-              isOpen={showHistory}
-              onClose={() => setShowHistory(false)}
-              setSelectedBotId={setSelectedBotId}
-            />
-            <div className="flex-1 relative overflow-hidden">
-              <ChatContainer
-                selectedBot={selectedBot}
-                messages={messages}
-                isLoading={isLoading}
-                isStreaming={isStreaming}
-                sendMessage={sendMessage}
-                disabled={!canSendMessages}
-              />
-            </div>
-          </div>
+          <ChatLayout
+            selectedBotId={selectedBotId}
+            setSelectedBotId={setSelectedBotId}
+            allBots={allBots}
+            messages={messages}
+            isLoading={isLoading}
+            isStreaming={isStreaming}
+            currentChatId={currentChatId}
+            handleNewChat={handleNewChat}
+            handleSelectChat={handleChatSelect}
+            sendMessage={sendMessage}
+            onSignOut={handleSignOut}
+            showHistory={showHistory}
+            setShowHistory={setShowHistory}
+            canSendMessages={canSendMessages}
+          />
         </div>
       </Card>
     </div>
