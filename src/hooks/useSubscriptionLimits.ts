@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { addDays, isAfter, parseISO, subDays } from 'date-fns';
-import { LimitType, ResetPeriod, UserRole } from '@/types/subscription';
-import { Message } from '@/components/chat/types/chatTypes';
+import { addDays, isAfter, parseISO } from 'date-fns';
 
 interface SubscriptionLimit {
   isExceeded: boolean;
   resetDate: Date | null;
   currentUsage: number;
   maxUsage: number;
-  limitType: LimitType;
+  limitType: 'messages' | 'tokens';
 }
 
 export const useSubscriptionLimits = (botId: string | null) => {
@@ -23,10 +21,14 @@ export const useSubscriptionLimits = (botId: string | null) => {
   });
   const { toast } = useToast();
 
-  const checkSubscriptionLimits = async () => {
+  useEffect(() => {
     if (!botId) return;
-    
+    checkSubscriptionLimits();
+  }, [botId]);
+
+  const checkSubscriptionLimits = async () => {
     try {
+      // Get current user's profile to check role
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -38,8 +40,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       if (!profile) return;
 
-      console.log("Checking limits for user role:", profile.role);
-
+      // Get subscription settings for this bot and user role
       const { data: settings } = await supabase
         .from('model_subscription_settings')
         .select('*')
@@ -52,56 +53,48 @@ export const useSubscriptionLimits = (botId: string | null) => {
         return;
       }
 
-      console.log("Found subscription settings:", settings);
-
-      let periodStart = new Date();
+      // Calculate the start date based on reset_amount and reset_period
       const resetAmount = settings.reset_amount || 1;
+      let startDate = new Date();
       
       switch (settings.reset_period) {
         case 'daily':
-          periodStart = subDays(periodStart, resetAmount);
+          startDate = addDays(startDate, -resetAmount);
           break;
         case 'weekly':
-          periodStart = subDays(periodStart, 7 * resetAmount);
+          startDate = addDays(startDate, -7 * resetAmount);
           break;
         case 'monthly':
-          periodStart = subDays(periodStart, 30 * resetAmount);
+          startDate = addDays(startDate, -30 * resetAmount);
           break;
         case 'never':
-          periodStart = new Date(0);
+          startDate = new Date(0); // Beginning of time
           break;
       }
 
-      console.log("Checking usage since:", periodStart.toISOString());
-
+      // Get usage within the period
       const { data: usage, error: usageError } = await supabase
         .from('chat_history')
         .select('messages, messages_used, tokens_used, created_at')
         .eq('bot_id', botId)
         .eq('user_id', user.id)
-        .gte('created_at', periodStart.toISOString());
+        .gte('created_at', startDate.toISOString());
 
       if (usageError) throw usageError;
 
-      console.log("Found usage records:", usage);
-
+      // Calculate total usage
       let totalUsage = 0;
       if (settings.limit_type === 'messages') {
-        totalUsage = usage?.reduce((acc, chat) => {
-          const messages = chat.messages as unknown as Message[];
-          const userMessages = messages ? messages.filter(msg => msg.role === 'user').length : 0;
-          return acc + userMessages;
-        }, 0) || 0;
+        totalUsage = usage?.reduce((acc, chat) => acc + (chat.messages_used || 0), 0) || 0;
       } else {
         totalUsage = usage?.reduce((acc, chat) => acc + (chat.tokens_used || 0), 0) || 0;
       }
-
-      console.log("Total usage calculated:", totalUsage, "out of", settings.units_per_period);
 
       const isExceeded = totalUsage >= settings.units_per_period;
       let resetDate = null;
 
       if (isExceeded) {
+        // Calculate reset date based on the oldest message in the current period
         const oldestMessage = usage?.sort((a, b) => 
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         )[0];
@@ -120,14 +113,6 @@ export const useSubscriptionLimits = (botId: string | null) => {
               break;
           }
         }
-
-        console.log("Limit exceeded. Reset date:", resetDate);
-        
-        toast({
-          title: "Usage Limit Exceeded",
-          description: `You have exceeded your ${settings.limit_type} limit of ${settings.units_per_period}. Your access will be restored on ${resetDate?.toLocaleDateString()}.`,
-          variant: "destructive",
-        });
       }
 
       setLimits({
@@ -135,17 +120,21 @@ export const useSubscriptionLimits = (botId: string | null) => {
         resetDate,
         currentUsage: totalUsage,
         maxUsage: settings.units_per_period,
-        limitType: settings.limit_type as LimitType
+        limitType: settings.limit_type as 'messages' | 'tokens'
       });
+
+      if (isExceeded) {
+        toast({
+          title: "Usage Limit Exceeded",
+          description: `You have exceeded your ${settings.limit_type} limit of ${settings.units_per_period}. Your access will be restored on ${resetDate?.toLocaleDateString()}.`,
+          variant: "destructive",
+        });
+      }
 
     } catch (error) {
       console.error('Error checking subscription limits:', error);
     }
   };
-
-  useEffect(() => {
-    checkSubscriptionLimits();
-  }, [botId]);
 
   return {
     ...limits,
