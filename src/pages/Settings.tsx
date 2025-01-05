@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ModelSelector } from "@/components/bot/ModelSelector";
 import { useMemorySettings } from "@/hooks/useMemorySettings";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { MemorySettings } from "@/hooks/useMemorySettings";
 
@@ -69,76 +69,89 @@ const Settings = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
-      
-      <div className="space-y-6">
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Memory Bot Configuration</h2>
-          {isLoading ? (
-            <div className="flex items-center justify-center p-4">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <ModelSelector 
-                bot={{
-                  id: "memory-settings",
-                  name: "Memory Settings",
-                  instructions: "",
-                  starters: [],
-                  model: formData.model,
-                  apiKey: "",
-                  openRouterModel: formData.open_router_model,
-                }}
-                onModelChange={(model) => 
-                  setFormData(prev => ({ 
-                    ...prev, 
-                    model: model === "gemini" ? "gemini" : "openrouter" 
-                  }))
-                }
-                onOpenRouterModelChange={(model) => 
-                  setFormData(prev => ({ 
-                    ...prev, 
-                    open_router_model: model 
-                  }))
-                }
-                isMemorySelector
-              />
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">API Key</label>
-                <Input
-                  type="password"
-                  value={formData.api_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your API key"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Memory Instructions</label>
-                <Textarea
-                  value={formData.instructions}
-                  onChange={handleInstructionsChange}
-                  placeholder="Enter memory instructions..."
-                  rows={4}
-                />
-              </div>
-
-              <Button onClick={handleSaveMemorySettings}>
-                Save Memory Settings
-              </Button>
-            </div>
-          )}
-        </Card>
-
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Account</h2>
-          <Button variant="destructive" onClick={handleLogout}>
-            Logout
+    <div className="min-h-screen bg-background">
+      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-        </Card>
+          <h1 className="text-xl font-semibold">Settings</h1>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-4">Memory Bot Configuration</h2>
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <ModelSelector 
+                  bot={{
+                    id: "memory-settings",
+                    name: "Memory Settings",
+                    instructions: "",
+                    starters: [],
+                    model: formData.model,
+                    apiKey: "",
+                    openRouterModel: formData.open_router_model,
+                  }}
+                  onModelChange={(model) => 
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      model: model === "gemini" ? "gemini" : "openrouter" 
+                    }))
+                  }
+                  onOpenRouterModelChange={(model) => 
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      open_router_model: model 
+                    }))
+                  }
+                  isMemorySelector
+                />
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">API Key</label>
+                  <Input
+                    type="password"
+                    value={formData.api_key}
+                    onChange={handleApiKeyChange}
+                    placeholder="Enter your API key"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Memory Instructions</label>
+                  <Textarea
+                    value={formData.instructions}
+                    onChange={handleInstructionsChange}
+                    placeholder="Enter memory instructions..."
+                    rows={4}
+                  />
+                </div>
+
+                <Button onClick={handleSaveMemorySettings}>
+                  Save Memory Settings
+                </Button>
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Account</h2>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </Card>
+        </div>
       </div>
     </div>
   );

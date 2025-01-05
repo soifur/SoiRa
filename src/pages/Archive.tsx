@@ -9,6 +9,9 @@ import { ChatListItem } from "@/components/archive/ChatListItem";
 import { ChatDialog } from "@/components/archive/ChatDialog";
 import { ChatRecord } from "@/components/archive/types";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Archive = () => {
   const { bots } = useBots();
@@ -17,6 +20,7 @@ const Archive = () => {
   const [chatHistory, setChatHistory] = useState<ChatRecord[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchChatHistory();
@@ -100,23 +104,30 @@ const Archive = () => {
 
   return (
     <div className="h-[100dvh] flex flex-col bg-background">
-      <div className="flex-none p-4 bg-card border-b">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold">Chat Archive</h1>
-          <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-            <SelectTrigger className={`${isMobile ? 'w-[140px]' : 'w-[200px]'}`}>
-              <SelectValue placeholder="Filter by bot" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Chats</SelectItem>
-              {bots.map((bot) => (
-                <SelectItem key={bot.id} value={bot.id}>
-                  {bot.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-xl font-semibold">Chat Archive</h1>
         </div>
+        <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+          <SelectTrigger className={`${isMobile ? 'w-[140px]' : 'w-[200px]'}`}>
+            <SelectValue placeholder="Filter by bot" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Chats</SelectItem>
+            {bots.map((bot) => (
+              <SelectItem key={bot.id} value={bot.id}>
+                {bot.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">

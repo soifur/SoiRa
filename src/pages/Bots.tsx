@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Edit2, Trash2, Share2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Share2, ArrowLeft } from "lucide-react";
 import { BotForm } from "@/components/BotForm";
 import { useBots, Bot } from "@/hooks/useBots";
 import DedicatedBotChat from "@/components/chat/DedicatedBotChat";
 import { EmbedOptionsDialog } from "@/components/chat/EmbedOptionsDialog";
+import { useNavigate } from "react-router-dom";
 
 const Bots = () => {
   const [editingBot, setEditingBot] = useState<Bot | null>(null);
@@ -14,6 +15,7 @@ const Bots = () => {
   const [embedDialogBot, setEmbedDialogBot] = useState<Bot | null>(null);
   const { toast } = useToast();
   const { bots, saveBot, deleteBot } = useBots();
+  const navigate = useNavigate();
 
   const handleSave = async (bot: Bot) => {
     const updatedBot = await saveBot({ ...bot, accessType: bot.accessType || "private" });
@@ -45,11 +47,23 @@ const Bots = () => {
   };
 
   return (
-    <div className="container mx-auto max-w-full pt-20 px-4">
-      <div className="flex gap-6 h-[calc(100vh-8rem)]">
+    <div className="flex flex-col h-screen">
+      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-xl font-semibold">My Chatbots</h1>
+        </div>
+      </div>
+
+      <div className="flex gap-6 h-[calc(100vh-4rem)] p-4">
         <div className="w-1/2 flex flex-col gap-4 overflow-y-auto">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">My Chatbots</h1>
             <Button
               onClick={() =>
                 setEditingBot({
