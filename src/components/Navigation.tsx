@@ -30,21 +30,17 @@ export const Navigation = () => {
     }
   };
 
-  // Don't show navigation in embedded mode
   if (isEmbedded) return null;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background">
       <div className="container flex h-16 items-center px-4">
         <div className="flex gap-6 md:gap-10">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="inline-block font-bold">SoiRa</span>
-          </Link>
           <Link to="/bots">
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-primary"
+              className="text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
             >
               <Bot className="h-5 w-5" />
             </Button>
@@ -53,7 +49,7 @@ export const Navigation = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-primary"
+              className="text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
             >
               <Archive className="h-5 w-5" />
             </Button>
@@ -72,7 +68,7 @@ export const Navigation = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-primary"
+              className="text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
             >
               <Settings className="h-5 w-5" />
             </Button>
@@ -81,7 +77,7 @@ export const Navigation = () => {
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="text-muted-foreground hover:text-primary"
+            className="text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
           >
             <LogOutIcon className="h-5 w-5" />
           </Button>

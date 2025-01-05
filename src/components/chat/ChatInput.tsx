@@ -85,7 +85,7 @@ export const ChatInput = ({
           disabled={disabled || isLoading}
           className={cn(
             "min-h-[48px] max-h-[100px] resize-none py-3 px-4 text-base",
-            "bg-background border border-input rounded-2xl focus:ring-2 focus:ring-ring",
+            "bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-ring",
             "dark:bg-[#2F2F2F] dark:border-0"
           )}
           onKeyDown={handleKeyDown}
@@ -96,13 +96,13 @@ export const ChatInput = ({
           size="icon" 
           disabled={disabled || isLoading}
           className={cn(
-            "h-12 w-12 rounded-full shrink-0",
-            "bg-primary hover:bg-primary/90",
+            "h-10 w-10 rounded-full shrink-0",
+            "bg-gray-900 hover:bg-gray-800",
             "dark:bg-primary dark:hover:bg-primary/90",
             "shadow-lg"
           )}
         >
-          <Send className="h-5 w-5" />
+          <Send className="h-4 w-4 text-white" />
         </Button>
       </div>
     </form>

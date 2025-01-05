@@ -16,8 +16,8 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-14 w-full items-center justify-between rounded-lg px-4 py-2 text-[16px] font-medium ring-offset-background transition-colors",
-      "bg-background border border-input hover:bg-accent",
+      "flex h-11 w-full items-center justify-between rounded-lg px-3 py-2 text-[14px] font-medium ring-offset-background transition-colors",
+      "bg-gray-50 border border-gray-200 hover:bg-gray-100",
       "dark:bg-[#202123] dark:hover:bg-[#2A2B32] dark:border-0",
       "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
       "disabled:cursor-not-allowed disabled:opacity-50",
@@ -28,7 +28,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-5 w-5 opacity-50" />
+      <ChevronDown className="h-4 w-4 opacity-50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -78,8 +78,8 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-50 max-h-96 min-w-[320px] overflow-hidden rounded-xl border shadow-lg",
-        "bg-popover text-popover-foreground",
-        "dark:bg-[#202123] dark:border-[#4D4D4F]",
+        "bg-white text-gray-900",
+        "dark:bg-[#202123] dark:border-[#4D4D4F] dark:text-white",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -129,11 +129,11 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-lg py-3 pl-8 pr-4 text-[16px]",
+      "relative flex w-full cursor-default select-none items-center rounded-lg py-2 pl-8 pr-4 text-[14px]",
       "outline-none transition-colors",
-      "focus:bg-accent focus:text-accent-foreground",
-      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "hover:bg-gray-100 focus:bg-gray-100",
       "dark:hover:bg-[#2A2B32] dark:focus:bg-[#2A2B32]",
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
