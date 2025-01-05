@@ -12,6 +12,39 @@ import { ChatService } from "@/services/ChatService";
 import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 
+// Since this file is quite long (223 lines), let's split it into smaller components
+// First, let's extract the chat functionality into a separate component
+const ChatSection = ({ selectedBot, messages, isLoading, sendMessage }) => {
+  return (
+    <>
+      <div className="flex-1 overflow-hidden mt-14 mb-24">
+        {selectedBot ? (
+          <MessageList
+            messages={messages}
+            selectedBot={selectedBot}
+            starters={selectedBot.starters || []}
+            onStarterClick={sendMessage}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-muted-foreground">
+            Select a model to start chatting
+          </div>
+        )}
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+        <div className="max-w-3xl mx-auto">
+          <ChatInput
+            onSend={sendMessage}
+            disabled={!selectedBot}
+            isLoading={isLoading}
+            placeholder={selectedBot ? "Type your message..." : "Select a model to start chatting"}
+          />
+        </div>
+      </div>
+    </>
+  );
+};
+
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string }>>([]);
@@ -189,30 +222,12 @@ const Index = () => {
               onNewChat={handleNewChat}
               onSignOut={handleSignOut}
             />
-            <div className="flex-1 overflow-hidden mt-14 mb-24">
-              {selectedBot ? (
-                <MessageList
-                  messages={messages}
-                  selectedBot={selectedBot}
-                  starters={selectedBot.starters || []}
-                  onStarterClick={sendMessage}
-                />
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                  Select a bot to start chatting
-                </div>
-              )}
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-              <div className="max-w-3xl mx-auto">
-                <ChatInput
-                  onSend={sendMessage}
-                  disabled={!selectedBot}
-                  isLoading={isLoading}
-                  placeholder={selectedBot ? "Type your message..." : "Select a bot to start chatting"}
-                />
-              </div>
-            </div>
+            <ChatSection
+              selectedBot={selectedBot}
+              messages={messages}
+              isLoading={isLoading}
+              sendMessage={sendMessage}
+            />
           </div>
         </div>
       </Card>
