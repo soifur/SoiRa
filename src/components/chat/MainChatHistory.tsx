@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
 import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
+import { ProfileSection } from "./ProfileSection";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -222,6 +223,7 @@ export const MainChatHistory = ({
     )}>
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
+        <ProfileSection showViewPlans={isMobile} />
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
