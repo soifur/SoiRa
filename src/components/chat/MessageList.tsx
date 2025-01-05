@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
+import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface Message {
@@ -21,6 +21,7 @@ interface MessageListProps {
   onStarterClick?: (value: string) => void;
   isLoading?: boolean;
   isStreaming?: boolean;
+  onClearChat?: () => void;
 }
 
 export const MessageList = ({ 
@@ -29,13 +30,14 @@ export const MessageList = ({
   starters = [], 
   onStarterClick, 
   isLoading,
-  isStreaming 
+  isStreaming,
+  onClearChat 
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (lastMessageRef.current) {
+    if (lastMessageRef.current && !isLoading) {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isLoading]);
@@ -57,21 +59,19 @@ export const MessageList = ({
     return MessageCircle;
   };
 
+  // Add null check for messages
   if (!Array.isArray(messages)) {
     console.warn("Messages prop is not an array:", messages);
     return null;
   }
 
   return (
-    <div className="h-full overflow-hidden">
-      <ScrollArea className="h-full">
-        <div 
-          ref={scrollRef}
-          className={cn(
-            "px-4 py-4",
-            messages.length === 0 ? "flex flex-col items-center justify-center h-full" : "space-y-4"
-          )}
-        >
+    <div className="relative h-full flex flex-col overflow-hidden">
+      <ScrollArea className="flex-1">
+        <div className={cn(
+          "h-full p-4",
+          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
+        )}>
           {messages.length === 0 && starters && starters.length > 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
               {selectedBot && (
@@ -123,6 +123,16 @@ export const MessageList = ({
                 </div>
               ))}
             </div>
+          )}
+          {onClearChat && messages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClearChat}
+              className="absolute top-2 right-2 hover:bg-destructive/10"
+            >
+              <Trash2 className="h-5 w-5 text-destructive" />
+            </Button>
           )}
         </div>
       </ScrollArea>

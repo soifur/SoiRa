@@ -90,14 +90,14 @@ export const ProfileMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+        <Button variant="ghost" size="icon" className="h-9 w-9">
           <Avatar className="h-8 w-8">
             <AvatarImage 
               src={avatarUrl || ''} 
               alt="Profile" 
               className="object-cover"
             />
-            <AvatarFallback className="text-xs bg-muted">{initials}</AvatarFallback>
+            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -123,7 +123,7 @@ export const ProfileMenu = () => {
         <DropdownMenuSeparator className="my-1" />
         <DropdownMenuItem 
           onClick={() => navigate('/upgrade')}
-          className="flex items-center gap-2 px-3 py-2.5 font-medium text-primary"
+          className="flex items-center gap-2 px-3 py-2.5"
         >
           <CreditCard className="h-4 w-4" />
           Upgrade Plan
