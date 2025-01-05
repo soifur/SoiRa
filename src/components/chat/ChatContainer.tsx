@@ -13,6 +13,7 @@ interface ChatContainerProps {
   sendMessage: (message: string) => void;
   disabled?: boolean;
   disabledReason?: string;
+  onUpgradeClick?: () => void;
 }
 
 export const ChatContainer = ({
@@ -22,7 +23,8 @@ export const ChatContainer = ({
   isStreaming,
   sendMessage,
   disabled,
-  disabledReason
+  disabledReason,
+  onUpgradeClick
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
   
@@ -57,6 +59,7 @@ export const ChatContainer = ({
               selectedBot ? "Type your message..." : 
               "Select a model to start chatting"
             }
+            onUpgradeClick={onUpgradeClick}
           />
         </div>
       </div>
