@@ -5,10 +5,11 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
+import { Bot } from "@/hooks/useBots";
+import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 
 interface ChatMessage {
   role: string;
@@ -22,8 +23,54 @@ const Chat = () => {
   const { botId: selectedBotId } = useParams();
   const { toast } = useToast();
   const [chatId, setChatId] = useState<string | null>(null);
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
 
-  // Load existing chat on mount
+  const {
+    isExceeded,
+    resetDate,
+    currentUsage,
+    maxUsage,
+    limitType
+  } = useSubscriptionLimits(selectedBotId || null);
+
+  // Load bot details
+  useEffect(() => {
+    const loadBot = async () => {
+      if (!selectedBotId) return;
+
+      const { data: bot, error } = await supabase
+        .from('bots')
+        .select('*')
+        .eq('id', selectedBotId)
+        .single();
+
+      if (error) {
+        console.error("Error loading bot:", error);
+        return;
+      }
+
+      if (bot) {
+        setSelectedBot({
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private",
+          memory_enabled: bot.memory_enabled,
+          published: bot.published,
+          default_bot: bot.default_bot,
+        });
+      }
+    };
+
+    loadBot();
+  }, [selectedBotId]);
+
+  // Load existing chat
   useEffect(() => {
     const loadExistingChat = async () => {
       if (!selectedBotId) return;
@@ -39,16 +86,13 @@ const Chat = () => {
 
         if (existingChat) {
           setChatId(existingChat.id);
-          // First cast to unknown, then to ChatMessage[]
-          const rawMessages = existingChat.messages as unknown;
-          const chatMessages = (rawMessages as ChatMessage[]).map((msg: ChatMessage) => ({
+          const chatMessages = (existingChat.messages as ChatMessage[]).map((msg: ChatMessage) => ({
             ...msg,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
             id: uuidv4()
           }));
           setMessages(chatMessages);
         } else {
-          // Create a new chat if none exists
           const newChatId = uuidv4();
           setChatId(newChatId);
         }
@@ -81,11 +125,11 @@ const Chat = () => {
           timestamp: msg.timestamp?.toISOString()
         })),
         user_id: (await supabase.auth.getUser()).data.user?.id,
-        sequence_number: (latestChat?.sequence_number || 0) + 1
-      } as Database['public']['Tables']['chat_history']['Insert'];
+        sequence_number: (latestChat?.sequence_number || 0) + 1,
+        messages_used: updatedMessages.filter(msg => msg.role === 'user').length
+      };
 
       if (chatId) {
-        // Update existing chat
         const { error } = await supabase
           .from('chat_history')
           .update(chatData)
@@ -93,7 +137,6 @@ const Chat = () => {
 
         if (error) throw error;
       } else {
-        // Insert new chat
         const { error } = await supabase
           .from('chat_history')
           .insert(chatData);
@@ -117,7 +160,7 @@ const Chat = () => {
   };
 
   const sendMessage = async (message: string) => {
-    if (!message.trim()) return;
+    if (!message.trim() || isExceeded) return;
 
     try {
       setIsLoading(true);
@@ -163,12 +206,15 @@ const Chat = () => {
         <MessageList
           messages={messages}
           isLoading={isLoading}
+          selectedBot={selectedBot}
+          disabled={isExceeded}
+          disabledReason={isExceeded ? `Usage limit exceeded. ${resetDate ? `Access will be restored on ${resetDate.toLocaleDateString()}.` : ''}` : undefined}
         />
       </div>
       <div className="p-4">
         <ChatInput
           onSend={sendMessage}
-          disabled={isLoading || !selectedBotId}
+          disabled={isLoading || !selectedBot || isExceeded}
           isLoading={isLoading}
         />
       </div>
