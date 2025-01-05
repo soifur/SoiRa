@@ -82,11 +82,10 @@ export const MainChatHistory = ({
 
       // Group chats by bot
       const groups = (data || []).reduce((acc: ChatGroup[], chat) => {
-        const botInfo = chat.bots as BotData | null;
-        if (!botInfo) {
-          console.warn('Missing bot info for chat:', chat.id);
-          return acc;
-        }
+        // Check if bots property exists and has the expected shape
+        const botInfo = chat.bots && typeof chat.bots === 'object' && 'name' in chat.bots && 'model' in chat.bots
+          ? chat.bots as BotData
+          : { name: 'Unknown Bot', model: 'unknown' };
 
         const existingGroup = acc.find(g => g.botId === chat.bot_id);
         
@@ -95,8 +94,8 @@ export const MainChatHistory = ({
         } else {
           acc.push({
             botId: chat.bot_id,
-            botName: botInfo.name || 'Unknown Bot',
-            model: botInfo.model || 'unknown',
+            botName: botInfo.name,
+            model: botInfo.model,
             chats: [chat]
           });
         }
