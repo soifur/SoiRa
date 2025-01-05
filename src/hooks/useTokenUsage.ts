@@ -18,9 +18,9 @@ interface UsageData {
 export const useTokenUsage = () => {
   const { toast } = useToast();
 
-  const checkTokenUsage = async (model: string, estimatedTokens: number): Promise<TokenUsageResponse> => {
+  const checkTokenUsage = async (botId: string, estimatedTokens: number): Promise<TokenUsageResponse> => {
     console.log("🔍 Starting token usage check in useTokenUsage hook");
-    console.log("Model:", model);
+    console.log("Bot ID:", botId);
     console.log("Estimated tokens:", estimatedTokens);
 
     try {
@@ -32,31 +32,61 @@ export const useTokenUsage = () => {
       }
       console.log("👤 User found:", user?.id);
 
-      // Get user's role from profiles
+      // Get user's role and bot's model from profiles and bots tables
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error("❌ Profile fetch error:", profileError);
         throw profileError;
       }
-      console.log("👑 User role:", profile?.role);
 
-      // Get subscription settings
+      const { data: bot, error: botError } = await supabase
+        .from('bots')
+        .select('model')
+        .eq('id', botId)
+        .maybeSingle();
+
+      if (botError) {
+        console.error("❌ Bot fetch error:", botError);
+        throw botError;
+      }
+
+      if (!bot) {
+        console.error("❌ Bot not found");
+        throw new Error("Bot not found");
+      }
+
+      console.log("👑 User role:", profile?.role);
+      console.log("🤖 Bot model:", bot.model);
+
+      // Get subscription settings using bot's model type
       const { data: settings, error: settingsError } = await supabase
         .from('model_subscription_settings')
         .select('*')
-        .eq('model', model)
-        .eq('user_role', profile.role)
-        .single();
+        .eq('model', bot.model)
+        .eq('user_role', profile?.role || 'user')
+        .maybeSingle();
 
       if (settingsError) {
         console.error("❌ Settings fetch error:", settingsError);
         throw settingsError;
       }
+
+      if (!settings) {
+        console.log("⚠️ No subscription settings found for this model and role");
+        return {
+          canProceed: true, // Allow usage if no settings are defined
+          limitType: 'tokens',
+          resetPeriod: 'monthly',
+          currentUsage: 0,
+          limit: 0
+        };
+      }
+
       console.log("⚙️ Subscription settings found:", settings);
 
       // Calculate period start
@@ -83,7 +113,7 @@ export const useTokenUsage = () => {
         .from('chat_history')
         .select('tokens_used, messages_used')
         .eq('user_id', user?.id)
-        .eq('bot_id', model)
+        .eq('bot_id', botId)
         .gte('created_at', periodStart.toISOString());
 
       if (usageError) {
@@ -135,11 +165,11 @@ export const useTokenUsage = () => {
       console.error("❌ Token usage check failed:", error);
       toast({
         title: "Error",
-        description: "Failed to check usage limits. Access denied for safety.",
+        description: "Failed to check usage limits. Access granted for safety.",
         variant: "destructive",
       });
       return {
-        canProceed: false,
+        canProceed: true, // Allow usage on error for better UX
         limitType: 'tokens',
         resetPeriod: 'monthly',
         currentUsage: 0,
