@@ -1,16 +1,11 @@
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { History, Plus, X, Trash2, ChevronRight, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
+import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -27,11 +22,6 @@ interface ChatGroup {
   botName: string;
   model: string;
   chats: any[];
-}
-
-interface BotData {
-  name: string;
-  model: string;
 }
 
 export const MainChatHistory = ({
@@ -60,7 +50,7 @@ export const MainChatHistory = ({
         .from('chat_history')
         .select(`
           *,
-          bots:bot_id (
+          bot:bot_id (
             name,
             model
           )
@@ -82,11 +72,8 @@ export const MainChatHistory = ({
 
       // Group chats by bot
       const groups = (data || []).reduce((acc: ChatGroup[], chat) => {
-        // Check if bots property exists and has the expected shape
-        const botInfo = chat.bots && typeof chat.bots === 'object' && 'name' in chat.bots && 'model' in chat.bots
-          ? chat.bots as BotData
-          : { name: 'Unknown Bot', model: 'unknown' };
-
+        const botInfo = chat.bot || { name: 'Unknown Bot', model: 'unknown' };
+        
         const existingGroup = acc.find(g => g.botId === chat.bot_id);
         
         if (existingGroup) {
@@ -139,12 +126,6 @@ export const MainChatHistory = ({
     }
   };
 
-  const getChatTitle = (messages: any[]) => {
-    const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
-    if (!firstUserMessage) return 'New Chat';
-    return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
-  };
-
   const toggleGroup = (botId: string) => {
     setExpandedGroups(prev => {
       const newSet = new Set(prev);
@@ -164,80 +145,19 @@ export const MainChatHistory = ({
       isMobile ? "w-full" : "w-80"
     )}>
       <div className="flex flex-col h-full">
-        <div className="flex-none p-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <History className="w-5 h-5" />
-              <span className="font-semibold">Chat History</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onNewChat}
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onClose}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             {chatGroups.map((group) => (
-              <Collapsible
+              <ChatHistoryGroup
                 key={group.botId}
-                open={expandedGroups.has(group.botId)}
-                onOpenChange={() => toggleGroup(group.botId)}
-              >
-                <CollapsibleTrigger className="flex items-center w-full p-2 rounded-lg hover:bg-accent">
-                  {expandedGroups.has(group.botId) ? (
-                    <ChevronDown className="h-4 w-4 mr-2" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 mr-2" />
-                  )}
-                  <span className="font-medium">{group.botName}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    ({group.chats.length})
-                  </span>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 space-y-2 mt-2">
-                  {group.chats.map((chat) => (
-                    <div
-                      key={chat.id}
-                      className={cn(
-                        "p-3 rounded-lg cursor-pointer transition-colors group relative",
-                        "hover:bg-accent",
-                        currentChatId === chat.id ? "bg-accent" : "bg-card"
-                      )}
-                      onClick={() => onSelectChat(chat.id)}
-                    >
-                      <p className="text-sm text-muted-foreground line-clamp-2 pr-8">
-                        {getChatTitle(chat.messages)}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "absolute top-1/2 -translate-y-1/2 right-2 h-6 w-6 transition-opacity",
-                          isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        )}
-                        onClick={(e) => handleDelete(chat.id, e)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+                {...group}
+                isExpanded={expandedGroups.has(group.botId)}
+                onToggle={() => toggleGroup(group.botId)}
+                currentChatId={currentChatId}
+                onSelectChat={onSelectChat}
+                onDeleteChat={handleDelete}
+              />
             ))}
           </div>
         </ScrollArea>
