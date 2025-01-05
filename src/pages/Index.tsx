@@ -14,7 +14,8 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { data: bots, isLoading: isLoadingBots } = useQuery({
+  // Query for user's bots
+  const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -42,7 +43,38 @@ const Index = () => {
     }
   });
 
-  const selectedBot = bots?.find(bot => bot.id === selectedBotId) || null;
+  // Query for shared bots
+  const { data: sharedBots = [], isLoading: isLoadingSharedBots } = useQuery({
+    queryKey: ['shared-bots'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shared_bots')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Combine user's bots and shared bots
+  const allBots = [
+    ...(userBots || []),
+    ...(sharedBots || []).map(shared => ({
+      id: shared.share_key,
+      name: `${shared.bot_name} (Shared)`,
+      instructions: shared.instructions || "",
+      starters: shared.starters || [],
+      model: shared.model as BotType['model'],
+      apiKey: "", // API key is handled separately for shared bots
+      openRouterModel: shared.open_router_model,
+      avatar: shared.avatar,
+      accessType: "public" as const,
+      memory_enabled: shared.memory_enabled,
+    }))
+  ];
+
+  const selectedBot = allBots.find(bot => bot.id === selectedBotId) || null;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -50,13 +82,14 @@ const Index = () => {
   };
 
   const handleNewChat = () => {
+    setSelectedBotId(null);
     toast({
       title: "New Chat",
       description: "Starting a new chat session",
     });
   };
 
-  if (isLoadingBots) {
+  if (isLoadingUserBots || isLoadingSharedBots) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-muted-foreground">Loading...</div>
@@ -72,7 +105,7 @@ const Index = () => {
             <MainChatHeader
               selectedBotId={selectedBotId}
               setSelectedBotId={setSelectedBotId}
-              bots={bots}
+              bots={allBots}
               onNewChat={handleNewChat}
               onSignOut={handleSignOut}
             />
