@@ -40,7 +40,7 @@ export const Navigation = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
+              className="text-foreground hover:text-foreground/80"
             >
               <Bot className="h-5 w-5" />
             </Button>
@@ -49,7 +49,7 @@ export const Navigation = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
+              className="text-foreground hover:text-foreground/80"
             >
               <Archive className="h-5 w-5" />
             </Button>
