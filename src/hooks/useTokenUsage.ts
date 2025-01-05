@@ -10,8 +10,8 @@ interface TokenUsageResponse {
 }
 
 interface UsageData {
-  tokens_used?: number;
-  messages_used?: number;
+  tokens_used: number | null;
+  messages_used: number | null;
 }
 
 export const useTokenUsage = () => {
@@ -77,7 +77,7 @@ export const useTokenUsage = () => {
       }
       console.log("📅 Period start date:", periodStart.toISOString());
 
-      // Get current usage based on limit type
+      // Get current usage
       const { data: usage, error: usageError } = await supabase
         .from('chat_history')
         .select('tokens_used, messages_used')
@@ -113,9 +113,17 @@ export const useTokenUsage = () => {
       console.log("Current usage:", currentUsage);
       console.log("Limit:", settings.units_per_period);
 
+      if (!canProceed) {
+        toast({
+          title: "Usage Limit Reached",
+          description: `You've reached your ${settings.reset_period} limit of ${settings.units_per_period} ${settings.limit_type}.`,
+          variant: "destructive",
+        });
+      }
+
       return {
         canProceed,
-        limitType: settings.limit_type as 'tokens' | 'messages',
+        limitType: settings.limit_type,
         resetPeriod: settings.reset_period,
         currentUsage,
         limit: settings.units_per_period
