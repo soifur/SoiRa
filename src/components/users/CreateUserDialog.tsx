@@ -20,14 +20,14 @@ export const CreateUserDialog = () => {
 
   const handleCreateUser = async () => {
     try {
-      // First create the user
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             first_name: firstName,
-            last_name: lastName
+            last_name: lastName,
+            role: role // Pass role in metadata
           }
         }
       });
@@ -39,23 +39,6 @@ export const CreateUserDialog = () => {
           variant: "destructive",
         });
         return;
-      }
-
-      // Then update their role in the profiles table
-      if (signUpData.user) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ role })
-          .eq('id', signUpData.user.id);
-
-        if (updateError) {
-          toast({
-            title: "Error",
-            description: "Failed to set user role",
-            variant: "destructive",
-          });
-          return;
-        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['users'] });
