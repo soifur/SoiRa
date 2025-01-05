@@ -134,7 +134,7 @@ export const ModelSelector = ({ bot, onModelChange, onOpenRouterModelChange, isM
             <SelectTrigger>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[300px] overflow-y-auto">
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}
