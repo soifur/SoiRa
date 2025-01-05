@@ -62,15 +62,20 @@ export const ChatHistoryGroup = ({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className={cn(
-        "flex items-center w-full p-2 rounded-lg hover:bg-accent",
+        "flex items-center w-full p-2 rounded-lg",
+        "hover:bg-accent/50 dark:hover:bg-accent",
+        "text-foreground/80 hover:text-foreground",
         isModelGroup && "font-semibold"
       )}>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 mr-2" />
+          <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />
         ) : (
-          <ChevronRight className="h-4 w-4 mr-2" />
+          <ChevronRight className="h-4 w-4 mr-2 text-muted-foreground" />
         )}
-        <span className={cn("font-medium", isModelGroup && "text-primary")}>{label}</span>
+        <span className={cn(
+          "font-medium",
+          isModelGroup && "text-primary"
+        )}>{label}</span>
         {totalChats > 0 && (
           <span className="ml-2 text-xs text-muted-foreground">
             ({totalChats})

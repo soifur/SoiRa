@@ -221,7 +221,9 @@ export const MainChatHistory = ({
 
   return (
     <div className={cn(
-      "fixed top-0 left-0 h-screen z-[200] bg-zinc-950 dark:bg-zinc-950 shadow-lg transition-transform duration-300 ease-in-out border-r",
+      "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
+      "dark:bg-zinc-950",
+      "light:bg-white light:border-gray-200",
       isOpen ? "translate-x-0" : "-translate-x-full",
       isMobile ? "w-full" : "w-80"
     )}>
@@ -230,11 +232,11 @@ export const MainChatHistory = ({
         
         <ScrollArea className="flex-1">
           {isMobile && (
-            <div className="p-4 border-b">
+            <div className="p-4 border-b border-border">
               <div className="space-y-2">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start"
+                  className="w-full justify-start hover:bg-accent"
                   onClick={() => {
                     navigate('/bots');
                     onClose();
@@ -245,7 +247,7 @@ export const MainChatHistory = ({
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start"
+                  className="w-full justify-start hover:bg-accent"
                   onClick={() => {
                     navigate('/archive');
                     onClose();
@@ -293,7 +295,7 @@ export const MainChatHistory = ({
           </div>
         </ScrollArea>
         
-        <div className="mt-auto border-t">
+        <div className="mt-auto border-t border-border">
           <ProfileSection showViewPlans={isMobile} />
         </div>
       </div>

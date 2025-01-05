@@ -24,12 +24,13 @@ export const ChatHistoryItem = ({
     <div
       className={cn(
         "p-3 rounded-lg cursor-pointer transition-colors group relative",
-        "hover:bg-accent",
-        isActive ? "bg-accent" : "bg-card"
+        "hover:bg-accent/50 dark:hover:bg-accent",
+        "text-foreground/80 hover:text-foreground",
+        isActive ? "bg-accent/50 dark:bg-accent text-foreground" : "bg-card"
       )}
       onClick={onSelect}
     >
-      <p className="text-sm text-muted-foreground line-clamp-2 pr-8">
+      <p className="text-sm line-clamp-2 pr-8">
         {title}
       </p>
       <Button
@@ -37,11 +38,12 @@ export const ChatHistoryItem = ({
         size="icon"
         className={cn(
           "absolute top-1/2 -translate-y-1/2 right-2 h-6 w-6 transition-opacity",
+          "hover:bg-destructive/10 hover:text-destructive",
           isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         )}
         onClick={onDelete}
       >
-        <Trash2 className="h-4 w-4 text-destructive" />
+        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   );
