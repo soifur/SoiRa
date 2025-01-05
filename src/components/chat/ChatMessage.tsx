@@ -30,7 +30,7 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
   return (
     <div
       className={cn(
-        "flex gap-3 w-full max-w-none mx-auto px-4",
+        "flex gap-3 max-w-3xl mx-auto px-4",
         isBot ? "justify-start" : "justify-end"
       )}
     >
@@ -47,9 +47,9 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
       )}
       <div
         className={cn(
-          "relative group flex-1",
-          !isBot && "ml-auto",
-          isBot && !isEmbedded ? "max-w-full" : "max-w-[85%]"
+          "relative group",
+          !isBot && "ml-auto max-w-[85%]",
+          isBot && "w-full"
         )}
       >
         {isBot && (
@@ -62,29 +62,29 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
         )}
         <div
           className={cn(
-            "prose prose-sm dark:prose-invert w-full",
+            "prose prose-sm dark:prose-invert",
             !isBot && "px-6 py-4 rounded-2xl bg-primary text-primary-foreground",
-            isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm",
+            isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm w-full",
             isBot && isEmbedded && "px-6 py-4",
             isStreaming && "animate-pulse"
           )}
         >
           <ReactMarkdown
             components={{
-              p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed w-full">{children}</p>,
+              p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed">{children}</p>,
               pre: ({ children }) => (
-                <pre className="p-4 bg-muted rounded-xl my-4 overflow-x-auto w-full">
+                <pre className="p-4 bg-muted rounded-xl my-4 overflow-x-auto">
                   {children}
                 </pre>
               ),
-              ul: ({ children }) => <ul className="mb-4 pl-4 space-y-2 w-full">{children}</ul>,
-              ol: ({ children }) => <ol className="mb-4 pl-4 space-y-2 w-full">{children}</ol>,
+              ul: ({ children }) => <ul className="mb-4 pl-4 space-y-2">{children}</ul>,
+              ol: ({ children }) => <ol className="mb-4 pl-4 space-y-2">{children}</ol>,
               li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-              h1: ({ children }) => <h1 className="text-xl font-bold mb-4 mt-6 w-full">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-lg font-bold mb-3 mt-5 w-full">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-base font-bold mb-2 mt-4 w-full">{children}</h3>,
+              h1: ({ children }) => <h1 className="text-xl font-bold mb-4 mt-6">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-lg font-bold mb-3 mt-5">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-base font-bold mb-2 mt-4">{children}</h3>,
               blockquote: ({ children }) => (
-                <blockquote className="border-l-4 border-primary/20 pl-4 italic my-4 w-full">
+                <blockquote className="border-l-4 border-primary/20 pl-4 italic my-4">
                   {children}
                 </blockquote>
               ),
