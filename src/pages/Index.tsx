@@ -20,9 +20,9 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [chatId] = useState(() => uuidv4());
   const { sessionToken } = useSessionToken();
 
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
@@ -34,7 +34,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('bots')
         .select('*')
-        .eq('published', true)  // Only select published bots
+        .eq('published', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -61,7 +61,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('shared_bots')
         .select('*')
-        .eq('published', true)  // Only select published bots
+        .eq('published', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -77,7 +77,7 @@ const Index = () => {
       instructions: shared.instructions || "",
       starters: shared.starters || [],
       model: shared.model as BotType['model'],
-      apiKey: "", // API key is handled separately for shared bots
+      apiKey: "",
       openRouterModel: shared.open_router_model,
       avatar: shared.avatar,
       accessType: "public" as const,
@@ -94,6 +94,7 @@ const Index = () => {
 
   const handleNewChat = () => {
     setMessages([]);
+    setCurrentChatId(null);
     toast({
       title: "New Chat",
       description: "Starting a new chat session",
@@ -118,6 +119,7 @@ const Index = () => {
           avatar: msg.avatar
         }));
         setMessages(typedMessages);
+        setCurrentChatId(selectedChatId);
       }
     } catch (error) {
       console.error('Error loading chat:', error);
@@ -168,6 +170,12 @@ const Index = () => {
       }
 
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Generate a new chatId only if we don't have one (new chat)
+      const chatId = currentChatId || uuidv4();
+      if (!currentChatId) {
+        setCurrentChatId(chatId);
+      }
 
       const chatData = {
         id: chatId,
@@ -182,6 +190,7 @@ const Index = () => {
         updated_at: new Date().toISOString()
       };
 
+      // Use upsert instead of insert
       const { error } = await supabase
         .from('chat_history')
         .upsert(chatData);
@@ -220,7 +229,7 @@ const Index = () => {
               botId={selectedBotId}
               onSelectChat={handleSelectChat}
               onNewChat={handleNewChat}
-              currentChatId={chatId}
+              currentChatId={currentChatId}
               isOpen={showHistory}
               onClose={() => setShowHistory(false)}
               setSelectedBotId={setSelectedBotId}
