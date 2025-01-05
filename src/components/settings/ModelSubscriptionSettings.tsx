@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,18 +13,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 
+type LimitType = 'tokens' | 'messages';
+type ResetPeriod = 'daily' | 'weekly' | 'monthly' | 'never';
+
 interface ModelSubscriptionSetting {
   id: string;
   model: string;
   units_per_period: number;
-  reset_period: 'daily' | 'weekly' | 'monthly' | 'never';
+  reset_period: ResetPeriod;
   lifetime_max_units?: number;
-  limit_type: 'tokens' | 'messages';
+  limit_type: LimitType;
   created_at?: string;
   updated_at?: string;
 }
-
-type LimitType = 'tokens' | 'messages';
 
 export const ModelSubscriptionSettings = () => {
   const [settings, setSettings] = useState<ModelSubscriptionSetting[]>([]);
@@ -48,7 +49,7 @@ export const ModelSubscriptionSettings = () => {
       const typedSettings: ModelSubscriptionSetting[] = (data || []).map(item => ({
         ...item,
         limit_type: (item.limit_type as LimitType) || 'tokens',
-        reset_period: item.reset_period as 'daily' | 'weekly' | 'monthly' | 'never',
+        reset_period: item.reset_period as ResetPeriod,
       }));
 
       setSettings(typedSettings);
@@ -66,6 +67,15 @@ export const ModelSubscriptionSettings = () => {
 
   const handleSave = async (setting: ModelSubscriptionSetting) => {
     try {
+      if (!setting.model.trim()) {
+        toast({
+          title: "Error",
+          description: "Model name is required",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('model_subscription_settings')
         .upsert({
@@ -75,6 +85,8 @@ export const ModelSubscriptionSettings = () => {
           reset_period: setting.reset_period,
           lifetime_max_units: setting.lifetime_max_units,
           limit_type: setting.limit_type,
+        }, {
+          onConflict: 'id'
         });
 
       if (error) throw error;
@@ -84,7 +96,7 @@ export const ModelSubscriptionSettings = () => {
         description: "Settings updated successfully",
       });
       
-      await fetchSettings();
+      await fetchSettings(); // Refresh the settings after save
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
@@ -174,7 +186,7 @@ export const ModelSubscriptionSettings = () => {
                 <Label>Reset Period</Label>
                 <Select
                   value={setting.reset_period}
-                  onValueChange={(value: 'daily' | 'weekly' | 'monthly' | 'never') => {
+                  onValueChange={(value: ResetPeriod) => {
                     const updated = settings.map((s) =>
                       s.id === setting.id ? { ...s, reset_period: value } : s
                     );
