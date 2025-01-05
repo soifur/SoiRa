@@ -9,6 +9,16 @@ interface TokenUsageResponse {
   limit: number;
 }
 
+interface TokenUsage {
+  tokens_used: number;
+}
+
+interface MessageUsage {
+  messages_used: number;
+}
+
+type Usage = TokenUsage | MessageUsage;
+
 export const useTokenUsage = () => {
   const { toast } = useToast();
 
@@ -85,12 +95,15 @@ export const useTokenUsage = () => {
         throw usageError;
       }
 
-      const currentUsage = usage?.reduce((acc, curr) => {
-        const value = settings.limit_type === 'messages' ? 
-          curr.messages_used || 0 : 
-          curr.tokens_used || 0;
-        console.log("Adding to usage:", value);
-        return acc + value;
+      const currentUsage = usage?.reduce((acc, curr: Usage) => {
+        if (settings.limit_type === 'messages' && 'messages_used' in curr) {
+          console.log("Adding messages used:", curr.messages_used);
+          return acc + (curr.messages_used || 0);
+        } else if (settings.limit_type === 'tokens' && 'tokens_used' in curr) {
+          console.log("Adding tokens used:", curr.tokens_used);
+          return acc + (curr.tokens_used || 0);
+        }
+        return acc;
       }, 0) || 0;
 
       console.log("📊 Current usage:", currentUsage);
