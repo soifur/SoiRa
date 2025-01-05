@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus, Settings, Bot, Archive, Folder, Users } from "lucide-react";
+import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
-import { useNavigate } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -33,7 +32,6 @@ export const MainChatHeader = ({
   onToggleHistory,
   showHistory,
 }: MainChatHeaderProps) => {
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
 
@@ -113,38 +111,6 @@ export const MainChatHeader = ({
                     </Button>
                   </>
                 )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/bots')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Bot className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/folders')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Folder className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/users')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Users className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate('/archive')}
-                  className="h-8 w-8 hover:bg-dropdown-hover"
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
                 
                 <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
                   <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
