@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus, Settings, Bot, Archive, Folder, Users } from "lucide-react";
+import { Clock, Plus, Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,19 +9,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MainChatHeaderProps {
-  selectedBotId: string | null;
-  setSelectedBotId: (id: string) => void;
+  selectedBotId?: string | null;
+  setSelectedBotId?: (id: string) => void;
   bots?: BotType[];
-  onNewChat: () => void;
-  onSignOut: () => void;
-  onToggleHistory: () => void;
-  showHistory: boolean;
+  onNewChat?: () => void;
+  onSignOut?: () => void;
+  onToggleHistory?: () => void;
+  showHistory?: boolean;
 }
 
 export const MainChatHeader = ({
@@ -34,8 +34,10 @@ export const MainChatHeader = ({
   showHistory,
 }: MainChatHeaderProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
+  const isChat = location.pathname === '/';
 
   useEffect(() => {
     if (bots) {
@@ -59,41 +61,47 @@ export const MainChatHeader = ({
         )}>
           {isMobile ? (
             <div className="flex items-center justify-between w-full">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-dropdown-hover"
-                onClick={onToggleHistory}
-              >
-                <Clock className="h-4 w-4" />
-              </Button>
+              {isChat && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-dropdown-hover"
+                    onClick={onToggleHistory}
+                  >
+                    <Clock className="h-4 w-4" />
+                  </Button>
 
-              <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-                <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueBots.map((bot) => (
-                    <SelectItem key={bot.id} value={bot.id}>
-                      {bot.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  {selectedBotId && setSelectedBotId && (
+                    <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+                      <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+                        <SelectValue placeholder="Select a model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueBots.map((bot) => (
+                          <SelectItem key={bot.id} value={bot.id}>
+                            {bot.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 hover:bg-dropdown-hover"
-                onClick={onNewChat}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-dropdown-hover"
+                    onClick={onNewChat}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <>
               <div className="flex items-center gap-4">
-                {!showHistory && (
+                {isChat && !showHistory && (
                   <>
                     <Button
                       variant="ghost"
@@ -132,6 +140,14 @@ export const MainChatHeader = ({
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => navigate('/subscriptions')}
+                  className="h-8 w-8 hover:bg-dropdown-hover"
+                >
+                  <CreditCard className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => navigate('/users')}
                   className="h-8 w-8 hover:bg-dropdown-hover"
                 >
@@ -146,18 +162,20 @@ export const MainChatHeader = ({
                   <Archive className="h-4 w-4" />
                 </Button>
                 
-                <Select value={selectedBotId || ""} onValueChange={setSelectedBotId}>
-                  <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {uniqueBots.map((bot) => (
-                      <SelectItem key={bot.id} value={bot.id}>
-                        {bot.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isChat && selectedBotId && setSelectedBotId && (
+                  <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+                    <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+                      <SelectValue placeholder="Select a model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {uniqueBots.map((bot) => (
+                        <SelectItem key={bot.id} value={bot.id}>
+                          {bot.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </>
           )}
