@@ -63,6 +63,7 @@ export const MainChatHistory = ({
     }
   }, [sessionToken, botId]);
 
+  // Save expanded states to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
   }, [expandedGroups]);
@@ -71,6 +72,7 @@ export const MainChatHistory = ({
     localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
   }, [expandedModels]);
 
+  // When chat data is loaded, expand all model groups by default
   useEffect(() => {
     const modelNames = Object.keys(chatsByModelAndDate);
     if (modelNames.length > 0) {
@@ -107,6 +109,7 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
+      // Group chats by model and then by date
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
         const modelName = chat.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
@@ -187,6 +190,7 @@ export const MainChatHistory = ({
     console.log("Selecting chat:", chatId);
     
     try {
+      // Fetch the chat to get its bot_id
       const { data: chat, error } = await supabase
         .from('chat_history')
         .select('bot_id')
