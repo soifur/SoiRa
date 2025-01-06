@@ -122,8 +122,6 @@ const EmbeddedChatContainer = () => {
               return;
             }
           }
-        } else {
-          console.log("Quiz mode is disabled, using default instructions");
         }
 
         console.log("Final instructions being used:", instructions);
