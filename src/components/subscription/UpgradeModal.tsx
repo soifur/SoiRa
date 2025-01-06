@@ -22,6 +22,7 @@ interface SubscriptionTier {
   price: number;
   features: string[] | string;
   is_active: boolean;
+  stripe_price_id?: string;
 }
 
 export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
@@ -87,6 +88,7 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
               isComingSoon={tier.name === 'Pro'}
               isCurrentPlan={tier.name === 'Free' && userProfile?.subscription_status === 'free'}
               onSelect={() => handleUpgrade(tier.id)}
+              priceId={tier.stripe_price_id}
             />
           ))}
         </div>
