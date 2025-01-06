@@ -34,32 +34,36 @@ export const useSubscriptionLimits = (botId: string | null) => {
         .from('profiles')
         .select('role')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!profile) return;
 
       console.log("Checking limits for user role:", profile.role);
 
       // Get subscription settings for this specific bot and user role
-      const { data: settings } = await supabase
+      const { data: settings, error } = await supabase
         .from('model_subscription_settings')
         .select('*')
         .eq('bot_id', botId)
-        .eq('user_role', profile.role)
-        .single();
+        .eq('user_role', profile.role);
 
-      if (!settings) {
+      if (error) throw error;
+
+      // Use the first settings entry if available
+      const setting = settings?.[0];
+      
+      if (!setting) {
         console.log('No subscription settings found for this bot and user role');
         return;
       }
 
-      console.log("Found subscription settings:", settings);
+      console.log("Found subscription settings:", setting);
 
       // Calculate the period start date based on reset_amount and reset_period
       let periodStart = new Date();
-      const resetAmount = settings.reset_amount || 1;
+      const resetAmount = setting.reset_amount || 1;
       
-      switch (settings.reset_period) {
+      switch (setting.reset_period) {
         case 'daily':
           periodStart = subDays(periodStart, resetAmount);
           break;
@@ -90,15 +94,15 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
       // Calculate total usage for this specific bot
       let totalUsage = 0;
-      if (settings.limit_type === 'messages') {
+      if (setting.limit_type === 'messages') {
         totalUsage = usage?.reduce((acc, chat) => acc + (chat.messages_used || 0), 0) || 0;
       } else {
         totalUsage = usage?.reduce((acc, chat) => acc + (chat.tokens_used || 0), 0) || 0;
       }
 
-      console.log("Total usage calculated:", totalUsage, "out of", settings.units_per_period);
+      console.log("Total usage calculated:", totalUsage, "out of", setting.units_per_period);
 
-      const isExceeded = totalUsage >= settings.units_per_period;
+      const isExceeded = totalUsage >= setting.units_per_period;
       let resetDate = null;
 
       if (isExceeded) {
@@ -109,15 +113,15 @@ export const useSubscriptionLimits = (botId: string | null) => {
 
         if (oldestMessage) {
           const oldestDate = new Date(oldestMessage.created_at);
-          switch (settings.reset_period) {
+          switch (setting.reset_period) {
             case 'daily':
-              resetDate = addDays(oldestDate, settings.reset_amount || 1);
+              resetDate = addDays(oldestDate, setting.reset_amount || 1);
               break;
             case 'weekly':
-              resetDate = addDays(oldestDate, (settings.reset_amount || 1) * 7);
+              resetDate = addDays(oldestDate, (setting.reset_amount || 1) * 7);
               break;
             case 'monthly':
-              resetDate = addDays(oldestDate, (settings.reset_amount || 1) * 30);
+              resetDate = addDays(oldestDate, (setting.reset_amount || 1) * 30);
               break;
           }
         }
@@ -126,7 +130,7 @@ export const useSubscriptionLimits = (botId: string | null) => {
         
         toast({
           title: "Usage Limit Exceeded",
-          description: `You have exceeded your ${settings.limit_type} limit of ${settings.units_per_period} for this bot. ${resetDate ? `Your access will be restored on ${resetDate.toLocaleDateString()}.` : ''}`,
+          description: `You have exceeded your ${setting.limit_type} limit of ${setting.units_per_period} for this bot. ${resetDate ? `Your access will be restored on ${resetDate.toLocaleDateString()}.` : ''}`,
           variant: "destructive",
         });
       }
@@ -135,8 +139,8 @@ export const useSubscriptionLimits = (botId: string | null) => {
         isExceeded,
         resetDate,
         currentUsage: totalUsage,
-        maxUsage: settings.units_per_period,
-        limitType: settings.limit_type as LimitType
+        maxUsage: setting.units_per_period,
+        limitType: setting.limit_type as LimitType
       });
 
     } catch (error) {
