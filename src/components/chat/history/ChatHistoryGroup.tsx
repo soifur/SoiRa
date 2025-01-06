@@ -92,7 +92,7 @@ export const ChatHistoryGroup = ({
           </Avatar>
         )}
         <span className={cn(
-          "truncate flex-1 text-left pr-1 max-w-[180px]", // Added max-width and truncate
+          "truncate flex-1 text-left pr-1 max-w-[120px]", // Reduced max-width from 180px to 120px
           isMobile ? "text-lg" : "text-sm",
           isModelGroup && "text-primary"
         )}>{label}</span>
