@@ -13,6 +13,7 @@ import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
+import { useChatHistoryState } from "./history/useChatHistoryState";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -31,9 +32,6 @@ type ChatsByModelAndDate = {
   };
 };
 
-const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
-const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
-
 export const MainChatHistory = ({
   sessionToken,
   botId,
@@ -45,16 +43,7 @@ export const MainChatHistory = ({
   setSelectedBotId,
 }: MainChatHistoryProps) => {
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    const savedGroups = localStorage.getItem(EXPANDED_GROUPS_KEY);
-    return savedGroups ? new Set(JSON.parse(savedGroups)) : new Set(DATE_GROUP_ORDER);
-  });
-
-  const [expandedModels, setExpandedModels] = useState<Set<string>>(() => {
-    const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
-    return savedModels ? new Set(JSON.parse(savedModels)) : new Set();
-  });
-
+  const { expandedGroups, expandedModels, setExpandedModels, toggleGroup, toggleModel } = useChatHistoryState();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -85,7 +74,6 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
-      // Group chats by model and then by date
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
         const modelName = chat.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
@@ -118,20 +106,11 @@ export const MainChatHistory = ({
     fetchChatHistory();
   }, [sessionToken, botId]);
 
-  // Save expanded states to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
-  }, [expandedGroups]);
-
-  useEffect(() => {
-    localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
-  }, [expandedModels]);
-
   // When chat data is loaded, expand all model groups by default
   useEffect(() => {
     const modelNames = Object.keys(chatsByModelAndDate);
     if (modelNames.length > 0) {
-      const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
+      const savedModels = localStorage.getItem('chatHistory:expandedModels');
       if (!savedModels) {
         setExpandedModels(new Set(modelNames));
       }
