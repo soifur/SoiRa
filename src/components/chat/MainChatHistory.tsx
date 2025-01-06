@@ -169,7 +169,7 @@ export const MainChatHistory = ({
 
   return (
     <ChatHistoryContainer isOpen={isOpen} onClose={onClose} isMobile={isMobile}>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full" onClick={(e) => e.stopPropagation()}>
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         
         <ChatHistoryContent

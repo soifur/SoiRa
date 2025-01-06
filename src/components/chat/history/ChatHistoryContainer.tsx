@@ -14,10 +14,12 @@ export const ChatHistoryContainer = ({
   children 
 }: ChatHistoryContainerProps) => {
   const handleContainerClick = (e: React.MouseEvent) => {
-    // On desktop, prevent any click from closing the sidebar
-    if (!isMobile) {
-      e.preventDefault();
-      e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only allow closing via click on mobile
+    if (isMobile) {
+      onClose();
     }
   };
 
