@@ -11,10 +11,18 @@ import { ProfileSection } from "./ProfileSection";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
 import { MobileNavigation } from "./history/MobileNavigation";
-import { ChatsByModelAndDate, MainChatHistoryProps } from "./history/types";
+import { ChatsByModelAndDate, MainChatHistoryProps, Chat, Message } from "./history/types";
+import { Database } from "@/integrations/supabase/types";
 
 const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
 const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
+
+type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
+  bot: {
+    name: string;
+    model: string;
+  };
+};
 
 export const MainChatHistory = ({
   sessionToken,
@@ -62,6 +70,22 @@ export const MainChatHistory = ({
     }
   }, [chatsByModelAndDate]);
 
+  const convertToChat = (row: ChatHistoryRow): Chat => {
+    const messages = (typeof row.messages === 'string' ? 
+      JSON.parse(row.messages) : row.messages) as Message[];
+    
+    return {
+      id: row.id,
+      created_at: row.created_at || '',
+      updated_at: row.updated_at || '',
+      deleted: row.deleted || 'no',
+      user_id: row.user_id || '',
+      session_token: row.session_token || '',
+      bot_id: row.bot_id,
+      messages: Array.isArray(messages) ? messages : []
+    };
+  };
+
   const fetchChatHistory = async () => {
     try {
       console.log("Fetching chat history with sessionToken:", sessionToken);
@@ -88,7 +112,6 @@ export const MainChatHistory = ({
       
       if (sessionToken) {
         console.log("Adding session token condition:", sessionToken);
-        // If user is authenticated, this becomes an OR condition
         query = user ? 
           query.or(`user_id.eq.${user.id},session_token.eq.${sessionToken}`) :
           query.eq('session_token', sessionToken);
@@ -103,9 +126,9 @@ export const MainChatHistory = ({
       }
 
       // Group chats by model and then by date
-      const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
-        const modelName = chat.bot?.name || 'Unknown Model';
-        const dateGroup = getDateGroup(chat.created_at);
+      const grouped = (data || []).reduce((acc: ChatsByModelAndDate, row: ChatHistoryRow) => {
+        const modelName = row.bot?.name || 'Unknown Model';
+        const dateGroup = getDateGroup(row.created_at);
         
         if (!acc[modelName]) {
           acc[modelName] = {};
@@ -115,7 +138,7 @@ export const MainChatHistory = ({
           acc[modelName][dateGroup] = [];
         }
         
-        acc[modelName][dateGroup]!.push(chat);
+        acc[modelName][dateGroup]!.push(convertToChat(row));
         return acc;
       }, {});
 
@@ -184,7 +207,6 @@ export const MainChatHistory = ({
     console.log("Selecting chat:", chatId);
     
     try {
-      // Fetch the chat to get its bot_id
       const { data: chat, error } = await supabase
         .from('chat_history')
         .select('bot_id')
