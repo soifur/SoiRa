@@ -7,7 +7,7 @@ interface ChatHistoryItemProps {
   id: string;
   title: string;
   isActive: boolean;
-  onSelect: () => void;
+  onSelect: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
 }
 

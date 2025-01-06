@@ -6,7 +6,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChatHistoryItem } from "./ChatHistoryItem";
-import { DateGroup } from "@/utils/dateUtils";
 import { cn } from "@/lib/utils";
 
 interface ChatHistoryGroupProps {
@@ -15,7 +14,7 @@ interface ChatHistoryGroupProps {
   isExpanded: boolean;
   onToggle: () => void;
   currentChatId: string | null;
-  onSelectChat: (chatId: string) => void;
+  onSelectChat: (chatId: string, e: React.MouseEvent) => void;
   onDeleteChat: (chatId: string, e: React.MouseEvent) => void;
   isModelGroup?: boolean;
   children?: React.ReactNode;
@@ -38,20 +37,14 @@ export const ChatHistoryGroup = ({
     return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   };
 
-  // Calculate total chats including nested date groups
   const getTotalChats = () => {
     if (!isModelGroup) return chats.length;
-    
-    // For model groups, we need to count all chats in child date groups
-    let total = chats.length; // Direct chats in the model group
-    
-    // Count chats in child elements (date groups)
+    let total = chats.length;
     React.Children.forEach(children, (child) => {
       if (React.isValidElement(child) && child.props.chats) {
         total += child.props.chats.length;
       }
     });
-    
     return total;
   };
 
@@ -61,12 +54,15 @@ export const ChatHistoryGroup = ({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
-      <CollapsibleTrigger className={cn(
-        "flex items-center w-full p-2 rounded-lg",
-        "hover:bg-accent/50 dark:hover:bg-accent",
-        "text-foreground/80 hover:text-foreground",
-        isModelGroup && "font-semibold"
-      )}>
+      <CollapsibleTrigger 
+        className={cn(
+          "flex items-center w-full p-2 rounded-lg",
+          "hover:bg-accent/50 dark:hover:bg-accent",
+          "text-foreground/80 hover:text-foreground",
+          isModelGroup && "font-semibold"
+        )}
+        onClick={(e) => e.stopPropagation()} // Prevent trigger click from closing sidebar
+      >
         {isExpanded ? (
           <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />
         ) : (
@@ -90,7 +86,7 @@ export const ChatHistoryGroup = ({
             id={chat.id}
             title={getChatTitle(chat.messages)}
             isActive={currentChatId === chat.id}
-            onSelect={() => onSelectChat(chat.id)}
+            onSelect={(e) => onSelectChat(chat.id, e)}
             onDelete={(e) => onDeleteChat(chat.id, e)}
           />
         ))}

@@ -124,7 +124,8 @@ export const MainChatHistory = ({
     }
   };
 
-  const handleDelete = async (chatId: string) => {
+  const handleDelete = async (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up
     try {
       const { error } = await supabase
         .from('chat_history')
@@ -149,7 +150,8 @@ export const MainChatHistory = ({
     }
   };
 
-  const handleSelectChat = async (chatId: string) => {
+  const handleSelectChat = async (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling up
     console.log("Selecting chat:", chatId);
     
     try {
@@ -199,13 +201,16 @@ export const MainChatHistory = ({
   const isAdmin = role === 'admin';
 
   return (
-    <div className={cn(
-      "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
-      "dark:bg-zinc-950",
-      "light:bg-white light:border-gray-200",
-      isOpen ? "translate-x-0" : "-translate-x-full",
-      isMobile ? "w-full" : "w-80"
-    )}>
+    <div 
+      className={cn(
+        "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
+        "dark:bg-zinc-950",
+        "light:bg-white light:border-gray-200",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+        isMobile ? "w-full" : "w-80"
+      )}
+      onClick={(e) => e.stopPropagation()} // Prevent clicks from closing the sidebar
+    >
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         
@@ -227,8 +232,8 @@ export const MainChatHistory = ({
                 isExpanded={expandedModels.has(modelName)}
                 onToggle={() => toggleModel(modelName)}
                 currentChatId={currentChatId}
-                onSelectChat={handleSelectChat}
-                onDeleteChat={handleDelete}
+                onSelectChat={(chatId) => handleSelectChat(chatId)}
+                onDeleteChat={(chatId, e) => handleDelete(chatId, e)}
                 isModelGroup={true}
               >
                 {DATE_GROUP_ORDER.map((dateGroup) => {
@@ -243,8 +248,8 @@ export const MainChatHistory = ({
                       isExpanded={expandedGroups.has(dateGroup)}
                       onToggle={() => toggleGroup(dateGroup)}
                       currentChatId={currentChatId}
-                      onSelectChat={handleSelectChat}
-                      onDeleteChat={handleDelete}
+                      onSelectChat={(chatId) => handleSelectChat(chatId)}
+                      onDeleteChat={(chatId, e) => handleDelete(chatId, e)}
                     />
                   );
                 })}
