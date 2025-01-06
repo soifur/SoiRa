@@ -62,6 +62,18 @@ const Index = () => {
     }
   });
 
+  // Effect to set the default bot on load
+  useEffect(() => {
+    if (userBots && userBots.length > 0 && !selectedBotId) {
+      const defaultBot = userBots.find(bot => bot.default_bot);
+      if (defaultBot) {
+        setSelectedBotId(defaultBot.id);
+      } else if (userBots[0]) {
+        setSelectedBotId(userBots[0].id);
+      }
+    }
+  }, [userBots, selectedBotId]);
+
   const selectedBot = userBots.find(bot => bot.id === selectedBotId);
 
   const handleSignOut = async () => {
