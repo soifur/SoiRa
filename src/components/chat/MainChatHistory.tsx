@@ -54,9 +54,11 @@ export const MainChatHistory = ({
         .from('chat_history')
         .select(`
           *,
-          bot:bots!chat_history_bot_id_fkey (
+          bot:bots (
+            id,
             name,
-            model
+            model,
+            avatar
           )
         `)
         .eq('deleted', 'no')

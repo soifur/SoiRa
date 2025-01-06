@@ -9,11 +9,32 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
   const isMobile = useIsMobile();
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const isSuperAdmin = userProfile?.role === 'super_admin';
 
   const tabs = [
     {
@@ -22,12 +43,12 @@ const Settings = () => {
       icon: SettingsIcon,
       content: <ProfileSettings />
     },
-    {
+    ...(isSuperAdmin ? [{
       value: "memory",
       label: "Memory Bot",
       icon: Database,
       content: <MemoryBotSettings />
-    },
+    }] : []),
     {
       value: "instructions",
       label: "Custom Instructions",
