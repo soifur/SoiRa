@@ -15,6 +15,7 @@ interface ChatContainerProps {
   disabled?: boolean;
   disabledReason?: string;
   onUpgradeClick?: () => void;
+  showHistory?: boolean;
 }
 
 export const ChatContainer = ({
@@ -25,7 +26,8 @@ export const ChatContainer = ({
   sendMessage,
   disabled,
   disabledReason,
-  onUpgradeClick
+  onUpgradeClick,
+  showHistory
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
   
@@ -33,7 +35,7 @@ export const ChatContainer = ({
     <div className={cn(
       "relative flex flex-col h-full",
       "transition-[margin] duration-300 ease-in-out",
-      !isMobile && "ml-64" // Add the same margin as MainChatHeader when sidebar is open
+      !isMobile && showHistory && "ml-64" // Add margin when sidebar is open and not on mobile
     )}>
       <div className="flex-1 overflow-hidden mt-14">
         {selectedBot ? (
