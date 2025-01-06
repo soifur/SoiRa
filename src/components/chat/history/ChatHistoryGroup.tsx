@@ -67,32 +67,32 @@ export const ChatHistoryGroup = ({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className={cn(
-        "flex items-center w-full p-4 pl-2 rounded-lg", // Added pl-2 to move everything left
+        "flex items-center w-full p-4 pl-2 rounded-lg",
         "hover:bg-accent/50 dark:hover:bg-accent",
         "text-foreground/80 hover:text-foreground",
         isModelGroup && "font-semibold"
       )}>
         <ChevronDown className={cn(
           isMobile ? "h-6 w-6" : "h-4 w-4",
-          "mr-1 text-muted-foreground shrink-0", // Changed mr-2 to mr-1
+          "mr-1 text-muted-foreground shrink-0",
           !isExpanded && "hidden"
         )} />
         <ChevronRight className={cn(
           isMobile ? "h-6 w-6" : "h-4 w-4",
-          "mr-1 text-muted-foreground shrink-0", // Changed mr-2 to mr-1
+          "mr-1 text-muted-foreground shrink-0",
           isExpanded && "hidden"
         )} />
         {avatar && (
           <Avatar className={cn(
             "mr-2",
-            isMobile ? "h-8 w-8" : "h-6 w-6" // Increased from h-7/w-7 to h-8/w-8 for mobile, and h-5/w-5 to h-6/w-6 for desktop
+            isMobile ? "h-8 w-8" : "h-6 w-6"
           )}>
             <AvatarImage src={avatar} alt={label} />
             <AvatarFallback>{label[0]}</AvatarFallback>
           </Avatar>
         )}
         <span className={cn(
-          "truncate flex-1 text-left pr-1",
+          "truncate flex-1 text-left pr-1 max-w-[180px]", // Added max-width and truncate
           isMobile ? "text-lg" : "text-sm",
           isModelGroup && "text-primary"
         )}>{label}</span>
