@@ -13,7 +13,6 @@ import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
-import { useChatHistoryState } from "./history/useChatHistoryState";
 
 interface MainChatHistoryProps {
   sessionToken: string | null;
@@ -32,6 +31,9 @@ type ChatsByModelAndDate = {
   };
 };
 
+const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
+const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
+
 export const MainChatHistory = ({
   sessionToken,
   botId,
@@ -43,10 +45,45 @@ export const MainChatHistory = ({
   setSelectedBotId,
 }: MainChatHistoryProps) => {
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
-  const { expandedGroups, expandedModels, setExpandedModels, toggleGroup, toggleModel } = useChatHistoryState();
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
+    const savedGroups = localStorage.getItem(EXPANDED_GROUPS_KEY);
+    return savedGroups ? new Set(JSON.parse(savedGroups)) : new Set(DATE_GROUP_ORDER);
+  });
+
+  const [expandedModels, setExpandedModels] = useState<Set<string>>(() => {
+    const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
+    return savedModels ? new Set(JSON.parse(savedModels)) : new Set();
+  });
+
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (sessionToken) {
+      fetchChatHistory();
+    }
+  }, [sessionToken, botId]);
+
+  // Save expanded states to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
+  }, [expandedGroups]);
+
+  useEffect(() => {
+    localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
+  }, [expandedModels]);
+
+  // When chat data is loaded, expand all model groups by default
+  useEffect(() => {
+    const modelNames = Object.keys(chatsByModelAndDate);
+    if (modelNames.length > 0) {
+      const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
+      if (!savedModels) {
+        setExpandedModels(new Set(modelNames));
+      }
+    }
+  }, [chatsByModelAndDate]);
 
   const fetchChatHistory = async () => {
     try {
@@ -54,11 +91,9 @@ export const MainChatHistory = ({
         .from('chat_history')
         .select(`
           *,
-          bot:bots (
-            id,
+          bot:bot_id (
             name,
-            model,
-            avatar
+            model
           )
         `)
         .eq('deleted', 'no')
@@ -76,10 +111,9 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
-      console.log("Raw chat history data:", data);
-
+      // Group chats by model and then by date
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
-        const modelName = chat.bot?.model || 'Unknown Model';
+        const modelName = chat.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
         
         if (!acc[modelName]) {
@@ -94,7 +128,6 @@ export const MainChatHistory = ({
         return acc;
       }, {});
 
-      console.log("Grouped chat history:", grouped);
       setChatsByModelAndDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);
@@ -105,22 +138,6 @@ export const MainChatHistory = ({
       });
     }
   };
-
-  // Fetch chat history when session token or botId changes
-  useEffect(() => {
-    fetchChatHistory();
-  }, [sessionToken, botId]);
-
-  // When chat data is loaded, expand all model groups by default
-  useEffect(() => {
-    const modelNames = Object.keys(chatsByModelAndDate);
-    if (modelNames.length > 0) {
-      const savedModels = localStorage.getItem('chatHistory:expandedModels');
-      if (!savedModels) {
-        setExpandedModels(new Set(modelNames));
-      }
-    }
-  }, [chatsByModelAndDate]);
 
   const handleDelete = async (chatId: string) => {
     try {
@@ -147,15 +164,40 @@ export const MainChatHistory = ({
     }
   };
 
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupName)) {
+        newSet.delete(groupName);
+      } else {
+        newSet.add(groupName);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleModel = (modelName: string) => {
+    setExpandedModels(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(modelName)) {
+        newSet.delete(modelName);
+      } else {
+        newSet.add(modelName);
+      }
+      return newSet;
+    });
+  };
+
   const handleSelectChat = async (chatId: string) => {
     console.log("Selecting chat:", chatId);
     
     try {
+      // Fetch the chat to get its bot_id
       const { data: chat, error } = await supabase
         .from('chat_history')
         .select('bot_id')
         .eq('id', chatId)
-        .maybeSingle();
+        .single();
 
       if (error) throw error;
 
