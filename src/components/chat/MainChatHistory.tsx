@@ -87,6 +87,8 @@ export const MainChatHistory = ({
 
   const fetchChatHistory = async () => {
     try {
+      console.log("Fetching chat history with sessionToken:", sessionToken);
+      
       let query = supabase
         .from('chat_history')
         .select(`
@@ -100,16 +102,23 @@ export const MainChatHistory = ({
         .order('created_at', { ascending: false });
 
       const { data: { user } } = await supabase.auth.getUser();
-      
+      console.log("Current user:", user);
+
       if (user) {
+        console.log("Fetching chats for authenticated user:", user.id);
         query = query.eq('user_id', user.id);
       } else if (sessionToken) {
+        console.log("Fetching chats for session token:", sessionToken);
         query = query.eq('session_token', sessionToken);
       }
 
       const { data, error } = await query;
+      console.log("Fetched chat history:", data);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error in fetchChatHistory:", error);
+        throw error;
+      }
 
       // Group chats by model and then by date
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
@@ -128,6 +137,7 @@ export const MainChatHistory = ({
         return acc;
       }, {});
 
+      console.log("Grouped chat history:", grouped);
       setChatsByModelAndDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);
