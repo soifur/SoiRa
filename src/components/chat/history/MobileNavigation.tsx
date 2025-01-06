@@ -1,19 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { UserRole } from "@/types/user";
+import { cn } from "@/lib/utils";
 
 interface MobileNavigationProps {
   isSuperAdmin: boolean;
   isAdmin: boolean;
   onClose: () => void;
+  className?: string;
 }
 
-export const MobileNavigation = ({ isSuperAdmin, isAdmin, onClose }: MobileNavigationProps) => {
+export const MobileNavigation = ({ isSuperAdmin, isAdmin, onClose, className }: MobileNavigationProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-4 border-b border-border">
+    <div className={cn("p-4 border-b border-border", className)}>
       <div className="space-y-2">
         {(isSuperAdmin || isAdmin) && (
           <Button

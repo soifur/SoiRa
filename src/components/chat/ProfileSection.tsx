@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface ProfileSectionProps {
   showViewPlans?: boolean;
   onClose?: () => void;
+  className?: string;
 }
 
-export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectionProps) => {
+export const ProfileSection = ({ showViewPlans = false, onClose, className }: ProfileSectionProps) => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isMobile = useIsMobile();
@@ -43,7 +45,7 @@ export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectio
 
   return (
     <>
-      <div className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className={cn("flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60", className)}>
         {showViewPlans && (
           <button
             onClick={handleViewPlans}
