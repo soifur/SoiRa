@@ -86,7 +86,7 @@ serve(async (req) => {
       const { error: updateError } = await supabaseClient
         .from('profiles')
         .update({ 
-          role: 'paid_user',
+          role: subscription.status === 'active' ? 'paid_user' : 'user',
           subscription_status: subscription.status 
         })
         .eq('id', userData.id);
