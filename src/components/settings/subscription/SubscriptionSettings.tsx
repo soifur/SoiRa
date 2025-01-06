@@ -11,7 +11,7 @@ interface UserSubscription {
   status: string;
   current_period_end: string;
   cancel_at_period_end: boolean;
-  subscription_tier: {
+  subscription_tiers: {
     name: string;
     price: number;
     description: string;
@@ -116,13 +116,13 @@ export const SubscriptionSettings = () => {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold">{subscription.subscription_tier.name}</h3>
-          <p className="text-muted-foreground">{subscription.subscription_tier.description}</p>
+          <h3 className="text-lg font-semibold">{subscription.subscription_tiers.name}</h3>
+          <p className="text-muted-foreground">{subscription.subscription_tiers.description}</p>
         </div>
         <div className="text-right">
           <div className="flex items-center gap-1 text-xl font-bold">
             <PoundSterling className="h-5 w-5" />
-            {subscription.subscription_tier.price}
+            {subscription.subscription_tiers.price}
             <span className="text-sm font-normal text-muted-foreground">/month</span>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -161,7 +161,7 @@ export const SubscriptionSettings = () => {
             )}
           </div>
           <ul className="mt-2 space-y-2">
-            {subscription.subscription_tier.features.map((feature, index) => (
+            {subscription.subscription_tiers.features.map((feature, index) => (
               <li key={index} className="flex items-center gap-2 text-sm">
                 <div className="h-1.5 w-1.5 bg-primary rounded-full" />
                 {feature}
