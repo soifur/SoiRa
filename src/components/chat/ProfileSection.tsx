@@ -65,7 +65,9 @@ export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectio
             </div>
           </button>
         )}
-        <ProfileMenu fullName={fullName} />
+        <div onClick={(e) => e.stopPropagation()}>
+          <ProfileMenu fullName={fullName} />
+        </div>
       </div>
       <UpgradeModal 
         isOpen={showUpgradeModal} 
