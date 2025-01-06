@@ -14,7 +14,7 @@ interface EmbedOptionsDialogProps {
   bot: Bot | null;
 }
 
-export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogProps) => {
+export const EmbeddedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogProps) => {
   const { toast } = useToast();
   const baseUrl = window.location.origin;
   const [shareKey, setShareKey] = useState<string>("");
@@ -38,7 +38,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
 
         const memory_enabled = currentBot?.memory_enabled === true;
         
-        // Get quiz configuration status
+        // Get quiz configuration status and any existing responses
         const { data: quizConfig } = await supabase
           .from('quiz_configurations')
           .select('enabled, id')
@@ -46,6 +46,23 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           .single();
 
         const quiz_mode = quizConfig?.enabled === true;
+        
+        let combined_instructions = bot.instructions;
+
+        // If quiz mode is enabled, try to get the combined instructions from responses
+        if (quiz_mode && quizConfig?.id) {
+          console.log("Quiz mode is enabled, checking for responses");
+          const { data: quizResponses } = await supabase
+            .from('quiz_responses')
+            .select('combined_instructions')
+            .eq('quiz_id', quizConfig.id)
+            .maybeSingle();
+
+          if (quizResponses?.combined_instructions) {
+            console.log("Found combined instructions:", quizResponses.combined_instructions);
+            combined_instructions = quizResponses.combined_instructions;
+          }
+        }
         
         // First check if a share configuration already exists
         const { data: existingShare } = await supabase
@@ -62,7 +79,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             .from('shared_bots')
             .update({
               bot_name: bot.name,
-              instructions: bot.instructions,
+              instructions: combined_instructions,
               starters: bot.starters,
               model: bot.model,
               open_router_model: bot.openRouterModel,
@@ -107,7 +124,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             short_key: newShareKey,
             bot_id: bot.id,
             bot_name: bot.name,
-            instructions: bot.instructions,
+            instructions: combined_instructions,
             starters: bot.starters,
             model: bot.model,
             open_router_model: bot.openRouterModel,
