@@ -33,6 +33,17 @@ export const MainChatHistory = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
+  // Initialize sidebar state from localStorage on mount
+  useEffect(() => {
+    if (!isMobile && typeof window !== 'undefined') {
+      const savedState = localStorage.getItem('sidebarState');
+      if (savedState && savedState !== (isOpen ? 'open' : 'closed')) {
+        // Update parent state to match saved state
+        onClose();
+      }
+    }
+  }, []);
+
   // Persist sidebar state for desktop only
   useEffect(() => {
     if (!isMobile && typeof window !== 'undefined') {
