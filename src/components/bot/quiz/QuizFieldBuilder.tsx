@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface QuizFieldBuilderProps {
   botId: string;
+  fields?: Field[];
+  onFieldsChange?: (newFields: Field[]) => void;
 }
 
 export type FieldType = 'text' | 'email' | 'phone' | 'single_choice' | 'multiple_choice';
@@ -21,13 +23,15 @@ export interface Field {
   sequence_number: number;
 }
 
-export const QuizFieldBuilder = ({ botId }: QuizFieldBuilderProps) => {
-  const [fields, setFields] = useState<Field[]>([]);
+export const QuizFieldBuilder = ({ botId, fields: initialFields, onFieldsChange }: QuizFieldBuilderProps) => {
+  const [fields, setFields] = useState<Field[]>(initialFields || []);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadFields();
-  }, [botId]);
+    if (!initialFields) {
+      loadFields();
+    }
+  }, [botId, initialFields]);
 
   const loadFields = async () => {
     try {
@@ -46,6 +50,7 @@ export const QuizFieldBuilder = ({ botId }: QuizFieldBuilderProps) => {
 
         if (fields) {
           setFields(fields);
+          onFieldsChange?.(fields);
         }
       }
     } catch (error) {
@@ -61,7 +66,9 @@ export const QuizFieldBuilder = ({ botId }: QuizFieldBuilderProps) => {
       single_section: false,
       sequence_number: fields.length,
     };
-    setFields([...fields, newField]);
+    const newFields = [...fields, newField];
+    setFields(newFields);
+    onFieldsChange?.(newFields);
   };
 
   const updateField = async (index: number, updatedField: Field) => {
@@ -69,6 +76,7 @@ export const QuizFieldBuilder = ({ botId }: QuizFieldBuilderProps) => {
       const newFields = [...fields];
       newFields[index] = updatedField;
       setFields(newFields);
+      onFieldsChange?.(newFields);
 
       const { data: quizConfig } = await supabase
         .from('quiz_configurations')
@@ -116,6 +124,7 @@ export const QuizFieldBuilder = ({ botId }: QuizFieldBuilderProps) => {
       
       const newFields = fields.filter((_, i) => i !== index);
       setFields(newFields);
+      onFieldsChange?.(newFields);
     } catch (error) {
       console.error('Error removing field:', error);
       toast({
