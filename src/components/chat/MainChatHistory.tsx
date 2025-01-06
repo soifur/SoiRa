@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ProfileSection } from "./ProfileSection";
 import { ChatHistoryContent } from "./history/ChatHistoryContent";
@@ -10,7 +9,8 @@ import { ChatHistoryContainer } from "./history/ChatHistoryContainer";
 import { ChatsByModelAndDate, MainChatHistoryProps, Chat } from "./history/types";
 import { getDateGroup } from "@/utils/dateUtils";
 import { Database } from "@/integrations/supabase/types";
-import Cookies from 'js-cookie';
+import { useChatHistorySession } from "@/hooks/useChatHistorySession";
+import { useSidebarState } from "@/hooks/useSidebarState";
 
 type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   bot: {
@@ -18,10 +18,6 @@ type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
     model: string;
   };
 };
-
-const SIDEBAR_COOKIE_NAME = 'oai-nav-state';
-const SESSION_TOKEN_COOKIE = '_chat_session';
-const COOKIE_EXPIRES = 365; // Cookie expires in 365 days
 
 export const MainChatHistory = ({
   sessionToken: initialSessionToken,
@@ -36,50 +32,10 @@ export const MainChatHistory = ({
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
   const { expandedGroups, expandedModels, toggleGroup, toggleModel } = useChatHistoryState(chatsByModelAndDate);
   const { toast } = useToast();
-  const isMobile = useIsMobile();
-  const [sessionToken, setSessionToken] = useState<string | null>(initialSessionToken);
-
-  // Initialize session token and sidebar state from cookies on mount
-  useEffect(() => {
-    const initializeSessionToken = async () => {
-      if (typeof window !== 'undefined') {
-        // Handle session token for all users
-        let token = Cookies.get(SESSION_TOKEN_COOKIE);
-        if (!token) {
-          const { data: { user } } = await supabase.auth.getUser();
-          token = user?.id || initialSessionToken;
-          if (token) {
-            Cookies.set(SESSION_TOKEN_COOKIE, token, { 
-              expires: COOKIE_EXPIRES,
-              sameSite: 'Lax',
-              secure: false
-            });
-          }
-        }
-        setSessionToken(token);
-
-        // Handle sidebar state (desktop only)
-        if (!isMobile) {
-          const savedState = Cookies.get(SIDEBAR_COOKIE_NAME);
-          if (savedState === '1' && !isOpen) {
-            onClose(); // Only trigger if it should be open
-          }
-        }
-      }
-    };
-    initializeSessionToken();
-  }, []);
-
-  // Persist sidebar state in cookie for desktop only
-  useEffect(() => {
-    if (!isMobile && typeof window !== 'undefined') {
-      Cookies.set(SIDEBAR_COOKIE_NAME, isOpen ? '1' : '0', { 
-        expires: COOKIE_EXPIRES,
-        sameSite: 'Lax',
-        secure: false
-      });
-    }
-  }, [isOpen, isMobile]);
+  
+  // Use our new hooks
+  const sessionToken = useChatHistorySession(initialSessionToken);
+  const { isMobile } = useSidebarState(isOpen, onClose);
 
   const convertToChat = (row: ChatHistoryRow): Chat => ({
     id: row.id,
@@ -149,10 +105,6 @@ export const MainChatHistory = ({
       });
     }
   };
-
-  useEffect(() => {
-    fetchChatHistory();
-  }, [sessionToken, botId]);
 
   const handleDelete = async (chatId: string, e: React.MouseEvent) => {
     e.preventDefault();
