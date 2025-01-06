@@ -64,7 +64,6 @@ const Archive = () => {
             last_name
           )
         `)
-        .eq('deleted', 'no')
         .order('created_at', { ascending: false });
 
       // If not super_admin, only show user's own chats
@@ -93,9 +92,11 @@ const Archive = () => {
         client_id: record.client_id,
         sequence_number: data.length - index,
         userEmail: record.profiles?.email,
-        userName: record.profiles ? `${record.profiles.first_name || ''} ${record.profiles.last_name || ''}`.trim() : 'Unknown User'
+        userName: record.profiles ? `${record.profiles.first_name || ''} ${record.profiles.last_name || ''}`.trim() : 'Unknown User',
+        deleted: record.deleted === 'yes'
       }));
 
+      console.log("Grouped chat history:", transformedHistory);
       setChatHistory(transformedHistory);
     } catch (error) {
       console.error("Error fetching chat history:", error);
@@ -111,7 +112,9 @@ const Archive = () => {
 
   const handleDeleteChat = async (chatId: string) => {
     try {
-      setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
+      setChatHistory(prev => prev.map(chat => 
+        chat.id === chatId ? { ...chat, deleted: true } : chat
+      ));
       
       const { error } = await supabase
         .from('chat_history')

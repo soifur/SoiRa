@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bot as BotType } from "@/hooks/useBots";
 import { ChatRecord } from "./types";
+import { cn } from "@/lib/utils";
 
 interface ChatListItemProps {
   record: ChatRecord;
@@ -25,7 +26,10 @@ export const ChatListItem = ({
 
   return (
     <Card 
-      className="p-4 hover:bg-accent cursor-pointer transition-colors"
+      className={cn(
+        "p-4 hover:bg-accent cursor-pointer transition-colors",
+        record.deleted && "opacity-50"
+      )}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-4">
@@ -50,6 +54,9 @@ export const ChatListItem = ({
                 <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
               ) : (
                 <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+              )}
+              {record.deleted && (
+                <span className="text-xs text-muted-foreground">(Deleted)</span>
               )}
             </div>
             {showUserInfo && (

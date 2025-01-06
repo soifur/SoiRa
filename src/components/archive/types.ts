@@ -1,7 +1,13 @@
 export interface ChatRecord {
   id: string;
   botId: string;
-  messages: ChatMessage[];
+  messages: {
+    id: string;
+    role: string;
+    content: string;
+    timestamp?: Date;
+    isBot?: boolean;
+  }[];
   timestamp: string;
   shareKey?: string;
   type: 'public' | 'private';
@@ -10,12 +16,5 @@ export interface ChatRecord {
   sequence_number: number;
   userEmail?: string;
   userName?: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: string;
-  content: string;
-  timestamp: Date;
-  isBot: boolean;
+  deleted?: boolean;
 }
