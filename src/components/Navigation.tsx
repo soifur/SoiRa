@@ -35,15 +35,15 @@ export const Navigation = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-4">
-        <div className="flex gap-6 md:gap-10">
+      <div className="flex h-16 items-center">
+        <div className="flex gap-8 pl-20">
           {/* Only super_admin, admin can access Bots page */}
           {(isSuperAdmin || isAdmin) && (
             <Link to="/bots">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="h-10 w-10 text-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 <Bot className="h-5 w-5" />
               </Button>
@@ -56,7 +56,7 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="h-10 w-10 text-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 <Folder className="h-5 w-5" />
               </Button>
@@ -69,7 +69,7 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="h-10 w-10 text-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 <CreditCard className="h-5 w-5" />
               </Button>
@@ -82,7 +82,7 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="h-10 w-10 text-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 <Users className="h-5 w-5" />
               </Button>
@@ -95,14 +95,14 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="h-10 w-10 text-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 <Archive className="h-5 w-5" />
               </Button>
             </Link>
           )}
         </div>
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex flex-1 items-center justify-end px-4">
           <ProfileMenu />
         </div>
       </div>
