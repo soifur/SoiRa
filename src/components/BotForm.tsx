@@ -8,6 +8,7 @@ import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useToast } from "./ui/use-toast";
 import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
+import { saveQuizConfiguration, saveQuizFields } from "@/utils/quizUtils";
 import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
@@ -15,6 +16,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { BotSubscriptionSettings } from "./bot/BotSubscriptionSettings";
 import { QuizModeSettings } from "./bot/quiz/QuizModeSettings";
 import { supabase } from "@/integrations/supabase/client";
+import { Field } from "./bot/quiz/QuizFieldBuilder";
 
 interface BotFormProps {
   bot: Bot;
@@ -74,16 +76,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     handleBotChange({ published: checked });
   };
 
-  const handleQuizModeChange = async (enabled: boolean) => {
+  const handleQuizModeChange = async (enabled: boolean, fields?: Field[]) => {
     try {
-      const { error } = await supabase
-        .from('quiz_configurations')
-        .upsert({
-          bot_id: editingBot.id,
-          enabled: enabled,
-        });
+      if (!editingBot.id) return;
 
-      if (error) throw error;
+      const quizId = await saveQuizConfiguration(editingBot.id, enabled);
+      
+      if (fields) {
+        await saveQuizFields(quizId, fields);
+      }
 
       toast({
         title: "Success",
@@ -114,15 +115,18 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         .from('quiz_configurations')
         .select('*')
         .eq('bot_id', editingBot.id)
-        .single();
+        .maybeSingle();
 
       if (quizConfig) {
-        const { error: quizError } = await supabase
-          .from('quiz_configurations')
-          .update({ enabled: quizConfig.enabled })
-          .eq('id', quizConfig.id);
+        // Get current quiz fields
+        const { data: fields } = await supabase
+          .from('quiz_fields')
+          .select('*')
+          .eq('quiz_id', quizConfig.id)
+          .order('sequence_number', { ascending: true });
 
-        if (quizError) throw quizError;
+        // Save quiz configuration and fields
+        await handleQuizModeChange(quizConfig.enabled, fields || []);
       }
 
       onSave(editingBot);

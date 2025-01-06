@@ -2,36 +2,63 @@ import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { QuizFieldBuilder } from "./QuizFieldBuilder";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Field } from "./QuizFieldBuilder";
 
 interface QuizModeSettingsProps {
   botId: string;
   enabled: boolean;
-  onEnableChange: (enabled: boolean) => void;
+  onEnableChange: (enabled: boolean, fields?: Field[]) => void;
 }
 
-export const QuizModeSettings = ({ botId, enabled: initialEnabled, onEnableChange }: QuizModeSettingsProps) => {
+export const QuizModeSettings = ({ 
+  botId, 
+  enabled: initialEnabled, 
+  onEnableChange 
+}: QuizModeSettingsProps) => {
   const { toast } = useToast();
   const [isEnabled, setIsEnabled] = useState(initialEnabled);
+  const [fields, setFields] = useState<Field[]>([]);
 
   useEffect(() => {
     setIsEnabled(initialEnabled);
   }, [initialEnabled]);
 
+  useEffect(() => {
+    if (botId) {
+      loadQuizFields();
+    }
+  }, [botId]);
+
+  const loadQuizFields = async () => {
+    try {
+      const { data: quizConfig } = await supabase
+        .from('quiz_configurations')
+        .select('*')
+        .eq('bot_id', botId)
+        .maybeSingle();
+
+      if (quizConfig) {
+        const { data: fields } = await supabase
+          .from('quiz_fields')
+          .select('*')
+          .eq('quiz_id', quizConfig.id)
+          .order('sequence_number', { ascending: true });
+
+        if (fields) {
+          setFields(fields);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading fields:', error);
+    }
+  };
+
   const handleEnableChange = async (checked: boolean) => {
     try {
-      if (checked) {
-        // Create quiz configuration when enabling
-        const { error } = await supabase
-          .from('quiz_configurations')
-          .upsert({ bot_id: botId, enabled: true });
-
-        if (error) throw error;
-      }
       setIsEnabled(checked);
-      onEnableChange(checked);
+      onEnableChange(checked, fields);
     } catch (error) {
       console.error('Error updating quiz mode:', error);
       toast({
@@ -39,6 +66,13 @@ export const QuizModeSettings = ({ botId, enabled: initialEnabled, onEnableChang
         description: "Failed to update quiz mode settings",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleFieldsChange = (newFields: Field[]) => {
+    setFields(newFields);
+    if (isEnabled) {
+      onEnableChange(true, newFields);
     }
   };
 
@@ -54,7 +88,11 @@ export const QuizModeSettings = ({ botId, enabled: initialEnabled, onEnableChang
       </div>
       
       {isEnabled && (
-        <QuizFieldBuilder botId={botId} />
+        <QuizFieldBuilder 
+          botId={botId}
+          fields={fields}
+          onFieldsChange={handleFieldsChange}
+        />
       )}
     </div>
   );
