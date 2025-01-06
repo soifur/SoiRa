@@ -22,6 +22,7 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("U");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -123,9 +124,14 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
     }
   };
 
+  const handleUpgrade = () => {
+    setShowUpgradeModal(true);
+    setOpen(false); // Close the dropdown when opening the upgrade modal
+  };
+
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <div className="p-4 hover:bg-accent/0 transition-colors cursor-pointer bg-transparent">
             <div className="flex items-center gap-3">
@@ -145,7 +151,7 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
           className={`${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-48'}`}
         >
           <ProfileMenuItems 
-            onUpgrade={() => setShowUpgradeModal(true)}
+            onUpgrade={handleUpgrade}
             onLogout={handleLogout}
           />
         </DropdownMenuContent>
