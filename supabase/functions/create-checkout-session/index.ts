@@ -21,10 +21,35 @@ serve(async (req) => {
   try {
     console.log('Starting checkout session creation...');
 
+    // Get the raw request body for logging
+    const rawBody = await req.text();
+    console.log('Raw request body:', rawBody);
+
+    // Parse the request body
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      console.error('Error parsing request body:', e);
+      throw new Error('Invalid request body format');
+    }
+
+    const { priceId } = body;
+    console.log('Received priceId:', priceId);
+
+    if (!priceId) {
+      throw new Error('Price ID is required');
+    }
+
     // Get the session or user object
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
     const token = authHeader.replace('Bearer ', '');
-    
+    console.log('Processing request for token:', token);
+
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) {
       console.error('Auth error:', userError);
@@ -32,34 +57,12 @@ serve(async (req) => {
     }
 
     const user = userData.user;
-    const email = user?.email;
-
-    if (!email) {
+    if (!user?.email) {
       console.error('No email found in user data');
       throw new Error('User email not found');
     }
 
-    console.log('Authenticated user:', email);
-
-    // Get the price ID from the request body
-    const requestBody = await req.text();
-    console.log('Raw request body:', requestBody);
-    
-    let priceId;
-    try {
-      const body = JSON.parse(requestBody);
-      priceId = body.priceId;
-    } catch (e) {
-      console.error('Error parsing request body:', e);
-      throw new Error('Invalid request body format');
-    }
-    
-    console.log('Received priceId:', priceId);
-    
-    if (!priceId) {
-      console.error('No price ID provided in request body');
-      throw new Error('Price ID is required');
-    }
+    console.log('Authenticated user:', user.email);
 
     // Check if STRIPE_SECRET_KEY is set
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
@@ -73,9 +76,9 @@ serve(async (req) => {
     });
 
     // Get or create customer
-    console.log('Looking up customer for email:', email);
+    console.log('Looking up customer for email:', user.email);
     const customers = await stripe.customers.list({
-      email: email,
+      email: user.email,
       limit: 1
     });
 
@@ -103,7 +106,7 @@ serve(async (req) => {
     console.log('Creating checkout session...');
     const session = await stripe.checkout.sessions.create({
       customer: customer_id,
-      customer_email: customer_id ? undefined : email,
+      customer_email: customer_id ? undefined : user.email,
       line_items: [
         {
           price: priceId,
@@ -132,7 +135,7 @@ serve(async (req) => {
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 400, // Changed from 500 to 400 for client errors
       }
     );
   }

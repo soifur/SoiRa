@@ -47,10 +47,10 @@ export const SubscriptionTierCard = ({
         console.error('Supabase function error:', error);
         toast({
           title: "Error",
-          description: "Failed to start checkout process. Please try again.",
+          description: error.message || "Failed to start checkout process. Please try again.",
           variant: "destructive",
         });
-        throw error;
+        return;
       }
       
       if (!data?.url) {
@@ -60,7 +60,7 @@ export const SubscriptionTierCard = ({
           description: "Invalid checkout response. Please try again.",
           variant: "destructive",
         });
-        throw new Error('No checkout URL returned');
+        return;
       }
 
       console.log('Redirecting to checkout:', data.url);
