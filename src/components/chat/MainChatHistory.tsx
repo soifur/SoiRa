@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
@@ -33,7 +34,7 @@ export const MainChatHistory = ({
   const { expandedGroups, expandedModels, toggleGroup, toggleModel } = useChatHistoryState(chatsByModelAndDate);
   const { toast } = useToast();
   
-  // Use our new hooks
+  // Use our hooks
   const sessionToken = useChatHistorySession(initialSessionToken);
   const { isMobile } = useSidebarState(isOpen, onClose);
 
@@ -51,6 +52,8 @@ export const MainChatHistory = ({
 
   const fetchChatHistory = async () => {
     try {
+      console.log("Fetching chat history with session token:", sessionToken);
+      
       let query = supabase
         .from('chat_history')
         .select(`
@@ -60,24 +63,34 @@ export const MainChatHistory = ({
             model
           )
         `)
-        .eq('deleted', 'no')
-        .order('created_at', { ascending: false });
+        .eq('deleted', 'no');
 
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        query = query.eq('user_id', user.id);
-      } 
       
-      if (sessionToken) {
-        query = user ? 
-          query.or(`user_id.eq.${user.id},session_token.eq.${sessionToken}`) :
-          query.eq('session_token', sessionToken);
+      if (user) {
+        console.log("Fetching for authenticated user:", user.id);
+        query = query.eq('user_id', user.id);
+      } else if (sessionToken) {
+        console.log("Fetching for session token:", sessionToken);
+        query = query.eq('session_token', sessionToken);
       }
+
+      if (botId) {
+        console.log("Filtering by bot ID:", botId);
+        query = query.eq('bot_id', botId);
+      }
+
+      query = query.order('created_at', { ascending: false });
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching chat history:", error);
+        throw error;
+      }
+
+      console.log("Fetched chat history:", data?.length, "records");
 
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, row: ChatHistoryRow) => {
         const modelName = row.bot?.name || 'Unknown Model';
@@ -95,6 +108,7 @@ export const MainChatHistory = ({
         return acc;
       }, {});
 
+      console.log("Grouped chat history:", grouped);
       setChatsByModelAndDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);
@@ -105,6 +119,14 @@ export const MainChatHistory = ({
       });
     }
   };
+
+  // Fetch chat history when component mounts or when session token changes
+  useEffect(() => {
+    if (sessionToken) {
+      console.log("Session token changed, fetching chat history");
+      fetchChatHistory();
+    }
+  }, [sessionToken, botId]);
 
   const handleDelete = async (chatId: string, e: React.MouseEvent) => {
     e.preventDefault();
