@@ -26,30 +26,14 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
 
   const fetchSettings = async () => {
     try {
-      console.log("Fetching settings for bot:", botId);
-      
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('role')
-        .single();
-
-      if (!userProfile) {
-        throw new Error('User profile not found');
-      }
-
-      console.log("User role:", userProfile.role);
-
       const { data, error } = await supabase
         .from('model_subscription_settings')
         .select('*')
         .eq('bot_id', botId);
 
       if (error) {
-        console.error('Error fetching settings:', error);
         throw error;
       }
-
-      console.log("Raw settings data:", data);
 
       // Create default settings for each user role
       const newSettings: ModelSubscriptionSetting[] = USER_ROLES.map(role => {
@@ -76,7 +60,6 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
         };
       });
 
-      console.log("Processed settings:", newSettings);
       setSettings(newSettings);
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -98,8 +81,6 @@ export const BotSubscriptionSettings = ({ botId }: BotSubscriptionSettingsProps)
 
   const handleSave = async () => {
     try {
-      console.log("Saving settings:", settings);
-      
       // First, delete existing settings for this bot
       const { error: deleteError } = await supabase
         .from('model_subscription_settings')
