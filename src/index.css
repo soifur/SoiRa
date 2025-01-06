@@ -20,7 +20,7 @@
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
+    --border: 240 5.9% 90%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
@@ -68,4 +68,43 @@ body {
 /* Remove smooth scrolling which can interfere with theme toggle */
 * {
   scroll-behavior: auto !important;
+}
+
+/* Light mode overrides */
+:root {
+  --sidebar-bg: 240 5.9% 95%;
+  --sidebar-hover: 240 5.9% 90%;
+}
+
+.dark {
+  --sidebar-bg: var(--background);
+  --sidebar-hover: var(--dropdown-hover);
+}
+
+/* Update MainChatHistory sidebar styles */
+.fixed.top-0.left-0.h-screen {
+  @apply bg-[hsl(var(--sidebar-bg))] border-0;
+}
+
+/* Update hover states */
+.hover\:bg-accent {
+  @apply hover:bg-[hsl(var(--sidebar-hover))];
+}
+
+.hover\:bg-accent\/50 {
+  @apply hover:bg-[hsl(var(--sidebar-hover))];
+}
+
+/* Remove borders in light mode */
+.light .border-r,
+.light .border-b,
+.light .border-t {
+  @apply border-0;
+}
+
+/* Keep dark mode borders */
+.dark .border-r,
+.dark .border-b,
+.dark .border-t {
+  @apply border-border;
 }
