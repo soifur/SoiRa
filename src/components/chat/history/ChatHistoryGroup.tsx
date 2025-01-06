@@ -48,7 +48,7 @@ export const ChatHistoryGroup = ({
         )}>
           {label}
         </h3>
-        <div className="px-3 space-y-2">
+        <div className="space-y-2">
           {chats.map((chat) => (
             <ChatHistoryItem
               key={chat.id}
@@ -105,7 +105,7 @@ export const ChatHistoryGroup = ({
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="px-3 space-y-2 mt-2">
+      <CollapsibleContent className="space-y-2 mt-2">
         {children}
         {chats.map((chat) => (
           <ChatHistoryItem
