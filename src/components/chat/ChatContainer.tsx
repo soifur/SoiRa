@@ -14,6 +14,7 @@ interface ChatContainerProps {
   disabled?: boolean;
   disabledReason?: string;
   onUpgradeClick?: () => void;
+  showHistory?: boolean;
 }
 
 export const ChatContainer = ({
