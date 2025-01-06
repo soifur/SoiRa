@@ -40,7 +40,7 @@ export const useBotProvider = () => {
         .from('shared_bots')
         .select(`
           *,
-          bot_api_keys (
+          bot_api_keys!inner (
             api_key
           )
         `)
@@ -49,13 +49,15 @@ export const useBotProvider = () => {
 
       if (sharedBotsError) throw sharedBotsError;
 
+      console.log("Shared bots with API keys:", sharedBots);
+
       const transformedSharedBots: Bot[] = sharedBots.map(shared => ({
         id: shared.share_key,
         name: shared.bot_name,
         instructions: shared.instructions || "",
         starters: shared.starters || [],
         model: shared.model as Bot['model'],
-        apiKey: shared.bot_api_keys?.[0]?.api_key || "",
+        apiKey: shared.bot_api_keys[0]?.api_key || "",
         openRouterModel: shared.open_router_model,
         avatar: shared.avatar,
         accessType: "public",
