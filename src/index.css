@@ -73,9 +73,9 @@ body {
 /* Light mode overrides */
 :root {
   --sidebar-bg: 240 5.9% 95%;
-  --sidebar-hover: 240 5.9% 90%;
+  --sidebar-hover: 0 0% 56%;  /* #8e8e8e */
   --button-bg: 240 5.9% 95%;
-  --button-hover: 240 5.9% 90%;
+  --button-hover: 0 0% 56%;  /* #8e8e8e */
 }
 
 .dark {
@@ -111,4 +111,17 @@ body {
 .dark .border-b,
 .dark .border-t {
   @apply border-border;
+}
+
+/* Make avatar background transparent */
+.avatar-container {
+  @apply bg-transparent;
+}
+
+[role="menuitem"] .avatar {
+  @apply bg-transparent;
+}
+
+.avatar {
+  @apply bg-transparent;
 }
