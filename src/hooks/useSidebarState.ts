@@ -15,8 +15,9 @@ export const useSidebarState = (isOpen: boolean, onClose: () => void) => {
       const savedCookieState = Cookies.get(SIDEBAR_COOKIE_NAME);
       const savedLocalStorageState = localStorage.getItem(SIDEBAR_LOCALSTORAGE_KEY);
       
-      // If either storage indicates the sidebar should be closed
-      if ((savedCookieState === '0' || savedLocalStorageState === 'true') && isOpen) {
+      // Only close if both storages indicate it should be closed
+      const shouldBeClosed = savedCookieState === '0' && savedLocalStorageState === 'true';
+      if (shouldBeClosed && isOpen) {
         onClose();
       }
     }
@@ -25,14 +26,14 @@ export const useSidebarState = (isOpen: boolean, onClose: () => void) => {
   // Persist sidebar state in both cookie and localStorage for desktop only
   useEffect(() => {
     if (!isMobile && typeof window !== 'undefined') {
-      // Update cookie
+      // Update cookie (1 for open, 0 for closed)
       Cookies.set(SIDEBAR_COOKIE_NAME, isOpen ? '1' : '0', { 
         expires: COOKIE_EXPIRES,
         sameSite: 'Lax',
         secure: false
       });
 
-      // Update localStorage
+      // Update localStorage (true for collapsed/closed, false for open)
       localStorage.setItem(SIDEBAR_LOCALSTORAGE_KEY, (!isOpen).toString());
     }
   }, [isOpen, isMobile]);
