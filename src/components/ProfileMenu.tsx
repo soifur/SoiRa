@@ -127,37 +127,41 @@ export const ProfileMenu = () => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Avatar className="h-8 w-8">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-12 w-12 p-1 hover:bg-accent transition-colors"
+          >
+            <Avatar className="h-10 w-10">
               <AvatarImage 
                 src={avatarUrl || ''} 
                 alt="Profile" 
                 className="object-cover"
               />
-              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+              <AvatarFallback className="text-base">{initials}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem 
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          className="flex items-center gap-2 px-3 py-2.5"
-        >
-          {theme === "light" ? (
-            <Moon className="h-4 w-4" />
-          ) : (
-            <Sun className="h-4 w-4" />
-          )}
-          {theme === "light" ? "Dark Mode" : "Light Mode"}
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => navigate('/settings')}
-          className="flex items-center gap-2 px-3 py-2.5"
-        >
-          <Settings className="h-4 w-4" />
-          Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="my-1" />
+          <DropdownMenuItem 
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            className="flex items-center gap-2 px-3 py-2.5"
+          >
+            {theme === "light" ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
+            {theme === "light" ? "Dark Mode" : "Light Mode"}
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={() => navigate('/settings')}
+            className="flex items-center gap-2 px-3 py-2.5"
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="my-1" />
           <DropdownMenuItem 
             onClick={() => setShowUpgradeModal(true)}
             className="flex items-center gap-2 px-3 py-2.5"
