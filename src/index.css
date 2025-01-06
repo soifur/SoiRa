@@ -73,9 +73,9 @@ body {
 /* Light mode overrides */
 :root {
   --sidebar-bg: 240 5.9% 95%;
-  --sidebar-hover: 0 0% 67%;  /* Updated to #aaaaaa */
+  --sidebar-hover: 0 0% 92%;  /* Updated to much lighter - around #eaeaea */
   --button-bg: 240 5.9% 95%;
-  --button-hover: 0 0% 67%;  /* Updated to #aaaaaa */
+  --button-hover: 0 0% 92%;  /* Updated to much lighter - around #eaeaea */
 }
 
 /* Make avatar background transparent */
