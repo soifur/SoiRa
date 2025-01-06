@@ -11,6 +11,7 @@ interface SubscriptionTierProps {
   price: number;
   features: string[];
   isComingSoon?: boolean;
+  isCurrentPlan?: boolean;
   onSelect: () => void;
   priceId?: string;
 }
@@ -21,6 +22,7 @@ export const SubscriptionTierCard = ({
   price,
   features,
   isComingSoon,
+  isCurrentPlan,
   onSelect,
   priceId,
 }: SubscriptionTierProps) => {
@@ -52,8 +54,6 @@ export const SubscriptionTierCard = ({
       return data;
     }
   });
-
-  const isCurrentPlan = currentSubscription?.subscription_tiers?.name === name;
 
   const handleUpgrade = async () => {
     if (!priceId) {
