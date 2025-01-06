@@ -6,6 +6,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChatHistoryItem } from "./ChatHistoryItem";
+import { DateGroup } from "@/utils/dateUtils";
 import { cn } from "@/lib/utils";
 
 interface ChatHistoryGroupProps {
@@ -18,7 +19,6 @@ interface ChatHistoryGroupProps {
   onDeleteChat: (chatId: string, e: React.MouseEvent) => void;
   isModelGroup?: boolean;
   children?: React.ReactNode;
-  className?: string;
 }
 
 export const ChatHistoryGroup = ({
@@ -31,7 +31,6 @@ export const ChatHistoryGroup = ({
   onDeleteChat,
   isModelGroup = false,
   children,
-  className,
 }: ChatHistoryGroupProps) => {
   const getChatTitle = (messages: any[]) => {
     const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
@@ -39,33 +38,51 @@ export const ChatHistoryGroup = ({
     return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
   };
 
+  // Calculate total chats including nested date groups
+  const getTotalChats = () => {
+    if (!isModelGroup) return chats.length;
+    
+    // For model groups, we need to count all chats in child date groups
+    let total = chats.length; // Direct chats in the model group
+    
+    // Count chats in child elements (date groups)
+    React.Children.forEach(children, (child) => {
+      if (React.isValidElement(child) && child.props.chats) {
+        total += child.props.chats.length;
+      }
+    });
+    
+    return total;
+  };
+
   if (chats.length === 0 && !children) return null;
+
+  const totalChats = getTotalChats();
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className={cn(
-        "flex items-center w-full py-1 px-2 rounded-lg", // Reduced padding
+        "flex items-center w-full p-2 rounded-lg",
         "hover:bg-accent/50 dark:hover:bg-accent",
         "text-foreground/80 hover:text-foreground",
-        isModelGroup && "font-semibold",
-        className
+        isModelGroup && "font-semibold"
       )}>
         {isExpanded ? (
-          <ChevronDown className="h-3 w-3 mr-1 text-muted-foreground" /> // Reduced icon size and margin
+          <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />
         ) : (
-          <ChevronRight className="h-3 w-3 mr-1 text-muted-foreground" /> // Reduced icon size and margin
+          <ChevronRight className="h-4 w-4 mr-2 text-muted-foreground" />
         )}
         <span className={cn(
-          "font-medium truncate",
+          "font-medium",
           isModelGroup && "text-primary"
         )}>{label}</span>
-        {(chats.length > 0 || (children && isModelGroup)) && (
-          <span className="ml-1 text-xs text-muted-foreground">
-            ({chats.length || 0})
+        {totalChats > 0 && (
+          <span className="ml-2 text-xs text-muted-foreground">
+            ({totalChats})
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-2 space-y-1 mt-1"> {/* Reduced spacing */}
+      <CollapsibleContent className="pl-4 space-y-2 mt-2">
         {children}
         {chats.map((chat) => (
           <ChatHistoryItem

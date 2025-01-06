@@ -1,16 +1,14 @@
 import { History, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface ChatHistoryHeaderProps {
   onNewChat: () => void;
   onClose: () => void;
-  className?: string;
 }
 
-export const ChatHistoryHeader = ({ onNewChat, onClose, className }: ChatHistoryHeaderProps) => {
+export const ChatHistoryHeader = ({ onNewChat, onClose }: ChatHistoryHeaderProps) => {
   return (
-    <div className={cn("flex-none p-4 border-b", className)}>
+    <div className="flex-none p-4 border-b">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <History className="w-5 h-5" />
