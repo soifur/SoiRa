@@ -73,9 +73,9 @@ body {
 /* Light mode overrides */
 :root {
   --sidebar-bg: 240 5.9% 95%;
-  --sidebar-hover: 0 0% 60%;  /* Updated to 60% for darker grey */
+  --sidebar-hover: 0 0% 55%;  /* Darker grey */
   --button-bg: 240 5.9% 95%;
-  --button-hover: 0 0% 60%;  /* Updated to 60% for darker grey */
+  --button-hover: 0 0% 55%;  /* Darker grey */
 }
 
 .dark {
@@ -115,11 +115,11 @@ body {
 
 /* Make avatar background transparent */
 .avatar-container {
-  @apply bg-transparent;
+  @apply bg-transparent !important;
 }
 
 [role="menuitem"] .avatar {
-  @apply bg-transparent;
+  @apply bg-transparent !important;
 }
 
 .avatar {
@@ -132,5 +132,22 @@ body {
 }
 
 .avatar-fallback {
+  @apply bg-transparent !important;
+}
+
+/* Ensure transparent background for all avatar-related elements */
+span[class*="overflow-hidden rounded-full"] {
+  @apply bg-transparent !important;
+}
+
+/* Force transparent background on avatar images */
+.avatar img,
+span[class*="overflow-hidden rounded-full"] img {
+  @apply bg-transparent !important;
+}
+
+/* Override any Radix UI default backgrounds */
+[data-radix-popper-content-wrapper] .avatar,
+[data-radix-popper-content-wrapper] span[class*="overflow-hidden rounded-full"] {
   @apply bg-transparent !important;
 }
