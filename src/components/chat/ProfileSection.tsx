@@ -33,30 +33,38 @@ export const ProfileSection = ({ showViewPlans = false }: ProfileSectionProps) =
 
   return (
     <>
-      <div className="flex flex-col p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         {showViewPlans && (
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm text-muted-foreground">
-              Unlimited access, team features, and more
+          <button
+            onClick={() => setShowUpgradeModal(true)}
+            className="w-full p-4 text-left hover:bg-accent/50 transition-colors border-b"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="text-sm text-muted-foreground">
+                  Unlimited access, team features, and more
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                View plans
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={() => setShowUpgradeModal(true)}
-            >
-              View plans
-            </Button>
-          </div>
+          </button>
         )}
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-10 h-10">
-            <ProfileMenu />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">
-              {fullName}
-            </span>
+        <div className="p-4 hover:bg-accent/50 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10">
+              <ProfileMenu />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">
+                {fullName}
+              </span>
+            </div>
           </div>
         </div>
       </div>
