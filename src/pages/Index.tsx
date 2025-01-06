@@ -121,12 +121,6 @@ const Index = () => {
     }
   };
 
-  const handleCloseUpgradeModal = () => {
-    setShowUpgradeModal(false);
-    // Ensure we remove any lingering pointer-events styles
-    document.body.style.removeProperty('pointer-events');
-  };
-
   const LimitExceededMessage = () => (
     <div className="fixed bottom-24 left-0 right-0 p-4 bg-destructive/10 backdrop-blur">
       <div className="max-w-3xl mx-auto flex items-center justify-between">
@@ -192,7 +186,7 @@ const Index = () => {
       </Card>
       <UpgradeModal 
         isOpen={showUpgradeModal} 
-        onClose={handleCloseUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)} 
       />
     </div>
   );

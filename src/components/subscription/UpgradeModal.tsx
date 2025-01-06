@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SubscriptionTierCard } from "./SubscriptionTierCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -26,6 +27,24 @@ interface SubscriptionTier {
 
 export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const { data: currentSubscription } = useQuery({
     queryKey: ['currentSubscription'],
@@ -74,7 +93,18 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
+      <DialogContent 
+        className={`
+          w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6
+          ${isMobile ? 'z-[300]' : ''}
+        `}
+        onPointerDownOutside={(e) => {
+          e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
             Choose Your Plan
