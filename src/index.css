@@ -78,6 +78,28 @@ body {
   --button-hover: 0 0% 65%;  /* Updated to #a5a5a5 */
 }
 
+/* Make avatar background transparent */
+.avatar-container,
+[role="menuitem"] .avatar,
+.avatar,
+.avatar > *,
+.avatar-fallback,
+span[class*="overflow-hidden rounded-full"],
+span[class*="overflow-hidden rounded-full"] img,
+[data-radix-popper-content-wrapper] .avatar,
+[data-radix-popper-content-wrapper] span[class*="overflow-hidden rounded-full"],
+.relative.flex.shrink-0.overflow-hidden.rounded-full {
+  @apply bg-transparent !important;
+}
+
+/* Override any Radix UI or other library defaults */
+.avatar img,
+.avatar-fallback,
+.relative.flex.shrink-0.overflow-hidden.rounded-full img {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
 .dark {
   --sidebar-bg: var(--background);
   --sidebar-hover: var(--dropdown-hover);
