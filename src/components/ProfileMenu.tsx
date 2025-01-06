@@ -1,18 +1,14 @@
-import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Sun, Moon, Settings, LogOut, CreditCard } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useEffect, useState } from "react";
+import { ProfileAvatar } from "./profile/ProfileAvatar";
+import { ProfileMenuItems } from "./profile/ProfileMenuItems";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -21,7 +17,6 @@ interface ProfileMenuProps {
 }
 
 export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
-  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -132,18 +127,9 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+          <div className="p-4 hover:bg-accent/50 transition-colors cursor-pointer bg-transparent">
             <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 w-10 h-10">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage 
-                    src={avatarUrl || ''} 
-                    alt="Profile" 
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="text-base">{initials}</AvatarFallback>
-                </Avatar>
-              </div>
+              <ProfileAvatar avatarUrl={avatarUrl} initials={initials} />
               {fullName && (
                 <div className="flex flex-col">
                   <span className="text-sm font-medium leading-none">
@@ -158,40 +144,10 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
           align="end" 
           className={`${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-48'}`}
         >
-          <DropdownMenuItem 
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="flex items-center gap-2 px-3 py-2.5"
-          >
-            {theme === "light" ? (
-              <Moon className="h-4 w-4" />
-            ) : (
-              <Sun className="h-4 w-4" />
-            )}
-            {theme === "light" ? "Dark Mode" : "Light Mode"}
-          </DropdownMenuItem>
-          <DropdownMenuItem 
-            onClick={() => navigate('/settings')}
-            className="flex items-center gap-2 px-3 py-2.5"
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </DropdownMenuItem>
-          <DropdownMenuSeparator className="my-1" />
-          <DropdownMenuItem 
-            onClick={() => setShowUpgradeModal(true)}
-            className="flex items-center gap-2 px-3 py-2.5"
-          >
-            <CreditCard className="h-4 w-4" />
-            Upgrade Plan
-          </DropdownMenuItem>
-          <DropdownMenuSeparator className="my-1" />
-          <DropdownMenuItem 
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-3 py-2.5"
-          >
-            <LogOut className="h-4 w-4" />
-            Log Out
-          </DropdownMenuItem>
+          <ProfileMenuItems 
+            onUpgrade={() => setShowUpgradeModal(true)}
+            onLogout={handleLogout}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
       <UpgradeModal 
