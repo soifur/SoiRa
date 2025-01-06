@@ -73,9 +73,9 @@ body {
 /* Light mode overrides */
 :root {
   --sidebar-bg: 240 5.9% 95%;
-  --sidebar-hover: 0 0% 92%;  /* Updated to much lighter - around #eaeaea */
+  --sidebar-hover: 0 0% 85%;  /* Updated to 85% lightness */
   --button-bg: 240 5.9% 95%;
-  --button-hover: 0 0% 92%;  /* Updated to much lighter - around #eaeaea */
+  --button-hover: 0 0% 85%;  /* Updated to 85% lightness */
 }
 
 /* Make avatar background transparent */
@@ -100,6 +100,7 @@ span[class*="overflow-hidden rounded-full"] img,
   background: transparent !important;
 }
 
+/* Dark mode overrides */
 .dark {
   --sidebar-bg: var(--background);
   --sidebar-hover: var(--dropdown-hover);
