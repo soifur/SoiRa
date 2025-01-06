@@ -126,10 +126,9 @@ export const SubscriptionTierCard = ({
   // Hide upgrade button for free tier if user is already paid
   const shouldShowUpgradeButton = !isPaidUser || (name !== 'Free' && !isCurrentPlan);
 
-  const getButtonText = () => {
-    if (isComingSoon) return "Coming Soon";
-    if (isCurrentPlan || (isPaidUser && name === "Plus")) return "Manage Subscription";
-    return "Upgrade";
+  const handleManageSubscription = () => {
+    navigate('/settings?tab=subscription');
+    onSelect();
   };
 
   return (
@@ -153,16 +152,40 @@ export const SubscriptionTierCard = ({
         ))}
       </ul>
       
-      {shouldShowUpgradeButton && (
+      {shouldShowUpgradeButton ? (
         <Button
           onClick={handleUpgrade}
           variant={isCurrentPlan ? "outline" : "default"}
           disabled={isComingSoon || !priceId}
-          className="w-full text-sm md:text-base"
+          className="w-full text-sm md:text-base mb-4"
         >
-          {getButtonText()}
+          {isComingSoon ? "Coming Soon" : "Upgrade"}
         </Button>
-      )}
+      ) : isCurrentPlan ? (
+        <>
+          <Button
+            variant="secondary"
+            className="w-full text-sm md:text-base mb-4"
+            disabled
+          >
+            Your current plan
+          </Button>
+          <div className="space-y-2 text-sm text-center">
+            <button
+              onClick={handleManageSubscription}
+              className="text-primary hover:underline"
+            >
+              Manage my subscription
+            </button>
+            <button
+              onClick={() => {}} // TODO: Implement billing support
+              className="block w-full text-muted-foreground hover:text-foreground"
+            >
+              I need help with a billing issue
+            </button>
+          </div>
+        </>
+      ) : null}
     </Card>
   );
 };
