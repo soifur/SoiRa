@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,6 +27,7 @@ interface MainChatHeaderProps {
   onSignOut?: () => void;
   onToggleHistory?: () => void;
   showHistory?: boolean;
+  onQuizComplete?: (instructions: string) => void;
 }
 
 export const MainChatHeader = ({
@@ -37,14 +38,12 @@ export const MainChatHeader = ({
   onSignOut,
   onToggleHistory,
   showHistory,
+  onQuizComplete
 }: MainChatHeaderProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
   const isChat = location.pathname === '/';
-  const [showQuizModal, setShowQuizModal] = useState(false);
-
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
@@ -77,10 +76,6 @@ export const MainChatHeader = ({
       setUniqueBots(Array.from(botsMap.values()));
     }
   }, [bots]);
-
-  const handleStartQuiz = () => {
-    setShowQuizModal(true);
-  };
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -117,7 +112,13 @@ export const MainChatHeader = ({
                           ))}
                         </SelectContent>
                       </Select>
-                      {selectedBotId && <QuizButton botId={selectedBotId} onStartQuiz={handleStartQuiz} />}
+                      {selectedBotId && (
+                        <QuizButton 
+                          botId={selectedBotId} 
+                          onStartQuiz={() => {}} 
+                          onQuizComplete={onQuizComplete}
+                        />
+                      )}
                     </>
                   )}
 
@@ -172,7 +173,13 @@ export const MainChatHeader = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    {selectedBotId && <QuizButton botId={selectedBotId} onStartQuiz={handleStartQuiz} />}
+                    {selectedBotId && (
+                      <QuizButton 
+                        botId={selectedBotId} 
+                        onStartQuiz={() => {}} 
+                        onQuizComplete={onQuizComplete}
+                      />
+                    )}
                   </>
                 )}
               </div>

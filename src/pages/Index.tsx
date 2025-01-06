@@ -143,6 +143,22 @@ const Index = () => {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
+  const handleQuizComplete = async (quizInstructions: string) => {
+    if (!selectedBot) return;
+
+    // Get original bot instructions
+    const { data: bot } = await supabase
+      .from('bots')
+      .select('instructions')
+      .eq('id', selectedBot.id)
+      .single();
+
+    const combinedInstructions = `${bot?.instructions || ''} ${quizInstructions}`.trim();
+    
+    // Send initial message with combined instructions
+    await handleSendMessage("Let's start");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Card className="w-full h-[100dvh] overflow-hidden relative">
@@ -156,6 +172,7 @@ const Index = () => {
               onSignOut={handleSignOut}
               onToggleHistory={toggleHistory}
               showHistory={showHistory}
+              onQuizComplete={handleQuizComplete}
             />
             <MainChatHistory
               sessionToken={sessionToken}
