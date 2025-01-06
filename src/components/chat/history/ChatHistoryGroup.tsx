@@ -43,12 +43,12 @@ export const ChatHistoryGroup = ({
     return (
       <div className="space-y-2">
         <h3 className={cn(
-          "font-bold text-foreground/70 px-3", // Adjusted padding to match model group
+          "font-bold text-foreground/70 px-3",
           isMobile ? "text-base" : "text-xs"
         )}>
           {label}
         </h3>
-        <div className="space-y-2">
+        <div className="px-3 space-y-2">
           {chats.map((chat) => (
             <ChatHistoryItem
               key={chat.id}
@@ -105,7 +105,7 @@ export const ChatHistoryGroup = ({
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-3 space-y-2 mt-2">
+      <CollapsibleContent className="px-3 space-y-2 mt-2">
         {children}
         {chats.map((chat) => (
           <ChatHistoryItem
