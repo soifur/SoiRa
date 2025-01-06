@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ProfileSection } from "./ProfileSection";
-import { useQuery } from "@tanstack/react-query";
-import { UserRole } from "@/types/user";
-import { ChatsByModelAndDate, MainChatHistoryProps, Chat } from "./history/types";
-import { Database } from "@/integrations/supabase/types";
-import { useChatHistoryState } from "./history/ChatHistoryState";
 import { ChatHistoryContent } from "./history/ChatHistoryContent";
+import { useChatHistoryState } from "./history/ChatHistoryState";
+import { ChatHistoryContainer } from "./history/ChatHistoryContainer";
+import { ChatsByModelAndDate, MainChatHistoryProps, Chat } from "./history/types";
 import { getDateGroup } from "@/utils/dateUtils";
+import { Database } from "@/integrations/supabase/types";
 
 type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   bot: {
@@ -35,28 +33,20 @@ export const MainChatHistory = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  const convertToChat = (row: ChatHistoryRow): Chat => {
-    return {
-      id: row.id,
-      created_at: row.created_at || '',
-      updated_at: row.updated_at || '',
-      deleted: row.deleted || 'no',
-      user_id: row.user_id || '',
-      session_token: row.session_token || '',
-      bot_id: row.bot_id,
-      messages: (typeof row.messages === 'string' ? 
-        JSON.parse(row.messages) : row.messages) || []
-    };
-  };
-
-  useEffect(() => {
-    fetchChatHistory();
-  }, [sessionToken, botId]);
+  const convertToChat = (row: ChatHistoryRow): Chat => ({
+    id: row.id,
+    created_at: row.created_at || '',
+    updated_at: row.updated_at || '',
+    deleted: row.deleted || 'no',
+    user_id: row.user_id || '',
+    session_token: row.session_token || '',
+    bot_id: row.bot_id,
+    messages: (typeof row.messages === 'string' ? 
+      JSON.parse(row.messages) : row.messages) || []
+  });
 
   const fetchChatHistory = async () => {
     try {
-      console.log("Fetching chat history with sessionToken:", sessionToken);
-      
       let query = supabase
         .from('chat_history')
         .select(`
@@ -70,27 +60,20 @@ export const MainChatHistory = ({
         .order('created_at', { ascending: false });
 
       const { data: { user } } = await supabase.auth.getUser();
-      console.log("Current user:", user);
 
       if (user) {
-        console.log("Fetching chats for authenticated user:", user.id);
         query = query.eq('user_id', user.id);
       } 
       
       if (sessionToken) {
-        console.log("Adding session token condition:", sessionToken);
         query = user ? 
           query.or(`user_id.eq.${user.id},session_token.eq.${sessionToken}`) :
           query.eq('session_token', sessionToken);
       }
 
       const { data, error } = await query;
-      console.log("Fetched chat history:", data);
 
-      if (error) {
-        console.error("Error in fetchChatHistory:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, row: ChatHistoryRow) => {
         const modelName = row.bot?.name || 'Unknown Model';
@@ -108,7 +91,6 @@ export const MainChatHistory = ({
         return acc;
       }, {});
 
-      console.log("Grouped chat history:", grouped);
       setChatsByModelAndDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);
@@ -120,9 +102,14 @@ export const MainChatHistory = ({
     }
   };
 
+  useEffect(() => {
+    fetchChatHistory();
+  }, [sessionToken, botId]);
+
   const handleDelete = async (chatId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
     try {
       const { error } = await supabase
         .from('chat_history')
@@ -150,7 +137,6 @@ export const MainChatHistory = ({
   const handleSelectChat = async (chatId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("Selecting chat:", chatId);
     
     try {
       const { data: chat, error } = await supabase
@@ -161,12 +147,13 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
-      if (chat && chat.bot_id) {
-        console.log("Setting selected bot ID:", chat.bot_id);
+      if (chat?.bot_id) {
         setSelectedBotId(chat.bot_id);
       }
 
       onSelectChat(chatId);
+      
+      // Only close on mobile after successful selection
       if (isMobile) {
         onClose();
       }
@@ -180,22 +167,8 @@ export const MainChatHistory = ({
     }
   };
 
-  const handleMainClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
   return (
-    <div 
-      className={cn(
-        "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
-        "dark:bg-zinc-950",
-        "light:bg-white light:border-gray-200",
-        isOpen ? "translate-x-0" : "-translate-x-full",
-        isMobile ? "w-full" : "w-80"
-      )}
-      onClick={handleMainClick}
-    >
+    <ChatHistoryContainer isOpen={isOpen}>
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         
@@ -217,6 +190,6 @@ export const MainChatHistory = ({
           <ProfileSection showViewPlans={isMobile} onClose={onClose} />
         </div>
       </div>
-    </div>
+    </ChatHistoryContainer>
   );
 };

@@ -34,8 +34,12 @@ export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectio
     .filter(Boolean)
     .join(' ') || userProfile?.email?.split('@')[0] || 'User';
 
-  const handleViewPlans = () => {
-    if (onClose) {
+  const handleViewPlans = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Only close the sidebar on mobile when viewing plans
+    if (isMobile && onClose) {
       onClose();
     }
     setShowUpgradeModal(true);
@@ -43,7 +47,13 @@ export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectio
 
   return (
     <>
-      <div className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div 
+        className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      >
         {showViewPlans && (
           <button
             onClick={handleViewPlans}
