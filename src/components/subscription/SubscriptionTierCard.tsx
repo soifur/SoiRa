@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 interface SubscriptionTierProps {
   name: string;
@@ -10,7 +11,6 @@ interface SubscriptionTierProps {
   price: number;
   features: string[];
   isComingSoon?: boolean;
-  isCurrentPlan?: boolean;
   onSelect: () => void;
   priceId?: string;
 }
@@ -21,11 +21,39 @@ export const SubscriptionTierCard = ({
   price,
   features,
   isComingSoon,
-  isCurrentPlan,
   onSelect,
   priceId,
 }: SubscriptionTierProps) => {
   const { toast } = useToast();
+
+  const { data: currentSubscription } = useQuery({
+    queryKey: ['currentSubscription'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('user_subscriptions')
+        .select(`
+          id,
+          status,
+          subscription_tiers (
+            name
+          )
+        `)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching subscription:', error);
+        return null;
+      }
+
+      return data;
+    }
+  });
+
+  const isCurrentPlan = currentSubscription?.subscription_tiers?.name === name;
 
   const handleUpgrade = async () => {
     if (!priceId) {

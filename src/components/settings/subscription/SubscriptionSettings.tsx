@@ -43,7 +43,7 @@ export const SubscriptionSettings = () => {
           )
         `)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as UserSubscription;
