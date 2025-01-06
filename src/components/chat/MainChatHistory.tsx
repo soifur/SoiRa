@@ -19,7 +19,7 @@ type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   };
 };
 
-const SIDEBAR_COOKIE_NAME = 'sidebar_state';
+const SIDEBAR_COOKIE_NAME = 'oai-nav-state';
 const COOKIE_EXPIRES = 365; // Cookie expires in 365 days
 
 export const MainChatHistory = ({
@@ -41,7 +41,7 @@ export const MainChatHistory = ({
   useEffect(() => {
     if (!isMobile && typeof window !== 'undefined') {
       const savedState = Cookies.get(SIDEBAR_COOKIE_NAME);
-      if (savedState === 'open' && !isOpen) {
+      if (savedState === '1' && !isOpen) {
         onClose(); // Only trigger if it should be open
       }
     }
@@ -50,10 +50,10 @@ export const MainChatHistory = ({
   // Persist sidebar state in cookie for desktop only
   useEffect(() => {
     if (!isMobile && typeof window !== 'undefined') {
-      Cookies.set(SIDEBAR_COOKIE_NAME, isOpen ? 'open' : 'closed', { 
+      Cookies.set(SIDEBAR_COOKIE_NAME, isOpen ? '1' : '0', { 
         expires: COOKIE_EXPIRES,
-        sameSite: 'Strict',
-        secure: true
+        sameSite: 'Lax',
+        secure: false
       });
     }
   }, [isOpen, isMobile]);
