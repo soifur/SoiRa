@@ -6,9 +6,10 @@ import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 
 interface ProfileSectionProps {
   showViewPlans?: boolean;
+  onClose?: () => void;
 }
 
-export const ProfileSection = ({ showViewPlans = false }: ProfileSectionProps) => {
+export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectionProps) => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -31,24 +32,31 @@ export const ProfileSection = ({ showViewPlans = false }: ProfileSectionProps) =
     .filter(Boolean)
     .join(' ') || userProfile?.email?.split('@')[0] || 'User';
 
+  const handleViewPlans = () => {
+    if (onClose) {
+      onClose();
+    }
+    setShowUpgradeModal(true);
+  };
+
   return (
     <>
       <div className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         {showViewPlans && (
           <button
-            onClick={() => setShowUpgradeModal(true)}
+            onClick={handleViewPlans}
             className="w-full p-4 text-left hover:bg-accent/50 transition-colors border-b"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <span className="text-sm text-muted-foreground leading-none">
                   Unlimited access, team features, and more
-                </div>
+                </span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground ml-2"
               >
                 View plans
               </Button>
@@ -61,7 +69,7 @@ export const ProfileSection = ({ showViewPlans = false }: ProfileSectionProps) =
               <ProfileMenu />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium leading-none">
                 {fullName}
               </span>
             </div>

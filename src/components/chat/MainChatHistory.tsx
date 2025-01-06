@@ -362,7 +362,7 @@ export const MainChatHistory = ({
         </ScrollArea>
         
         <div className="mt-auto border-t border-border">
-          <ProfileSection showViewPlans={isMobile} />
+          <ProfileSection showViewPlans={isMobile} onClose={onClose} />
         </div>
       </div>
     </div>
