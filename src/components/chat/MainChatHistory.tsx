@@ -77,8 +77,7 @@ export const MainChatHistory = ({
       console.log("Raw chat history data:", data);
 
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
-        // Use the bot's name as the model name, or the model type if name is not available
-        const modelName = chat.bot?.name || chat.bot?.model || 'Unknown Bot';
+        const modelName = chat.bot?.model || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
         
         if (!acc[modelName]) {
