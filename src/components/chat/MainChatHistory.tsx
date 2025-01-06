@@ -20,10 +20,11 @@ type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
 };
 
 const SIDEBAR_COOKIE_NAME = 'oai-nav-state';
+const SESSION_TOKEN_COOKIE = '_chat_session';
 const COOKIE_EXPIRES = 365; // Cookie expires in 365 days
 
 export const MainChatHistory = ({
-  sessionToken,
+  sessionToken: initialSessionToken,
   botId,
   onSelectChat,
   onNewChat,
@@ -36,15 +37,37 @@ export const MainChatHistory = ({
   const { expandedGroups, expandedModels, toggleGroup, toggleModel } = useChatHistoryState(chatsByModelAndDate);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [sessionToken, setSessionToken] = useState<string | null>(initialSessionToken);
 
-  // Initialize sidebar state from cookie on mount
+  // Initialize session token and sidebar state from cookies on mount
   useEffect(() => {
-    if (!isMobile && typeof window !== 'undefined') {
-      const savedState = Cookies.get(SIDEBAR_COOKIE_NAME);
-      if (savedState === '1' && !isOpen) {
-        onClose(); // Only trigger if it should be open
+    const initializeSessionToken = async () => {
+      if (typeof window !== 'undefined') {
+        // Handle session token for all users
+        let token = Cookies.get(SESSION_TOKEN_COOKIE);
+        if (!token) {
+          const { data: { user } } = await supabase.auth.getUser();
+          token = user?.id || initialSessionToken;
+          if (token) {
+            Cookies.set(SESSION_TOKEN_COOKIE, token, { 
+              expires: COOKIE_EXPIRES,
+              sameSite: 'Lax',
+              secure: false
+            });
+          }
+        }
+        setSessionToken(token);
+
+        // Handle sidebar state (desktop only)
+        if (!isMobile) {
+          const savedState = Cookies.get(SIDEBAR_COOKIE_NAME);
+          if (savedState === '1' && !isOpen) {
+            onClose(); // Only trigger if it should be open
+          }
+        }
       }
-    }
+    };
+    initializeSessionToken();
   }, []);
 
   // Persist sidebar state in cookie for desktop only
