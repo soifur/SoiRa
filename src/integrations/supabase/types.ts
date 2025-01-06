@@ -476,6 +476,7 @@ export type Database = {
           created_at: string | null
           id: string
           quiz_id: string | null
+          quiz_mode: boolean | null
           responses: Json | null
           updated_at: string | null
           user_id: string | null
@@ -485,6 +486,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           quiz_id?: string | null
+          quiz_mode?: boolean | null
           responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
@@ -494,6 +496,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           quiz_id?: string | null
+          quiz_mode?: boolean | null
           responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
@@ -514,7 +517,6 @@ export type Database = {
           avatar: string | null
           bot_id: string
           bot_name: string
-          combined_responses: string | null
           created_at: string | null
           expires_at: string | null
           id: string
@@ -536,7 +538,6 @@ export type Database = {
           avatar?: string | null
           bot_id: string
           bot_name: string
-          combined_responses?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -558,7 +559,6 @@ export type Database = {
           avatar?: string | null
           bot_id?: string
           bot_name?: string
-          combined_responses?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string

@@ -96,18 +96,21 @@ const EmbeddedChatContainer = () => {
 
         const isQuizEnabled = quizConfig?.enabled === true;
 
-        // Get quiz responses for this user/client
-        const { data: quizResponses } = await supabase
-          .from('quiz_responses')
-          .select('combined_instructions')
-          .eq('quiz_id', sharedBotData.bot_id)
-          .eq('user_id', clientId)
-          .maybeSingle();
+        // Get quiz responses for this user/client if quiz mode is enabled
+        let instructions = sharedBotData.instructions || "";
+        
+        if (isQuizEnabled) {
+          const { data: quizResponses } = await supabase
+            .from('quiz_responses')
+            .select('combined_instructions, quiz_mode')
+            .eq('quiz_id', sharedBotData.bot_id)
+            .eq('user_id', clientId)
+            .maybeSingle();
 
-        // Use combined instructions from quiz responses if available and quiz mode is enabled
-        const instructions = isQuizEnabled && quizResponses?.combined_instructions
-          ? quizResponses.combined_instructions
-          : sharedBotData.instructions || "";
+          if (quizResponses?.quiz_mode && quizResponses?.combined_instructions) {
+            instructions = quizResponses.combined_instructions;
+          }
+        }
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
