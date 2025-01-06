@@ -127,7 +127,7 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="p-4 hover:bg-accent/50 transition-colors cursor-pointer bg-transparent">
+          <div className="p-4 hover:bg-accent/0 transition-colors cursor-pointer bg-transparent">
             <div className="flex items-center gap-3">
               <ProfileAvatar avatarUrl={avatarUrl} initials={initials} />
               {fullName && (
