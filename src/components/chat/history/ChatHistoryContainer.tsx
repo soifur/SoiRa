@@ -1,13 +1,25 @@
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatHistoryContainerProps {
   isOpen: boolean;
+  onClose: () => void;
+  isMobile: boolean;
   children: React.ReactNode;
 }
 
-export const ChatHistoryContainer = ({ isOpen, children }: ChatHistoryContainerProps) => {
-  const isMobile = useIsMobile();
+export const ChatHistoryContainer = ({ 
+  isOpen, 
+  onClose,
+  isMobile,
+  children 
+}: ChatHistoryContainerProps) => {
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // On desktop, prevent any click from closing the sidebar
+    if (!isMobile) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
 
   return (
     <div 
@@ -18,10 +30,7 @@ export const ChatHistoryContainer = ({ isOpen, children }: ChatHistoryContainerP
         isOpen ? "translate-x-0" : "-translate-x-full",
         isMobile ? "w-full" : "w-80"
       )}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
+      onClick={handleContainerClick}
     >
       {children}
     </div>
