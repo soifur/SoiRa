@@ -24,12 +24,17 @@ export const QuizModeSettings = ({
   const [fields, setFields] = useState<Field[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (botId) {
       loadQuizConfiguration();
     }
   }, [botId]);
+
+  useEffect(() => {
+    setIsEnabled(initialEnabled);
+  }, [initialEnabled]);
 
   const loadQuizConfiguration = async () => {
     try {
@@ -44,17 +49,15 @@ export const QuizModeSettings = ({
       if (quizConfig) {
         setIsEnabled(quizConfig.enabled);
         
-        // Load fields if quiz is enabled
-        if (quizConfig.enabled) {
-          const { data: quizFields } = await supabase
-            .from('quiz_fields')
-            .select('*')
-            .eq('quiz_id', quizConfig.id)
-            .order('sequence_number', { ascending: true });
+        // Load fields if quiz configuration exists
+        const { data: quizFields } = await supabase
+          .from('quiz_fields')
+          .select('*')
+          .eq('quiz_id', quizConfig.id)
+          .order('sequence_number', { ascending: true });
 
-          if (quizFields) {
-            setFields(quizFields);
-          }
+        if (quizFields) {
+          setFields(quizFields);
         }
       }
     } catch (error) {
@@ -71,13 +74,12 @@ export const QuizModeSettings = ({
 
   const handleEnableChange = (checked: boolean) => {
     setIsEnabled(checked);
-    if (!checked) {
-      setFields([]);
-    }
+    setHasChanges(true);
   };
 
   const handleFieldsChange = (newFields: Field[]) => {
     setFields(newFields);
+    setHasChanges(true);
   };
 
   const handleSaveQuizSettings = async () => {
@@ -85,11 +87,12 @@ export const QuizModeSettings = ({
       setIsSaving(true);
       const quizId = await saveQuizConfiguration(botId, isEnabled);
       
-      if (isEnabled && fields.length > 0) {
+      if (fields.length > 0) {
         await saveQuizFields(quizId, fields);
       }
 
       onEnableChange(isEnabled, fields);
+      setHasChanges(false);
       
       toast({
         title: "Success",
@@ -122,7 +125,7 @@ export const QuizModeSettings = ({
           />
           <Label htmlFor="quiz-mode">Enable Quiz Mode</Label>
         </div>
-        {isEnabled && (
+        {hasChanges && (
           <Button 
             onClick={handleSaveQuizSettings}
             disabled={isSaving}

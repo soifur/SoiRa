@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { QuizField } from "./QuizField";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface QuizFieldBuilderProps {
   botId: string;
@@ -48,15 +47,23 @@ export const QuizFieldBuilder = ({ botId, fields: initialFields, onFieldsChange 
 
   const updateField = (index: number, updatedField: Field) => {
     const newFields = [...fields];
-    newFields[index] = updatedField;
+    newFields[index] = {
+      ...updatedField,
+      sequence_number: index
+    };
     setFields(newFields);
     onFieldsChange?.(newFields);
   };
 
   const removeField = (index: number) => {
     const newFields = fields.filter((_, i) => i !== index);
-    setFields(newFields);
-    onFieldsChange?.(newFields);
+    // Update sequence numbers after removal
+    const updatedFields = newFields.map((field, idx) => ({
+      ...field,
+      sequence_number: idx
+    }));
+    setFields(updatedFields);
+    onFieldsChange?.(updatedFields);
   };
 
   return (
