@@ -73,9 +73,9 @@ body {
 /* Light mode overrides */
 :root {
   --sidebar-bg: 240 5.9% 95%;
-  --sidebar-hover: 0 0% 56%;  /* #8e8e8e */
+  --sidebar-hover: 0 0% 45%;  /* Darker grey #737373 */
   --button-bg: 240 5.9% 95%;
-  --button-hover: 0 0% 56%;  /* #8e8e8e */
+  --button-hover: 0 0% 45%;  /* Darker grey #737373 */
 }
 
 .dark {
