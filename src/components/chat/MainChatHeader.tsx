@@ -79,9 +79,9 @@ export const MainChatHeader = ({
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
         <div className={cn(
-          "flex-1 flex items-center gap-4",
+          "flex-1 flex items-center gap-3", // Reduced gap
           "transition-[margin] duration-300 ease-in-out",
-          showHistory ? "ml-80" : "ml-0"
+          showHistory ? "ml-64" : "ml-0" // Adjusted margin to match new sidebar width
         )}>
           {isMobile ? (
             <div className="flex items-center justify-between w-full">
@@ -124,24 +124,24 @@ export const MainChatHeader = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2"> {/* Reduced gap */}
                 {isChat && !showHistory && (
                   <>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:bg-dropdown-hover"
+                      className="h-7 w-7 hover:bg-dropdown-hover" // Smaller button
                       onClick={onToggleHistory}
                     >
-                      <Clock className="h-4 w-4" />
+                      <Clock className="h-3.5 w-3.5" /> {/* Smaller icon */}
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:bg-dropdown-hover"
+                      className="h-7 w-7 hover:bg-dropdown-hover" // Smaller button
                       onClick={onNewChat}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3.5 w-3.5" /> {/* Smaller icon */}
                     </Button>
                   </>
                 )}
@@ -198,7 +198,7 @@ export const MainChatHeader = ({
                 
                 {isChat && selectedBotId && setSelectedBotId && (
                   <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                    <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+                    <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-dropdown hover:bg-dropdown-hover"> {/* Adjusted width and height */}
                       <SelectValue placeholder="Select a model" />
                     </SelectTrigger>
                     <SelectContent>

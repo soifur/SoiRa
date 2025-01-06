@@ -23,27 +23,27 @@ export const ChatHistoryItem = ({
   return (
     <div
       className={cn(
-        "p-3 rounded-lg cursor-pointer transition-colors group relative",
+        "p-2 rounded-lg cursor-pointer transition-colors group relative", // Reduced padding
         "hover:bg-accent/50 dark:hover:bg-accent",
         "text-foreground/80 hover:text-foreground",
         isActive ? "bg-accent/50 dark:bg-accent text-foreground" : "bg-card"
       )}
       onClick={onSelect}
     >
-      <p className="text-sm line-clamp-2 pr-8">
+      <p className="text-xs line-clamp-2 pr-6"> {/* Smaller text */}
         {title}
       </p>
       <Button
         variant="ghost"
         size="icon"
         className={cn(
-          "absolute top-1/2 -translate-y-1/2 right-2 h-6 w-6 transition-opacity",
+          "absolute top-1/2 -translate-y-1/2 right-1 h-5 w-5 transition-opacity", // Smaller button and adjusted position
           "hover:bg-destructive/10 hover:text-destructive",
           isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         )}
         onClick={onDelete}
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-3 w-3" /> {/* Smaller icon */}
       </Button>
     </div>
   );

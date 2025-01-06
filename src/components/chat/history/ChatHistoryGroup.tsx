@@ -62,27 +62,27 @@ export const ChatHistoryGroup = ({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className={cn(
-        "flex items-center w-full p-2 rounded-lg",
+        "flex items-center w-full p-1.5 rounded-lg", // Reduced padding
         "hover:bg-accent/50 dark:hover:bg-accent",
         "text-foreground/80 hover:text-foreground",
         isModelGroup && "font-semibold"
       )}>
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />
+          <ChevronDown className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /> // Smaller icon and margin
         ) : (
-          <ChevronRight className="h-4 w-4 mr-2 text-muted-foreground" />
+          <ChevronRight className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" /> // Smaller icon and margin
         )}
         <span className={cn(
-          "font-medium",
+          "text-sm", // Smaller text
           isModelGroup && "text-primary"
         )}>{label}</span>
         {totalChats > 0 && (
-          <span className="ml-2 text-xs text-muted-foreground">
+          <span className="ml-1.5 text-xs text-muted-foreground"> {/* Reduced margin */}
             ({totalChats})
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-4 space-y-2 mt-2">
+      <CollapsibleContent className="pl-3 space-y-1.5 mt-1.5"> {/* Reduced spacing */}
         {children}
         {chats.map((chat) => (
           <ChatHistoryItem
