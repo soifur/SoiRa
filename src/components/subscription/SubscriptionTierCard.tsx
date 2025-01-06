@@ -45,10 +45,21 @@ export const SubscriptionTierCard = ({
       
       if (error) {
         console.error('Supabase function error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to start checkout process. Please try again.",
+          variant: "destructive",
+        });
         throw error;
       }
       
       if (!data?.url) {
+        console.error('No checkout URL returned');
+        toast({
+          title: "Error",
+          description: "Invalid checkout response. Please try again.",
+          variant: "destructive",
+        });
         throw new Error('No checkout URL returned');
       }
 
