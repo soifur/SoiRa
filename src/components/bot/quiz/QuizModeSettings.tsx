@@ -23,40 +23,57 @@ export const QuizModeSettings = ({
   const [isEnabled, setIsEnabled] = useState(initialEnabled);
   const [fields, setFields] = useState<Field[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsEnabled(initialEnabled);
     if (botId) {
-      loadQuizFields();
+      loadQuizConfiguration();
     }
-  }, [botId, initialEnabled]);
+  }, [botId]);
 
-  const loadQuizFields = async () => {
+  const loadQuizConfiguration = async () => {
     try {
+      setIsLoading(true);
       const { data: quizConfig } = await supabase
         .from('quiz_configurations')
         .select('*')
         .eq('bot_id', botId)
+        .limit(1)
         .maybeSingle();
 
       if (quizConfig) {
-        const { data: fields } = await supabase
-          .from('quiz_fields')
-          .select('*')
-          .eq('quiz_id', quizConfig.id)
-          .order('sequence_number', { ascending: true });
+        setIsEnabled(quizConfig.enabled);
+        
+        // Load fields if quiz is enabled
+        if (quizConfig.enabled) {
+          const { data: quizFields } = await supabase
+            .from('quiz_fields')
+            .select('*')
+            .eq('quiz_id', quizConfig.id)
+            .order('sequence_number', { ascending: true });
 
-        if (fields) {
-          setFields(fields);
+          if (quizFields) {
+            setFields(quizFields);
+          }
         }
       }
     } catch (error) {
-      console.error('Error loading fields:', error);
+      console.error('Error loading quiz configuration:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load quiz configuration",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleEnableChange = (checked: boolean) => {
     setIsEnabled(checked);
+    if (!checked) {
+      setFields([]);
+    }
   };
 
   const handleFieldsChange = (newFields: Field[]) => {
@@ -68,7 +85,7 @@ export const QuizModeSettings = ({
       setIsSaving(true);
       const quizId = await saveQuizConfiguration(botId, isEnabled);
       
-      if (fields.length > 0) {
+      if (isEnabled && fields.length > 0) {
         await saveQuizFields(quizId, fields);
       }
 
@@ -89,6 +106,10 @@ export const QuizModeSettings = ({
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return <div>Loading quiz settings...</div>;
+  }
 
   return (
     <div className="space-y-6">

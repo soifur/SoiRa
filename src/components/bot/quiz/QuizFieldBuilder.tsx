@@ -28,35 +28,10 @@ export const QuizFieldBuilder = ({ botId, fields: initialFields, onFieldsChange 
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!initialFields) {
-      loadFields();
+    if (initialFields) {
+      setFields(initialFields);
     }
-  }, [botId, initialFields]);
-
-  const loadFields = async () => {
-    try {
-      const { data: quizConfig } = await supabase
-        .from('quiz_configurations')
-        .select('id')
-        .eq('bot_id', botId)
-        .maybeSingle();
-
-      if (quizConfig) {
-        const { data: fields } = await supabase
-          .from('quiz_fields')
-          .select('*')
-          .eq('quiz_id', quizConfig.id)
-          .order('sequence_number', { ascending: true });
-
-        if (fields) {
-          setFields(fields);
-          onFieldsChange?.(fields);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading fields:', error);
-    }
-  };
+  }, [initialFields]);
 
   const addField = () => {
     const newField: Field = {
