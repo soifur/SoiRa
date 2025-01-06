@@ -47,19 +47,26 @@ export const SubscriptionTierCard = ({
         console.error('Supabase function error:', error);
         toast({
           title: "Error",
-          description: error.message || "Failed to start checkout process. Please try again.",
+          description: "Failed to start checkout process. Please try again.",
           variant: "destructive",
         });
         return;
       }
 
-      // Handle the case where the user already has an active subscription
-      if (data?.error?.includes('already have an active subscription')) {
-        toast({
-          title: "Subscription Active",
-          description: "You already have an active subscription for this plan.",
-          variant: "default",
-        });
+      if (data?.error) {
+        if (data.code === 'subscription_exists') {
+          toast({
+            title: "Subscription Active",
+            description: data.error,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive",
+          });
+        }
         return;
       }
       
