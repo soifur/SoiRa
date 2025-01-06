@@ -14,6 +14,7 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Button } from "@/components/ui/button";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useSidebarState } from "@/hooks/useSidebarState";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -23,6 +24,7 @@ const Index = () => {
   const { toast } = useToast();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { isOpen: sidebarOpen, toggleSidebar } = useSidebarState();
+  const isMobile = useIsMobile();
 
   // Query to get all published bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
