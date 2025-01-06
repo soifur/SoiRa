@@ -42,7 +42,18 @@ serve(async (req) => {
     console.log('Authenticated user:', email);
 
     // Get the price ID from the request body
-    const { priceId } = await req.json();
+    const requestBody = await req.text();
+    console.log('Raw request body:', requestBody);
+    
+    let priceId;
+    try {
+      const body = JSON.parse(requestBody);
+      priceId = body.priceId;
+    } catch (e) {
+      console.error('Error parsing request body:', e);
+      throw new Error('Invalid request body format');
+    }
+    
     console.log('Received priceId:', priceId);
     
     if (!priceId) {
