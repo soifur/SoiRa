@@ -14,6 +14,7 @@ import { BotApiSettings } from "./bot/BotApiSettings";
 import { ScrollArea } from "./ui/scroll-area";
 import { BotSubscriptionSettings } from "./bot/BotSubscriptionSettings";
 import { QuizModeSettings } from "./bot/quiz/QuizModeSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BotFormProps {
   bot: Bot;
