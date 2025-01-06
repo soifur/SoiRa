@@ -15,7 +15,6 @@ serve(async (req) => {
   try {
     const signature = req.headers.get('stripe-signature');
     if (!signature) {
-      console.error('No signature provided');
       return new Response('No signature', { status: 400 });
     }
 
@@ -44,13 +43,9 @@ serve(async (req) => {
     if (event.type === 'customer.subscription.created' || 
         event.type === 'customer.subscription.updated') {
       const subscription = event.data.object;
-      console.log('Processing subscription:', subscription.id);
-      
       const customer = await stripe.customers.retrieve(subscription.customer as string);
-      console.log('Retrieved customer:', customer.id);
       
       if (!customer.email) {
-        console.error('No customer email found');
         throw new Error('No customer email found');
       }
 
@@ -62,25 +57,8 @@ serve(async (req) => {
         .single();
 
       if (userError || !userData) {
-        console.error('User not found:', userError);
         throw new Error('User not found');
       }
-
-      console.log('Found user:', userData.id);
-
-      // Get subscription tier
-      const { data: subscriptionTier, error: tierError } = await supabaseClient
-        .from('subscription_tiers')
-        .select('id')
-        .eq('stripe_price_id', subscription.items.data[0].price.id)
-        .single();
-
-      if (tierError) {
-        console.error('Error finding subscription tier:', tierError);
-        throw new Error('Subscription tier not found');
-      }
-
-      console.log('Found subscription tier:', subscriptionTier.id);
 
       // Update user role and subscription status
       const { error: updateError } = await supabaseClient
@@ -92,18 +70,14 @@ serve(async (req) => {
         .eq('id', userData.id);
 
       if (updateError) {
-        console.error('Error updating profile:', updateError);
         throw updateError;
       }
-
-      console.log('Updated user profile');
 
       // Update user_subscriptions table
       const { error: subscriptionError } = await supabaseClient
         .from('user_subscriptions')
         .upsert({
           user_id: userData.id,
-          tier_id: subscriptionTier.id,
           status: subscription.status,
           current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
           current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
@@ -111,21 +85,15 @@ serve(async (req) => {
         });
 
       if (subscriptionError) {
-        console.error('Error updating subscription:', subscriptionError);
         throw subscriptionError;
       }
-
-      console.log('Updated user subscription');
     }
 
     if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
-      console.log('Processing subscription deletion:', subscription.id);
-      
       const customer = await stripe.customers.retrieve(subscription.customer as string);
       
       if (!customer.email) {
-        console.error('No customer email found');
         throw new Error('No customer email found');
       }
 
@@ -137,11 +105,8 @@ serve(async (req) => {
         .single();
 
       if (userError || !userData) {
-        console.error('User not found:', userError);
         throw new Error('User not found');
       }
-
-      console.log('Found user for deletion:', userData.id);
 
       // Update user role back to regular user
       const { error: updateError } = await supabaseClient
@@ -153,11 +118,8 @@ serve(async (req) => {
         .eq('id', userData.id);
 
       if (updateError) {
-        console.error('Error updating profile on deletion:', updateError);
         throw updateError;
       }
-
-      console.log('Updated user profile to canceled state');
 
       // Update user_subscriptions table
       const { error: subscriptionError } = await supabaseClient
@@ -169,11 +131,8 @@ serve(async (req) => {
         .eq('user_id', userData.id);
 
       if (subscriptionError) {
-        console.error('Error updating subscription on deletion:', subscriptionError);
         throw subscriptionError;
       }
-
-      console.log('Updated user subscription to canceled state');
     }
 
     return new Response(JSON.stringify({ received: true }), {
