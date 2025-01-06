@@ -91,16 +91,10 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
     onClose();
   };
 
-  const handleClose = () => {
-    onClose();
-  };
-
   return (
     <Dialog 
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) handleClose();
-      }}
+      open={isOpen} 
+      onOpenChange={(open) => !open && onClose()}
     >
       <DialogContent 
         className={`
