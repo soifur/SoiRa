@@ -54,7 +54,7 @@ export const MainChatHistory = ({
         .from('chat_history')
         .select(`
           *,
-          bot:bot_id (
+          bot:bots!chat_history_bot_id_fkey (
             name,
             model
           )
@@ -74,8 +74,11 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
+      console.log("Raw chat history data:", data);
+
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
-        const modelName = chat.bot?.name || 'Unknown Model';
+        // Use the bot's name as the model name, or the model type if name is not available
+        const modelName = chat.bot?.name || chat.bot?.model || 'Unknown Bot';
         const dateGroup = getDateGroup(chat.created_at);
         
         if (!acc[modelName]) {
@@ -90,6 +93,7 @@ export const MainChatHistory = ({
         return acc;
       }, {});
 
+      console.log("Grouped chat history:", grouped);
       setChatsByModelAndDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);

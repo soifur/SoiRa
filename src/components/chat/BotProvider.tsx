@@ -40,7 +40,7 @@ export const useBotProvider = () => {
         
         userBots = ownBots.map((bot): Bot => ({
           id: bot.id,
-          name: bot.name || 'Unknown Model',
+          name: bot.name || 'Unknown Bot',
           instructions: bot.instructions || "",
           starters: bot.starters || [],
           model: bot.model as BaseModel,
@@ -73,7 +73,7 @@ export const useBotProvider = () => {
 
       const transformedSharedBots: Bot[] = (sharedBots as unknown as SharedBot[]).map(shared => {
         const apiKey = shared.bot_api_keys?.api_key || "";
-        const modelName = shared.bot_name || 'Unknown Model';
+        const modelName = shared.bot_name || 'Unknown Bot';
         
         console.log(`Processing bot ${modelName}, API key present: ${Boolean(apiKey)}`);
         
