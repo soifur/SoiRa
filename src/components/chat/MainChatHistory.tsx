@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
-import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
-import { getDateGroup, DATE_GROUP_ORDER } from "@/utils/dateUtils";
 import { ProfileSection } from "./ProfileSection";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
-import { MobileNavigation } from "./history/MobileNavigation";
 import { ChatsByModelAndDate, MainChatHistoryProps, Chat, Message } from "./history/types";
 import { Database } from "@/integrations/supabase/types";
 import { useChatHistoryState } from "./history/ChatHistoryState";
+import { ChatHistoryContent } from "./history/ChatHistoryContent";
 
 type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   bot: {
@@ -214,49 +211,19 @@ export const MainChatHistory = ({
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         
-        <ScrollArea className="flex-1">
-          {isMobile && (
-            <MobileNavigation 
-              isSuperAdmin={isSuperAdmin} 
-              isAdmin={isAdmin} 
-              onClose={onClose}
-            />
-          )}
-          
-          <div className="p-4 space-y-4">
-            {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
-              <ChatHistoryGroup
-                key={modelName}
-                label={modelName}
-                chats={[]}
-                isExpanded={expandedModels.has(modelName)}
-                onToggle={() => toggleModel(modelName)}
-                currentChatId={currentChatId}
-                onSelectChat={(chatId) => handleSelectChat(chatId)}
-                onDeleteChat={(chatId, e) => handleDelete(chatId, e)}
-                isModelGroup={true}
-              >
-                {DATE_GROUP_ORDER.map((dateGroup) => {
-                  const chats = dateGroups[dateGroup] || [];
-                  if (chats.length === 0) return null;
-                  
-                  return (
-                    <ChatHistoryGroup
-                      key={`${modelName}-${dateGroup}`}
-                      label={dateGroup}
-                      chats={chats}
-                      isExpanded={expandedGroups.has(dateGroup)}
-                      onToggle={() => toggleGroup(dateGroup)}
-                      currentChatId={currentChatId}
-                      onSelectChat={(chatId) => handleSelectChat(chatId)}
-                      onDeleteChat={(chatId, e) => handleDelete(chatId, e)}
-                    />
-                  );
-                })}
-              </ChatHistoryGroup>
-            ))}
-          </div>
-        </ScrollArea>
+        <ChatHistoryContent
+          chatsByModelAndDate={chatsByModelAndDate}
+          expandedGroups={expandedGroups}
+          expandedModels={expandedModels}
+          toggleGroup={toggleGroup}
+          toggleModel={toggleModel}
+          currentChatId={currentChatId}
+          onSelectChat={handleSelectChat}
+          onDeleteChat={handleDelete}
+          isSuperAdmin={isSuperAdmin}
+          isAdmin={isAdmin}
+          onClose={onClose}
+        />
         
         <div className="mt-auto border-t border-border">
           <ProfileSection showViewPlans={isMobile} onClose={onClose} />
