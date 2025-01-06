@@ -63,7 +63,7 @@ export const MainChatHeader = ({
         <div className={cn(
           "flex-1 flex items-center gap-3",
           "transition-[margin] duration-300 ease-in-out",
-          showHistory ? "ml-64" : "ml-0",
+          showHistory ? "ml-[var(--sidebar-width)]" : "ml-0",
           !isMobile && "pl-4" // Add left padding for desktop view
         )}>
           {isMobile ? (
