@@ -514,6 +514,7 @@ export type Database = {
           avatar: string | null
           bot_id: string
           bot_name: string
+          combined_responses: string | null
           created_at: string | null
           expires_at: string | null
           id: string
@@ -535,6 +536,7 @@ export type Database = {
           avatar?: string | null
           bot_id: string
           bot_name: string
+          combined_responses?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -556,6 +558,7 @@ export type Database = {
           avatar?: string | null
           bot_id?: string
           bot_name?: string
+          combined_responses?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string

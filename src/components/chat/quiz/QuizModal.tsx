@@ -88,7 +88,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
     } else {
       // Process all responses and generate instructions
       const allFields = fields;
-      let userInstructions = '';
+      let userResponses = '';
 
       allFields.forEach(field => {
         const response = responses[field.id!];
@@ -97,12 +97,22 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
             Array.isArray(response) ? response.join(', ') : response
           );
           if (instruction) {
-            userInstructions += instruction + ' ';
+            userResponses += instruction + ' ';
           }
         }
       });
 
       try {
+        // Get the original instructions from shared_bots
+        const { data: sharedBot } = await supabase
+          .from('shared_bots')
+          .select('instructions')
+          .eq('bot_id', botId)
+          .maybeSingle();
+
+        const originalInstructions = sharedBot?.instructions || '';
+        const combinedInstructions = `${originalInstructions} ${userResponses}`.trim();
+
         // Save quiz responses
         const { data: quizConfig } = await supabase
           .from('quiz_configurations')
@@ -111,6 +121,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
           .single();
 
         if (quizConfig) {
+          // Update quiz_responses
           const { data: existingResponse } = await supabase
             .from('quiz_responses')
             .select('*')
@@ -122,7 +133,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
             quiz_id: quizConfig.id,
             user_id: (await supabase.auth.getUser()).data.user?.id,
             responses,
-            combined_instructions: userInstructions.trim()
+            combined_instructions: combinedInstructions
           };
 
           if (existingResponse) {
@@ -135,9 +146,18 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
               .from('quiz_responses')
               .insert([responseData]);
           }
+
+          // Update shared_bots with combined responses and instructions
+          await supabase
+            .from('shared_bots')
+            .update({
+              combined_responses: userResponses.trim(),
+              combined_instructions: combinedInstructions
+            })
+            .eq('bot_id', botId);
         }
 
-        onComplete(userInstructions.trim());
+        onComplete(combinedInstructions);
         onClose();
       } catch (error) {
         console.error('Error saving quiz responses:', error);
