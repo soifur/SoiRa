@@ -13,100 +13,101 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-  );
-
   try {
-    console.log('Starting checkout session creation...');
-
-    // Get the raw request body for logging
-    const rawBody = await req.text();
-    console.log('Raw request body:', rawBody);
-
-    // Parse the request body
-    let body;
-    try {
-      body = JSON.parse(rawBody);
-    } catch (e) {
-      console.error('Error parsing request body:', e);
-      throw new Error('Invalid request body format');
-    }
-
-    const { priceId } = body;
+    // Get the priceId from request body
+    const { priceId } = await req.json();
     console.log('Received priceId:', priceId);
 
     if (!priceId) {
-      throw new Error('Price ID is required');
+      console.error('No priceId provided');
+      return new Response(
+        JSON.stringify({ error: 'Price ID is required' }), 
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // Get the session or user object
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    );
+
+    // Get the user from the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header');
+      console.error('No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Not authenticated' }), 
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const token = authHeader.replace('Bearer ', '');
-    console.log('Processing request for token:', token);
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
 
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) {
-      console.error('Auth error:', userError);
-      throw new Error('Authentication failed');
-    }
-
-    const user = userData.user;
-    if (!user?.email) {
-      console.error('No email found in user data');
-      throw new Error('User email not found');
+    if (userError || !user) {
+      console.error('User error:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }), 
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     console.log('Authenticated user:', user.email);
 
-    // Check if STRIPE_SECRET_KEY is set
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
-      console.error('STRIPE_SECRET_KEY is not configured');
-      throw new Error('Stripe configuration error');
-    }
-
-    const stripe = new Stripe(stripeKey, {
+    // Initialize Stripe
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
 
-    // Get or create customer
-    console.log('Looking up customer for email:', user.email);
+    // Check if customer already exists
     const customers = await stripe.customers.list({
       email: user.email,
-      limit: 1
+      limit: 1,
     });
 
-    let customer_id = undefined;
+    let customerId;
     if (customers.data.length > 0) {
-      customer_id = customers.data[0].id;
-      console.log('Found existing customer:', customer_id);
-      
+      customerId = customers.data[0].id;
+      console.log('Found existing customer:', customerId);
+
       // Check if already subscribed
       const subscriptions = await stripe.subscriptions.list({
-        customer: customer_id,
-        status: 'active',
+        customer: customerId,
         price: priceId,
-        limit: 1
+        status: 'active',
+        limit: 1,
       });
 
       if (subscriptions.data.length > 0) {
-        console.error('User already has an active subscription for this price');
-        throw new Error('You already have an active subscription');
+        console.log('Customer already has an active subscription');
+        return new Response(
+          JSON.stringify({ 
+            error: 'You already have an active subscription for this plan',
+            code: 'subscription_exists'
+          }), 
+          { 
+            status: 200, // Changed to 200 since this is an expected condition
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
-    } else {
-      console.log('No existing customer found, will create new one during checkout');
     }
 
+    // Create Checkout Session
     console.log('Creating checkout session...');
     const session = await stripe.checkout.sessions.create({
-      customer: customer_id,
-      customer_email: customer_id ? undefined : user.email,
+      customer: customerId,
+      customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price: priceId,
@@ -114,11 +115,12 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/settings?tab=subscription`,
-      cancel_url: `${req.headers.get('origin')}/settings?tab=subscription`,
+      success_url: `${req.headers.get('origin')}/settings`,
+      cancel_url: `${req.headers.get('origin')}/settings`,
     });
 
-    console.log('Checkout session created successfully:', session.id);
+    console.log('Checkout session created:', session.id);
+
     return new Response(
       JSON.stringify({ url: session.url }),
       { 
@@ -130,12 +132,11 @@ serve(async (req) => {
     console.error('Error in checkout session creation:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-        details: error instanceof Error ? error.stack : undefined
+        error: error instanceof Error ? error.message : 'An unexpected error occurred' 
       }),
       { 
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400, // Changed from 500 to 400 for client errors
       }
     );
   }

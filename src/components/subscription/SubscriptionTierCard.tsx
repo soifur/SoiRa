@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 interface SubscriptionTierProps {
   name: string;
@@ -27,6 +28,27 @@ export const SubscriptionTierCard = ({
 }: SubscriptionTierProps) => {
   const { toast } = useToast();
 
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const isPaidUser = userProfile?.role === 'paid_user' || 
+                    userProfile?.role === 'admin' || 
+                    userProfile?.role === 'super_admin';
+
   const handleUpgrade = async () => {
     if (!priceId) {
       toast({
@@ -47,9 +69,26 @@ export const SubscriptionTierCard = ({
         console.error('Supabase function error:', error);
         toast({
           title: "Error",
-          description: error.message || "Failed to start checkout process. Please try again.",
+          description: "Failed to start checkout process. Please try again.",
           variant: "destructive",
         });
+        return;
+      }
+
+      if (data?.error) {
+        if (data.code === 'subscription_exists') {
+          toast({
+            title: "Subscription Active",
+            description: data.error,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive",
+          });
+        }
         return;
       }
       
@@ -75,6 +114,9 @@ export const SubscriptionTierCard = ({
     }
   };
 
+  // Hide upgrade button for free tier if user is already paid
+  const shouldShowUpgradeButton = !isPaidUser || (name !== 'Free' && !isCurrentPlan);
+
   return (
     <Card className="p-4 md:p-6 flex flex-col h-full">
       <div className="mb-3 md:mb-4">
@@ -96,14 +138,16 @@ export const SubscriptionTierCard = ({
         ))}
       </ul>
       
-      <Button
-        onClick={isCurrentPlan ? onSelect : handleUpgrade}
-        variant={isCurrentPlan ? "outline" : "default"}
-        disabled={isComingSoon || !priceId}
-        className="w-full text-sm md:text-base"
-      >
-        {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Current Plan" : "Upgrade"}
-      </Button>
+      {shouldShowUpgradeButton && (
+        <Button
+          onClick={isCurrentPlan ? onSelect : handleUpgrade}
+          variant={isCurrentPlan ? "outline" : "default"}
+          disabled={isComingSoon || !priceId}
+          className="w-full text-sm md:text-base"
+        >
+          {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Current Plan" : "Upgrade"}
+        </Button>
+      )}
     </Card>
   );
 };
