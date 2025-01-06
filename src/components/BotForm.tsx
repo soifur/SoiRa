@@ -8,7 +8,6 @@ import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useToast } from "./ui/use-toast";
 import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
-import { saveQuizConfiguration, saveQuizFields } from "@/utils/quizUtils";
 import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
@@ -41,7 +40,37 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       memory_enabled: bot.memory_enabled ?? false,
       published: bot.published ?? false
     }));
+
+    if (bot.id) {
+      loadQuizConfiguration();
+    }
   }, [bot]);
+
+  const loadQuizConfiguration = async () => {
+    try {
+      const { data: quizConfig } = await supabase
+        .from('quiz_configurations')
+        .select('*')
+        .eq('bot_id', bot.id)
+        .maybeSingle();
+
+      if (quizConfig) {
+        setQuizEnabled(quizConfig.enabled);
+        
+        const { data: quizFields } = await supabase
+          .from('quiz_fields')
+          .select('*')
+          .eq('quiz_id', quizConfig.id)
+          .order('sequence_number', { ascending: true });
+
+        if (quizFields) {
+          setQuizFields(quizFields);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading quiz configuration:', error);
+    }
+  };
 
   const handleBotChange = (updates: Partial<Bot>) => {
     setEditingBot(prev => ({ ...prev, ...updates }));
@@ -86,6 +115,72 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     setQuizFields(fields);
   };
 
+  const saveQuizConfiguration = async (botId: string) => {
+    try {
+      // First, try to get existing configuration
+      const { data: existingConfig } = await supabase
+        .from('quiz_configurations')
+        .select('*')
+        .eq('bot_id', botId)
+        .maybeSingle();
+
+      let quizId;
+      
+      if (existingConfig) {
+        // Update existing configuration
+        const { data, error } = await supabase
+          .from('quiz_configurations')
+          .update({ enabled: quizEnabled })
+          .eq('id', existingConfig.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        quizId = data.id;
+      } else {
+        // Create new configuration
+        const { data, error } = await supabase
+          .from('quiz_configurations')
+          .insert([{ bot_id: botId, enabled: quizEnabled }])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        quizId = data.id;
+      }
+
+      // Delete existing fields
+      await supabase
+        .from('quiz_fields')
+        .delete()
+        .eq('quiz_id', quizId);
+
+      // Insert new fields if quiz is enabled and there are fields
+      if (quizEnabled && quizFields.length > 0) {
+        const { error: insertError } = await supabase
+          .from('quiz_fields')
+          .insert(
+            quizFields.map((field, index) => ({
+              quiz_id: quizId,
+              field_type: field.field_type,
+              title: field.title,
+              instructions: field.instructions,
+              choices: field.choices,
+              single_section: field.single_section,
+              sequence_number: index
+            }))
+          );
+
+        if (insertError) throw insertError;
+      }
+
+      return quizId;
+    } catch (error) {
+      console.error('Error in saveQuizConfiguration:', error);
+      throw error;
+    }
+  };
+
   const handleSave = async () => {
     try {
       if (!editingBot.id) {
@@ -97,12 +192,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       await updateBotAndSharedConfig(editingBot);
 
       // Then save quiz configuration
-      const quizId = await saveQuizConfiguration(editingBot.id, quizEnabled);
-      
-      // Save quiz fields if there are any
-      if (quizFields.length > 0) {
-        await saveQuizFields(quizId, quizFields);
-      }
+      await saveQuizConfiguration(editingBot.id);
 
       onSave(editingBot);
       toast({
