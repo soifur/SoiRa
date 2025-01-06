@@ -222,4 +222,5 @@ export const MainChatHeader = ({
         )}
       </div>
     </div>
-  </div>
+  );
+};
