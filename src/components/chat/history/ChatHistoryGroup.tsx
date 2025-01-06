@@ -7,8 +7,8 @@ import {
 } from "@/components/ui/collapsible";
 import { ChatHistoryItem } from "./ChatHistoryItem";
 import { cn } from "@/lib/utils";
-import { DateGroup } from "@/utils/dateUtils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DATE_GROUP_ORDER } from "@/utils/dateUtils";
 
 interface ChatHistoryGroupProps {
   label: string;
@@ -35,28 +35,29 @@ export const ChatHistoryGroup = ({
   children,
   avatar,
 }: ChatHistoryGroupProps) => {
-  const getChatTitle = (messages: any[]) => {
-    const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
-    if (!firstUserMessage) return 'New Chat';
-    return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
-  };
+  const isDateGroup = DATE_GROUP_ORDER.includes(label);
 
-  const getTotalChats = () => {
-    if (!isModelGroup) return chats.length;
-    
-    let total = chats.length;
-    React.Children.forEach(children, (child) => {
-      if (React.isValidElement(child) && child.props.chats) {
-        total += child.props.chats.length;
-      }
-    });
-    
-    return total;
-  };
-
-  if (chats.length === 0 && !children) return null;
-
-  const totalChats = getTotalChats();
+  if (isDateGroup) {
+    return (
+      <div className="space-y-1">
+        <h3 className="text-xs font-bold text-foreground/70 px-1">
+          {label}
+        </h3>
+        <div className="space-y-1">
+          {chats.map((chat) => (
+            <ChatHistoryItem
+              key={chat.id}
+              id={chat.id}
+              title={getChatTitle(chat.messages)}
+              isActive={currentChatId === chat.id}
+              onSelect={() => onSelectChat(chat.id)}
+              onDelete={(e) => onDeleteChat(chat.id, e)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -84,9 +85,9 @@ export const ChatHistoryGroup = ({
           "text-xs truncate flex-1 text-left pr-1",
           isModelGroup && "text-primary"
         )}>{label}</span>
-        {totalChats > 0 && (
+        {chats.length > 0 && (
           <span className="ml-1 text-xs text-muted-foreground shrink-0">
-            ({totalChats})
+            ({chats.length})
           </span>
         )}
       </CollapsibleTrigger>
@@ -105,4 +106,10 @@ export const ChatHistoryGroup = ({
       </CollapsibleContent>
     </Collapsible>
   );
+};
+
+const getChatTitle = (messages: any[]) => {
+  const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
+  if (!firstUserMessage) return 'New Chat';
+  return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
 };
