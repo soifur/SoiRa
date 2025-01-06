@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 
 interface BotApiKey {
+  id: string;
   api_key: string;
 }
 
@@ -11,12 +12,13 @@ interface SharedBot {
   bot_name: string;
   instructions: string | null;
   starters: string[] | null;
-  model: Bot['model'];
+  model: string;
   open_router_model: string | null;
   avatar: string | null;
   memory_enabled: boolean | null;
   published: boolean | null;
-  bot_api_keys: BotApiKey[] | null;
+  api_key_id: string | null;
+  bot_api_keys: BotApiKey;
 }
 
 export const useBotProvider = () => {
@@ -57,7 +59,8 @@ export const useBotProvider = () => {
         .from('shared_bots')
         .select(`
           *,
-          bot_api_keys (
+          bot_api_keys!inner (
+            id,
             api_key
           )
         `)
@@ -68,8 +71,8 @@ export const useBotProvider = () => {
 
       console.log("Raw shared bots data:", sharedBots);
 
-      const transformedSharedBots: Bot[] = (sharedBots as SharedBot[]).map(shared => {
-        const apiKey = shared.bot_api_keys?.[0]?.api_key || "";
+      const transformedSharedBots: Bot[] = (sharedBots as unknown as SharedBot[]).map(shared => {
+        const apiKey = shared.bot_api_keys?.api_key || "";
         
         console.log(`Processing bot ${shared.bot_name}, API key present: ${Boolean(apiKey)}`);
         
