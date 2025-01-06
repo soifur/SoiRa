@@ -22,20 +22,14 @@ export const ProfileMenu = () => {
   const { toast } = useToast();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("U");
-
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    fetchUserAvatar();
-  }, []);
 
   const fetchUserAvatar = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // First ensure the profile exists
       const { data: existingProfile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -47,7 +41,6 @@ export const ProfileMenu = () => {
         return;
       }
 
-      // If profile doesn't exist, create it
       if (!existingProfile) {
         const { error: insertError } = await supabase
           .from('profiles')
@@ -63,7 +56,6 @@ export const ProfileMenu = () => {
         }
       }
 
-      // Now fetch the profile (either existing or newly created)
       const { data: profile } = await supabase
         .from('profiles')
         .select('avatar')
@@ -75,14 +67,12 @@ export const ProfileMenu = () => {
         return;
       }
 
-      // If no custom avatar, check for provider avatar
       const provider = user.app_metadata.provider;
       const providerAvatar = user.user_metadata.avatar_url;
 
       if (providerAvatar) {
         setAvatarUrl(providerAvatar);
         
-        // Update profile with provider avatar if none exists
         const { error } = await supabase
           .from('profiles')
           .update({ avatar: providerAvatar })
@@ -91,7 +81,6 @@ export const ProfileMenu = () => {
         if (error) console.error('Error updating profile avatar:', error);
       }
 
-      // Set initials from email or name
       const name = user.user_metadata.full_name || user.email;
       if (name) {
         const initial = name.charAt(0).toUpperCase();
@@ -125,28 +114,43 @@ export const ProfileMenu = () => {
     }
   };
 
+  useEffect(() => {
+    fetchUserAvatar();
+  }, []);
+
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
-            size="icon" 
-            className="h-12 w-12 p-1 hover:bg-accent transition-colors"
+            className="w-full h-full p-0 hover:bg-accent transition-colors"
           >
-            <Avatar className="h-10 w-10">
-              <AvatarImage 
-                src={avatarUrl || ''} 
-                alt="Profile" 
-                className="object-cover"
-              />
-              <AvatarFallback className="text-base">{initials}</AvatarFallback>
-            </Avatar>
+            <div className="flex items-center gap-3 p-4 w-full">
+              <Avatar className="h-10 w-10">
+                <AvatarImage 
+                  src={avatarUrl || ''} 
+                  alt="Profile" 
+                  className="object-cover"
+                />
+                <AvatarFallback className="text-base">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col text-left">
+                <span className="text-sm font-medium leading-none">
+                  {userProfile?.first_name || userProfile?.email?.split('@')[0] || 'User'}
+                </span>
+              </div>
+            </div>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
-          align="end" 
-          className={`${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-48'}`}
+          align="center"
+          className={`${isMobile ? 'w-[calc(100vw-2rem)] mx-auto' : 'w-48'}`}
+          style={{ 
+            position: 'fixed',
+            left: isMobile ? '50%' : undefined,
+            transform: isMobile ? 'translateX(-50%)' : undefined,
+          }}
         >
           <DropdownMenuItem 
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
