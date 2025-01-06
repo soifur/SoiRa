@@ -508,83 +508,88 @@ export type Database = {
           },
         ]
       }
-      shared_bots: {
-        Row: {
-          api_key_id: string | null
-          avatar: string | null
-          bot_id: string
-          bot_name: string
-          combined_responses: string | null
-          created_at: string | null
-          expires_at: string | null
-          id: string
-          instructions: string | null
-          memory_api_key: string | null
-          memory_enabled: boolean | null
-          memory_instructions: string | null
-          memory_model: string | null
-          model: string
-          open_router_model: string | null
-          published: boolean | null
-          share_key: string
-          short_key: string | null
-          starters: string[] | null
-          voice_enabled: boolean | null
-        }
-        Insert: {
-          api_key_id?: string | null
-          avatar?: string | null
-          bot_id: string
-          bot_name: string
-          combined_responses?: string | null
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          instructions?: string | null
-          memory_api_key?: string | null
-          memory_enabled?: boolean | null
-          memory_instructions?: string | null
-          memory_model?: string | null
-          model: string
-          open_router_model?: string | null
-          published?: boolean | null
-          share_key: string
-          short_key?: string | null
-          starters?: string[] | null
-          voice_enabled?: boolean | null
-        }
-        Update: {
-          api_key_id?: string | null
-          avatar?: string | null
-          bot_id?: string
-          bot_name?: string
-          combined_responses?: string | null
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          instructions?: string | null
-          memory_api_key?: string | null
-          memory_enabled?: boolean | null
-          memory_instructions?: string | null
-          memory_model?: string | null
-          model?: string
-          open_router_model?: string | null
-          published?: boolean | null
-          share_key?: string
-          short_key?: string | null
-          starters?: string[] | null
-          voice_enabled?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shared_bots_api_key_id_fkey"
-            columns: ["api_key_id"]
-            isOneToOne: false
-            referencedRelation: "bot_api_keys"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+
+shared_bots: {
+  Row: {
+    id: string
+    share_key: string
+    bot_id: string
+    bot_name: string
+    instructions: string | null
+    starters: string[] | null
+    model: string
+    open_router_model: string | null
+    created_at: string | null
+    expires_at: string | null
+    api_key_id: string | null
+    short_key: string | null
+    voice_enabled: boolean | null
+    memory_enabled: boolean | null
+    memory_instructions: string | null
+    memory_model: string | null
+    memory_api_key: string | null
+    avatar: string | null
+    published: boolean | null
+    combined_responses: string | null
+    combined_instructions: string | null  // Added this field
+  }
+  Insert: {
+    id?: string
+    share_key: string
+    bot_id: string
+    bot_name: string
+    instructions?: string | null
+    starters?: string[] | null
+    model: string
+    open_router_model?: string | null
+    created_at?: string | null
+    expires_at?: string | null
+    api_key_id?: string | null
+    short_key?: string | null
+    voice_enabled?: boolean | null
+    memory_enabled?: boolean | null
+    memory_instructions?: string | null
+    memory_model?: string | null
+    memory_api_key?: string | null
+    avatar?: string | null
+    published?: boolean | null
+    combined_responses?: string | null
+    combined_instructions?: string | null  // Added this field
+  }
+  Update: {
+    id?: string
+    share_key?: string
+    bot_id?: string
+    bot_name?: string
+    instructions?: string | null
+    starters?: string[] | null
+    model?: string
+    open_router_model?: string | null
+    created_at?: string | null
+    expires_at?: string | null
+    api_key_id?: string | null
+    short_key?: string | null
+    voice_enabled?: boolean | null
+    memory_enabled?: boolean | null
+    memory_instructions?: string | null
+    memory_model?: string | null
+    memory_api_key?: string | null
+    avatar?: string | null
+    published?: boolean | null
+    combined_responses?: string | null
+    combined_instructions?: string | null  // Added this field
+  }
+  Relationships: [
+    {
+      foreignKeyName: "shared_bots_api_key_id_fkey"
+      columns: ["api_key_id"]
+      isOneToOne: false
+      referencedRelation: "bot_api_keys"
+      referencedColumns: ["id"]
+    }
+  ]
+}
+
       subscription_tiers: {
         Row: {
           bullet_points: Json
@@ -850,3 +855,4 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
