@@ -3,22 +3,22 @@ import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
 
 export const saveQuizConfiguration = async (botId: string, enabled: boolean) => {
   // First get or create quiz configuration
-  const { data: existingConfig, error: fetchError } = await supabase
+  const { data: existingConfigs, error: fetchError } = await supabase
     .from('quiz_configurations')
     .select('*')
-    .eq('bot_id', botId)
-    .maybeSingle();
+    .eq('bot_id', botId);
 
   if (fetchError) throw fetchError;
 
-  if (existingConfig) {
+  // Use the first config or create a new one
+  if (existingConfigs && existingConfigs.length > 0) {
     const { error } = await supabase
       .from('quiz_configurations')
       .update({ enabled })
-      .eq('id', existingConfig.id);
+      .eq('id', existingConfigs[0].id);
     
     if (error) throw error;
-    return existingConfig.id;
+    return existingConfigs[0].id;
   } else {
     const { data, error } = await supabase
       .from('quiz_configurations')

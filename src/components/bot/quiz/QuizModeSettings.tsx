@@ -23,13 +23,10 @@ export const QuizModeSettings = ({
 
   useEffect(() => {
     setIsEnabled(initialEnabled);
-  }, [initialEnabled]);
-
-  useEffect(() => {
     if (botId) {
       loadQuizFields();
     }
-  }, [botId]);
+  }, [botId, initialEnabled]);
 
   const loadQuizFields = async () => {
     try {
@@ -55,25 +52,13 @@ export const QuizModeSettings = ({
     }
   };
 
-  const handleEnableChange = async (checked: boolean) => {
-    try {
-      setIsEnabled(checked);
-      onEnableChange(checked, fields);
-    } catch (error) {
-      console.error('Error updating quiz mode:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update quiz mode settings",
-        variant: "destructive",
-      });
-    }
+  const handleEnableChange = (checked: boolean) => {
+    setIsEnabled(checked);
+    onEnableChange(checked, fields);
   };
 
   const handleFieldsChange = (newFields: Field[]) => {
     setFields(newFields);
-    if (isEnabled) {
-      onEnableChange(true, newFields);
-    }
   };
 
   return (

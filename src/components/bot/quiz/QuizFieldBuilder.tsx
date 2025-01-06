@@ -39,7 +39,7 @@ export const QuizFieldBuilder = ({ botId, fields: initialFields, onFieldsChange 
         .from('quiz_configurations')
         .select('id')
         .eq('bot_id', botId)
-        .single();
+        .maybeSingle();
 
       if (quizConfig) {
         const { data: fields } = await supabase
@@ -71,68 +71,17 @@ export const QuizFieldBuilder = ({ botId, fields: initialFields, onFieldsChange 
     onFieldsChange?.(newFields);
   };
 
-  const updateField = async (index: number, updatedField: Field) => {
-    try {
-      const newFields = [...fields];
-      newFields[index] = updatedField;
-      setFields(newFields);
-      onFieldsChange?.(newFields);
-
-      const { data: quizConfig } = await supabase
-        .from('quiz_configurations')
-        .select('id')
-        .eq('bot_id', botId)
-        .single();
-
-      if (quizConfig) {
-        if (updatedField.id) {
-          await supabase
-            .from('quiz_fields')
-            .update({
-              ...updatedField,
-              quiz_id: quizConfig.id,
-            })
-            .eq('id', updatedField.id);
-        } else {
-          await supabase
-            .from('quiz_fields')
-            .insert({
-              ...updatedField,
-              quiz_id: quizConfig.id,
-            });
-        }
-      }
-    } catch (error) {
-      console.error('Error updating field:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save field",
-        variant: "destructive",
-      });
-    }
+  const updateField = (index: number, updatedField: Field) => {
+    const newFields = [...fields];
+    newFields[index] = updatedField;
+    setFields(newFields);
+    onFieldsChange?.(newFields);
   };
 
-  const removeField = async (index: number) => {
-    try {
-      const fieldToRemove = fields[index];
-      if (fieldToRemove.id) {
-        await supabase
-          .from('quiz_fields')
-          .delete()
-          .eq('id', fieldToRemove.id);
-      }
-      
-      const newFields = fields.filter((_, i) => i !== index);
-      setFields(newFields);
-      onFieldsChange?.(newFields);
-    } catch (error) {
-      console.error('Error removing field:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove field",
-        variant: "destructive",
-      });
-    }
+  const removeField = (index: number) => {
+    const newFields = fields.filter((_, i) => i !== index);
+    setFields(newFields);
+    onFieldsChange?.(newFields);
   };
 
   return (
