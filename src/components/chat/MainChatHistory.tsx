@@ -6,30 +6,12 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
-import { DateGroup, DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
+import { DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
 import { ProfileSection } from "./ProfileSection";
-import { Button } from "../ui/button";
-import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
-
-interface MainChatHistoryProps {
-  sessionToken: string | null;
-  botId: string | null;
-  onSelectChat: (chatId: string) => void;
-  onNewChat: () => void;
-  currentChatId: string | null;
-  isOpen: boolean;
-  onClose: () => void;
-  setSelectedBotId: (botId: string) => void;
-}
-
-type ChatsByModelAndDate = {
-  [modelName: string]: {
-    [K in DateGroup]?: any[];
-  };
-};
+import { MobileNavigation } from "./history/MobileNavigation";
+import { ChatsByModelAndDate, MainChatHistoryProps } from "./history/types";
 
 const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
 const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
@@ -57,13 +39,11 @@ export const MainChatHistory = ({
 
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchChatHistory();
   }, [sessionToken, botId]);
 
-  // Save expanded states to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
   }, [expandedGroups]);
@@ -72,7 +52,6 @@ export const MainChatHistory = ({
     localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
   }, [expandedModels]);
 
-  // When chat data is loaded, expand all model groups by default
   useEffect(() => {
     const modelNames = Object.keys(chatsByModelAndDate);
     if (modelNames.length > 0) {
@@ -220,10 +199,6 @@ export const MainChatHistory = ({
       }
 
       onSelectChat(chatId);
-      
-      if (isMobile) {
-        onClose();
-      }
     } catch (error) {
       console.error('Error selecting chat:', error);
       toast({
@@ -268,75 +243,11 @@ export const MainChatHistory = ({
         
         <ScrollArea className="flex-1">
           {isMobile && (
-            <div className="p-4 border-b border-border">
-              <div className="space-y-2">
-                {(isSuperAdmin || isAdmin) && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start hover:bg-accent"
-                    onClick={() => {
-                      navigate('/bots');
-                      onClose();
-                    }}
-                  >
-                    <Bot className="mr-2 h-4 w-4" />
-                    My Bots
-                  </Button>
-                )}
-                {isSuperAdmin && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start hover:bg-accent"
-                      onClick={() => {
-                        navigate('/folders');
-                        onClose();
-                      }}
-                    >
-                      <Folder className="mr-2 h-4 w-4" />
-                      Folders
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start hover:bg-accent"
-                      onClick={() => {
-                        navigate('/subscriptions');
-                        onClose();
-                      }}
-                    >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Subscriptions
-                    </Button>
-                  </>
-                )}
-                {(isSuperAdmin || isAdmin) && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start hover:bg-accent"
-                      onClick={() => {
-                        navigate('/users');
-                        onClose();
-                      }}
-                    >
-                      <Users className="mr-2 h-4 w-4" />
-                      Users
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start hover:bg-accent"
-                      onClick={() => {
-                        navigate('/archive');
-                        onClose();
-                      }}
-                    >
-                      <Archive className="mr-2 h-4 w-4" />
-                      Archive
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+            <MobileNavigation 
+              isSuperAdmin={isSuperAdmin} 
+              isAdmin={isAdmin} 
+              onClose={onClose}
+            />
           )}
           
           <div className="p-4 space-y-4">
