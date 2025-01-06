@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
-import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
-import { DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
-import { ProfileSection } from "./ProfileSection";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
-import { MobileNavigation } from "./history/MobileNavigation";
+import { DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
+import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
+import { ChatHistoryContainer } from "./history/ChatHistoryContainer";
+import { ChatHistoryContent } from "./history/ChatHistoryContent";
+import { ProfileSection } from "./ProfileSection";
 import { ChatsByModelAndDate, MainChatHistoryProps } from "./history/types";
 
 const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
@@ -38,7 +35,6 @@ export const MainChatHistory = ({
   });
 
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchChatHistory();
@@ -64,8 +60,6 @@ export const MainChatHistory = ({
 
   const fetchChatHistory = async () => {
     try {
-      console.log("Fetching chat history with sessionToken:", sessionToken);
-      
       let query = supabase
         .from('chat_history')
         .select(`
@@ -80,29 +74,21 @@ export const MainChatHistory = ({
         .order('created_at', { ascending: false });
 
       const { data: { user } } = await supabase.auth.getUser();
-      console.log("Current user:", user);
 
       if (user) {
-        console.log("Fetching chats for authenticated user:", user.id);
         query = query.eq('user_id', user.id);
       } 
       
       if (sessionToken) {
-        console.log("Adding session token condition:", sessionToken);
         query = user ? 
           query.or(`user_id.eq.${user.id},session_token.eq.${sessionToken}`) :
           query.eq('session_token', sessionToken);
       }
 
       const { data, error } = await query;
-      console.log("Fetched chat history:", data);
 
-      if (error) {
-        console.error("Error in fetchChatHistory:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      // Group chats by model and then by date
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
         const modelName = chat.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
@@ -123,7 +109,6 @@ export const MainChatHistory = ({
         return acc;
       }, {});
 
-      console.log("Grouped chat history:", grouped);
       setChatsByModelAndDate(grouped);
     } catch (error) {
       console.error('Error fetching chat history:', error);
@@ -185,10 +170,7 @@ export const MainChatHistory = ({
   };
 
   const handleSelectChat = async (chatId: string) => {
-    console.log("Selecting chat:", chatId);
-    
     try {
-      // Fetch the chat to get its bot_id
       const { data: chat, error } = await supabase
         .from('chat_history')
         .select('bot_id')
@@ -198,7 +180,6 @@ export const MainChatHistory = ({
       if (error) throw error;
 
       if (chat && chat.bot_id) {
-        console.log("Setting selected bot ID:", chat.bot_id);
         setSelectedBotId(chat.bot_id);
       }
 
@@ -235,65 +216,24 @@ export const MainChatHistory = ({
   const isAdmin = role === 'admin';
 
   return (
-    <div className={cn(
-      "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
-      "dark:bg-zinc-950",
-      "light:bg-white light:border-gray-200",
-      isOpen ? "translate-x-0" : "-translate-x-full",
-      isMobile ? "w-full" : "w-64"
-    )}>
-      <div className="flex flex-col h-full">
-        <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
-        
-        <ScrollArea className="flex-1">
-          {isMobile && (
-            <MobileNavigation 
-              isSuperAdmin={isSuperAdmin} 
-              isAdmin={isAdmin} 
-              onClose={onClose}
-            />
-          )}
-          
-          <div className="p-2 space-y-2">
-            {Object.entries(chatsByModelAndDate).map(([modelName, modelData]) => (
-              <ChatHistoryGroup
-                key={modelName}
-                label={modelName}
-                chats={[]}
-                isExpanded={expandedModels.has(modelName)}
-                onToggle={() => toggleModel(modelName)}
-                currentChatId={currentChatId}
-                onSelectChat={handleSelectChat}
-                onDeleteChat={handleDelete}
-                isModelGroup={true}
-                avatar={modelData.avatar}
-              >
-                {DATE_GROUP_ORDER.map((dateGroup) => {
-                  const chats = modelData.chats[dateGroup] || [];
-                  if (chats.length === 0) return null;
-                  
-                  return (
-                    <ChatHistoryGroup
-                      key={`${modelName}-${dateGroup}`}
-                      label={dateGroup}
-                      chats={chats}
-                      isExpanded={expandedGroups.has(dateGroup)}
-                      onToggle={() => toggleGroup(dateGroup)}
-                      currentChatId={currentChatId}
-                      onSelectChat={handleSelectChat}
-                      onDeleteChat={handleDelete}
-                    />
-                  );
-                })}
-              </ChatHistoryGroup>
-            ))}
-          </div>
-        </ScrollArea>
-        
-        <div className="mt-auto border-t border-border">
-          <ProfileSection showViewPlans={isMobile} onClose={onClose} />
-        </div>
+    <ChatHistoryContainer isOpen={isOpen}>
+      <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
+      <ChatHistoryContent
+        isSuperAdmin={isSuperAdmin}
+        isAdmin={isAdmin}
+        onClose={onClose}
+        chatsByModelAndDate={chatsByModelAndDate}
+        expandedModels={expandedModels}
+        expandedGroups={expandedGroups}
+        toggleModel={toggleModel}
+        toggleGroup={toggleGroup}
+        currentChatId={currentChatId}
+        handleSelectChat={handleSelectChat}
+        handleDelete={handleDelete}
+      />
+      <div className="mt-auto border-t border-border">
+        <ProfileSection showViewPlans={false} onClose={onClose} />
       </div>
-    </div>
+    </ChatHistoryContainer>
   );
 };
