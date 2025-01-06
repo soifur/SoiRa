@@ -87,11 +87,14 @@ const EmbeddedChatContainer = () => {
           avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
         }
 
-        // Get quiz responses for this user/client if quiz mode is enabled
+        // Initialize instructions with the default bot instructions
         let instructions = sharedBotData.instructions || "";
         
+        // Check if quiz mode is enabled
         if (sharedBotData.quiz_mode === true) {
-          console.log("Quiz mode is enabled, fetching responses...");
+          console.log("Quiz mode is enabled, fetching responses for bot:", sharedBotData.bot_id);
+          
+          // Get quiz responses for this client
           const { data: quizResponses } = await supabase
             .from('quiz_responses')
             .select('combined_instructions')
@@ -99,11 +102,14 @@ const EmbeddedChatContainer = () => {
             .eq('user_id', clientId)
             .maybeSingle();
 
-          if (quizResponses?.combined_instructions) {
-            console.log("Found quiz responses with combined instructions");
+          console.log("Quiz responses:", quizResponses);
+
+          // If we have quiz responses with combined instructions, use those instead
+          if (quizResponses && quizResponses.combined_instructions) {
+            console.log("Using combined instructions from quiz responses");
             instructions = quizResponses.combined_instructions;
           } else {
-            console.log("No quiz responses found for this user/client");
+            console.log("No quiz responses found, using default instructions");
           }
         }
 
@@ -119,6 +125,11 @@ const EmbeddedChatContainer = () => {
           accessType: "public",
           memory_enabled: memory_enabled,
         };
+
+        console.log("Final bot configuration:", {
+          ...transformedBot,
+          apiKey: '[REDACTED]'
+        });
 
         setBot(transformedBot);
 
