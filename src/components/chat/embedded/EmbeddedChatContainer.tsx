@@ -30,8 +30,6 @@ const EmbeddedChatContainer = () => {
       try {
         if (!botId) return;
 
-        console.log("Fetching shared bot data for botId:", botId);
-
         const { data: sharedBotData, error: sharedBotError } = await supabase
           .from("shared_bots")
           .select(`
@@ -89,42 +87,25 @@ const EmbeddedChatContainer = () => {
           avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
         }
 
+        // Get quiz responses for this user/client if quiz mode is enabled
         let instructions = sharedBotData.instructions || "";
-
-        // If quiz mode is enabled, try to get the quiz responses
+        
         if (sharedBotData.quiz_mode === true) {
-          console.log("Quiz mode is enabled, fetching quiz responses for client:", clientId);
-          
-          const { data: quizConfig } = await supabase
-            .from('quiz_configurations')
-            .select('id')
-            .eq('bot_id', sharedBotData.bot_id)
+          console.log("Quiz mode is enabled, fetching responses...");
+          const { data: quizResponses } = await supabase
+            .from('quiz_responses')
+            .select('combined_instructions')
+            .eq('quiz_id', sharedBotData.bot_id)
+            .eq('user_id', clientId)
             .maybeSingle();
 
-          if (quizConfig?.id) {
-            const { data: quizResponses } = await supabase
-              .from('quiz_responses')
-              .select('combined_instructions')
-              .eq('quiz_id', quizConfig.id)
-              .eq('user_id', clientId)
-              .maybeSingle();
-
-            if (quizResponses?.combined_instructions) {
-              console.log("Found quiz combined instructions:", quizResponses.combined_instructions);
-              instructions = quizResponses.combined_instructions;
-            } else {
-              console.log("No quiz responses found for client:", clientId);
-              toast({
-                title: "Quiz Required",
-                description: "Please complete the quiz before starting the chat.",
-                variant: "destructive",
-              });
-              return;
-            }
+          if (quizResponses?.combined_instructions) {
+            console.log("Found quiz responses with combined instructions");
+            instructions = quizResponses.combined_instructions;
+          } else {
+            console.log("No quiz responses found for this user/client");
           }
         }
-
-        console.log("Final instructions being used:", instructions);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -138,11 +119,6 @@ const EmbeddedChatContainer = () => {
           accessType: "public",
           memory_enabled: memory_enabled,
         };
-
-        console.log("Final bot configuration:", {
-          ...transformedBot,
-          apiKey: '[REDACTED]'
-        });
 
         setBot(transformedBot);
 
