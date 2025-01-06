@@ -25,11 +25,13 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
 
   const handleSelectChat = async (selectedChatId: string) => {
     try {
-      const { data: chat } = await supabase
+      const { data: chat, error } = await supabase
         .from('chat_history')
         .select('*')
         .eq('id', selectedChatId)
-        .single();
+        .maybeSingle();
+
+      if (error) throw error;
 
       if (chat && chat.messages) {
         const typedMessages = (chat.messages as any[]).map((msg): Message => ({
@@ -112,7 +114,7 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
         session_token: !user ? sessionToken : null,
         sequence_number: 1,
         updated_at: new Date().toISOString(),
-        messages_used: userMessageCount // Explicitly set the messages_used count
+        messages_used: userMessageCount
       };
 
       const { error } = await supabase
