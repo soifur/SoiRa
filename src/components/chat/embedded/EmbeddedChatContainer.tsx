@@ -87,10 +87,24 @@ const EmbeddedChatContainer = () => {
           avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
         }
 
+        // Check if quiz mode is enabled for this bot
+        const { data: quizConfig } = await supabase
+          .from('quiz_configurations')
+          .select('enabled')
+          .eq('bot_id', sharedBotData.bot_id)
+          .single();
+
+        const isQuizEnabled = quizConfig?.enabled === true;
+
+        // Use combined_instructions if quiz mode is enabled and it exists
+        const instructions = isQuizEnabled && sharedBotData.combined_instructions
+          ? sharedBotData.combined_instructions
+          : sharedBotData.instructions;
+
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
           name: sharedBotData.bot_name,
-          instructions: sharedBotData.instructions || "",
+          instructions: instructions || "",
           starters: sharedBotData.starters || [],
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
