@@ -391,6 +391,123 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_configurations: {
+        Row: {
+          bot_id: string | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          bot_id?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          bot_id?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_configurations_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_fields: {
+        Row: {
+          choices: string[] | null
+          created_at: string | null
+          field_type: Database["public"]["Enums"]["quiz_field_type"]
+          id: string
+          instructions: string | null
+          quiz_id: string | null
+          sequence_number: number
+          single_section: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          choices?: string[] | null
+          created_at?: string | null
+          field_type: Database["public"]["Enums"]["quiz_field_type"]
+          id?: string
+          instructions?: string | null
+          quiz_id?: string | null
+          sequence_number: number
+          single_section?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          choices?: string[] | null
+          created_at?: string | null
+          field_type?: Database["public"]["Enums"]["quiz_field_type"]
+          id?: string
+          instructions?: string | null
+          quiz_id?: string | null
+          sequence_number?: number
+          single_section?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_fields_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_responses: {
+        Row: {
+          combined_instructions: string | null
+          created_at: string | null
+          id: string
+          quiz_id: string | null
+          responses: Json | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          combined_instructions?: string | null
+          created_at?: string | null
+          id?: string
+          quiz_id?: string | null
+          responses?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          combined_instructions?: string | null
+          created_at?: string | null
+          id?: string
+          quiz_id?: string | null
+          responses?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_responses_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shared_bots: {
         Row: {
           api_key_id: string | null
@@ -617,6 +734,12 @@ export type Database = {
       bot_model: "gemini" | "claude" | "openai" | "openrouter"
       learning_style: "visual" | "auditory" | "reading" | "kinesthetic"
       question_type: "text" | "single_choice" | "multiple_choice"
+      quiz_field_type:
+        | "text"
+        | "email"
+        | "phone"
+        | "single_choice"
+        | "multiple_choice"
       quiz_question_type: "text" | "checkbox"
       quiz_status: "not_started" | "in_progress" | "completed"
       subscription_reset_period: "daily" | "weekly" | "monthly" | "never"

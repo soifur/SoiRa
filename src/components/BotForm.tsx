@@ -13,6 +13,7 @@ import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
 import { ScrollArea } from "./ui/scroll-area";
 import { BotSubscriptionSettings } from "./bot/BotSubscriptionSettings";
+import { QuizModeSettings } from "./bot/quiz/QuizModeSettings";
 
 interface BotFormProps {
   bot: Bot;
@@ -96,6 +97,31 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
   };
 
+  const handleQuizModeChange = async (enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('quiz_configurations')
+        .upsert({
+          bot_id: editingBot.id,
+          enabled: enabled,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Quiz mode ${enabled ? 'enabled' : 'disabled'} successfully`,
+      });
+    } catch (error) {
+      console.error("Error updating quiz mode:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update quiz mode",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
       <ScrollArea className="flex-1 px-4 py-8">
@@ -146,7 +172,17 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             />
 
             {editingBot.id && (
-              <BotSubscriptionSettings botId={editingBot.id} />
+              <>
+                <BotSubscriptionSettings botId={editingBot.id} />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Quiz Mode</h3>
+                  <QuizModeSettings
+                    botId={editingBot.id}
+                    enabled={false}
+                    onEnableChange={handleQuizModeChange}
+                  />
+                </div>
+              </>
             )}
           </div>
         </div>
