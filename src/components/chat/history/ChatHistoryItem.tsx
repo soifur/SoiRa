@@ -31,7 +31,7 @@ export const ChatHistoryItem = ({
         "p-3 rounded-lg cursor-pointer transition-colors group relative",
         "hover:bg-[hsl(var(--button-hover))] dark:hover:bg-accent",
         "text-foreground/80 hover:text-foreground",
-        isActive ? "bg-[hsl(var(--button-hover))] dark:bg-accent text-foreground" : "bg-card"
+        isActive ? "bg-[hsl(var(--button-hover))] dark:bg-accent text-foreground" : "bg-[hsl(var(--button-bg))]"
       )}
       onClick={onSelect}
     >
