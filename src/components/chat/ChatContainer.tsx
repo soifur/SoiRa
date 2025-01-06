@@ -48,8 +48,8 @@ export const ChatContainer = ({
           </div>
         )}
       </div>
-      <div className="sticky bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-        <div className="max-w-[1200px] mx-auto px-4 py-4">
+      <div className="sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+        <div className="max-w-3xl mx-auto">
           <ChatInput
             onSend={sendMessage}
             disabled={!selectedBot || disabled}
