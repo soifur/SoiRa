@@ -48,8 +48,8 @@
     --border: 240 2% 13%;
     --input: 240 2% 13%;
     --ring: 216 12.2% 83.9%;
-    --dropdown: 240 2% 16%;
-    --dropdown-hover: 240 2% 20%;
+    --dropdown: 0 0% 4%;  /* #0b0b0b */
+    --dropdown-hover: 0 0% 16%;  /* #2a2a2a */
   }
 }
 
@@ -73,9 +73,9 @@ body {
 /* Light mode overrides */
 :root {
   --sidebar-bg: 240 5.9% 95%;
-  --sidebar-hover: 0 0% 85%;  /* Updated to 85% lightness */
+  --sidebar-hover: 0 0% 85%;
   --button-bg: 240 5.9% 95%;
-  --button-hover: 0 0% 85%;  /* Updated to 85% lightness */
+  --button-hover: 0 0% 85%;
 }
 
 /* Make avatar background transparent */
@@ -102,10 +102,10 @@ span[class*="overflow-hidden rounded-full"] img,
 
 /* Dark mode overrides */
 .dark {
-  --sidebar-bg: var(--background);
-  --sidebar-hover: var(--dropdown-hover);
-  --button-bg: var(--background);
-  --button-hover: var(--dropdown-hover);
+  --sidebar-bg: 0 0% 4%;  /* #0b0b0b */
+  --sidebar-hover: 0 0% 16%;  /* #2a2a2a */
+  --button-bg: 0 0% 4%;  /* #0b0b0b */
+  --button-hover: 0 0% 16%;  /* #2a2a2a */
 }
 
 /* Update MainChatHistory sidebar styles */
