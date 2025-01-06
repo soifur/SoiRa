@@ -90,7 +90,8 @@ const EmbeddedChatContainer = () => {
         // Get quiz responses for this user/client if quiz mode is enabled
         let instructions = sharedBotData.instructions || "";
         
-        if (sharedBotData.quiz_mode) {
+        if (sharedBotData.quiz_mode === true) {
+          console.log("Quiz mode is enabled, fetching responses...");
           const { data: quizResponses } = await supabase
             .from('quiz_responses')
             .select('combined_instructions')
@@ -99,7 +100,10 @@ const EmbeddedChatContainer = () => {
             .maybeSingle();
 
           if (quizResponses?.combined_instructions) {
+            console.log("Found quiz responses with combined instructions");
             instructions = quizResponses.combined_instructions;
+          } else {
+            console.log("No quiz responses found for this user/client");
           }
         }
 
