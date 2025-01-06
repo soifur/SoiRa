@@ -14,14 +14,16 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Button } from "@/components/ui/button";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useSidebarState } from "@/hooks/useSidebarState";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
-  const { isOpen: showHistory, toggleSidebar: toggleHistory } = useSidebarState();
+  const { isOpen: showHistory, toggleSidebar: toggleHistory, setIsOpen: setShowHistory } = useSidebarState();
   const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
   const { toast } = useToast();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isMobile = useIsMobile();
 
   // Query to get all published bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
@@ -59,18 +61,6 @@ const Index = () => {
       }));
     }
   });
-
-  // Effect to set the default bot on load
-  useEffect(() => {
-    if (userBots && userBots.length > 0 && !selectedBotId) {
-      const defaultBot = userBots.find(bot => bot.default_bot);
-      if (defaultBot) {
-        setSelectedBotId(defaultBot.id);
-      } else if (userBots[0]) {
-        setSelectedBotId(userBots[0].id);
-      }
-    }
-  }, [userBots, selectedBotId]);
 
   const selectedBot = userBots.find(bot => bot.id === selectedBotId);
 
@@ -113,6 +103,10 @@ const Index = () => {
 
   const handleChatSelect = (chatId: string) => {
     handleSelectChat(chatId);
+    // Only close sidebar on mobile
+    if (isMobile) {
+      setShowHistory(false);
+    }
   };
 
   const LimitExceededMessage = () => (
