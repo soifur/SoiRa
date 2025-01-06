@@ -28,26 +28,32 @@ export const SubscriptionTierCard = ({
 }: SubscriptionTierProps) => {
   const { toast } = useToast();
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['userProfile'],
+  const { data: currentSubscription } = useQuery({
+    queryKey: ['currentSubscription'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+        .from('user_subscriptions')
+        .select(`
+          id,
+          status,
+          subscription_tiers (
+            name
+          )
+        `)
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching subscription:', error);
+        return null;
+      }
+
       return data;
     }
   });
-
-  const isPaidUser = userProfile?.role === 'paid_user' || 
-                    userProfile?.role === 'admin' || 
-                    userProfile?.role === 'super_admin';
 
   const handleUpgrade = async () => {
     if (!priceId) {
@@ -114,9 +120,6 @@ export const SubscriptionTierCard = ({
     }
   };
 
-  // Hide upgrade button for free tier if user is already paid
-  const shouldShowUpgradeButton = !isPaidUser || (name !== 'Free' && !isCurrentPlan);
-
   return (
     <Card className="p-4 md:p-6 flex flex-col h-full">
       <div className="mb-3 md:mb-4">
@@ -138,16 +141,14 @@ export const SubscriptionTierCard = ({
         ))}
       </ul>
       
-      {shouldShowUpgradeButton && (
-        <Button
-          onClick={isCurrentPlan ? onSelect : handleUpgrade}
-          variant={isCurrentPlan ? "outline" : "default"}
-          disabled={isComingSoon || !priceId}
-          className="w-full text-sm md:text-base"
-        >
-          {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Current Plan" : "Upgrade"}
-        </Button>
-      )}
+      <Button
+        onClick={isCurrentPlan ? onSelect : handleUpgrade}
+        variant={isCurrentPlan ? "outline" : "default"}
+        disabled={isComingSoon || !priceId}
+        className="w-full text-sm md:text-base"
+      >
+        {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Current Plan" : "Upgrade"}
+      </Button>
     </Card>
   );
 };
