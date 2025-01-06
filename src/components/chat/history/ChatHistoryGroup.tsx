@@ -6,8 +6,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChatHistoryItem } from "./ChatHistoryItem";
-import { DateGroup } from "@/utils/dateUtils";
 import { cn } from "@/lib/utils";
+import { DateGroup } from "@/utils/dateUtils";
 
 interface ChatHistoryGroupProps {
   label: string;
@@ -58,30 +58,30 @@ export const ChatHistoryGroup = ({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className={cn(
-        "flex items-center w-full p-1.5 rounded-lg",
+        "flex items-center w-full p-1 rounded-lg",
         "hover:bg-accent/50 dark:hover:bg-accent",
         "text-foreground/80 hover:text-foreground",
         isModelGroup && "font-semibold"
       )}>
         <ChevronDown className={cn(
-          "h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0",
+          "h-3.5 w-3.5 mr-1 text-muted-foreground shrink-0",
           !isExpanded && "hidden"
         )} />
         <ChevronRight className={cn(
-          "h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0",
+          "h-3.5 w-3.5 mr-1 text-muted-foreground shrink-0",
           isExpanded && "hidden"
         )} />
         <span className={cn(
-          "text-sm truncate flex-1 text-left pr-1.5",
+          "text-xs truncate flex-1 text-left pr-1",
           isModelGroup && "text-primary"
         )}>{label}</span>
         {totalChats > 0 && (
-          <span className="ml-1.5 text-xs text-muted-foreground shrink-0">
+          <span className="ml-1 text-xs text-muted-foreground shrink-0">
             ({totalChats})
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-3 space-y-1.5 mt-1.5">
+      <CollapsibleContent className="pl-2 space-y-1 mt-1">
         {children}
         {chats.map((chat) => (
           <ChatHistoryItem
