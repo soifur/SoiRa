@@ -19,11 +19,11 @@ serve(async (req) => {
   );
 
   try {
+    console.log('Starting checkout session creation...');
+
     // Get the session or user object
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
-    
-    console.log('Starting checkout session creation...');
     
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) {
