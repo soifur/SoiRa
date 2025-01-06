@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Clock, Plus, Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
+import { useState } from "react";
+import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,6 +16,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
+import { HeaderButtons } from "./header/HeaderButtons";
+import { QuizButton } from "./header/QuizButton";
 
 interface MainChatHeaderProps {
   selectedBotId?: string | null;
@@ -41,6 +43,7 @@ export const MainChatHeader = ({
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
   const isChat = location.pathname === '/';
+  const [showQuizModal, setShowQuizModal] = useState(false);
 
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
@@ -75,6 +78,10 @@ export const MainChatHeader = ({
     }
   }, [bots]);
 
+  const handleStartQuiz = () => {
+    setShowQuizModal(true);
+  };
+
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
@@ -97,18 +104,21 @@ export const MainChatHeader = ({
                   </Button>
 
                   {selectedBotId && setSelectedBotId && (
-                    <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                      <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-transparent hover:bg-dropdown-hover">
-                        <SelectValue placeholder="Select a model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueBots.map((bot) => (
-                          <SelectItem key={bot.id} value={bot.id}>
-                            {bot.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <>
+                      <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+                        <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-transparent hover:bg-dropdown-hover">
+                          <SelectValue placeholder="Select a model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {uniqueBots.map((bot) => (
+                            <SelectItem key={bot.id} value={bot.id}>
+                              {bot.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedBotId && <QuizButton botId={selectedBotId} onStartQuiz={handleStartQuiz} />}
+                    </>
                   )}
 
                   <Button
@@ -145,70 +155,25 @@ export const MainChatHeader = ({
                     </Button>
                   </>
                 )}
-                {(isSuperAdmin || isAdmin) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate('/bots')}
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                  >
-                    <Bot className="h-4 w-4" />
-                  </Button>
-                )}
-                {isSuperAdmin && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/folders')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Folder className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/subscriptions')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-                {(isSuperAdmin || isAdmin) && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/users')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Users className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/archive')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Archive className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
+                
+                <HeaderButtons isSuperAdmin={isSuperAdmin} isAdmin={isAdmin} />
                 
                 {isChat && selectedBotId && setSelectedBotId && (
-                  <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                    <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-transparent hover:bg-dropdown-hover">
-                      <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueBots.map((bot) => (
-                        <SelectItem key={bot.id} value={bot.id}>
-                          {bot.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+                      <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-transparent hover:bg-dropdown-hover">
+                        <SelectValue placeholder="Select a model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueBots.map((bot) => (
+                          <SelectItem key={bot.id} value={bot.id}>
+                            {bot.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedBotId && <QuizButton botId={selectedBotId} onStartQuiz={handleStartQuiz} />}
+                  </>
                 )}
               </div>
             </>
