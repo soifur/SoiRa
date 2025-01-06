@@ -60,8 +60,9 @@ export const ChatHistoryGroup = ({
           {children || chats.map((chat) => (
             <ChatHistoryItem
               key={chat.id}
-              chat={chat}
-              isSelected={chat.id === currentChatId}
+              id={chat.id}
+              title={chat.messages?.[0]?.content || "New Chat"}
+              isActive={chat.id === currentChatId}
               onSelect={() => onSelectChat(chat.id)}
               onDelete={() => onDeleteChat(chat.id)}
             />
