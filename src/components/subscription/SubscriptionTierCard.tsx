@@ -44,9 +44,9 @@ export const SubscriptionTierCard = ({
           )
         `)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching subscription:', error);
         return null;
       }
