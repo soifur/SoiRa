@@ -1,13 +1,6 @@
-import { useState, useEffect } from "react";
-import { Clock, Plus, Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
+import { useState } from "react";
+import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
@@ -16,6 +9,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
+import { BotSelector } from "./header/BotSelector";
+import { AdminButtons } from "./header/AdminButtons";
+import { ChatControls } from "./header/ChatControls";
 
 interface MainChatHeaderProps {
   selectedBotId?: string | null;
@@ -30,7 +26,7 @@ interface MainChatHeaderProps {
 export const MainChatHeader = ({
   selectedBotId,
   setSelectedBotId,
-  bots,
+  bots = [],
   onNewChat,
   onSignOut,
   onToggleHistory,
@@ -39,7 +35,6 @@ export const MainChatHeader = ({
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
-  const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
   const isChat = location.pathname === '/';
 
   const { data: userProfile } = useQuery({
@@ -60,28 +55,14 @@ export const MainChatHeader = ({
   });
 
   const role = userProfile?.role as UserRole;
-  const isSuperAdmin = role === 'super_admin';
-  const isAdmin = role === 'admin';
-
-  useEffect(() => {
-    if (bots) {
-      const botsMap = new Map();
-      bots.forEach(bot => {
-        if (!botsMap.has(bot.id)) {
-          botsMap.set(bot.id, bot);
-        }
-      });
-      setUniqueBots(Array.from(botsMap.values()));
-    }
-  }, [bots]);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
         <div className={cn(
-          "flex-1 flex items-center gap-3", // Reduced gap
+          "flex-1 flex items-center gap-3",
           "transition-[margin] duration-300 ease-in-out",
-          showHistory ? "ml-64" : "ml-0" // Adjusted margin to match new sidebar width
+          showHistory ? "ml-64" : "ml-0"
         )}>
           {isMobile ? (
             <div className="flex items-center justify-between w-full">
@@ -97,18 +78,11 @@ export const MainChatHeader = ({
                   </Button>
 
                   {selectedBotId && setSelectedBotId && (
-                    <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                      <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
-                        <SelectValue placeholder="Select a model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueBots.map((bot) => (
-                          <SelectItem key={bot.id} value={bot.id}>
-                            {bot.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <BotSelector
+                      selectedBotId={selectedBotId}
+                      setSelectedBotId={setSelectedBotId}
+                      bots={bots}
+                    />
                   )}
 
                   <Button
@@ -124,91 +98,22 @@ export const MainChatHeader = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-2"> {/* Reduced gap */}
-                {isChat && !showHistory && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-dropdown-hover" // Smaller button
-                      onClick={onToggleHistory}
-                    >
-                      <Clock className="h-3.5 w-3.5" /> {/* Smaller icon */}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-dropdown-hover" // Smaller button
-                      onClick={onNewChat}
-                    >
-                      <Plus className="h-3.5 w-3.5" /> {/* Smaller icon */}
-                    </Button>
-                  </>
+              <div className="flex items-center gap-2">
+                {isChat && (
+                  <ChatControls
+                    onNewChat={onNewChat!}
+                    onToggleHistory={onToggleHistory!}
+                    showHistory={showHistory!}
+                  />
                 )}
-                {(isSuperAdmin || isAdmin) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate('/bots')}
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                  >
-                    <Bot className="h-4 w-4" />
-                  </Button>
-                )}
-                {isSuperAdmin && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/folders')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Folder className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/subscriptions')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-                {(isSuperAdmin || isAdmin) && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/users')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Users className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/archive')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Archive className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
+                <AdminButtons role={role} />
                 
                 {isChat && selectedBotId && setSelectedBotId && (
-                  <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                    <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-dropdown hover:bg-dropdown-hover"> {/* Adjusted width and height */}
-                      <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueBots.map((bot) => (
-                        <SelectItem key={bot.id} value={bot.id}>
-                          {bot.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <BotSelector
+                    selectedBotId={selectedBotId}
+                    setSelectedBotId={setSelectedBotId}
+                    bots={bots}
+                  />
                 )}
               </div>
             </>
