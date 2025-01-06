@@ -94,12 +94,20 @@ export const useBotProvider = () => {
 
       console.log("Transformed shared bots:", transformedSharedBots);
 
-      // Combine and sort bots by name
-      const allBots = [...userBots, ...transformedSharedBots].sort((a, b) => 
-        a.name.localeCompare(b.name)
-      );
+      // Combine all bots
+      const allBots = [...userBots, ...transformedSharedBots];
 
-      return allBots;
+      // Sort bots by model first, then by name
+      const sortedBots = allBots.sort((a, b) => {
+        // First sort by model
+        if (a.model < b.model) return -1;
+        if (a.model > b.model) return 1;
+        // If models are the same, sort by name
+        return a.name.localeCompare(b.name);
+      });
+
+      console.log("Final sorted bots:", sortedBots);
+      return sortedBots;
     },
   });
 };
