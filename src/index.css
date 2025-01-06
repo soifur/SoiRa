@@ -74,25 +74,29 @@ body {
 :root {
   --sidebar-bg: 240 5.9% 95%;
   --sidebar-hover: 240 5.9% 90%;
+  --button-bg: 240 5.9% 95%;
+  --button-hover: 240 5.9% 90%;
 }
 
 .dark {
   --sidebar-bg: var(--background);
   --sidebar-hover: var(--dropdown-hover);
+  --button-bg: var(--background);
+  --button-hover: var(--dropdown-hover);
 }
 
 /* Update MainChatHistory sidebar styles */
 .fixed.top-0.left-0.h-screen {
-  @apply bg-[hsl(var(--sidebar-bg))] border-0;
+  @apply bg-[hsl(var(--sidebar-bg))] border-0 shadow-none;
 }
 
 /* Update hover states */
 .hover\:bg-accent {
-  @apply hover:bg-[hsl(var(--sidebar-hover))];
+  @apply hover:bg-[hsl(var(--button-hover))] bg-[hsl(var(--button-bg))];
 }
 
 .hover\:bg-accent\/50 {
-  @apply hover:bg-[hsl(var(--sidebar-hover))];
+  @apply hover:bg-[hsl(var(--button-hover))] bg-[hsl(var(--button-bg))];
 }
 
 /* Remove borders in light mode */
