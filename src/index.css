@@ -48,8 +48,8 @@
     --border: 240 2% 13%;
     --input: 240 2% 13%;
     --ring: 216 12.2% 83.9%;
-    --dropdown: 0 0% 8%;
-    --dropdown-hover: 0 0% 15%;
+    --dropdown: 0 0% 4%;  /* #0b0b0b */
+    --dropdown-hover: 0 0% 16%;  /* #2a2a2a */
   }
 }
 
@@ -78,12 +78,34 @@ body {
   --button-hover: 0 0% 85%;
 }
 
+/* Make avatar background transparent */
+.avatar-container,
+[role="menuitem"] .avatar,
+.avatar,
+.avatar > *,
+.avatar-fallback,
+span[class*="overflow-hidden rounded-full"],
+span[class*="overflow-hidden rounded-full"] img,
+[data-radix-popper-content-wrapper] .avatar,
+[data-radix-popper-content-wrapper] span[class*="overflow-hidden rounded-full"],
+.relative.flex.shrink-0.overflow-hidden.rounded-full {
+  @apply bg-transparent !important;
+}
+
+/* Override any Radix UI or other library defaults */
+.avatar img,
+.avatar-fallback,
+.relative.flex.shrink-0.overflow-hidden.rounded-full img {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
 /* Dark mode overrides */
 .dark {
-  --sidebar-bg: 0 0% 8%;
-  --sidebar-hover: 0 0% 15%;
-  --button-bg: 0 0% 8%;
-  --button-hover: 0 0% 15%;
+  --sidebar-bg: 0 0% 8%;  /* #141414 */
+  --sidebar-hover: 0 0% 15%;  /* #262626 */
+  --button-bg: 0 0% 8%;  /* #141414 */
+  --button-hover: 0 0% 15%;  /* #262626 */
 }
 
 /* Update MainChatHistory sidebar styles */
@@ -114,21 +136,37 @@ body {
   @apply border-border;
 }
 
-/* Force transparent background for all avatar-related elements */
-.avatar-container,
-[role="menuitem"] .avatar,
-.avatar,
-.avatar > *,
-.avatar-fallback,
-span[class*="overflow-hidden rounded-full"],
-span[class*="overflow-hidden rounded-full"] img,
-[data-radix-popper-content-wrapper] .avatar,
-[data-radix-popper-content-wrapper] span[class*="overflow-hidden rounded-full"],
-.relative.flex.shrink-0.overflow-hidden.rounded-full,
-.relative.flex.shrink-0.overflow-hidden.rounded-full > *,
-.relative.flex.shrink-0.overflow-hidden.rounded-full img {
-  background-color: transparent !important;
-  background: transparent !important;
+/* Make avatar background transparent */
+.avatar-container {
+  @apply bg-transparent !important;
+}
+
+[role="menuitem"] .avatar {
+  @apply bg-transparent !important;
+}
+
+.avatar {
+  @apply bg-transparent !important;
+}
+
+/* Override any other avatar background styles */
+.avatar > * {
+  @apply bg-transparent !important;
+}
+
+.avatar-fallback {
+  @apply bg-transparent !important;
+}
+
+/* Ensure transparent background for all avatar-related elements */
+span[class*="overflow-hidden rounded-full"] {
+  @apply bg-transparent !important;
+}
+
+/* Force transparent background on avatar images */
+.avatar img,
+span[class*="overflow-hidden rounded-full"] img {
+  @apply bg-transparent !important;
 }
 
 /* Override any Radix UI default backgrounds */
