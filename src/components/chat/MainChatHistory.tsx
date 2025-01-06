@@ -72,7 +72,8 @@ export const MainChatHistory = ({
           *,
           bot:bot_id (
             name,
-            model
+            model,
+            avatar
           )
         `)
         .eq('deleted', 'no')
@@ -88,7 +89,6 @@ export const MainChatHistory = ({
       
       if (sessionToken) {
         console.log("Adding session token condition:", sessionToken);
-        // If user is authenticated, this becomes an OR condition
         query = user ? 
           query.or(`user_id.eq.${user.id},session_token.eq.${sessionToken}`) :
           query.eq('session_token', sessionToken);
@@ -106,16 +106,20 @@ export const MainChatHistory = ({
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
         const modelName = chat.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(chat.created_at);
+        const avatar = chat.bot?.avatar;
         
         if (!acc[modelName]) {
-          acc[modelName] = {};
+          acc[modelName] = {
+            avatar,
+            chats: {}
+          };
         }
         
-        if (!acc[modelName][dateGroup]) {
-          acc[modelName][dateGroup] = [];
+        if (!acc[modelName].chats[dateGroup]) {
+          acc[modelName].chats[dateGroup] = [];
         }
         
-        acc[modelName][dateGroup]!.push(chat);
+        acc[modelName].chats[dateGroup]!.push(chat);
         return acc;
       }, {});
 
@@ -236,7 +240,7 @@ export const MainChatHistory = ({
       "dark:bg-zinc-950",
       "light:bg-white light:border-gray-200",
       isOpen ? "translate-x-0" : "-translate-x-full",
-      isMobile ? "w-full" : "w-64"  // Reduced from w-80 to w-64
+      isMobile ? "w-full" : "w-64"
     )}>
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
@@ -250,8 +254,8 @@ export const MainChatHistory = ({
             />
           )}
           
-          <div className="p-2 space-y-2"> {/* Reduced padding and spacing */}
-            {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
+          <div className="p-2 space-y-2">
+            {Object.entries(chatsByModelAndDate).map(([modelName, modelData]) => (
               <ChatHistoryGroup
                 key={modelName}
                 label={modelName}
@@ -262,9 +266,10 @@ export const MainChatHistory = ({
                 onSelectChat={handleSelectChat}
                 onDeleteChat={handleDelete}
                 isModelGroup={true}
+                avatar={modelData.avatar}
               >
                 {DATE_GROUP_ORDER.map((dateGroup) => {
-                  const chats = dateGroups[dateGroup] || [];
+                  const chats = modelData.chats[dateGroup] || [];
                   if (chats.length === 0) return null;
                   
                   return (
