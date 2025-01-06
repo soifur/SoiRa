@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProfileSectionProps {
   showViewPlans?: boolean;
@@ -12,6 +13,7 @@ interface ProfileSectionProps {
 export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectionProps) => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchUserProfile = async () => {

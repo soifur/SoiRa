@@ -14,6 +14,7 @@ import { Sun, Moon, Settings, LogOut, CreditCard } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const ProfileMenu = () => {
   const { theme, setTheme } = useTheme();
@@ -23,6 +24,7 @@ export const ProfileMenu = () => {
   const [initials, setInitials] = useState<string>("U");
 
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchUserAvatar();
@@ -142,7 +144,10 @@ export const ProfileMenu = () => {
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent 
+          align="end" 
+          className={`${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-48'}`}
+        >
           <DropdownMenuItem 
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             className="flex items-center gap-2 px-3 py-2.5"
