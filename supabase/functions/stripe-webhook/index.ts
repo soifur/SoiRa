@@ -12,6 +12,8 @@ const supabaseClient = createClient(
 );
 
 serve(async (req) => {
+  console.log('Received webhook request');
+  
   try {
     const signature = req.headers.get('stripe-signature');
     if (!signature) {
@@ -20,7 +22,10 @@ serve(async (req) => {
     }
 
     const body = await req.text();
+    console.log('Webhook body:', body);
+    
     const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+    console.log('Webhook secret exists:', !!webhookSecret);
     
     if (!webhookSecret) {
       console.error('Webhook secret not configured');
@@ -35,7 +40,8 @@ serve(async (req) => {
         webhookSecret
       );
     } catch (err) {
-      console.error(`Webhook signature verification failed: ${err.message}`);
+      console.error(`Webhook signature verification failed:`, err);
+      console.error('Signature:', signature);
       return new Response(`Webhook Error: ${err.message}`, { status: 400 });
     }
 
@@ -47,7 +53,7 @@ serve(async (req) => {
       console.log('Processing subscription:', subscription.id);
       
       const customer = await stripe.customers.retrieve(subscription.customer as string);
-      console.log('Retrieved customer:', customer.id);
+      console.log('Retrieved customer:', customer.id, 'Email:', customer.email);
       
       if (!customer.email) {
         console.error('No customer email found');
@@ -66,7 +72,7 @@ serve(async (req) => {
         throw new Error('User not found');
       }
 
-      console.log('Found user:', userData.id);
+      console.log('Found user:', userData.id, 'Current role:', userData.role);
 
       // Get subscription tier
       const { data: subscriptionTier, error: tierError } = await supabaseClient
@@ -96,7 +102,7 @@ serve(async (req) => {
         throw updateError;
       }
 
-      console.log('Updated user profile');
+      console.log('Updated user profile with new role and status');
 
       // Update user_subscriptions table
       const { error: subscriptionError } = await supabaseClient
