@@ -31,12 +31,6 @@ export const ChatHistoryGroup = ({
   isModelGroup = false,
   children,
 }: ChatHistoryGroupProps) => {
-  const getChatTitle = (messages: any[]) => {
-    const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
-    if (!firstUserMessage) return 'New Chat';
-    return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
-  };
-
   const getTotalChats = () => {
     if (!isModelGroup) return chats.length;
     let total = chats.length;
@@ -49,13 +43,25 @@ export const ChatHistoryGroup = ({
   };
 
   const handleTriggerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     onToggle();
+  };
+
+  const handleGroupClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   if (chats.length === 0 && !children) return null;
 
   const totalChats = getTotalChats();
+
+  const getChatTitle = (messages: any[]) => {
+    const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
+    if (!firstUserMessage) return 'New Chat';
+    return firstUserMessage.content.slice(0, 30) + (firstUserMessage.content.length > 30 ? '...' : '');
+  };
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -74,7 +80,7 @@ export const ChatHistoryGroup = ({
           <ChevronRight className="h-4 w-4 mr-2 text-muted-foreground" />
         )}
         <span className={cn(
-          "font-medium",
+          "flex-1 text-sm",
           isModelGroup && "text-primary"
         )}>{label}</span>
         {totalChats > 0 && (
@@ -83,7 +89,7 @@ export const ChatHistoryGroup = ({
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-4 space-y-2 mt-2">
+      <CollapsibleContent className="pl-4 space-y-2 mt-2" onClick={handleGroupClick}>
         {children}
         {chats.map((chat) => (
           <ChatHistoryItem

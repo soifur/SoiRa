@@ -34,8 +34,12 @@ export const ChatHistoryContent = ({
 }: ChatHistoryContentProps) => {
   const isMobile = useIsMobile();
 
+  const handleContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <ScrollArea className="flex-1">
+    <ScrollArea className="flex-1" onClick={handleContentClick}>
       {isMobile && (
         <MobileNavigation 
           isSuperAdmin={isSuperAdmin} 

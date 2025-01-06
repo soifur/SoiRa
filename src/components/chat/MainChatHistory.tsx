@@ -7,7 +7,7 @@ import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ProfileSection } from "./ProfileSection";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
-import { ChatsByModelAndDate, MainChatHistoryProps, Chat, Message } from "./history/types";
+import { ChatsByModelAndDate, MainChatHistoryProps, Chat } from "./history/types";
 import { Database } from "@/integrations/supabase/types";
 import { useChatHistoryState } from "./history/ChatHistoryState";
 import { ChatHistoryContent } from "./history/ChatHistoryContent";
@@ -36,9 +36,6 @@ export const MainChatHistory = ({
   const isMobile = useIsMobile();
 
   const convertToChat = (row: ChatHistoryRow): Chat => {
-    const messages = (typeof row.messages === 'string' ? 
-      JSON.parse(row.messages) : row.messages) as Message[];
-    
     return {
       id: row.id,
       created_at: row.created_at || '',
@@ -47,7 +44,8 @@ export const MainChatHistory = ({
       user_id: row.user_id || '',
       session_token: row.session_token || '',
       bot_id: row.bot_id,
-      messages: Array.isArray(messages) ? messages : []
+      messages: (typeof row.messages === 'string' ? 
+        JSON.parse(row.messages) : row.messages) || []
     };
   };
 
@@ -123,6 +121,7 @@ export const MainChatHistory = ({
   };
 
   const handleDelete = async (chatId: string, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     try {
       const { error } = await supabase
@@ -149,6 +148,7 @@ export const MainChatHistory = ({
   };
 
   const handleSelectChat = async (chatId: string, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     console.log("Selecting chat:", chatId);
     
@@ -167,6 +167,9 @@ export const MainChatHistory = ({
       }
 
       onSelectChat(chatId);
+      if (isMobile) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error selecting chat:', error);
       toast({
@@ -177,26 +180,10 @@ export const MainChatHistory = ({
     }
   };
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const role = userProfile?.role as UserRole;
-  const isSuperAdmin = role === 'super_admin';
-  const isAdmin = role === 'admin';
+  const handleMainClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
     <div 
@@ -207,7 +194,7 @@ export const MainChatHistory = ({
         isOpen ? "translate-x-0" : "-translate-x-full",
         isMobile ? "w-full" : "w-80"
       )}
-      onClick={(e) => e.stopPropagation()}
+      onClick={handleMainClick}
     >
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
@@ -221,8 +208,8 @@ export const MainChatHistory = ({
           currentChatId={currentChatId}
           onSelectChat={handleSelectChat}
           onDeleteChat={handleDelete}
-          isSuperAdmin={isSuperAdmin}
-          isAdmin={isAdmin}
+          isSuperAdmin={false}
+          isAdmin={false}
           onClose={onClose}
         />
         

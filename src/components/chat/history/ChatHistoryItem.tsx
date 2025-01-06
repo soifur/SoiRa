@@ -21,11 +21,13 @@ export const ChatHistoryItem = ({
   const isMobile = useIsMobile();
 
   const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     onSelect(e);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     onDelete(e);
   };
