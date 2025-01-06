@@ -35,17 +35,17 @@ export const Navigation = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-4">
-        <div className="flex gap-6 md:gap-10">
+      <div className="container flex h-16 items-center">
+        <div className="flex gap-2 md:gap-3 px-4">
           {/* Only super_admin, admin can access Bots page */}
           {(isSuperAdmin || isAdmin) && (
             <Link to="/bots">
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="text-foreground hover:bg-accent hover:text-accent-foreground w-9 h-9"
               >
-                <Bot className="h-5 w-5" />
+                <Bot className="h-[18px] w-[18px]" />
               </Button>
             </Link>
           )}
@@ -56,9 +56,9 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="text-foreground hover:bg-accent hover:text-accent-foreground w-9 h-9"
               >
-                <Folder className="h-5 w-5" />
+                <Folder className="h-[18px] w-[18px]" />
               </Button>
             </Link>
           )}
@@ -69,9 +69,9 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="text-foreground hover:bg-accent hover:text-accent-foreground w-9 h-9"
               >
-                <CreditCard className="h-5 w-5" />
+                <CreditCard className="h-[18px] w-[18px]" />
               </Button>
             </Link>
           )}
@@ -82,9 +82,9 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="text-foreground hover:bg-accent hover:text-accent-foreground w-9 h-9"
               >
-                <Users className="h-5 w-5" />
+                <Users className="h-[18px] w-[18px]" />
               </Button>
             </Link>
           )}
@@ -95,9 +95,9 @@ export const Navigation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                className="text-foreground hover:bg-accent hover:text-accent-foreground w-9 h-9"
               >
-                <Archive className="h-5 w-5" />
+                <Archive className="h-[18px] w-[18px]" />
               </Button>
             </Link>
           )}
