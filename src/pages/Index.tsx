@@ -23,33 +23,34 @@ const Index = () => {
     sendMessage: handleSendMessage,
     isLoading,
     isStreaming,
-    createNewChat,
-    loadChat,
-  } = useChat(sessionToken);
+    handleNewChat,
+    handleSelectChat,
+  } = useChat(selectedBotId, sessionToken);
 
-  const { bots, selectedBot, setSelectedBot } = useBots();
+  const { bots } = useBots();
   const { isExceeded } = useUsageLimit();
 
   useEffect(() => {
     if (selectedBotId) {
       const bot = bots.find((b) => b.id === selectedBotId);
       if (bot) {
-        setSelectedBot(bot);
+        // No need to setSelectedBot since we're using selectedBotId directly
+        console.log("Selected bot:", bot);
       }
     }
   }, [selectedBotId, bots]);
 
-  const handleNewChat = () => {
+  const onNewChat = () => {
+    handleNewChat();
     setCurrentChatId(null);
-    createNewChat();
     if (isMobile) {
       setIsHistoryOpen(false);
     }
   };
 
-  const handleSelectChat = (chatId: string) => {
+  const onSelectChat = (chatId: string) => {
+    handleSelectChat(chatId);
     setCurrentChatId(chatId);
-    loadChat(chatId);
     if (isMobile) {
       setIsHistoryOpen(false);
     }
@@ -64,8 +65,8 @@ const Index = () => {
       <MainChatHistory
         sessionToken={sessionToken}
         botId={selectedBotId}
-        onSelectChat={handleSelectChat}
-        onNewChat={handleNewChat}
+        onSelectChat={onSelectChat}
+        onNewChat={onNewChat}
         currentChatId={currentChatId}
         isOpen={isHistoryOpen}
         onClose={toggleHistory}
@@ -74,7 +75,7 @@ const Index = () => {
       <div className="flex-1 relative overflow-hidden">
         <div className="w-full h-full relative">
           <ChatContainer
-            selectedBot={selectedBot}
+            selectedBot={bots.find(b => b.id === selectedBotId)}
             messages={messages}
             isLoading={isLoading}
             isStreaming={isStreaming}
