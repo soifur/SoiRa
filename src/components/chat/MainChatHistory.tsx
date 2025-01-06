@@ -236,10 +236,14 @@ export const MainChatHistory = ({
       "dark:bg-zinc-950",
       "light:bg-white light:border-gray-200",
       isOpen ? "translate-x-0" : "-translate-x-full",
-      isMobile ? "w-full" : "w-80"
+      isMobile ? "w-full" : "w-64" // Reduced from w-80 to w-64
     )}>
       <div className="flex flex-col h-full">
-        <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
+        <ChatHistoryHeader 
+          onNewChat={onNewChat} 
+          onClose={onClose} 
+          className="px-2" // Reduced padding
+        />
         
         <ScrollArea className="flex-1">
           {isMobile && (
@@ -247,10 +251,11 @@ export const MainChatHistory = ({
               isSuperAdmin={isSuperAdmin} 
               isAdmin={isAdmin} 
               onClose={onClose}
+              className="px-2" // Reduced padding
             />
           )}
           
-          <div className="p-4 space-y-4">
+          <div className="p-2 space-y-2"> {/* Reduced padding and spacing */}
             {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
               <ChatHistoryGroup
                 key={modelName}
@@ -262,6 +267,7 @@ export const MainChatHistory = ({
                 onSelectChat={handleSelectChat}
                 onDeleteChat={handleDelete}
                 isModelGroup={true}
+                className="text-sm" // Reduced text size
               >
                 {DATE_GROUP_ORDER.map((dateGroup) => {
                   const chats = dateGroups[dateGroup] || [];
@@ -277,6 +283,7 @@ export const MainChatHistory = ({
                       currentChatId={currentChatId}
                       onSelectChat={handleSelectChat}
                       onDeleteChat={handleDelete}
+                      className="text-xs" // Reduced text size for date groups
                     />
                   );
                 })}
@@ -286,7 +293,11 @@ export const MainChatHistory = ({
         </ScrollArea>
         
         <div className="mt-auto border-t border-border">
-          <ProfileSection showViewPlans={isMobile} onClose={onClose} />
+          <ProfileSection 
+            showViewPlans={isMobile} 
+            onClose={onClose} 
+            className="px-2" // Reduced padding
+          />
         </div>
       </div>
     </div>
