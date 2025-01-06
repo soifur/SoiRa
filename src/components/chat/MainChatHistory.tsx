@@ -60,9 +60,7 @@ export const MainChatHistory = ({
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (sessionToken) {
-      fetchChatHistory();
-    }
+    fetchChatHistory();
   }, [sessionToken, botId]);
 
   // Save expanded states to localStorage whenever they change
@@ -107,9 +105,14 @@ export const MainChatHistory = ({
       if (user) {
         console.log("Fetching chats for authenticated user:", user.id);
         query = query.eq('user_id', user.id);
-      } else if (sessionToken) {
-        console.log("Fetching chats for session token:", sessionToken);
-        query = query.eq('session_token', sessionToken);
+      } 
+      
+      if (sessionToken) {
+        console.log("Adding session token condition:", sessionToken);
+        // If user is authenticated, this becomes an OR condition
+        query = user ? 
+          query.or(`user_id.eq.${user.id},session_token.eq.${sessionToken}`) :
+          query.eq('session_token', sessionToken);
       }
 
       const { data, error } = await query;
