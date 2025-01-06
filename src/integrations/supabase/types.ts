@@ -477,6 +477,7 @@ export type Database = {
           message_multiplier: number
           name: string
           price: number
+          stripe_price_id: string | null
           updated_at: string
         }
         Insert: {
@@ -490,6 +491,7 @@ export type Database = {
           message_multiplier?: number
           name: string
           price: number
+          stripe_price_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -503,6 +505,7 @@ export type Database = {
           message_multiplier?: number
           name?: string
           price?: number
+          stripe_price_id?: string | null
           updated_at?: string
         }
         Relationships: []
