@@ -24,11 +24,8 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isMobile = useIsMobile();
 
-  // Cleanup pointer-events when component unmounts
   useEffect(() => {
-    return () => {
-      document.body.style.removeProperty('pointer-events');
-    };
+    fetchUserAvatar();
   }, []);
 
   const fetchUserAvatar = async () => {
@@ -126,16 +123,9 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
     }
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      // Ensure pointer-events are restored when dropdown closes
-      document.body.style.removeProperty('pointer-events');
-    }
-  };
-
   return (
     <>
-      <DropdownMenu onOpenChange={handleOpenChange}>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <div className="p-4 hover:bg-accent/0 transition-colors cursor-pointer bg-transparent">
             <div className="flex items-center gap-3">
@@ -162,11 +152,7 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
       </DropdownMenu>
       <UpgradeModal 
         isOpen={showUpgradeModal} 
-        onClose={() => {
-          setShowUpgradeModal(false);
-          // Ensure pointer-events are restored when modal closes
-          document.body.style.removeProperty('pointer-events');
-        }} 
+        onClose={() => setShowUpgradeModal(false)} 
       />
     </>
   );

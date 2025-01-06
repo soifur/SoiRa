@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SubscriptionTierCard } from "./SubscriptionTierCard";
-import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface UpgradeModalProps {
@@ -23,18 +22,12 @@ interface SubscriptionTier {
   price: number;
   features: string[] | string;
   is_active: boolean;
+  stripe_price_id?: string;
 }
 
 export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-
-  // Clean up pointer-events when component unmounts
-  useEffect(() => {
-    return () => {
-      document.body.style.removeProperty('pointer-events');
-    };
-  }, []);
 
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
@@ -49,6 +42,33 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
         .single();
 
       if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: currentSubscription } = useQuery({
+    queryKey: ['currentSubscription'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('user_subscriptions')
+        .select(`
+          id,
+          status,
+          subscription_tiers (
+            name
+          )
+        `)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching subscription:', error);
+        return null;
+      }
+
       return data;
     }
   });
@@ -71,20 +91,19 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
     onClose();
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      document.body.style.removeProperty('pointer-events');
-      onClose();
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
         className={`
           w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6
           ${isMobile ? 'z-[300]' : ''}
         `}
+        onPointerDownOutside={(e) => {
+          e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          e.preventDefault();
+        }}
       >
         <DialogHeader>
           <DialogTitle className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
@@ -100,8 +119,9 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
               price={tier.price}
               features={Array.isArray(tier.features) ? tier.features : [tier.features]}
               isComingSoon={tier.name === 'Pro'}
-              isCurrentPlan={tier.name === 'Free' && userProfile?.subscription_status === 'free'}
+              isCurrentPlan={currentSubscription?.subscription_tiers?.name === tier.name}
               onSelect={() => handleUpgrade(tier.id)}
+              priceId={tier.stripe_price_id}
             />
           ))}
         </div>
