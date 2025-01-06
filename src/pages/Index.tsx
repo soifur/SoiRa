@@ -177,6 +177,7 @@ const Index = () => {
                 disabled={isExceeded}
                 disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
                 onUpgradeClick={() => setShowUpgradeModal(true)}
+                showHistory={showHistory}
               />
               {isExceeded && <LimitExceededMessage />}
             </div>

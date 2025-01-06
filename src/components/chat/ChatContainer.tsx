@@ -4,6 +4,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { Bot } from "@/hooks/useBots";
 import { Message } from "@/components/chat/types/chatTypes";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface ChatContainerProps {
   selectedBot: Bot | undefined;
@@ -14,6 +15,7 @@ interface ChatContainerProps {
   disabled?: boolean;
   disabledReason?: string;
   onUpgradeClick?: () => void;
+  showHistory?: boolean;
 }
 
 export const ChatContainer = ({
@@ -24,12 +26,17 @@ export const ChatContainer = ({
   sendMessage,
   disabled,
   disabledReason,
-  onUpgradeClick
+  onUpgradeClick,
+  showHistory
 }: ChatContainerProps) => {
   const isMobile = useIsMobile();
   
   return (
-    <div className="relative flex flex-col h-full">
+    <div className={cn(
+      "relative flex flex-col h-full",
+      "transition-[margin] duration-300 ease-in-out",
+      !isMobile && showHistory && "ml-64" // Add margin when sidebar is open and not on mobile
+    )}>
       <div className="flex-1 overflow-hidden mt-14">
         {selectedBot ? (
           <MessageList
