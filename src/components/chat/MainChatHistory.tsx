@@ -236,7 +236,7 @@ export const MainChatHistory = ({
       "dark:bg-zinc-950",
       "light:bg-white light:border-gray-200",
       isOpen ? "translate-x-0" : "-translate-x-full",
-      isMobile ? "w-full" : "w-80"
+      isMobile ? "w-full" : "w-64" // Changed from w-80 to w-64 for a smaller width
     )}>
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
@@ -250,7 +250,7 @@ export const MainChatHistory = ({
             />
           )}
           
-          <div className="p-4 space-y-4">
+          <div className="p-3 space-y-3"> {/* Reduced padding from p-4 space-y-4 to p-3 space-y-3 */}
             {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
               <ChatHistoryGroup
                 key={modelName}
