@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 interface SubscriptionTierProps {
   name: string;
@@ -27,6 +28,7 @@ export const SubscriptionTierCard = ({
   priceId,
 }: SubscriptionTierProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
@@ -50,6 +52,13 @@ export const SubscriptionTierCard = ({
                     userProfile?.role === 'super_admin';
 
   const handleUpgrade = async () => {
+    if (isCurrentPlan) {
+      // Navigate to subscription settings tab
+      navigate('/settings?tab=subscription');
+      onSelect();
+      return;
+    }
+
     if (!priceId) {
       toast({
         title: "Error",
@@ -140,12 +149,12 @@ export const SubscriptionTierCard = ({
       
       {shouldShowUpgradeButton && (
         <Button
-          onClick={isCurrentPlan ? onSelect : handleUpgrade}
+          onClick={handleUpgrade}
           variant={isCurrentPlan ? "outline" : "default"}
           disabled={isComingSoon || !priceId}
           className="w-full text-sm md:text-base"
         >
-          {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Current Plan" : "Upgrade"}
+          {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Manage Subscription" : "Upgrade"}
         </Button>
       )}
     </Card>
