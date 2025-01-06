@@ -40,7 +40,7 @@ export const useBotProvider = () => {
         
         userBots = ownBots.map((bot): Bot => ({
           id: bot.id,
-          name: bot.name,
+          name: bot.name || 'Unknown Model',
           instructions: bot.instructions || "",
           starters: bot.starters || [],
           model: bot.model as BaseModel,
@@ -73,12 +73,13 @@ export const useBotProvider = () => {
 
       const transformedSharedBots: Bot[] = (sharedBots as unknown as SharedBot[]).map(shared => {
         const apiKey = shared.bot_api_keys?.api_key || "";
+        const modelName = shared.bot_name || 'Unknown Model';
         
-        console.log(`Processing bot ${shared.bot_name}, API key present: ${Boolean(apiKey)}`);
+        console.log(`Processing bot ${modelName}, API key present: ${Boolean(apiKey)}`);
         
         return {
           id: shared.share_key,
-          name: shared.bot_name,
+          name: modelName,
           instructions: shared.instructions || "",
           starters: shared.starters || [],
           model: shared.model as BaseModel,
@@ -93,8 +94,12 @@ export const useBotProvider = () => {
 
       console.log("Transformed shared bots:", transformedSharedBots);
 
-      // Combine and return both sets of bots
-      return [...userBots, ...transformedSharedBots];
+      // Combine and sort bots by name
+      const allBots = [...userBots, ...transformedSharedBots].sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+
+      return allBots;
     },
   });
 };
