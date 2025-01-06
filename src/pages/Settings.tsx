@@ -3,6 +3,7 @@ import { ModelSubscriptionSettings } from "@/components/settings/ModelSubscripti
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { MemoryBotSettings } from "@/components/settings/MemoryBotSettings";
 import { CustomInstructions } from "@/components/settings/CustomInstructions";
+import { SubscriptionSettings } from "@/components/settings/subscription/SubscriptionSettings";
 import { Settings as SettingsIcon, User, MessageSquare, Database, CreditCard, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,12 @@ const Settings = () => {
     {
       value: "subscription",
       label: "Subscription",
+      icon: CreditCard,
+      content: <SubscriptionSettings />
+    },
+    {
+      value: "model_subscription",
+      label: "Model Subscription",
       icon: CreditCard,
       content: <ModelSubscriptionSettings />
     }

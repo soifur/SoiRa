@@ -467,7 +467,9 @@ export type Database = {
       }
       subscription_tiers: {
         Row: {
+          bullet_points: Json
           created_at: string
+          currency: string
           description: string
           features: Json
           id: string
@@ -478,7 +480,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bullet_points?: Json
           created_at?: string
+          currency?: string
           description: string
           features?: Json
           id?: string
@@ -489,7 +493,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bullet_points?: Json
           created_at?: string
+          currency?: string
           description?: string
           features?: Json
           id?: string
@@ -533,6 +539,50 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          status: string
+          tier_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end: string
+          current_period_start?: string
+          id?: string
+          status?: string
+          tier_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          status?: string
+          tier_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
