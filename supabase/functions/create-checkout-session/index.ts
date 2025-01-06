@@ -54,13 +54,19 @@ serve(async (req) => {
       }
     }
 
+    // Get the price ID from the request body
+    const { priceId } = await req.json();
+    if (!priceId) {
+      throw new Error('No price ID provided');
+    }
+
     console.log('Creating payment session...');
     const session = await stripe.checkout.sessions.create({
       customer: customer_id,
       customer_email: customer_id ? undefined : email,
       line_items: [
         {
-          price: 'YOUR_PRICE_ID', // Replace this with your actual price ID
+          price: priceId,
           quantity: 1,
         },
       ],

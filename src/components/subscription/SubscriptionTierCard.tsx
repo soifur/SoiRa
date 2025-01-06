@@ -12,6 +12,7 @@ interface SubscriptionTierProps {
   isComingSoon?: boolean;
   isCurrentPlan?: boolean;
   onSelect: () => void;
+  priceId?: string;
 }
 
 export const SubscriptionTierCard = ({
@@ -22,12 +23,15 @@ export const SubscriptionTierCard = ({
   isComingSoon,
   isCurrentPlan,
   onSelect,
+  priceId,
 }: SubscriptionTierProps) => {
   const { toast } = useToast();
 
   const handleUpgrade = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session');
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId }
+      });
       
       if (error) throw error;
       
@@ -68,7 +72,7 @@ export const SubscriptionTierCard = ({
       <Button
         onClick={isCurrentPlan ? onSelect : handleUpgrade}
         variant={isCurrentPlan ? "outline" : "default"}
-        disabled={isComingSoon}
+        disabled={isComingSoon || !priceId}
         className="w-full text-sm md:text-base"
       >
         {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Current Plan" : "Upgrade"}
