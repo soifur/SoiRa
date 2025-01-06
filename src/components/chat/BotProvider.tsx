@@ -2,6 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
 
+interface BotApiKey {
+  api_key: string;
+}
+
+interface SharedBot {
+  share_key: string;
+  bot_name: string;
+  instructions: string | null;
+  starters: string[] | null;
+  model: Bot['model'];
+  open_router_model: string | null;
+  avatar: string | null;
+  memory_enabled: boolean | null;
+  published: boolean | null;
+  bot_api_keys: BotApiKey[] | null;
+}
+
 export const useBotProvider = () => {
   return useQuery({
     queryKey: ['bots-and-shared'],
@@ -51,10 +68,8 @@ export const useBotProvider = () => {
 
       console.log("Raw shared bots data:", sharedBots);
 
-      const transformedSharedBots: Bot[] = sharedBots.map(shared => {
-        const apiKey = shared.bot_api_keys && shared.bot_api_keys.length > 0 
-          ? shared.bot_api_keys[0].api_key 
-          : "";
+      const transformedSharedBots: Bot[] = (sharedBots as SharedBot[]).map(shared => {
+        const apiKey = shared.bot_api_keys?.[0]?.api_key || "";
         
         console.log(`Processing bot ${shared.bot_name}, API key present: ${Boolean(apiKey)}`);
         
@@ -63,7 +78,7 @@ export const useBotProvider = () => {
           name: shared.bot_name,
           instructions: shared.instructions || "",
           starters: shared.starters || [],
-          model: shared.model as Bot['model'],
+          model: shared.model,
           apiKey: apiKey,
           openRouterModel: shared.open_router_model,
           avatar: shared.avatar,
