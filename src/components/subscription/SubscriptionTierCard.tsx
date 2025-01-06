@@ -126,6 +126,12 @@ export const SubscriptionTierCard = ({
   // Hide upgrade button for free tier if user is already paid
   const shouldShowUpgradeButton = !isPaidUser || (name !== 'Free' && !isCurrentPlan);
 
+  const getButtonText = () => {
+    if (isComingSoon) return "Coming Soon";
+    if (isCurrentPlan || (isPaidUser && name === "Plus")) return "Manage Subscription";
+    return "Upgrade";
+  };
+
   return (
     <Card className="p-4 md:p-6 flex flex-col h-full">
       <div className="mb-3 md:mb-4">
@@ -154,7 +160,7 @@ export const SubscriptionTierCard = ({
           disabled={isComingSoon || !priceId}
           className="w-full text-sm md:text-base"
         >
-          {isComingSoon ? "Coming Soon" : isCurrentPlan ? "Manage Subscription" : "Upgrade"}
+          {getButtonText()}
         </Button>
       )}
     </Card>
