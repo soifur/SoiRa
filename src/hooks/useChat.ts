@@ -91,6 +91,7 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
         setMessages([...newMessages, botMessage]);
       }
 
+      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       const chatId = currentChatId || uuidv4();
@@ -108,18 +109,25 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
           ...msg,
           timestamp: msg.timestamp?.toISOString(),
         })),
-        user_id: user?.id,
+        user_id: user?.id || null,
         session_token: !user ? sessionToken : null,
         sequence_number: 1,
         updated_at: new Date().toISOString(),
-        messages_used: userMessageCount // Explicitly set the messages_used count
+        messages_used: userMessageCount
       };
+
+      console.log("Saving chat with data:", chatData);
 
       const { error } = await supabase
         .from('chat_history')
         .upsert(chatData);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error saving chat:", error);
+        throw error;
+      }
+
+      console.log("Chat saved successfully");
 
     } catch (error) {
       console.error("Chat error:", error);
