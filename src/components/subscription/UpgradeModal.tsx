@@ -91,17 +91,15 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
     onClose();
   };
 
+  const handleClose = () => {
+    onClose();
+  };
+
   return (
     <Dialog 
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-          // Force a small delay to ensure cleanup
-          setTimeout(() => {
-            document.body.style.pointerEvents = 'auto';
-          }, 100);
-        }
+        if (!open) handleClose();
       }}
     >
       <DialogContent 
@@ -109,14 +107,6 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
           w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6
           ${isMobile ? 'z-[300]' : ''}
         `}
-        onPointerDownOutside={(e) => {
-          e.preventDefault();
-          onClose();
-        }}
-        onEscapeKeyDown={(e) => {
-          e.preventDefault();
-          onClose();
-        }}
       >
         <DialogHeader>
           <DialogTitle className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
