@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Bot, Filter, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 
 const Archive = () => {
   const { bots } = useBots();
@@ -24,6 +25,26 @@ const Archive = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+  // Query to check if user is super_admin
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const isSuperAdmin = userProfile?.role === 'super_admin';
+
   useEffect(() => {
     fetchChatHistory();
   }, []);
@@ -33,12 +54,25 @@ const Archive = () => {
       setIsLoading(true);
       const { data: session } = await supabase.auth.getSession();
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('chat_history')
-        .select('*')
+        .select(`
+          *,
+          profiles:user_id (
+            email,
+            first_name,
+            last_name
+          )
+        `)
         .eq('deleted', 'no')
-        .or(`user_id.eq.${session.session?.user.id},share_key.not.is.null`)
         .order('created_at', { ascending: false });
+
+      // If not super_admin, only show user's own chats
+      if (!isSuperAdmin && session.session?.user.id) {
+        query = query.eq('user_id', session.session.user.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -57,7 +91,9 @@ const Archive = () => {
         type: record.share_key ? 'public' : 'private',
         user_id: record.user_id,
         client_id: record.client_id,
-        sequence_number: data.length - index
+        sequence_number: data.length - index,
+        userEmail: record.profiles?.email,
+        userName: record.profiles ? `${record.profiles.first_name || ''} ${record.profiles.last_name || ''}`.trim() : 'Unknown User'
       }));
 
       setChatHistory(transformedHistory);
@@ -122,10 +158,10 @@ const Archive = () => {
           <div className="flex flex-col">
             <h1 className="text-xl font-semibold flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              Chat Archive
+              {isSuperAdmin ? "Global Chat Archive" : "Chat Archive"}
             </h1>
             <p className="text-sm text-muted-foreground hidden md:block">
-              View and manage your chat history
+              {isSuperAdmin ? "View and manage all users' chat history" : "View and manage your chat history"}
             </p>
           </div>
         </div>
@@ -177,6 +213,7 @@ const Archive = () => {
                   bot={getSelectedBot(record.botId)}
                   onClick={() => setSelectedChat(record)}
                   onDelete={() => handleDeleteChat(record.id)}
+                  showUserInfo={isSuperAdmin}
                 />
               ))}
             </div>
