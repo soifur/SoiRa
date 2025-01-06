@@ -89,24 +89,20 @@ const EmbeddedChatContainer = () => {
           avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
         }
 
-        // Initialize instructions with the default bot instructions
         let instructions = sharedBotData.instructions || "";
-        
-        // Check if quiz mode is enabled and fetch quiz responses
+        let quizInstructions = null;
+
+        // If quiz mode is enabled, try to get the combined instructions
         if (sharedBotData.quiz_mode === true) {
-          console.log("Quiz mode is enabled for bot:", sharedBotData.bot_id);
+          console.log("Quiz mode is enabled, fetching quiz data");
           
-          // First get the quiz configuration
           const { data: quizConfig } = await supabase
             .from('quiz_configurations')
             .select('id')
             .eq('bot_id', sharedBotData.bot_id)
             .maybeSingle();
 
-          console.log("Quiz config:", quizConfig);
-
           if (quizConfig?.id) {
-            // Then get quiz responses using the quiz configuration id
             const { data: quizResponses } = await supabase
               .from('quiz_responses')
               .select('combined_instructions')
@@ -114,26 +110,21 @@ const EmbeddedChatContainer = () => {
               .eq('user_id', clientId)
               .maybeSingle();
 
-            console.log("Quiz responses found:", quizResponses);
-
-            // If we have quiz responses with combined instructions, use those instead
             if (quizResponses?.combined_instructions) {
-              console.log("Using combined instructions:", quizResponses.combined_instructions);
-              instructions = quizResponses.combined_instructions;
-            } else {
-              console.log("No combined instructions found, using default instructions");
+              console.log("Found quiz combined instructions:", quizResponses.combined_instructions);
+              quizInstructions = quizResponses.combined_instructions;
             }
-          } else {
-            console.log("No quiz configuration found for bot:", sharedBotData.bot_id);
           }
         }
 
-        console.log("Final instructions being used:", instructions);
+        // Use quiz instructions if available, otherwise fall back to default instructions
+        const finalInstructions = quizInstructions || instructions;
+        console.log("Final instructions being used:", finalInstructions);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
           name: sharedBotData.bot_name,
-          instructions: instructions,
+          instructions: finalInstructions,
           starters: sharedBotData.starters || [],
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
