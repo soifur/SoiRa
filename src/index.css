@@ -123,5 +123,14 @@ body {
 }
 
 .avatar {
-  @apply bg-transparent;
+  @apply bg-transparent !important;
+}
+
+/* Override any other avatar background styles */
+.avatar > * {
+  @apply bg-transparent !important;
+}
+
+.avatar-fallback {
+  @apply bg-transparent !important;
 }
