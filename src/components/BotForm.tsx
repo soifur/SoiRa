@@ -31,6 +31,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     published: bot.published ?? false
   });
   const [quizEnabled, setQuizEnabled] = useState(false);
+  const [quizFields, setQuizFields] = useState<Field[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -40,34 +41,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       memory_enabled: bot.memory_enabled ?? false,
       published: bot.published ?? false
     }));
-
-    // Load quiz configuration when bot form is opened
-    if (bot.id) {
-      loadQuizConfiguration();
-    }
   }, [bot]);
-
-  const loadQuizConfiguration = async () => {
-    try {
-      const { data: quizConfig } = await supabase
-        .from('quiz_configurations')
-        .select('*')
-        .eq('bot_id', bot.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (quizConfig) {
-        setQuizEnabled(quizConfig.enabled);
-      }
-    } catch (error) {
-      console.error('Error loading quiz configuration:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load quiz configuration",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleBotChange = (updates: Partial<Bot>) => {
     setEditingBot(prev => ({ ...prev, ...updates }));
@@ -104,29 +78,12 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     handleBotChange({ published: checked });
   };
 
-  const handleQuizModeChange = async (enabled: boolean, fields?: Field[]) => {
+  const handleQuizModeChange = (enabled: boolean) => {
     setQuizEnabled(enabled);
-    try {
-      if (!editingBot.id) return;
+  };
 
-      const quizId = await saveQuizConfiguration(editingBot.id, enabled);
-      
-      if (fields) {
-        await saveQuizFields(quizId, fields);
-      }
-
-      toast({
-        title: "Success",
-        description: `Quiz mode ${enabled ? 'enabled' : 'disabled'} successfully`,
-      });
-    } catch (error) {
-      console.error("Error updating quiz mode:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update quiz mode",
-        variant: "destructive",
-      });
-    }
+  const handleQuizFieldsChange = (fields: Field[]) => {
+    setQuizFields(fields);
   };
 
   const handleSave = async () => {
@@ -138,6 +95,14 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
       // First update the bot
       await updateBotAndSharedConfig(editingBot);
+
+      // Then save quiz configuration
+      const quizId = await saveQuizConfiguration(editingBot.id, quizEnabled);
+      
+      // Save quiz fields if there are any
+      if (quizFields.length > 0) {
+        await saveQuizFields(quizId, quizFields);
+      }
 
       onSave(editingBot);
       toast({
@@ -211,7 +176,9 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                   <QuizModeSettings
                     botId={editingBot.id}
                     enabled={quizEnabled}
+                    fields={quizFields}
                     onEnableChange={handleQuizModeChange}
+                    onFieldsChange={handleQuizFieldsChange}
                   />
                 </div>
               </>
