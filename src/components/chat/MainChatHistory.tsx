@@ -11,6 +11,7 @@ import { ChatsByModelAndDate, MainChatHistoryProps, Chat, Message } from "./hist
 import { Database } from "@/integrations/supabase/types";
 import { useChatHistoryState } from "./history/ChatHistoryState";
 import { ChatHistoryContent } from "./history/ChatHistoryContent";
+import { getDateGroup } from "@/utils/dateUtils"; // Add this import
 
 type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   bot: {
