@@ -22,26 +22,47 @@ serve(async (req) => {
     // Get the session or user object
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
+    
+    console.log('Authenticating user...');
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) {
+      console.error('Auth error:', userError);
+      throw userError;
+    }
+
+    const user = userData.user;
     const email = user?.email;
 
     if (!email) {
       throw new Error('No email found');
     }
 
+    console.log('User authenticated:', email);
+
     // Get the price ID from the request body
-    const { priceId } = await req.json();
+    const body = await req.json();
+    console.log('Request body:', body);
+    
+    const { priceId } = body;
     if (!priceId) {
       throw new Error('No price ID provided');
     }
 
     console.log('Creating checkout session with price ID:', priceId);
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Check if STRIPE_SECRET_KEY is set
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeKey) {
+      console.error('STRIPE_SECRET_KEY is not set');
+      throw new Error('Stripe configuration error');
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     });
 
+    // Get or create customer
+    console.log('Looking up customer...');
     const customers = await stripe.customers.list({
       email: email,
       limit: 1
@@ -50,9 +71,11 @@ serve(async (req) => {
     let customer_id = undefined;
     if (customers.data.length > 0) {
       customer_id = customers.data[0].id;
+      console.log('Found existing customer:', customer_id);
+      
       // Check if already subscribed
       const subscriptions = await stripe.subscriptions.list({
-        customer: customers.data[0].id,
+        customer: customer_id,
         status: 'active',
         limit: 1
       });
@@ -60,6 +83,8 @@ serve(async (req) => {
       if (subscriptions.data.length > 0) {
         throw new Error("You already have an active subscription");
       }
+    } else {
+      console.log('No existing customer found');
     }
 
     console.log('Creating payment session...');
@@ -88,7 +113,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error creating checkout session:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error instanceof Error ? error.stack : undefined
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,

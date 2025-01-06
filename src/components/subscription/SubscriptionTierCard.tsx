@@ -43,16 +43,22 @@ export const SubscriptionTierCard = ({
         body: { priceId }
       });
       
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.location.href = data.url;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
       }
+      
+      if (!data?.url) {
+        throw new Error('No checkout URL returned');
+      }
+
+      console.log('Redirecting to checkout:', data.url);
+      window.location.href = data.url;
     } catch (error) {
       console.error('Error creating checkout session:', error);
       toast({
         title: "Error",
-        description: "Failed to start checkout process. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to start checkout process. Please try again.",
         variant: "destructive",
       });
     }
