@@ -14,7 +14,7 @@ interface EmbedOptionsDialogProps {
   bot: Bot | null;
 }
 
-export const EmbeddedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogProps) => {
+export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogProps) => {
   const { toast } = useToast();
   const baseUrl = window.location.origin;
   const [shareKey, setShareKey] = useState<string>("");
