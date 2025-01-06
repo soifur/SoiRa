@@ -30,6 +30,14 @@ serve(async (req) => {
       throw new Error('No email found');
     }
 
+    // Get the price ID from the request body
+    const { priceId } = await req.json();
+    if (!priceId) {
+      throw new Error('No price ID provided');
+    }
+
+    console.log('Creating checkout session with price ID:', priceId);
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
@@ -52,12 +60,6 @@ serve(async (req) => {
       if (subscriptions.data.length > 0) {
         throw new Error("You already have an active subscription");
       }
-    }
-
-    // Get the price ID from the request body
-    const { priceId } = await req.json();
-    if (!priceId) {
-      throw new Error('No price ID provided');
     }
 
     console.log('Creating payment session...');
@@ -84,7 +86,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error creating payment session:', error);
+    console.error('Error creating checkout session:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

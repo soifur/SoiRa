@@ -28,7 +28,17 @@ export const SubscriptionTierCard = ({
   const { toast } = useToast();
 
   const handleUpgrade = async () => {
+    if (!priceId) {
+      toast({
+        title: "Error",
+        description: "This tier is not available for purchase yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      console.log('Creating checkout session with price ID:', priceId);
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { priceId }
       });
