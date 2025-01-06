@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
-import { getDateGroup } from "@/utils/dateUtils";
+import { getDateGroup, DATE_GROUP_ORDER } from "@/utils/dateUtils";
 import { ProfileSection } from "./ProfileSection";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
