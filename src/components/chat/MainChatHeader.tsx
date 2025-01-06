@@ -1,21 +1,17 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus, Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
+import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
+import { HeaderActions } from "./header/HeaderActions";
+import { BotSelector } from "./header/BotSelector";
+import { MobileHeader } from "./header/MobileHeader";
 
 interface MainChatHeaderProps {
   selectedBotId?: string | null;
@@ -32,11 +28,9 @@ export const MainChatHeader = ({
   setSelectedBotId,
   bots,
   onNewChat,
-  onSignOut,
   onToggleHistory,
   showHistory,
 }: MainChatHeaderProps) => {
-  const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
@@ -79,136 +73,53 @@ export const MainChatHeader = ({
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
         <div className={cn(
-          "flex-1 flex items-center gap-3", // Reduced gap
+          "flex-1 flex items-center gap-3",
           "transition-[margin] duration-300 ease-in-out",
-          showHistory ? "ml-64" : "ml-0" // Adjusted margin to match new sidebar width
+          showHistory ? "ml-64" : "ml-0"
         )}>
           {isMobile ? (
-            <div className="flex items-center justify-between w-full">
-              {isChat && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                    onClick={onToggleHistory}
-                  >
-                    <Clock className="h-4 w-4" />
-                  </Button>
-
-                  {selectedBotId && setSelectedBotId && (
-                    <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                      <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
-                        <SelectValue placeholder="Select a model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueBots.map((bot) => (
-                          <SelectItem key={bot.id} value={bot.id}>
-                            {bot.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                    onClick={onNewChat}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
+            <MobileHeader
+              onToggleHistory={onToggleHistory!}
+              selectedBotId={selectedBotId!}
+              setSelectedBotId={setSelectedBotId}
+              uniqueBots={uniqueBots}
+              onNewChat={onNewChat}
+            />
           ) : (
             <>
-              <div className="flex items-center gap-2"> {/* Reduced gap */}
+              <div className="flex items-center gap-2">
                 {isChat && !showHistory && (
                   <>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 hover:bg-dropdown-hover" // Smaller button
+                      className="h-7 w-7 hover:bg-dropdown-hover"
                       onClick={onToggleHistory}
                     >
-                      <Clock className="h-3.5 w-3.5" /> {/* Smaller icon */}
+                      <Clock className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 hover:bg-dropdown-hover" // Smaller button
+                      className="h-7 w-7 hover:bg-dropdown-hover"
                       onClick={onNewChat}
                     >
-                      <Plus className="h-3.5 w-3.5" /> {/* Smaller icon */}
-                    </Button>
-                  </>
-                )}
-                {(isSuperAdmin || isAdmin) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate('/bots')}
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                  >
-                    <Bot className="h-4 w-4" />
-                  </Button>
-                )}
-                {isSuperAdmin && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/folders')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Folder className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/subscriptions')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <CreditCard className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-                {(isSuperAdmin || isAdmin) && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/users')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Users className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => navigate('/archive')}
-                      className="h-8 w-8 hover:bg-dropdown-hover"
-                    >
-                      <Archive className="h-4 w-4" />
+                      <Plus className="h-3.5 w-3.5" />
                     </Button>
                   </>
                 )}
                 
+                <HeaderActions 
+                  isSuperAdmin={isSuperAdmin} 
+                  isAdmin={isAdmin} 
+                />
+                
                 {isChat && selectedBotId && setSelectedBotId && (
-                  <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                    <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-dropdown hover:bg-dropdown-hover"> {/* Adjusted width and height */}
-                      <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueBots.map((bot) => (
-                        <SelectItem key={bot.id} value={bot.id}>
-                          {bot.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <BotSelector
+                    selectedBotId={selectedBotId}
+                    setSelectedBotId={setSelectedBotId}
+                    uniqueBots={uniqueBots}
+                  />
                 )}
               </div>
             </>
