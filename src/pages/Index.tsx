@@ -32,7 +32,15 @@ const Index = () => {
         .eq('published', true)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching bots:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load bots. Please try again.",
+          variant: "destructive",
+        });
+        throw error;
+      }
 
       return data.map((bot): BotType => ({
         id: bot.id,
@@ -90,6 +98,14 @@ const Index = () => {
   } = useSubscriptionLimits(selectedBotId);
 
   const handleSendMessage = async (message: string) => {
+    if (!selectedBot) {
+      toast({
+        title: "No bot selected",
+        description: "Please select a bot to start chatting",
+        variant: "destructive",
+      });
+      return;
+    }
     await sendMessage(message);
     checkSubscriptionLimits();
   };
@@ -116,6 +132,10 @@ const Index = () => {
       </div>
     </div>
   );
+
+  if (isLoadingUserBots) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
