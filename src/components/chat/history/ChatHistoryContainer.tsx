@@ -14,11 +14,10 @@ export const ChatHistoryContainer = ({
   children 
 }: ChatHistoryContainerProps) => {
   const handleContainerClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Only allow closing via click on mobile
+    // Only close on mobile when clicking the backdrop
     if (isMobile) {
+      e.preventDefault();
+      e.stopPropagation();
       onClose();
     }
   };

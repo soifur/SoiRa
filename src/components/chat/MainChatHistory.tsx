@@ -32,16 +32,10 @@ export const MainChatHistory = ({
   const { expandedGroups, expandedModels, toggleGroup, toggleModel } = useChatHistoryState(chatsByModelAndDate);
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [sidebarState, setSidebarState] = useState(() => {
-    if (typeof window !== 'undefined' && !isMobile) {
-      return localStorage.getItem('sidebarState') === 'open';
-    }
-    return false;
-  });
 
+  // Persist sidebar state for desktop only
   useEffect(() => {
-    if (!isMobile && isOpen !== sidebarState) {
-      setSidebarState(isOpen);
+    if (!isMobile && typeof window !== 'undefined') {
       localStorage.setItem('sidebarState', isOpen ? 'open' : 'closed');
     }
   }, [isOpen, isMobile]);
@@ -166,7 +160,7 @@ export const MainChatHistory = ({
 
       onSelectChat(chatId);
       
-      // Only close on mobile after successful selection
+      // Only close on mobile
       if (isMobile) {
         onClose();
       }
