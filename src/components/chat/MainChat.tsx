@@ -7,6 +7,7 @@ import { ChatContainer } from "@/components/chat/ChatContainer";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
 import { MainChatHistory } from "@/components/chat/MainChatHistory";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import { Button } from "@/components/ui/button";
 
 interface MainChatProps {
   allBots: Bot[];
