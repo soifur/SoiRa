@@ -9,6 +9,7 @@ import { ChatHistoryItem } from "./ChatHistoryItem";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DATE_GROUP_ORDER, DateGroup } from "@/utils/dateUtils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatHistoryGroupProps {
   label: string | DateGroup;
@@ -35,15 +36,19 @@ export const ChatHistoryGroup = ({
   children,
   avatar,
 }: ChatHistoryGroupProps) => {
+  const isMobile = useIsMobile();
   const isDateGroup = DATE_GROUP_ORDER.includes(label as DateGroup);
 
   if (isDateGroup) {
     return (
-      <div className="space-y-1">
-        <h3 className="text-xs font-bold text-foreground/70 px-1">
+      <div className="space-y-2"> {/* Increased spacing */}
+        <h3 className={cn(
+          "font-bold text-foreground/70 px-2 py-1", // Added vertical padding
+          isMobile ? "text-base" : "text-xs" // Larger text on mobile
+        )}>
           {label}
         </h3>
-        <div className="space-y-1">
+        <div className="space-y-2"> {/* Increased spacing */}
           {chats.map((chat) => (
             <ChatHistoryItem
               key={chat.id}
@@ -62,36 +67,45 @@ export const ChatHistoryGroup = ({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <CollapsibleTrigger className={cn(
-        "flex items-center w-full p-1 rounded-lg",
+        "flex items-center w-full p-3 rounded-lg", // Increased padding
         "hover:bg-accent/50 dark:hover:bg-accent",
         "text-foreground/80 hover:text-foreground",
         isModelGroup && "font-semibold"
       )}>
         <ChevronDown className={cn(
-          "h-3.5 w-3.5 mr-1 text-muted-foreground shrink-0",
+          isMobile ? "h-5 w-5" : "h-3.5 w-3.5", // Larger icon on mobile
+          "mr-2 text-muted-foreground shrink-0",
           !isExpanded && "hidden"
         )} />
         <ChevronRight className={cn(
-          "h-3.5 w-3.5 mr-1 text-muted-foreground shrink-0",
+          isMobile ? "h-5 w-5" : "h-3.5 w-3.5", // Larger icon on mobile
+          "mr-2 text-muted-foreground shrink-0",
           isExpanded && "hidden"
         )} />
         {avatar && (
-          <Avatar className="h-4 w-4 mr-1">
+          <Avatar className={cn(
+            "mr-2",
+            isMobile ? "h-6 w-6" : "h-4 w-4" // Larger avatar on mobile
+          )}>
             <AvatarImage src={avatar} alt={label} />
             <AvatarFallback>{label[0]}</AvatarFallback>
           </Avatar>
         )}
         <span className={cn(
-          "text-xs truncate flex-1 text-left pr-1",
+          "truncate flex-1 text-left pr-1",
+          isMobile ? "text-base" : "text-xs", // Larger text on mobile
           isModelGroup && "text-primary"
         )}>{label}</span>
         {chats.length > 0 && (
-          <span className="ml-1 text-xs text-muted-foreground shrink-0">
+          <span className={cn(
+            "ml-1 text-muted-foreground shrink-0",
+            isMobile ? "text-sm" : "text-xs" // Larger text on mobile
+          )}>
             ({chats.length})
           </span>
         )}
       </CollapsibleTrigger>
-      <CollapsibleContent className="pl-2 space-y-1 mt-1">
+      <CollapsibleContent className="pl-3 space-y-2 mt-2"> {/* Increased spacing and padding */}
         {children}
         {chats.map((chat) => (
           <ChatHistoryItem
