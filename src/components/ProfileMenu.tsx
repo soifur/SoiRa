@@ -16,13 +16,16 @@ import { useEffect, useState } from "react";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export const ProfileMenu = () => {
+interface ProfileMenuProps {
+  fullName?: string;
+}
+
+export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("U");
-
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isMobile = useIsMobile();
 
@@ -129,20 +132,27 @@ export const ProfileMenu = () => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-12 w-12 p-1 hover:bg-accent transition-colors"
-          >
-            <Avatar className="h-10 w-10">
-              <AvatarImage 
-                src={avatarUrl || ''} 
-                alt="Profile" 
-                className="object-cover"
-              />
-              <AvatarFallback className="text-base">{initials}</AvatarFallback>
-            </Avatar>
-          </Button>
+          <div className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage 
+                    src={avatarUrl || ''} 
+                    alt="Profile" 
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="text-base">{initials}</AvatarFallback>
+                </Avatar>
+              </div>
+              {fullName && (
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium leading-none">
+                    {fullName}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="end" 
