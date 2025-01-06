@@ -167,17 +167,19 @@ const Index = () => {
               onClose={toggleHistory}
               setSelectedBotId={setSelectedBotId}
             />
-            <div className="flex-1 relative overflow-hidden">
-              <ChatContainer
-                selectedBot={selectedBot}
-                messages={messages}
-                isLoading={isLoading}
-                isStreaming={isStreaming}
-                sendMessage={handleSendMessage}
-                disabled={isExceeded}
-                disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
-                onUpgradeClick={() => setShowUpgradeModal(true)}
-              />
+            <div className="flex-1 relative overflow-hidden flex flex-col items-center">
+              <div className="w-full max-w-[1200px] mx-auto flex-1 relative">
+                <ChatContainer
+                  selectedBot={selectedBot}
+                  messages={messages}
+                  isLoading={isLoading}
+                  isStreaming={isStreaming}
+                  sendMessage={handleSendMessage}
+                  disabled={isExceeded}
+                  disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
+                  onUpgradeClick={() => setShowUpgradeModal(true)}
+                />
+              </div>
               {isExceeded && <LimitExceededMessage />}
             </div>
           </div>
