@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Button } from "@/components/ui/button";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import { useSidebarState } from "@/hooks/useSidebarState";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -21,6 +22,7 @@ const Index = () => {
   const { sessionToken } = useSessionToken();
   const { toast } = useToast();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { isOpen: sidebarOpen, toggleSidebar } = useSidebarState();
 
   // Query to get all published bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
@@ -115,6 +117,14 @@ const Index = () => {
     setShowHistory(false);
   };
 
+  const handleToggleHistory = () => {
+    if (isMobile) {
+      setShowHistory(!showHistory);
+    } else {
+      toggleSidebar();
+    }
+  };
+
   const LimitExceededMessage = () => (
     <div className="fixed bottom-24 left-0 right-0 p-4 bg-destructive/10 backdrop-blur">
       <div className="max-w-3xl mx-auto flex items-center justify-between">
@@ -148,8 +158,8 @@ const Index = () => {
               bots={userBots}
               onNewChat={handleNewChat}
               onSignOut={handleSignOut}
-              onToggleHistory={() => setShowHistory(!showHistory)}
-              showHistory={showHistory}
+              onToggleHistory={handleToggleHistory}
+              showHistory={isMobile ? showHistory : sidebarOpen}
             />
             <MainChatHistory
               sessionToken={sessionToken}
@@ -157,7 +167,7 @@ const Index = () => {
               onSelectChat={handleChatSelect}
               onNewChat={handleNewChat}
               currentChatId={currentChatId}
-              isOpen={showHistory}
+              isOpen={isMobile ? showHistory : sidebarOpen}
               onClose={() => setShowHistory(false)}
               setSelectedBotId={setSelectedBotId}
             />
