@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "@/hooks/useBots";
+import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
 
 export const updateBotAndSharedConfig = async (bot: Bot) => {
   // First update the bot
@@ -75,6 +76,72 @@ export const updateBotMemorySettings = async (botId: string, memoryEnabled: bool
 
     return true;
   } catch (error) {
+    throw error;
+  }
+};
+
+export const updateQuizConfiguration = async (botId: string, enabled: boolean, fields: Field[]) => {
+  try {
+    // First, try to get existing configuration
+    const { data: existingConfig } = await supabase
+      .from('quiz_configurations')
+      .select('*')
+      .eq('bot_id', botId)
+      .maybeSingle();
+
+    let quizId;
+    
+    if (existingConfig) {
+      // Update existing configuration
+      const { data, error } = await supabase
+        .from('quiz_configurations')
+        .update({ enabled })
+        .eq('id', existingConfig.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      quizId = data.id;
+    } else {
+      // Create new configuration
+      const { data, error } = await supabase
+        .from('quiz_configurations')
+        .insert([{ bot_id: botId, enabled }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      quizId = data.id;
+    }
+
+    // Delete existing fields
+    await supabase
+      .from('quiz_fields')
+      .delete()
+      .eq('quiz_id', quizId);
+
+    // Insert new fields if quiz is enabled and there are fields
+    if (enabled && fields.length > 0) {
+      const { error: insertError } = await supabase
+        .from('quiz_fields')
+        .insert(
+          fields.map((field, index) => ({
+            quiz_id: quizId,
+            field_type: field.field_type,
+            title: field.title,
+            instructions: field.instructions,
+            choices: field.choices,
+            single_section: field.single_section,
+            sequence_number: index
+          }))
+        );
+
+      if (insertError) throw insertError;
+    }
+
+    return quizId;
+  } catch (error) {
+    console.error('Error in updateQuizConfiguration:', error);
     throw error;
   }
 };
