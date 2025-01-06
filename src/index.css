@@ -102,10 +102,10 @@ span[class*="overflow-hidden rounded-full"] img,
 
 /* Dark mode overrides */
 .dark {
-  --sidebar-bg: 0 0% 16%;  /* #2a2a2a */
-  --sidebar-hover: 0 0% 24%;  /* #3d3d3d - slightly lighter for hover */
-  --button-bg: 0 0% 16%;  /* #2a2a2a */
-  --button-hover: 0 0% 24%;  /* #3d3d3d - slightly lighter for hover */
+  --sidebar-bg: 0 0% 8%;  /* #141414 */
+  --sidebar-hover: 0 0% 15%;  /* #262626 */
+  --button-bg: 0 0% 8%;  /* #141414 */
+  --button-hover: 0 0% 15%;  /* #262626 */
 }
 
 /* Update MainChatHistory sidebar styles */
