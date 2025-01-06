@@ -53,7 +53,6 @@ export const SubscriptionTierCard = ({
 
   const handleUpgrade = async () => {
     if (isCurrentPlan) {
-      // Navigate to subscription settings tab
       navigate('/settings?tab=subscription');
       onSelect();
       return;
@@ -123,9 +122,6 @@ export const SubscriptionTierCard = ({
     }
   };
 
-  // Hide upgrade button for free tier if user is already paid
-  const shouldShowUpgradeButton = !isPaidUser || (name !== 'Free' && !isCurrentPlan);
-
   const handleManageSubscription = () => {
     navigate('/settings?tab=subscription');
     onSelect();
@@ -152,16 +148,7 @@ export const SubscriptionTierCard = ({
         ))}
       </ul>
       
-      {shouldShowUpgradeButton ? (
-        <Button
-          onClick={handleUpgrade}
-          variant={isCurrentPlan ? "outline" : "default"}
-          disabled={isComingSoon || !priceId}
-          className="w-full text-sm md:text-base mb-4"
-        >
-          {isComingSoon ? "Coming Soon" : "Upgrade"}
-        </Button>
-      ) : isCurrentPlan ? (
+      {isCurrentPlan ? (
         <>
           <Button
             variant="secondary"
@@ -185,7 +172,16 @@ export const SubscriptionTierCard = ({
             </button>
           </div>
         </>
-      ) : null}
+      ) : (
+        <Button
+          onClick={handleUpgrade}
+          variant="default"
+          disabled={isComingSoon || !priceId}
+          className="w-full text-sm md:text-base"
+        >
+          {isComingSoon ? "Coming Soon" : "Upgrade"}
+        </Button>
+      )}
     </Card>
   );
 };
