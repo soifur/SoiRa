@@ -40,7 +40,7 @@ export const useBotProvider = () => {
         .from('shared_bots')
         .select(`
           *,
-          bot_api_keys!inner (
+          bot_api_keys (
             api_key
           )
         `)
@@ -49,21 +49,31 @@ export const useBotProvider = () => {
 
       if (sharedBotsError) throw sharedBotsError;
 
-      console.log("Shared bots with API keys:", sharedBots);
+      console.log("Raw shared bots data:", sharedBots);
 
-      const transformedSharedBots: Bot[] = sharedBots.map(shared => ({
-        id: shared.share_key,
-        name: shared.bot_name,
-        instructions: shared.instructions || "",
-        starters: shared.starters || [],
-        model: shared.model as Bot['model'],
-        apiKey: shared.bot_api_keys[0]?.api_key || "",
-        openRouterModel: shared.open_router_model,
-        avatar: shared.avatar,
-        accessType: "public",
-        memory_enabled: shared.memory_enabled,
-        published: shared.published,
-      }));
+      const transformedSharedBots: Bot[] = sharedBots.map(shared => {
+        const apiKey = shared.bot_api_keys && shared.bot_api_keys.length > 0 
+          ? shared.bot_api_keys[0].api_key 
+          : "";
+        
+        console.log(`Processing bot ${shared.bot_name}, API key present: ${Boolean(apiKey)}`);
+        
+        return {
+          id: shared.share_key,
+          name: shared.bot_name,
+          instructions: shared.instructions || "",
+          starters: shared.starters || [],
+          model: shared.model as Bot['model'],
+          apiKey: apiKey,
+          openRouterModel: shared.open_router_model,
+          avatar: shared.avatar,
+          accessType: "public",
+          memory_enabled: shared.memory_enabled,
+          published: shared.published,
+        };
+      });
+
+      console.log("Transformed shared bots:", transformedSharedBots);
 
       // Combine and return both sets of bots
       return [...userBots, ...transformedSharedBots];
