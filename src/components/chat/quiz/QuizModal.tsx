@@ -146,15 +146,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
               .from('quiz_responses')
               .insert([responseData]);
           }
-
-          // Update shared_bots with combined responses and instructions
-          await supabase
-            .from('shared_bots')
-            .update({
-              combined_responses: userResponses.trim(),
-              combined_instructions: combinedInstructions
-            })
-            .eq('bot_id', botId);
         }
 
         onComplete(combinedInstructions);

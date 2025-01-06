@@ -87,27 +87,18 @@ const EmbeddedChatContainer = () => {
           avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
         }
 
-        // Check if quiz mode is enabled for this bot
-        const { data: quizConfig } = await supabase
-          .from('quiz_configurations')
-          .select('enabled')
-          .eq('bot_id', sharedBotData.bot_id)
-          .single();
-
-        const isQuizEnabled = quizConfig?.enabled === true;
-
         // Get quiz responses for this user/client if quiz mode is enabled
         let instructions = sharedBotData.instructions || "";
         
-        if (isQuizEnabled) {
+        if (sharedBotData.quiz_mode) {
           const { data: quizResponses } = await supabase
             .from('quiz_responses')
-            .select('combined_instructions, quiz_mode')
+            .select('combined_instructions')
             .eq('quiz_id', sharedBotData.bot_id)
             .eq('user_id', clientId)
             .maybeSingle();
 
-          if (quizResponses?.quiz_mode && quizResponses?.combined_instructions) {
+          if (quizResponses?.combined_instructions) {
             instructions = quizResponses.combined_instructions;
           }
         }
