@@ -55,10 +55,15 @@ const Index = () => {
         }));
       }
 
-      // Then get published shared bots
+      // Then get published shared bots with their API keys
       const { data: sharedBots, error: sharedBotsError } = await supabase
         .from('shared_bots')
-        .select('*')
+        .select(`
+          *,
+          bot_api_keys (
+            api_key
+          )
+        `)
         .eq('published', true)
         .order('created_at', { ascending: false });
 
@@ -70,7 +75,7 @@ const Index = () => {
         instructions: shared.instructions || "",
         starters: shared.starters || [],
         model: shared.model as BotType['model'],
-        apiKey: "",
+        apiKey: shared.bot_api_keys?.[0]?.api_key || "",
         openRouterModel: shared.open_router_model,
         avatar: shared.avatar,
         accessType: "public",
