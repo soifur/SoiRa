@@ -9,11 +9,32 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
   const isMobile = useIsMobile();
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const isSuperAdmin = userProfile?.role === 'super_admin';
 
   const tabs = [
     {
@@ -22,12 +43,13 @@ const Settings = () => {
       icon: SettingsIcon,
       content: <ProfileSettings />
     },
-    {
+    // Only show Memory Bot tab for super_admin
+    ...(isSuperAdmin ? [{
       value: "memory",
       label: "Memory Bot",
       icon: Database,
       content: <MemoryBotSettings />
-    },
+    }] : []),
     {
       value: "instructions",
       label: "Custom Instructions",
@@ -40,18 +62,18 @@ const Settings = () => {
       icon: CreditCard,
       content: <SubscriptionSettings />
     },
-    {
+    // Only show Model Subscription tab for super_admin
+    ...(isSuperAdmin ? [{
       value: "model_subscription",
       label: "Model Subscription",
       icon: CreditCard,
       content: <ModelSubscriptionSettings />
-    }
+    }] : [])
   ];
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="relative bg-background border rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row">
-        {/* Sidebar / Top Navigation */}
         <div className={cn(
           "border-b md:border-r bg-muted/50",
           isMobile ? "w-full" : "w-64"
@@ -95,7 +117,6 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-6">
             {tabs.find(tab => tab.value === activeTab)?.content}

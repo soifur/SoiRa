@@ -22,6 +22,7 @@ const Index = () => {
   const { toast } = useToast();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
+  // Query to get all published bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['bots'],
     queryFn: async () => {
@@ -119,7 +120,6 @@ const Index = () => {
     checkSubscriptionLimits
   } = useSubscriptionLimits(selectedBotId);
 
-  // Update sendMessage to check limits after sending
   const handleSendMessage = async (message: string) => {
     await sendMessage(message);
     checkSubscriptionLimits();

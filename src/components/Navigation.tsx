@@ -32,13 +32,13 @@ export const Navigation = () => {
   const role = userProfile?.role as UserRole;
   const isSuperAdmin = role === 'super_admin';
   const isAdmin = role === 'admin';
-  const isPaidUser = role === 'paid_user';
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         <div className="flex gap-6 md:gap-10">
-          {(isSuperAdmin || isAdmin || isPaidUser) && (
+          {/* Only super_admin, admin can access Bots page */}
+          {(isSuperAdmin || isAdmin) && (
             <Link to="/bots">
               <Button
                 variant="ghost"
@@ -50,6 +50,7 @@ export const Navigation = () => {
             </Link>
           )}
           
+          {/* Only super_admin can access Folders */}
           {isSuperAdmin && (
             <Link to="/folders">
               <Button
@@ -62,6 +63,7 @@ export const Navigation = () => {
             </Link>
           )}
 
+          {/* Only super_admin can access Subscriptions */}
           {isSuperAdmin && (
             <Link to="/subscriptions">
               <Button
@@ -74,6 +76,7 @@ export const Navigation = () => {
             </Link>
           )}
 
+          {/* Only super_admin and admin can access Users */}
           {(isSuperAdmin || isAdmin) && (
             <Link to="/users">
               <Button
@@ -86,6 +89,7 @@ export const Navigation = () => {
             </Link>
           )}
 
+          {/* Only super_admin and admin can access Archive */}
           {(isSuperAdmin || isAdmin) && (
             <Link to="/archive">
               <Button
