@@ -7,7 +7,7 @@ interface ChatHistoryItemProps {
   id: string;
   title: string;
   isActive: boolean;
-  onSelect: (e: React.MouseEvent) => void;
+  onSelect: () => void;
   onDelete: (e: React.MouseEvent) => void;
 }
 
@@ -20,18 +20,6 @@ export const ChatHistoryItem = ({
 }: ChatHistoryItemProps) => {
   const isMobile = useIsMobile();
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onSelect(e);
-  };
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onDelete(e);
-  };
-
   return (
     <div
       className={cn(
@@ -40,7 +28,7 @@ export const ChatHistoryItem = ({
         "text-foreground/80 hover:text-foreground",
         isActive ? "bg-accent/50 dark:bg-accent text-foreground" : "bg-card"
       )}
-      onClick={handleClick}
+      onClick={onSelect}
     >
       <p className="text-sm line-clamp-2 pr-8">
         {title}
@@ -53,7 +41,7 @@ export const ChatHistoryItem = ({
           "hover:bg-destructive/10 hover:text-destructive",
           isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         )}
-        onClick={handleDelete}
+        onClick={onDelete}
       >
         <Trash2 className="h-4 w-4" />
       </Button>

@@ -1,27 +1,23 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
+import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
+import { DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
 import { ProfileSection } from "./ProfileSection";
-import { ChatHistoryContent } from "./history/ChatHistoryContent";
-import { useChatHistoryState } from "./history/ChatHistoryState";
-import { ChatHistoryContainer } from "./history/ChatHistoryContainer";
-import { ChatsByModelAndDate, MainChatHistoryProps, Chat } from "./history/types";
-import { getDateGroup } from "@/utils/dateUtils";
-import { Database } from "@/integrations/supabase/types";
-import { useChatHistorySession } from "@/hooks/useChatHistorySession";
-import { useSidebarState } from "@/hooks/useSidebarState";
+import { useQuery } from "@tanstack/react-query";
+import { UserRole } from "@/types/user";
+import { MobileNavigation } from "./history/MobileNavigation";
+import { ChatsByModelAndDate, MainChatHistoryProps } from "./history/types";
 
-type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
-  bot: {
-    name: string;
-    model: string;
-  };
-};
+const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
+const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
 
 export const MainChatHistory = ({
-  sessionToken: initialSessionToken,
+  sessionToken,
   botId,
   onSelectChat,
   onNewChat,
@@ -31,28 +27,44 @@ export const MainChatHistory = ({
   setSelectedBotId,
 }: MainChatHistoryProps) => {
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
-  const { expandedGroups, expandedModels, toggleGroup, toggleModel } = useChatHistoryState(chatsByModelAndDate);
-  const { toast } = useToast();
-  
-  // Use our hooks
-  const sessionToken = useChatHistorySession(initialSessionToken);
-  const { isMobile } = useSidebarState(isOpen, onClose);
-
-  const convertToChat = (row: ChatHistoryRow): Chat => ({
-    id: row.id,
-    created_at: row.created_at || '',
-    updated_at: row.updated_at || '',
-    deleted: row.deleted || 'no',
-    user_id: row.user_id || '',
-    session_token: row.session_token || '',
-    bot_id: row.bot_id,
-    messages: (typeof row.messages === 'string' ? 
-      JSON.parse(row.messages) : row.messages) || []
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
+    const savedGroups = localStorage.getItem(EXPANDED_GROUPS_KEY);
+    return savedGroups ? new Set(JSON.parse(savedGroups)) : new Set(DATE_GROUP_ORDER);
   });
+
+  const [expandedModels, setExpandedModels] = useState<Set<string>>(() => {
+    const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
+    return savedModels ? new Set(JSON.parse(savedModels)) : new Set();
+  });
+
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    fetchChatHistory();
+  }, [sessionToken, botId]);
+
+  useEffect(() => {
+    localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
+  }, [expandedGroups]);
+
+  useEffect(() => {
+    localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
+  }, [expandedModels]);
+
+  useEffect(() => {
+    const modelNames = Object.keys(chatsByModelAndDate);
+    if (modelNames.length > 0) {
+      const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
+      if (!savedModels) {
+        setExpandedModels(new Set(modelNames));
+      }
+    }
+  }, [chatsByModelAndDate]);
 
   const fetchChatHistory = async () => {
     try {
-      console.log("Fetching chat history with session token:", sessionToken);
+      console.log("Fetching chat history with sessionToken:", sessionToken);
       
       let query = supabase
         .from('chat_history')
@@ -63,38 +75,37 @@ export const MainChatHistory = ({
             model
           )
         `)
-        .eq('deleted', 'no');
+        .eq('deleted', 'no')
+        .order('created_at', { ascending: false });
 
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      
+      console.log("Current user:", user);
+
       if (user) {
-        console.log("Fetching for authenticated user:", user.id);
+        console.log("Fetching chats for authenticated user:", user.id);
         query = query.eq('user_id', user.id);
-      } else if (sessionToken) {
-        console.log("Fetching for session token:", sessionToken);
-        query = query.eq('session_token', sessionToken);
+      } 
+      
+      if (sessionToken) {
+        console.log("Adding session token condition:", sessionToken);
+        // If user is authenticated, this becomes an OR condition
+        query = user ? 
+          query.or(`user_id.eq.${user.id},session_token.eq.${sessionToken}`) :
+          query.eq('session_token', sessionToken);
       }
-
-      if (botId) {
-        console.log("Filtering by bot ID:", botId);
-        query = query.eq('bot_id', botId);
-      }
-
-      query = query.order('created_at', { ascending: false });
 
       const { data, error } = await query;
+      console.log("Fetched chat history:", data);
 
       if (error) {
-        console.error("Error fetching chat history:", error);
+        console.error("Error in fetchChatHistory:", error);
         throw error;
       }
 
-      console.log("Fetched chat history:", data?.length, "records");
-
-      const grouped = (data || []).reduce((acc: ChatsByModelAndDate, row: ChatHistoryRow) => {
-        const modelName = row.bot?.name || 'Unknown Model';
-        const dateGroup = getDateGroup(row.created_at);
+      // Group chats by model and then by date
+      const grouped = (data || []).reduce((acc: ChatsByModelAndDate, chat) => {
+        const modelName = chat.bot?.name || 'Unknown Model';
+        const dateGroup = getDateGroup(chat.created_at);
         
         if (!acc[modelName]) {
           acc[modelName] = {};
@@ -104,7 +115,7 @@ export const MainChatHistory = ({
           acc[modelName][dateGroup] = [];
         }
         
-        acc[modelName][dateGroup]!.push(convertToChat(row));
+        acc[modelName][dateGroup]!.push(chat);
         return acc;
       }, {});
 
@@ -120,18 +131,7 @@ export const MainChatHistory = ({
     }
   };
 
-  // Fetch chat history when component mounts or when session token changes
-  useEffect(() => {
-    if (sessionToken) {
-      console.log("Session token changed, fetching chat history");
-      fetchChatHistory();
-    }
-  }, [sessionToken, botId]);
-
-  const handleDelete = async (chatId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
+  const handleDelete = async (chatId: string) => {
     try {
       const { error } = await supabase
         .from('chat_history')
@@ -156,11 +156,35 @@ export const MainChatHistory = ({
     }
   };
 
-  const handleSelectChat = async (chatId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupName)) {
+        newSet.delete(groupName);
+      } else {
+        newSet.add(groupName);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleModel = (modelName: string) => {
+    setExpandedModels(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(modelName)) {
+        newSet.delete(modelName);
+      } else {
+        newSet.add(modelName);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectChat = async (chatId: string) => {
+    console.log("Selecting chat:", chatId);
     
     try {
+      // Fetch the chat to get its bot_id
       const { data: chat, error } = await supabase
         .from('chat_history')
         .select('bot_id')
@@ -169,16 +193,12 @@ export const MainChatHistory = ({
 
       if (error) throw error;
 
-      if (chat?.bot_id) {
+      if (chat && chat.bot_id) {
+        console.log("Setting selected bot ID:", chat.bot_id);
         setSelectedBotId(chat.bot_id);
       }
 
       onSelectChat(chatId);
-      
-      // Only close on mobile
-      if (isMobile) {
-        onClose();
-      }
     } catch (error) {
       console.error('Error selecting chat:', error);
       toast({
@@ -189,29 +209,86 @@ export const MainChatHistory = ({
     }
   };
 
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const role = userProfile?.role as UserRole;
+  const isSuperAdmin = role === 'super_admin';
+  const isAdmin = role === 'admin';
+
   return (
-    <ChatHistoryContainer isOpen={isOpen} onClose={onClose} isMobile={isMobile}>
-      <div className="flex flex-col h-full" onClick={(e) => e.stopPropagation()}>
+    <div className={cn(
+      "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
+      "dark:bg-zinc-950",
+      "light:bg-white light:border-gray-200",
+      isOpen ? "translate-x-0" : "-translate-x-full",
+      isMobile ? "w-full" : "w-80"
+    )}>
+      <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         
-        <ChatHistoryContent
-          chatsByModelAndDate={chatsByModelAndDate}
-          expandedGroups={expandedGroups}
-          expandedModels={expandedModels}
-          toggleGroup={toggleGroup}
-          toggleModel={toggleModel}
-          currentChatId={currentChatId}
-          onSelectChat={handleSelectChat}
-          onDeleteChat={handleDelete}
-          isSuperAdmin={false}
-          isAdmin={false}
-          onClose={onClose}
-        />
+        <ScrollArea className="flex-1">
+          {isMobile && (
+            <MobileNavigation 
+              isSuperAdmin={isSuperAdmin} 
+              isAdmin={isAdmin} 
+              onClose={onClose}
+            />
+          )}
+          
+          <div className="p-4 space-y-4">
+            {Object.entries(chatsByModelAndDate).map(([modelName, dateGroups]) => (
+              <ChatHistoryGroup
+                key={modelName}
+                label={modelName}
+                chats={[]}
+                isExpanded={expandedModels.has(modelName)}
+                onToggle={() => toggleModel(modelName)}
+                currentChatId={currentChatId}
+                onSelectChat={handleSelectChat}
+                onDeleteChat={handleDelete}
+                isModelGroup={true}
+              >
+                {DATE_GROUP_ORDER.map((dateGroup) => {
+                  const chats = dateGroups[dateGroup] || [];
+                  if (chats.length === 0) return null;
+                  
+                  return (
+                    <ChatHistoryGroup
+                      key={`${modelName}-${dateGroup}`}
+                      label={dateGroup}
+                      chats={chats}
+                      isExpanded={expandedGroups.has(dateGroup)}
+                      onToggle={() => toggleGroup(dateGroup)}
+                      currentChatId={currentChatId}
+                      onSelectChat={handleSelectChat}
+                      onDeleteChat={handleDelete}
+                    />
+                  );
+                })}
+              </ChatHistoryGroup>
+            ))}
+          </div>
+        </ScrollArea>
         
         <div className="mt-auto border-t border-border">
           <ProfileSection showViewPlans={isMobile} onClose={onClose} />
         </div>
       </div>
-    </ChatHistoryContainer>
+    </div>
   );
 };
