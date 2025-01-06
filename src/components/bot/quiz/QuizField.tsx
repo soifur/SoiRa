@@ -65,11 +65,17 @@ export const QuizField = ({ field, onChange, onRemove }: QuizFieldProps) => {
 
           <div>
             <Label>Instructions</Label>
-            <Textarea
-              value={field.instructions}
-              onChange={(e) => onChange({ ...field, instructions: e.target.value })}
-              placeholder="Enter instructions with {placeholder} for user input..."
-            />
+            <div className="space-y-2">
+              <Textarea
+                value={field.instructions}
+                onChange={(e) => onChange({ ...field, instructions: e.target.value })}
+                placeholder="Enter instructions... Use {input} as placeholder for user input"
+                className="min-h-[80px]"
+              />
+              <p className="text-sm text-muted-foreground">
+                Use {"{input}"} as a placeholder for where the user's response should appear
+              </p>
+            </div>
           </div>
 
           {field.field_type.includes('choice') && (

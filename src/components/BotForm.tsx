@@ -30,7 +30,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   });
   const { toast } = useToast();
 
-  // Update editingBot when bot prop changes
   useEffect(() => {
     setEditingBot(prev => ({
       ...prev,
@@ -75,29 +74,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     handleBotChange({ published: checked });
   };
 
-  const handleSave = async () => {
-    try {
-      if (!editingBot.id) {
-        onSave(editingBot);
-        return;
-      }
-
-      await updateBotAndSharedConfig(editingBot);
-      onSave(editingBot);
-      toast({
-        title: "Success",
-        description: "Bot updated successfully",
-      });
-    } catch (error) {
-      console.error("Error updating bot:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update bot",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleQuizModeChange = async (enabled: boolean) => {
     try {
       const { error } = await supabase
@@ -118,6 +94,47 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       toast({
         title: "Error",
         description: "Failed to update quiz mode",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      if (!editingBot.id) {
+        onSave(editingBot);
+        return;
+      }
+
+      // First update the bot
+      await updateBotAndSharedConfig(editingBot);
+
+      // Then save quiz configuration if it exists
+      const { data: quizConfig } = await supabase
+        .from('quiz_configurations')
+        .select('*')
+        .eq('bot_id', editingBot.id)
+        .single();
+
+      if (quizConfig) {
+        const { error: quizError } = await supabase
+          .from('quiz_configurations')
+          .update({ enabled: quizConfig.enabled })
+          .eq('id', quizConfig.id);
+
+        if (quizError) throw quizError;
+      }
+
+      onSave(editingBot);
+      toast({
+        title: "Success",
+        description: "Bot updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating bot:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update bot",
         variant: "destructive",
       });
     }
