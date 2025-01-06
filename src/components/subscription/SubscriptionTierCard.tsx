@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionTierProps {
   name: string;
@@ -19,8 +21,29 @@ export const SubscriptionTierCard = ({
   features,
   isComingSoon,
   isCurrentPlan,
-  onSelect
+  onSelect,
 }: SubscriptionTierProps) => {
+  const { toast } = useToast();
+
+  const handleUpgrade = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session');
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start checkout process. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className="p-4 md:p-6 flex flex-col h-full">
       <div className="mb-3 md:mb-4">
@@ -43,7 +66,7 @@ export const SubscriptionTierCard = ({
       </ul>
       
       <Button
-        onClick={onSelect}
+        onClick={isCurrentPlan ? onSelect : handleUpgrade}
         variant={isCurrentPlan ? "outline" : "default"}
         disabled={isComingSoon}
         className="w-full text-sm md:text-base"
