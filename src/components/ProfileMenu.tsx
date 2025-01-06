@@ -22,7 +22,6 @@ export const ProfileMenu = () => {
   const { toast } = useToast();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("U");
-
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isMobile = useIsMobile();
 
@@ -129,20 +128,20 @@ export const ProfileMenu = () => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-12 w-12 p-1 hover:bg-accent transition-colors"
-          >
-            <Avatar className="h-10 w-10">
-              <AvatarImage 
-                src={avatarUrl || ''} 
-                alt="Profile" 
-                className="object-cover"
-              />
-              <AvatarFallback className="text-base">{initials}</AvatarFallback>
-            </Avatar>
-          </Button>
+          <div className="p-4 hover:bg-accent/50 transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage 
+                    src={avatarUrl || ''} 
+                    alt="Profile" 
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="text-base">{initials}</AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
+          </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="end" 
