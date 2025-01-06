@@ -12,7 +12,6 @@ import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
 import { MobileNavigation } from "./history/MobileNavigation";
 import { ChatsByModelAndDate, MainChatHistoryProps } from "./history/types";
-import { useSidebarState } from "@/hooks/useSidebarState";
 
 const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
 const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
@@ -23,7 +22,7 @@ export const MainChatHistory = ({
   onSelectChat,
   onNewChat,
   currentChatId,
-  isOpen: isOpenProp,
+  isOpen,
   onClose,
   setSelectedBotId,
 }: MainChatHistoryProps) => {
@@ -40,10 +39,6 @@ export const MainChatHistory = ({
 
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const { isOpen: sidebarOpen, toggleSidebar } = useSidebarState();
-
-  // Use the sidebar state from the hook for desktop, and prop for mobile
-  const isOpen = isMobile ? isOpenProp : sidebarOpen;
 
   useEffect(() => {
     fetchChatHistory();
@@ -235,14 +230,6 @@ export const MainChatHistory = ({
   const isSuperAdmin = role === 'super_admin';
   const isAdmin = role === 'admin';
 
-  const handleClose = () => {
-    if (isMobile) {
-      onClose?.();
-    } else {
-      toggleSidebar();
-    }
-  };
-
   return (
     <div className={cn(
       "fixed top-0 left-0 h-screen z-[200] bg-background shadow-lg transition-transform duration-300 ease-in-out border-r",
@@ -252,17 +239,14 @@ export const MainChatHistory = ({
       isMobile ? "w-full" : "w-80"
     )}>
       <div className="flex flex-col h-full">
-        <ChatHistoryHeader 
-          onNewChat={onNewChat} 
-          onClose={handleClose}
-        />
+        <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />
         
         <ScrollArea className="flex-1">
           {isMobile && (
             <MobileNavigation 
               isSuperAdmin={isSuperAdmin} 
               isAdmin={isAdmin} 
-              onClose={handleClose}
+              onClose={onClose}
             />
           )}
           
@@ -302,7 +286,7 @@ export const MainChatHistory = ({
         </ScrollArea>
         
         <div className="mt-auto border-t border-border">
-          <ProfileSection showViewPlans={isMobile} onClose={handleClose} />
+          <ProfileSection showViewPlans={isMobile} onClose={onClose} />
         </div>
       </div>
     </div>
