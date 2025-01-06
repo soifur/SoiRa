@@ -36,7 +36,7 @@ export const Navigation = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center">
-        <div className="flex gap-8 pl-20">
+        <div className="flex gap-8 pl-[120px]">
           {/* Only super_admin, admin can access Bots page */}
           {(isSuperAdmin || isAdmin) && (
             <Link to="/bots">
