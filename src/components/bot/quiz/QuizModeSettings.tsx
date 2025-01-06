@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { QuizFieldBuilder } from "./QuizFieldBuilder";
@@ -12,8 +12,13 @@ interface QuizModeSettingsProps {
   onEnableChange: (enabled: boolean) => void;
 }
 
-export const QuizModeSettings = ({ botId, enabled, onEnableChange }: QuizModeSettingsProps) => {
+export const QuizModeSettings = ({ botId, enabled: initialEnabled, onEnableChange }: QuizModeSettingsProps) => {
   const { toast } = useToast();
+  const [isEnabled, setIsEnabled] = useState(initialEnabled);
+
+  useEffect(() => {
+    setIsEnabled(initialEnabled);
+  }, [initialEnabled]);
 
   const handleEnableChange = async (checked: boolean) => {
     try {
@@ -25,6 +30,7 @@ export const QuizModeSettings = ({ botId, enabled, onEnableChange }: QuizModeSet
 
         if (error) throw error;
       }
+      setIsEnabled(checked);
       onEnableChange(checked);
     } catch (error) {
       console.error('Error updating quiz mode:', error);
@@ -41,13 +47,13 @@ export const QuizModeSettings = ({ botId, enabled, onEnableChange }: QuizModeSet
       <div className="flex items-center space-x-2">
         <Switch
           id="quiz-mode"
-          checked={enabled}
+          checked={isEnabled}
           onCheckedChange={handleEnableChange}
         />
         <Label htmlFor="quiz-mode">Enable Quiz Mode</Label>
       </div>
       
-      {enabled && (
+      {isEnabled && (
         <QuizFieldBuilder botId={botId} />
       )}
     </div>
