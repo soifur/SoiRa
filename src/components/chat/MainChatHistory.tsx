@@ -37,8 +37,8 @@ export const MainChatHistory = ({
   useEffect(() => {
     if (!isMobile && typeof window !== 'undefined') {
       const savedState = localStorage.getItem('sidebarState');
-      if (savedState && savedState !== (isOpen ? 'open' : 'closed')) {
-        // Update parent state to match saved state
+      if (savedState === 'open' && !isOpen) {
+        // Only open if it's supposed to be open
         onClose();
       }
     }
