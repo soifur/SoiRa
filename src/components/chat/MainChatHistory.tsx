@@ -11,7 +11,7 @@ import { ChatsByModelAndDate, MainChatHistoryProps, Chat, Message } from "./hist
 import { Database } from "@/integrations/supabase/types";
 import { useChatHistoryState } from "./history/ChatHistoryState";
 import { ChatHistoryContent } from "./history/ChatHistoryContent";
-import { getDateGroup } from "@/utils/dateUtils"; // Add this import
+import { getDateGroup } from "@/utils/dateUtils";
 
 type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   bot: {
@@ -123,7 +123,7 @@ export const MainChatHistory = ({
   };
 
   const handleDelete = async (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up
+    e.stopPropagation();
     try {
       const { error } = await supabase
         .from('chat_history')
@@ -149,7 +149,7 @@ export const MainChatHistory = ({
   };
 
   const handleSelectChat = async (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event from bubbling up
+    e.stopPropagation();
     console.log("Selecting chat:", chatId);
     
     try {
@@ -207,7 +207,7 @@ export const MainChatHistory = ({
         isOpen ? "translate-x-0" : "-translate-x-full",
         isMobile ? "w-full" : "w-80"
       )}
-      onClick={(e) => e.stopPropagation()} // Prevent clicks from closing the sidebar
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="flex flex-col h-full">
         <ChatHistoryHeader onNewChat={onNewChat} onClose={onClose} />

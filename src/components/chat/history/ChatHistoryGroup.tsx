@@ -48,6 +48,11 @@ export const ChatHistoryGroup = ({
     return total;
   };
 
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggle();
+  };
+
   if (chats.length === 0 && !children) return null;
 
   const totalChats = getTotalChats();
@@ -61,7 +66,7 @@ export const ChatHistoryGroup = ({
           "text-foreground/80 hover:text-foreground",
           isModelGroup && "font-semibold"
         )}
-        onClick={(e) => e.stopPropagation()} // Prevent trigger click from closing sidebar
+        onClick={handleTriggerClick}
       >
         {isExpanded ? (
           <ChevronDown className="h-4 w-4 mr-2 text-muted-foreground" />
