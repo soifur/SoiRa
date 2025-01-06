@@ -72,7 +72,15 @@ serve(async (req) => {
 
       if (subscriptions.data.length > 0) {
         console.error('Customer already has an active subscription');
-        throw new Error('You already have an active subscription');
+        return new Response(
+          JSON.stringify({ 
+            error: 'You already have an active subscription for this plan' 
+          }), 
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
     }
 

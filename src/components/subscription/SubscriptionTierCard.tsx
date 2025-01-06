@@ -52,6 +52,16 @@ export const SubscriptionTierCard = ({
         });
         return;
       }
+
+      // Handle the case where the user already has an active subscription
+      if (data?.error?.includes('already have an active subscription')) {
+        toast({
+          title: "Subscription Active",
+          description: "You already have an active subscription for this plan.",
+          variant: "default",
+        });
+        return;
+      }
       
       if (!data?.url) {
         console.error('No checkout URL returned');
