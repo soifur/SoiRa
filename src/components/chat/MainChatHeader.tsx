@@ -80,7 +80,7 @@ export const MainChatHeader = ({
       <div className="h-14 flex items-center px-4">
         <div className={cn(
           "flex-1 flex items-center gap-4",
-          "transition-[margin] duration-300 ease-in-out",
+          "transition-all duration-300 ease-in-out",
           showHistory ? "ml-80" : "ml-0"
         )}>
           {isMobile ? (
@@ -98,7 +98,10 @@ export const MainChatHeader = ({
 
                   {selectedBotId && setSelectedBotId && (
                     <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                      <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+                      <SelectTrigger className={cn(
+                        "min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover",
+                        "transition-all duration-300 ease-in-out"
+                      )}>
                         <SelectValue placeholder="Select a model" />
                       </SelectTrigger>
                       <SelectContent>
@@ -125,12 +128,16 @@ export const MainChatHeader = ({
           ) : (
             <>
               <div className="flex items-center gap-4">
-                {isChat && !showHistory && (
+                {isChat && (
                   <>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:bg-dropdown-hover"
+                      className={cn(
+                        "h-8 w-8 hover:bg-dropdown-hover",
+                        "transition-opacity duration-300",
+                        showHistory ? "opacity-0 pointer-events-none" : "opacity-100"
+                      )}
                       onClick={onToggleHistory}
                     >
                       <Clock className="h-4 w-4" />
@@ -138,7 +145,11 @@ export const MainChatHeader = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 hover:bg-dropdown-hover"
+                      className={cn(
+                        "h-8 w-8 hover:bg-dropdown-hover",
+                        "transition-opacity duration-300",
+                        showHistory ? "opacity-0 pointer-events-none" : "opacity-100"
+                      )}
                       onClick={onNewChat}
                     >
                       <Plus className="h-4 w-4" />
@@ -198,7 +209,11 @@ export const MainChatHeader = ({
                 
                 {isChat && selectedBotId && setSelectedBotId && (
                   <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                    <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover">
+                    <SelectTrigger className={cn(
+                      "min-w-[200px] max-w-fit h-9 text-sm bg-dropdown hover:bg-dropdown-hover",
+                      "transition-all duration-300 ease-in-out",
+                      showHistory ? "ml-0" : "ml-0"
+                    )}>
                       <SelectValue placeholder="Select a model" />
                     </SelectTrigger>
                     <SelectContent>
