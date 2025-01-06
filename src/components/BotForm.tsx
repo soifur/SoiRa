@@ -30,6 +30,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     memory_enabled: bot.memory_enabled ?? false,
     published: bot.published ?? false
   });
+  const [quizEnabled, setQuizEnabled] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -39,7 +40,34 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       memory_enabled: bot.memory_enabled ?? false,
       published: bot.published ?? false
     }));
+
+    // Load quiz configuration when bot form is opened
+    if (bot.id) {
+      loadQuizConfiguration();
+    }
   }, [bot]);
+
+  const loadQuizConfiguration = async () => {
+    try {
+      const { data: quizConfig } = await supabase
+        .from('quiz_configurations')
+        .select('*')
+        .eq('bot_id', bot.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (quizConfig) {
+        setQuizEnabled(quizConfig.enabled);
+      }
+    } catch (error) {
+      console.error('Error loading quiz configuration:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load quiz configuration",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleBotChange = (updates: Partial<Bot>) => {
     setEditingBot(prev => ({ ...prev, ...updates }));
@@ -77,6 +105,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   };
 
   const handleQuizModeChange = async (enabled: boolean, fields?: Field[]) => {
+    setQuizEnabled(enabled);
     try {
       if (!editingBot.id) return;
 
@@ -109,25 +138,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
       // First update the bot
       await updateBotAndSharedConfig(editingBot);
-
-      // Then save quiz configuration if it exists
-      const { data: quizConfig } = await supabase
-        .from('quiz_configurations')
-        .select('*')
-        .eq('bot_id', editingBot.id)
-        .maybeSingle();
-
-      if (quizConfig) {
-        // Get current quiz fields
-        const { data: fields } = await supabase
-          .from('quiz_fields')
-          .select('*')
-          .eq('quiz_id', quizConfig.id)
-          .order('sequence_number', { ascending: true });
-
-        // Save quiz configuration and fields
-        await handleQuizModeChange(quizConfig.enabled, fields || []);
-      }
 
       onSave(editingBot);
       toast({
@@ -200,7 +210,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                   <h3 className="text-lg font-medium">Quiz Mode</h3>
                   <QuizModeSettings
                     botId={editingBot.id}
-                    enabled={false}
+                    enabled={quizEnabled}
                     onEnableChange={handleQuizModeChange}
                   />
                 </div>
