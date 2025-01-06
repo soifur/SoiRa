@@ -131,8 +131,7 @@ export const ProfileMenu = () => {
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
-            size="icon" 
-            className="h-12 w-12 p-1 hover:bg-accent transition-colors"
+            className="h-12 w-full p-1 hover:bg-accent transition-colors"
           >
             <Avatar className="h-10 w-10">
               <AvatarImage 
