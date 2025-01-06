@@ -16,6 +16,11 @@ import { useEffect, useState } from "react";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+interface UserProfile {
+  first_name: string | null;
+  email: string | null;
+}
+
 export const ProfileMenu = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -23,6 +28,7 @@ export const ProfileMenu = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [initials, setInitials] = useState<string>("U");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const isMobile = useIsMobile();
 
   const fetchUserAvatar = async () => {
@@ -58,13 +64,20 @@ export const ProfileMenu = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar')
+        .select('avatar, first_name, email')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profile?.avatar) {
-        setAvatarUrl(profile.avatar);
-        return;
+      if (profile) {
+        setUserProfile({
+          first_name: profile.first_name,
+          email: profile.email
+        });
+        
+        if (profile.avatar) {
+          setAvatarUrl(profile.avatar);
+          return;
+        }
       }
 
       const provider = user.app_metadata.provider;
