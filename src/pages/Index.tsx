@@ -13,10 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { Button } from "@/components/ui/button";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import { useSidebarState } from "@/hooks/useSidebarState";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
+  const { isOpen: showHistory, toggleSidebar: toggleHistory } = useSidebarState();
   const navigate = useNavigate();
   const { sessionToken } = useSessionToken();
   const { toast } = useToast();
@@ -112,7 +113,6 @@ const Index = () => {
 
   const handleChatSelect = (chatId: string) => {
     handleSelectChat(chatId);
-    setShowHistory(false);
   };
 
   const LimitExceededMessage = () => (
@@ -148,7 +148,7 @@ const Index = () => {
               bots={userBots}
               onNewChat={handleNewChat}
               onSignOut={handleSignOut}
-              onToggleHistory={() => setShowHistory(!showHistory)}
+              onToggleHistory={toggleHistory}
               showHistory={showHistory}
             />
             <MainChatHistory
@@ -158,7 +158,7 @@ const Index = () => {
               onNewChat={handleNewChat}
               currentChatId={currentChatId}
               isOpen={showHistory}
-              onClose={() => setShowHistory(false)}
+              onClose={toggleHistory}
               setSelectedBotId={setSelectedBotId}
             />
             <div className="flex-1 relative overflow-hidden">
