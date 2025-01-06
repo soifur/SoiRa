@@ -96,15 +96,23 @@ const EmbeddedChatContainer = () => {
 
         const isQuizEnabled = quizConfig?.enabled === true;
 
-        // Use combined_instructions if quiz mode is enabled and it exists
-        const instructions = isQuizEnabled && sharedBotData.combined_instructions
-          ? sharedBotData.combined_instructions
-          : sharedBotData.instructions;
+        // Get quiz responses for this user/client
+        const { data: quizResponses } = await supabase
+          .from('quiz_responses')
+          .select('combined_instructions')
+          .eq('quiz_id', sharedBotData.bot_id)
+          .eq('user_id', clientId)
+          .maybeSingle();
+
+        // Use combined instructions from quiz responses if available and quiz mode is enabled
+        const instructions = isQuizEnabled && quizResponses?.combined_instructions
+          ? quizResponses.combined_instructions
+          : sharedBotData.instructions || "";
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
           name: sharedBotData.bot_name,
-          instructions: instructions || "",
+          instructions: instructions,
           starters: sharedBotData.starters || [],
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
@@ -127,7 +135,7 @@ const EmbeddedChatContainer = () => {
     };
 
     fetchBotData();
-  }, [botId, toast]);
+  }, [botId, toast, clientId]);
 
   if (!bot || !clientId) {
     return <div>Loading...</div>;
