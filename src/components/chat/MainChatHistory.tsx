@@ -32,6 +32,19 @@ export const MainChatHistory = ({
   const { expandedGroups, expandedModels, toggleGroup, toggleModel } = useChatHistoryState(chatsByModelAndDate);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [sidebarState, setSidebarState] = useState(() => {
+    if (typeof window !== 'undefined' && !isMobile) {
+      return localStorage.getItem('sidebarState') === 'open';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (!isMobile && isOpen !== sidebarState) {
+      setSidebarState(isOpen);
+      localStorage.setItem('sidebarState', isOpen ? 'open' : 'closed');
+    }
+  }, [isOpen, isMobile]);
 
   const convertToChat = (row: ChatHistoryRow): Chat => ({
     id: row.id,
