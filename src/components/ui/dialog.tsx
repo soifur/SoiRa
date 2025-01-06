@@ -4,33 +4,7 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Dialog = ({
-  ...props
-}: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>) => {
-  React.useEffect(() => {
-    const handleStateChange = (event: CustomEvent<{ open: boolean }>) => {
-      document.body.style.pointerEvents = event.detail.open ? "none" : "";
-    };
-
-    document.addEventListener("dialogStateChange", handleStateChange as EventListener);
-    return () => {
-      document.removeEventListener("dialogStateChange", handleStateChange as EventListener);
-      // Cleanup on unmount
-      document.body.style.pointerEvents = "";
-    };
-  }, []);
-
-  const handleOpenChange = (open: boolean) => {
-    document.dispatchEvent(
-      new CustomEvent("dialogStateChange", { detail: { open } })
-    );
-    if (props.onOpenChange) {
-      props.onOpenChange(open);
-    }
-  };
-
-  return <DialogPrimitive.Root {...props} onOpenChange={handleOpenChange} />;
-};
+const Dialog = DialogPrimitive.Root
 
 const DialogTrigger = DialogPrimitive.Trigger
 
