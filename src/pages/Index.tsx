@@ -22,76 +22,79 @@ const Index = () => {
   const { toast } = useToast();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
-    queryKey: ['bots'],
+  // Fetch user's own bots and published shared bots
+  const { data: allBots = [], isLoading: isLoadingBots } = useQuery({
+    queryKey: ['bots-and-shared'],
     queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
-      if (!session.session) throw new Error("No authenticated session");
-
-      const { data, error } = await supabase
-        .from('bots')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
       
-      if (error) throw error;
-
-      return data.map((bot): BotType => ({
-        id: bot.id,
-        name: bot.name,
-        instructions: bot.instructions || "",
-        starters: bot.starters || [],
-        model: bot.model,
-        apiKey: bot.api_key,
-        openRouterModel: bot.open_router_model,
-        avatar: bot.avatar,
-        accessType: "private",
-        memory_enabled: bot.memory_enabled,
-        published: bot.published,
-        default_bot: bot.default_bot,
-      }));
-    }
-  });
-
-  // Effect to set the default bot on load
-  useEffect(() => {
-    if (userBots && userBots.length > 0 && !selectedBotId) {
-      const defaultBot = userBots.find(bot => bot.default_bot);
-      if (defaultBot) {
-        setSelectedBotId(defaultBot.id);
+      // First get user's own bots if authenticated
+      let userBots: BotType[] = [];
+      if (session.session) {
+        const { data: ownBots, error: ownBotsError } = await supabase
+          .from('bots')
+          .select('*')
+          .eq('published', true)
+          .order('created_at', { ascending: false });
+        
+        if (ownBotsError) throw ownBotsError;
+        
+        userBots = ownBots.map((bot): BotType => ({
+          id: bot.id,
+          name: bot.name,
+          instructions: bot.instructions || "",
+          starters: bot.starters || [],
+          model: bot.model,
+          apiKey: bot.api_key,
+          openRouterModel: bot.open_router_model,
+          avatar: bot.avatar,
+          accessType: "private",
+          memory_enabled: bot.memory_enabled,
+          published: bot.published,
+          default_bot: bot.default_bot,
+        }));
       }
-    }
-  }, [userBots, selectedBotId]);
 
-  const { data: sharedBots = [], isLoading: isLoadingSharedBots } = useQuery({
-    queryKey: ['shared-bots'],
-    queryFn: async () => {
-      const { data, error } = await supabase
+      // Then get published shared bots
+      const { data: sharedBots, error: sharedBotsError } = await supabase
         .from('shared_bots')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data;
-    }
+      if (sharedBotsError) throw sharedBotsError;
+
+      const transformedSharedBots: BotType[] = sharedBots.map(shared => ({
+        id: shared.share_key,
+        name: shared.bot_name,
+        instructions: shared.instructions || "",
+        starters: shared.starters || [],
+        model: shared.model as BotType['model'],
+        apiKey: "",
+        openRouterModel: shared.open_router_model,
+        avatar: shared.avatar,
+        accessType: "public",
+        memory_enabled: shared.memory_enabled,
+        published: shared.published,
+      }));
+
+      // Combine and return both sets of bots
+      return [...userBots, ...transformedSharedBots];
+    },
   });
 
-  const allBots = [
-    ...(userBots || []),
-    ...(sharedBots || []).map(shared => ({
-      id: shared.share_key,
-      name: `${shared.bot_name} (Shared)`,
-      instructions: shared.instructions || "",
-      starters: shared.starters || [],
-      model: shared.model as BotType['model'],
-      apiKey: "",
-      openRouterModel: shared.open_router_model,
-      avatar: shared.avatar,
-      accessType: "public" as const,
-      memory_enabled: shared.memory_enabled,
-    }))
-  ];
+  // Effect to set the default bot on load
+  useEffect(() => {
+    if (allBots && allBots.length > 0 && !selectedBotId) {
+      const defaultBot = allBots.find(bot => bot.default_bot);
+      if (defaultBot) {
+        setSelectedBotId(defaultBot.id);
+      } else {
+        // If no default bot, select the first available bot
+        setSelectedBotId(allBots[0].id);
+      }
+    }
+  }, [allBots, selectedBotId]);
 
   const selectedBot = allBots.find(bot => bot.id === selectedBotId);
 
@@ -119,7 +122,6 @@ const Index = () => {
     checkSubscriptionLimits
   } = useSubscriptionLimits(selectedBotId);
 
-  // Update sendMessage to check limits after sending
   const handleSendMessage = async (message: string) => {
     await sendMessage(message);
     checkSubscriptionLimits();
