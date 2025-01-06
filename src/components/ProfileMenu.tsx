@@ -131,7 +131,8 @@ export const ProfileMenu = () => {
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
-            className="h-12 w-full p-1 hover:bg-accent transition-colors flex justify-start items-center gap-2"
+            size="icon" 
+            className="h-12 w-12 p-1 hover:bg-accent transition-colors"
           >
             <Avatar className="h-10 w-10">
               <AvatarImage 
@@ -141,12 +142,11 @@ export const ProfileMenu = () => {
               />
               <AvatarFallback className="text-base">{initials}</AvatarFallback>
             </Avatar>
-            <span className="text-sm font-medium">Profile Menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
-          align="center"
-          className={`${isMobile ? 'w-[calc(100vw-2rem)] mx-auto' : 'w-48'}`}
+          align="end" 
+          className={`${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-48'}`}
         >
           <DropdownMenuItem 
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
