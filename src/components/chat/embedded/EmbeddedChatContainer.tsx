@@ -93,7 +93,7 @@ const EmbeddedChatContainer = () => {
 
         // If quiz mode is enabled, try to get the quiz responses
         if (sharedBotData.quiz_mode === true) {
-          console.log("Quiz mode is enabled, fetching quiz responses");
+          console.log("Quiz mode is enabled, fetching quiz responses for client:", clientId);
           
           const { data: quizConfig } = await supabase
             .from('quiz_configurations')
@@ -112,8 +112,18 @@ const EmbeddedChatContainer = () => {
             if (quizResponses?.combined_instructions) {
               console.log("Found quiz combined instructions:", quizResponses.combined_instructions);
               instructions = quizResponses.combined_instructions;
+            } else {
+              console.log("No quiz responses found for client:", clientId);
+              toast({
+                title: "Quiz Required",
+                description: "Please complete the quiz before starting the chat.",
+                variant: "destructive",
+              });
+              return;
             }
           }
+        } else {
+          console.log("Quiz mode is disabled, using default instructions");
         }
 
         console.log("Final instructions being used:", instructions);
