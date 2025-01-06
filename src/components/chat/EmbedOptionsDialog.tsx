@@ -41,7 +41,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
         // Get quiz configuration status
         const { data: quizConfig } = await supabase
           .from('quiz_configurations')
-          .select('enabled')
+          .select('enabled, id')
           .eq('bot_id', bot.id)
           .single();
 

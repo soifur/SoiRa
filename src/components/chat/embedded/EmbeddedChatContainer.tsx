@@ -90,11 +90,10 @@ const EmbeddedChatContainer = () => {
         }
 
         let instructions = sharedBotData.instructions || "";
-        let quizInstructions = null;
 
-        // If quiz mode is enabled, try to get the combined instructions
+        // If quiz mode is enabled, try to get the quiz responses
         if (sharedBotData.quiz_mode === true) {
-          console.log("Quiz mode is enabled, fetching quiz data");
+          console.log("Quiz mode is enabled, fetching quiz responses");
           
           const { data: quizConfig } = await supabase
             .from('quiz_configurations')
@@ -112,19 +111,17 @@ const EmbeddedChatContainer = () => {
 
             if (quizResponses?.combined_instructions) {
               console.log("Found quiz combined instructions:", quizResponses.combined_instructions);
-              quizInstructions = quizResponses.combined_instructions;
+              instructions = quizResponses.combined_instructions;
             }
           }
         }
 
-        // Use quiz instructions if available, otherwise fall back to default instructions
-        const finalInstructions = quizInstructions || instructions;
-        console.log("Final instructions being used:", finalInstructions);
+        console.log("Final instructions being used:", instructions);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
           name: sharedBotData.bot_name,
-          instructions: finalInstructions,
+          instructions: instructions,
           starters: sharedBotData.starters || [],
           model: model,
           apiKey: sharedBotData.bot_api_keys?.api_key || "",
