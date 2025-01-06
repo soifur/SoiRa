@@ -77,6 +77,7 @@ serve(async (req) => {
       const subscriptions = await stripe.subscriptions.list({
         customer: customer_id,
         status: 'active',
+        price: priceId, // Check for specific price
         limit: 1
       });
 
