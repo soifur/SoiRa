@@ -30,6 +30,8 @@ const EmbeddedChatContainer = () => {
       try {
         if (!botId) return;
 
+        console.log("Fetching shared bot data for botId:", botId);
+
         const { data: sharedBotData, error: sharedBotError } = await supabase
           .from("shared_bots")
           .select(`
@@ -91,7 +93,11 @@ const EmbeddedChatContainer = () => {
         let instructions = sharedBotData.instructions || "";
         
         if (sharedBotData.quiz_mode === true) {
-          console.log("Quiz mode is enabled, fetching responses...");
+          console.log("Quiz mode is enabled, fetching responses for client:", clientId);
+          
+          // Wait for any pending quiz responses to be saved
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
           const { data: quizResponses } = await supabase
             .from('quiz_responses')
             .select('combined_instructions')
@@ -100,12 +106,14 @@ const EmbeddedChatContainer = () => {
             .maybeSingle();
 
           if (quizResponses?.combined_instructions) {
-            console.log("Found quiz responses with combined instructions");
+            console.log("Found quiz responses with combined instructions:", quizResponses.combined_instructions);
             instructions = quizResponses.combined_instructions;
           } else {
             console.log("No quiz responses found for this user/client");
           }
         }
+
+        console.log("Final instructions being used:", instructions);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -119,6 +127,11 @@ const EmbeddedChatContainer = () => {
           accessType: "public",
           memory_enabled: memory_enabled,
         };
+
+        console.log("Final bot configuration:", {
+          ...transformedBot,
+          apiKey: "[REDACTED]"
+        });
 
         setBot(transformedBot);
 
