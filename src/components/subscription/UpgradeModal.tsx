@@ -91,19 +91,21 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
     onClose();
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Remove any lingering pointer-events styles
+      document.body.style.pointerEvents = '';
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent 
         className={`
           w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-6
           ${isMobile ? 'z-[300]' : ''}
         `}
-        onPointerDownOutside={(e) => {
-          e.preventDefault();
-        }}
-        onInteractOutside={(e) => {
-          e.preventDefault();
-        }}
       >
         <DialogHeader>
           <DialogTitle className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
