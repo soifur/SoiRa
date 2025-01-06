@@ -476,7 +476,6 @@ export type Database = {
           created_at: string | null
           id: string
           quiz_id: string | null
-          quiz_mode: boolean | null
           responses: Json | null
           updated_at: string | null
           user_id: string | null
@@ -486,7 +485,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           quiz_id?: string | null
-          quiz_mode?: boolean | null
           responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
@@ -496,7 +494,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           quiz_id?: string | null
-          quiz_mode?: boolean | null
           responses?: Json | null
           updated_at?: string | null
           user_id?: string | null
@@ -528,6 +525,7 @@ export type Database = {
           model: string
           open_router_model: string | null
           published: boolean | null
+          quiz_mode: boolean | null
           share_key: string
           short_key: string | null
           starters: string[] | null
@@ -549,6 +547,7 @@ export type Database = {
           model: string
           open_router_model?: string | null
           published?: boolean | null
+          quiz_mode?: boolean | null
           share_key: string
           short_key?: string | null
           starters?: string[] | null
@@ -570,6 +569,7 @@ export type Database = {
           model?: string
           open_router_model?: string | null
           published?: boolean | null
+          quiz_mode?: boolean | null
           share_key?: string
           short_key?: string | null
           starters?: string[] | null

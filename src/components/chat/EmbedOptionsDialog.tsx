@@ -37,8 +37,15 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
         if (botError) throw botError;
 
         const memory_enabled = currentBot?.memory_enabled === true;
-        console.log("Retrieved memory_enabled from bots table:", currentBot?.memory_enabled);
-        console.log("Converted memory_enabled value:", memory_enabled);
+        
+        // Get quiz configuration status
+        const { data: quizConfig } = await supabase
+          .from('quiz_configurations')
+          .select('enabled')
+          .eq('bot_id', bot.id)
+          .single();
+
+        const quiz_mode = quizConfig?.enabled === true;
         
         // First check if a share configuration already exists
         const { data: existingShare } = await supabase
@@ -50,8 +57,6 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           .maybeSingle();
 
         if (existingShare) {
-          console.log("Updating existing share configuration with memory_enabled:", memory_enabled);
-          
           // Update the existing share configuration with latest bot data
           const { error: updateError } = await supabase
             .from('shared_bots')
@@ -65,6 +70,7 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
               memory_instructions: memorySettings?.instructions,
               memory_model: memorySettings?.model,
               memory_api_key: memorySettings?.api_key,
+              quiz_mode: quiz_mode
             })
             .eq('short_key', existingShare.short_key);
 
@@ -74,7 +80,6 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
         }
 
         // If no existing share found, create new configuration
-        console.log("Creating new share configuration with memory_enabled:", memory_enabled);
         
         // First store the API key
         const { data: apiKeyData, error: apiKeyError } = await supabase
@@ -93,7 +98,6 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
           .rpc('generate_short_key');
         
         const newShareKey = shortKeyData;
-        console.log("Generated new share key:", newShareKey);
         
         // Create new share configuration
         const { error: shareError } = await supabase
@@ -112,12 +116,12 @@ export const EmbedOptionsDialog = ({ isOpen, onClose, bot }: EmbedOptionsDialogP
             memory_instructions: memorySettings?.instructions,
             memory_model: memorySettings?.model,
             memory_api_key: memorySettings?.api_key,
+            quiz_mode: quiz_mode
           });
 
         if (shareError) throw shareError;
 
         setShareKey(newShareKey);
-        console.log("Share configuration stored successfully with memory_enabled:", memory_enabled);
       } catch (error) {
         console.error("Error storing share configuration:", error);
         toast({
