@@ -10,6 +10,7 @@ import { ChatHistoryContainer } from "./history/ChatHistoryContainer";
 import { ChatsByModelAndDate, MainChatHistoryProps, Chat } from "./history/types";
 import { getDateGroup } from "@/utils/dateUtils";
 import { Database } from "@/integrations/supabase/types";
+import Cookies from 'js-cookie';
 
 type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   bot: {
@@ -17,6 +18,9 @@ type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
     model: string;
   };
 };
+
+const SIDEBAR_COOKIE_NAME = 'sidebar_state';
+const COOKIE_EXPIRES = 365; // Cookie expires in 365 days
 
 export const MainChatHistory = ({
   sessionToken,
@@ -33,21 +37,24 @@ export const MainChatHistory = ({
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
-  // Initialize sidebar state from localStorage on mount
+  // Initialize sidebar state from cookie on mount
   useEffect(() => {
     if (!isMobile && typeof window !== 'undefined') {
-      const savedState = localStorage.getItem('sidebarState');
+      const savedState = Cookies.get(SIDEBAR_COOKIE_NAME);
       if (savedState === 'open' && !isOpen) {
-        // Only open if it's supposed to be open
-        onClose();
+        onClose(); // Only trigger if it should be open
       }
     }
   }, []);
 
-  // Persist sidebar state for desktop only
+  // Persist sidebar state in cookie for desktop only
   useEffect(() => {
     if (!isMobile && typeof window !== 'undefined') {
-      localStorage.setItem('sidebarState', isOpen ? 'open' : 'closed');
+      Cookies.set(SIDEBAR_COOKIE_NAME, isOpen ? 'open' : 'closed', { 
+        expires: COOKIE_EXPIRES,
+        sameSite: 'Strict',
+        secure: true
+      });
     }
   }, [isOpen, isMobile]);
 
