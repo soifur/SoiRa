@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bot } from "@/hooks/useBots";
+import { Bot, BaseModel } from "@/hooks/useBots";
 
 interface BotApiKey {
   id: string;
@@ -12,7 +12,7 @@ interface SharedBot {
   bot_name: string;
   instructions: string | null;
   starters: string[] | null;
-  model: string;
+  model: BaseModel;
   open_router_model: string | null;
   avatar: string | null;
   memory_enabled: boolean | null;
@@ -43,7 +43,7 @@ export const useBotProvider = () => {
           name: bot.name,
           instructions: bot.instructions || "",
           starters: bot.starters || [],
-          model: bot.model,
+          model: bot.model as BaseModel,
           apiKey: bot.api_key,
           openRouterModel: bot.open_router_model,
           avatar: bot.avatar,
@@ -81,7 +81,7 @@ export const useBotProvider = () => {
           name: shared.bot_name,
           instructions: shared.instructions || "",
           starters: shared.starters || [],
-          model: shared.model,
+          model: shared.model as BaseModel,
           apiKey: apiKey,
           openRouterModel: shared.open_router_model,
           avatar: shared.avatar,
