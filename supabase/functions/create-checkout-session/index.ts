@@ -20,13 +20,7 @@ serve(async (req) => {
 
     if (!priceId) {
       console.error('No priceId provided');
-      return new Response(
-        JSON.stringify({ error: 'Price ID is required' }), 
-        { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      throw new Error('Price ID is required');
     }
 
     // Initialize Supabase client
@@ -39,13 +33,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('No authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Not authenticated' }), 
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      throw new Error('Not authenticated');
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -53,13 +41,7 @@ serve(async (req) => {
 
     if (userError || !user) {
       console.error('User error:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Authentication failed' }), 
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      throw new Error('Authentication failed');
     }
 
     console.log('Authenticated user:', user.email);
@@ -89,17 +71,8 @@ serve(async (req) => {
       });
 
       if (subscriptions.data.length > 0) {
-        console.log('Customer already has an active subscription');
-        return new Response(
-          JSON.stringify({ 
-            error: 'You already have an active subscription for this plan',
-            code: 'subscription_exists'
-          }), 
-          { 
-            status: 200, // Changed to 200 since this is an expected condition
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
+        console.error('Customer already has an active subscription');
+        throw new Error('You already have an active subscription');
       }
     }
 
@@ -135,8 +108,8 @@ serve(async (req) => {
         error: error instanceof Error ? error.message : 'An unexpected error occurred' 
       }),
       { 
-        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
       }
     );
   }
