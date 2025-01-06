@@ -199,6 +199,7 @@ export const MainChatHistory = ({
       }
 
       onSelectChat(chatId);
+      // Removed the onClose() call here to prevent auto-closing
     } catch (error) {
       console.error('Error selecting chat:', error);
       toast({
