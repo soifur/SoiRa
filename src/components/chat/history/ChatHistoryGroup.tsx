@@ -8,10 +8,10 @@ import {
 import { ChatHistoryItem } from "./ChatHistoryItem";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DATE_GROUP_ORDER } from "@/utils/dateUtils";
+import { DATE_GROUP_ORDER, DateGroup } from "@/utils/dateUtils";
 
 interface ChatHistoryGroupProps {
-  label: string;
+  label: string | DateGroup;
   chats: any[];
   isExpanded: boolean;
   onToggle: () => void;
@@ -35,7 +35,7 @@ export const ChatHistoryGroup = ({
   children,
   avatar,
 }: ChatHistoryGroupProps) => {
-  const isDateGroup = DATE_GROUP_ORDER.includes(label);
+  const isDateGroup = DATE_GROUP_ORDER.includes(label as DateGroup);
 
   if (isDateGroup) {
     return (
