@@ -24,11 +24,8 @@ const Index = () => {
 
   // Query to get all published bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
-    queryKey: ['bots'],
+    queryKey: ['published-bots'],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) throw new Error("No authenticated session");
-
       const { data, error } = await supabase
         .from('bots')
         .select('*')
@@ -60,41 +57,13 @@ const Index = () => {
       const defaultBot = userBots.find(bot => bot.default_bot);
       if (defaultBot) {
         setSelectedBotId(defaultBot.id);
+      } else if (userBots[0]) {
+        setSelectedBotId(userBots[0].id);
       }
     }
   }, [userBots, selectedBotId]);
 
-  const { data: sharedBots = [], isLoading: isLoadingSharedBots } = useQuery({
-    queryKey: ['shared-bots'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shared_bots')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const allBots = [
-    ...(userBots || []),
-    ...(sharedBots || []).map(shared => ({
-      id: shared.share_key,
-      name: `${shared.bot_name} (Shared)`,
-      instructions: shared.instructions || "",
-      starters: shared.starters || [],
-      model: shared.model as BotType['model'],
-      apiKey: "",
-      openRouterModel: shared.open_router_model,
-      avatar: shared.avatar,
-      accessType: "public" as const,
-      memory_enabled: shared.memory_enabled,
-    }))
-  ];
-
-  const selectedBot = allBots.find(bot => bot.id === selectedBotId);
+  const selectedBot = userBots.find(bot => bot.id === selectedBotId);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -156,7 +125,7 @@ const Index = () => {
             <MainChatHeader
               selectedBotId={selectedBotId}
               setSelectedBotId={setSelectedBotId}
-              bots={allBots}
+              bots={userBots}
               onNewChat={handleNewChat}
               onSignOut={handleSignOut}
               onToggleHistory={() => setShowHistory(!showHistory)}
