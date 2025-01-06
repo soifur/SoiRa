@@ -8,6 +8,7 @@ import {
 import { ChatHistoryItem } from "./ChatHistoryItem";
 import { cn } from "@/lib/utils";
 import { DateGroup } from "@/utils/dateUtils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ChatHistoryGroupProps {
   label: string;
@@ -19,6 +20,7 @@ interface ChatHistoryGroupProps {
   onDeleteChat: (chatId: string, e: React.MouseEvent) => void;
   isModelGroup?: boolean;
   children?: React.ReactNode;
+  avatar?: string;
 }
 
 export const ChatHistoryGroup = ({
@@ -31,6 +33,7 @@ export const ChatHistoryGroup = ({
   onDeleteChat,
   isModelGroup = false,
   children,
+  avatar,
 }: ChatHistoryGroupProps) => {
   const getChatTitle = (messages: any[]) => {
     const firstUserMessage = messages.find((msg: any) => msg.role === 'user');
@@ -71,6 +74,12 @@ export const ChatHistoryGroup = ({
           "h-3.5 w-3.5 mr-1 text-muted-foreground shrink-0",
           isExpanded && "hidden"
         )} />
+        {avatar && (
+          <Avatar className="h-4 w-4 mr-1">
+            <AvatarImage src={avatar} alt={label} />
+            <AvatarFallback>{label[0]}</AvatarFallback>
+          </Avatar>
+        )}
         <span className={cn(
           "text-xs truncate flex-1 text-left pr-1",
           isModelGroup && "text-primary"
