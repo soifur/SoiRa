@@ -6,16 +6,14 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ChatHistoryHeader } from "./history/ChatHistoryHeader";
 import { ChatHistoryGroup } from "./history/ChatHistoryGroup";
-import { DATE_GROUP_ORDER, getDateGroup } from "@/utils/dateUtils";
+import { getDateGroup } from "@/utils/dateUtils";
 import { ProfileSection } from "./ProfileSection";
 import { useQuery } from "@tanstack/react-query";
 import { UserRole } from "@/types/user";
 import { MobileNavigation } from "./history/MobileNavigation";
 import { ChatsByModelAndDate, MainChatHistoryProps, Chat, Message } from "./history/types";
 import { Database } from "@/integrations/supabase/types";
-
-const EXPANDED_GROUPS_KEY = 'chatHistory:expandedGroups';
-const EXPANDED_MODELS_KEY = 'chatHistory:expandedModels';
+import { useChatHistoryState } from "./history/ChatHistoryState";
 
 type ChatHistoryRow = Database['public']['Tables']['chat_history']['Row'] & {
   bot: {
@@ -35,40 +33,9 @@ export const MainChatHistory = ({
   setSelectedBotId,
 }: MainChatHistoryProps) => {
   const [chatsByModelAndDate, setChatsByModelAndDate] = useState<ChatsByModelAndDate>({});
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    const savedGroups = localStorage.getItem(EXPANDED_GROUPS_KEY);
-    return savedGroups ? new Set(JSON.parse(savedGroups)) : new Set(DATE_GROUP_ORDER);
-  });
-
-  const [expandedModels, setExpandedModels] = useState<Set<string>>(() => {
-    const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
-    return savedModels ? new Set(JSON.parse(savedModels)) : new Set();
-  });
-
+  const { expandedGroups, expandedModels, toggleGroup, toggleModel } = useChatHistoryState(chatsByModelAndDate);
   const { toast } = useToast();
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    fetchChatHistory();
-  }, [sessionToken, botId]);
-
-  useEffect(() => {
-    localStorage.setItem(EXPANDED_GROUPS_KEY, JSON.stringify(Array.from(expandedGroups)));
-  }, [expandedGroups]);
-
-  useEffect(() => {
-    localStorage.setItem(EXPANDED_MODELS_KEY, JSON.stringify(Array.from(expandedModels)));
-  }, [expandedModels]);
-
-  useEffect(() => {
-    const modelNames = Object.keys(chatsByModelAndDate);
-    if (modelNames.length > 0) {
-      const savedModels = localStorage.getItem(EXPANDED_MODELS_KEY);
-      if (!savedModels) {
-        setExpandedModels(new Set(modelNames));
-      }
-    }
-  }, [chatsByModelAndDate]);
 
   const convertToChat = (row: ChatHistoryRow): Chat => {
     const messages = (typeof row.messages === 'string' ? 
@@ -85,6 +52,10 @@ export const MainChatHistory = ({
       messages: Array.isArray(messages) ? messages : []
     };
   };
+
+  useEffect(() => {
+    fetchChatHistory();
+  }, [sessionToken, botId]);
 
   const fetchChatHistory = async () => {
     try {
@@ -125,7 +96,6 @@ export const MainChatHistory = ({
         throw error;
       }
 
-      // Group chats by model and then by date
       const grouped = (data || []).reduce((acc: ChatsByModelAndDate, row: ChatHistoryRow) => {
         const modelName = row.bot?.name || 'Unknown Model';
         const dateGroup = getDateGroup(row.created_at);
@@ -179,30 +149,6 @@ export const MainChatHistory = ({
     }
   };
 
-  const toggleGroup = (groupName: string) => {
-    setExpandedGroups(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(groupName)) {
-        newSet.delete(groupName);
-      } else {
-        newSet.add(groupName);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleModel = (modelName: string) => {
-    setExpandedModels(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(modelName)) {
-        newSet.delete(modelName);
-      } else {
-        newSet.add(modelName);
-      }
-      return newSet;
-    });
-  };
-
   const handleSelectChat = async (chatId: string) => {
     console.log("Selecting chat:", chatId);
     
@@ -221,7 +167,6 @@ export const MainChatHistory = ({
       }
 
       onSelectChat(chatId);
-      // Removed the onClose() call here to prevent auto-closing
     } catch (error) {
       console.error('Error selecting chat:', error);
       toast({
