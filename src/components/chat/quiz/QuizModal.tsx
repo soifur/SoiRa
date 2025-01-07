@@ -3,6 +3,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
+import { QuizField } from "./QuizField";
+import { cn } from "@/lib/utils";
 
 interface QuizModalProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
   const [fields, setFields] = useState<Field[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTransition, setShowTransition] = useState(false);
 
   useEffect(() => {
     if (isOpen && botId) {
@@ -48,7 +51,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         if (quizFields) {
           setFields(quizFields);
           
-          // Group fields into sections
           const groupedSections: QuizSection[] = [];
           let currentSectionFields: Field[] = [];
 
@@ -83,58 +85,65 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
   };
 
   const handleNext = async () => {
-    if (currentSection < sections.length - 1) {
-      setCurrentSection(prev => prev + 1);
-    } else {
-      // Process all responses and generate instructions
-      const allFields = fields;
-      let userResponses = '';
+    setShowTransition(true);
+    setTimeout(() => {
+      if (currentSection < sections.length - 1) {
+        setCurrentSection(prev => prev + 1);
+      } else {
+        handleComplete();
+      }
+      setShowTransition(false);
+    }, 1000);
+  };
 
-      allFields.forEach(field => {
-        const response = responses[field.id!];
-        if (response) {
-          const instruction = field.instructions?.replace('{input}', 
-            Array.isArray(response) ? response.join(', ') : response
-          );
-          if (instruction) {
-            userResponses += instruction + ' ';
-          }
+  const handleComplete = async () => {
+    const allFields = fields;
+    let userResponses = '';
+
+    allFields.forEach(field => {
+      const response = responses[field.id!];
+      if (response) {
+        const instruction = field.instructions?.replace('{input}', 
+          Array.isArray(response) ? response.join(', ') : response
+        );
+        if (instruction) {
+          userResponses += instruction + ' ';
         }
-      });
+      }
+    });
 
-      try {
-        // Get the original instructions from shared_bots
-        const { data: sharedBot } = await supabase
-          .from('shared_bots')
-          .select('instructions')
-          .eq('bot_id', botId)
-          .maybeSingle();
+    try {
+      const { data: sharedBot } = await supabase
+        .from('shared_bots')
+        .select('instructions')
+        .eq('bot_id', botId)
+        .maybeSingle();
 
-        const originalInstructions = sharedBot?.instructions || '';
-        const combinedInstructions = `${originalInstructions} ${userResponses}`.trim();
+      const originalInstructions = sharedBot?.instructions || '';
+      const combinedInstructions = `${originalInstructions} ${userResponses}`.trim();
 
-        // Save quiz responses
-        const { data: quizConfig } = await supabase
-          .from('quiz_configurations')
-          .select('id')
-          .eq('bot_id', botId)
-          .single();
+      const { data: quizConfig } = await supabase
+        .from('quiz_configurations')
+        .select('id')
+        .eq('bot_id', botId)
+        .single();
 
-        if (quizConfig) {
-          // Update quiz_responses
+      if (quizConfig) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const responseData = {
+            quiz_id: quizConfig.id,
+            user_id: user.id,
+            responses,
+            combined_instructions: combinedInstructions
+          };
+
           const { data: existingResponse } = await supabase
             .from('quiz_responses')
             .select('*')
             .eq('quiz_id', quizConfig.id)
-            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+            .eq('user_id', user.id)
             .single();
-
-          const responseData = {
-            quiz_id: quizConfig.id,
-            user_id: (await supabase.auth.getUser()).data.user?.id,
-            responses,
-            combined_instructions: combinedInstructions
-          };
 
           if (existingResponse) {
             await supabase
@@ -147,71 +156,12 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
               .insert([responseData]);
           }
         }
-
-        onComplete(combinedInstructions);
-        onClose();
-      } catch (error) {
-        console.error('Error saving quiz responses:', error);
       }
-    }
-  };
 
-  const renderField = (field: Field) => {
-    switch (field.field_type) {
-      case 'text':
-      case 'email':
-      case 'phone':
-        return (
-          <input
-            type={field.field_type}
-            value={responses[field.id!] as string || ''}
-            onChange={(e) => handleResponse(field.id!, e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder={`Enter your ${field.field_type}`}
-          />
-        );
-      case 'single_choice':
-        return (
-          <div className="space-y-2">
-            {field.choices?.map((choice) => (
-              <label key={choice} className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name={field.id!}
-                  value={choice}
-                  checked={(responses[field.id!] as string) === choice}
-                  onChange={(e) => handleResponse(field.id!, e.target.value)}
-                />
-                <span>{choice}</span>
-              </label>
-            ))}
-          </div>
-        );
-      case 'multiple_choice':
-        return (
-          <div className="space-y-2">
-            {field.choices?.map((choice) => (
-              <label key={choice} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value={choice}
-                  checked={Array.isArray(responses[field.id!]) && 
-                    (responses[field.id!] as string[]).includes(choice)}
-                  onChange={(e) => {
-                    const currentValues = (responses[field.id!] as string[]) || [];
-                    const newValues = e.target.checked
-                      ? [...currentValues, choice]
-                      : currentValues.filter(v => v !== choice);
-                    handleResponse(field.id!, newValues);
-                  }}
-                />
-                <span>{choice}</span>
-              </label>
-            ))}
-          </div>
-        );
-      default:
-        return null;
+      onComplete(combinedInstructions);
+      onClose();
+    } catch (error) {
+      console.error('Error saving quiz responses:', error);
     }
   };
 
@@ -221,24 +171,45 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <div className="space-y-6 py-4">
-          {sections[currentSection]?.fields.map((field) => (
-            <div key={field.id} className="space-y-4">
-              <h3 className="text-lg font-medium">{field.title}</h3>
-              {renderField(field)}
+      <DialogContent 
+        className="w-screen h-screen max-w-none m-0 p-0 rounded-none bg-background"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <div className="h-full flex flex-col p-6 md:p-8 overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <div 
+              className={cn(
+                "transition-all duration-1000 transform",
+                showTransition ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"
+              )}
+            >
+              {sections[currentSection]?.fields.map((field) => (
+                <QuizField
+                  key={field.id}
+                  field={field}
+                  response={responses[field.id!]}
+                  onResponse={handleResponse}
+                />
+              ))}
             </div>
-          ))}
-          <div className="flex justify-end space-x-2">
+          </div>
+          <div className="flex justify-end space-x-4 pt-6 border-t">
             {currentSection > 0 && (
               <Button
                 variant="outline"
+                size="lg"
                 onClick={() => setCurrentSection(prev => prev - 1)}
+                className="text-lg px-8"
               >
                 Previous
               </Button>
             )}
-            <Button onClick={handleNext}>
+            <Button 
+              onClick={handleNext}
+              size="lg"
+              className="text-lg px-8"
+            >
               {currentSection < sections.length - 1 ? 'Next' : "Let's Start"}
             </Button>
           </div>
