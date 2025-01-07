@@ -78,14 +78,23 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setIsStreaming(true);
 
       let response: string = "";
-      // Use combinedInstructions if quiz mode is enabled and instructions are available
-      const instructions = bot.quiz_mode && combinedInstructions ? combinedInstructions : bot.instructions;
-      console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode, "Combined instructions:", combinedInstructions);
+      
+      // Use quiz mode instructions if available and quiz mode is enabled
+      const finalInstructions = bot.quiz_mode && combinedInstructions 
+        ? `${bot.instructions || ''} ${combinedInstructions}`.trim()
+        : bot.instructions;
+
+      console.log("Using instructions:", {
+        quizMode: bot.quiz_mode,
+        botInstructions: bot.instructions,
+        combinedInstructions,
+        finalInstructions
+      });
 
       if (bot.model === "openrouter") {
         await ChatService.sendOpenRouterMessage(
           newMessages,
-          { ...bot, instructions },
+          { ...bot, instructions: finalInstructions },
           undefined,
           (chunk: string) => {
             response += chunk;
@@ -102,7 +111,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           }
         );
       } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions });
+        response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions: finalInstructions });
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === "assistant") {

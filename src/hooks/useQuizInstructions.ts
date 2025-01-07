@@ -18,12 +18,15 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
           return;
         }
 
+        // Fetch the latest quiz response for this bot and user
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
           .eq('bot_id', botId)
           .eq('user_id', user.id)
-          .single();
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching quiz responses:", error);
