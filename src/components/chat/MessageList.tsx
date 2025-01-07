@@ -96,6 +96,7 @@ export const MessageList = ({
                 </>
               )}
               {starters && starters.length > 0 && (
+                <div className="w-full flex flex-col items-center">
                   <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                     What can I help with?
                   </h1>
@@ -123,6 +124,7 @@ export const MessageList = ({
                       );
                     })}
                   </div>
+                </div>
               )}
             </div>
           ) : (
