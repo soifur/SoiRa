@@ -3,7 +3,7 @@ import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { QuizButton } from "./header/QuizButton";
+import { QuizButton } from "./quiz/QuizButton";
 import { Bot } from "@/hooks/useBots";
 
 export interface Message {
