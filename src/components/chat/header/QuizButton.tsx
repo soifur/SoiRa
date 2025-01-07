@@ -4,14 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QuizModal } from "../quiz/QuizModal";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface QuizButtonProps {
   botId: string;
   onStartQuiz: () => void;
   onQuizComplete?: (instructions: string) => void;
+  className?: string;
 }
 
-export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonProps) => {
+export const QuizButton = ({ botId, onStartQuiz, onQuizComplete, className }: QuizButtonProps) => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -84,7 +86,7 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
           onStartQuiz();
           setShowModal(true);
         }}
-        className="ml-2"
+        className={cn("ml-2", className)}
         disabled={isLoading}
       >
         {isLoading ? (
