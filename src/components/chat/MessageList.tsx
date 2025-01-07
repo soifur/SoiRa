@@ -108,7 +108,7 @@ export const MessageList = ({
                           key={index}
                           className={cn(
                             "flex items-center justify-start gap-2 md:gap-3 p-3 md:p-4 h-auto",
-                            "text-sm md:text-base w-full",
+                            "text-sm md:text-base w-full", 
                             "rounded-xl md:rounded-2xl hover:bg-accent/50 transition-colors",
                             "bg-background/50 backdrop-blur-sm border border-muted-foreground/20",
                             "whitespace-normal text-left",
