@@ -88,12 +88,14 @@ export const MessageList = ({
                   </h2>
                   
                   {selectedBot.quiz_mode && (
-                    <QuizButton 
-                      botId={selectedBot.id} 
-                      onStartQuiz={onStartQuiz} 
-                      onQuizComplete={() => {}}
+                    <Button
+                      variant="default"
+                      size="lg"
+                      onClick={onStartQuiz}
                       className="mb-8 md:mb-12"
-                    />
+                    >
+                      Start Quiz Now
+                    </Button>
                   )}
                   
                   {!selectedBot.quiz_mode && starters && starters.length > 0 && (
