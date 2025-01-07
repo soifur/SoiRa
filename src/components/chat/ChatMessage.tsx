@@ -35,20 +35,23 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
       )}
     >
       {isBot && (
-        <Avatar className="h-8 w-8">
-          {isLoading ? (
-            <div className="animate-spin">
-              <LoaderCircle className="h-4 w-4" />
-            </div>
-          ) : (
-            <img src={avatar || "/placeholder.svg"} alt="Bot" className="h-full w-full object-cover" />
-          )}
-        </Avatar>
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8">
+            {isLoading ? (
+              <div className="animate-spin">
+                <LoaderCircle className="h-4 w-4" />
+              </div>
+            ) : (
+              <img src={avatar || "/placeholder.svg"} alt="Bot" className="h-full w-full object-cover" />
+            )}
+          </Avatar>
+          <span className="text-sm font-medium">AI Assistant</span>
+        </div>
       )}
       <div
         className={cn(
-          "relative group w-full md:max-w-[85%]",
-          !isBot && "ml-auto"
+          "relative group w-full",
+          !isBot && "ml-auto md:max-w-[85%]"
         )}
       >
         {isBot && (
