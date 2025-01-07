@@ -68,8 +68,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
     try {
       setIsLoading(true);
-      const newUserMessage = createMessage("user", message);
-      const newMessages = [...messages, newUserMessage];
+      const userMessage = createMessage("user", message);
+      const newMessages = [...messages, userMessage];
       setMessages(newMessages);
 
       // Add temporary streaming message
@@ -78,8 +78,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setIsStreaming(true);
 
       let response: string = "";
-      const instructions = bot.quiz_mode ? combinedInstructions : bot.instructions;
-      console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode);
+      // Use combinedInstructions if quiz mode is enabled and instructions are available
+      const instructions = bot.quiz_mode && combinedInstructions ? combinedInstructions : bot.instructions;
+      console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode, "Combined instructions:", combinedInstructions);
 
       if (bot.model === "openrouter") {
         await ChatService.sendOpenRouterMessage(
@@ -153,7 +154,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       console.error("Chat error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get response from AI",
+        description: error instanceof Error ? error.message : "Failed to process message",
         variant: "destructive",
       });
     } finally {
