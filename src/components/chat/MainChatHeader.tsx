@@ -44,11 +44,6 @@ export const MainChatHeader = ({
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
   const isChat = location.pathname === '/';
-
-  // Get the selected bot's quiz mode status
-  const selectedBot = bots?.find(bot => bot.id === selectedBotId);
-  const quizModeEnabled = selectedBot?.quiz_mode || false;
-
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
@@ -117,7 +112,7 @@ export const MainChatHeader = ({
                           ))}
                         </SelectContent>
                       </Select>
-                      {selectedBotId && quizModeEnabled && (
+                      {selectedBotId && (
                         <QuizButton 
                           botId={selectedBotId} 
                           onStartQuiz={() => {}} 
@@ -178,7 +173,7 @@ export const MainChatHeader = ({
                         ))}
                       </SelectContent>
                     </Select>
-                    {selectedBotId && quizModeEnabled && (
+                    {selectedBotId && (
                       <QuizButton 
                         botId={selectedBotId} 
                         onStartQuiz={() => {}} 
