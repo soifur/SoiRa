@@ -1,68 +1,65 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Code } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { LogOut, Menu } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Bot } from "@/hooks/useBots";
+import { MainChatHeaderProps } from "./types/chatTypes";
 
-interface MainChatHeaderProps {
-  bots: Bot[];
-  selectedBotId: string;
-  onBotSelect: (botId: string) => void;
-}
-
-export const MainChatHeader = ({ bots, selectedBotId, onBotSelect }: MainChatHeaderProps) => {
+export const MainChatHeader = ({
+  bots,
+  selectedBotId,
+  onBotSelect,
+  setSelectedBotId,
+  onNewChat,
+  onSignOut,
+  onToggleHistory,
+  showHistory,
+  onQuizComplete
+}: MainChatHeaderProps) => {
   const { toast } = useToast();
-  // Filter to only show published bots (those with a model)
   const publishedBots = bots.filter(bot => bot.model);
 
-  const handleEmbed = () => {
-    if (!selectedBotId) {
-      toast({
-        title: "No model selected",
-        description: "Please select a model first",
-        variant: "destructive",
-      });
-      return;
+  const handleBotSelect = (value: string) => {
+    onBotSelect(value);
+    if (setSelectedBotId) {
+      setSelectedBotId(value);
     }
-    
-    const embedCode = `<iframe
-      src="${window.location.origin}/embed/${selectedBotId}"
-      width="100%"
-      height="600px"
-      frameborder="0"
-    ></iframe>`;
-
-    navigator.clipboard.writeText(embedCode);
-    toast({
-      title: "Embed code copied!",
-      description: "The embed code has been copied to your clipboard",
-    });
   };
 
   return (
-    <div className="flex justify-between items-center">
-      <Select value={selectedBotId} onValueChange={onBotSelect}>
-        <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hover:bg-dropdown-hover">
-          <SelectValue placeholder="Select a model" />
-        </SelectTrigger>
-        <SelectContent>
-          {publishedBots.map((bot) => (
-            <SelectItem key={bot.id} value={bot.id}>
-              {bot.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Button variant="outline" onClick={handleEmbed} disabled={!selectedBotId}>
-        <Code className="mr-2 h-4 w-4" />
-        Embed
-      </Button>
+    <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center gap-2">
+        {onToggleHistory && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleHistory}
+            className="md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
+        <Select value={selectedBotId} onValueChange={handleBotSelect}>
+          <SelectTrigger className="w-[180px] bg-background">
+            <SelectValue placeholder="Select a bot" />
+          </SelectTrigger>
+          <SelectContent>
+            {publishedBots.map((bot) => (
+              <SelectItem key={bot.id} value={bot.id}>
+                {bot.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {onSignOut && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onSignOut}
+        >
+          <LogOut className="h-5 w-5" />
+        </Button>
+      )}
     </div>
   );
 };
