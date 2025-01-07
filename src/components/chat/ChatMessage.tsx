@@ -77,16 +77,44 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
                   {children}
                 </pre>
               ),
-              ul: ({ children }) => <ul className="mb-4 pl-4 space-y-2">{children}</ul>,
-              ol: ({ children }) => <ol className="mb-4 pl-4 space-y-2">{children}</ol>,
-              li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-              h1: ({ children }) => <h1 className="text-xl font-bold mb-4 mt-6">{children}</h1>,
-              h2: ({ children }) => <h2 className="text-lg font-bold mb-3 mt-5">{children}</h2>,
-              h3: ({ children }) => <h3 className="text-base font-bold mb-2 mt-4">{children}</h3>,
+              ul: ({ children }) => (
+                <ul className="mb-4 pl-6 space-y-2 list-disc marker:text-foreground/70">
+                  {children}
+                </ul>
+              ),
+              ol: ({ children }) => (
+                <ol className="mb-4 pl-6 space-y-2 list-decimal marker:text-foreground/70">
+                  {children}
+                </ol>
+              ),
+              li: ({ children }) => (
+                <li className="leading-relaxed marker:text-foreground/70">
+                  {children}
+                </li>
+              ),
+              h1: ({ children }) => (
+                <h1 className="text-xl font-bold mb-4 mt-6">{children}</h1>
+              ),
+              h2: ({ children }) => (
+                <h2 className="text-lg font-bold mb-3 mt-5">{children}</h2>
+              ),
+              h3: ({ children }) => (
+                <h3 className="text-base font-bold mb-2 mt-4">{children}</h3>
+              ),
               blockquote: ({ children }) => (
                 <blockquote className="border-l-4 border-primary/20 pl-4 italic my-4">
                   {children}
                 </blockquote>
+              ),
+              strong: ({ children }) => (
+                <strong className="font-semibold">
+                  {children}
+                </strong>
+              ),
+              em: ({ children }) => (
+                <em className="italic">
+                  {children}
+                </em>
               ),
             }}
           >
