@@ -7,9 +7,10 @@ interface QuizFieldProps {
   field: Field;
   value: string | string[];
   onChange: (value: string | string[]) => void;
+  onNext?: () => void;
 }
 
-export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
+export const QuizField = ({ field, value, onChange, onNext }: QuizFieldProps) => {
   const handleSingleChoice = (choice: string) => {
     onChange(choice);
   };
@@ -20,6 +21,13 @@ export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
       ? currentValues.filter(v => v !== choice)
       : [...currentValues, choice];
     onChange(newValues);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && onNext) {
+      e.preventDefault();
+      onNext();
+    }
   };
 
   return (
@@ -33,6 +41,7 @@ export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
           type={field.field_type}
           value={value as string || ''}
           onChange={(e) => onChange(e.target.value)}
+          onKeyPress={handleKeyPress}
           className="w-full p-3 text-lg"
           placeholder={`Enter your ${field.field_type}`}
         />
