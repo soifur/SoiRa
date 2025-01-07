@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
 import { useNavigate } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
@@ -18,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
 import { HeaderButtons } from "./header/HeaderButtons";
 import { QuizButton } from "./header/QuizButton";
+import { BotDropdown } from "./header/BotDropdown";
 
 interface MainChatHeaderProps {
   selectedBotId?: string | null;
@@ -44,6 +38,7 @@ export const MainChatHeader = ({
   const isMobile = useIsMobile();
   const [uniqueBots, setUniqueBots] = useState<BotType[]>([]);
   const isChat = location.pathname === '/';
+  
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
     queryFn: async () => {
@@ -77,8 +72,6 @@ export const MainChatHeader = ({
     }
   }, [bots]);
 
-  const selectedBot = uniqueBots.find(bot => bot.id === selectedBotId);
-
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
@@ -102,38 +95,11 @@ export const MainChatHeader = ({
 
                   {selectedBotId && setSelectedBotId && (
                     <>
-                      <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
-                        <SelectTrigger className="h-9 text-sm bg-transparent hover:bg-dropdown-hover min-w-0 w-auto">
-                          <SelectValue placeholder="Select a model">
-                            <div className="flex items-center gap-2 truncate">
-                              {selectedBot?.avatar && (
-                                <img 
-                                  src={selectedBot.avatar} 
-                                  alt={selectedBot.name}
-                                  className="w-5 h-5 rounded-full object-cover shrink-0"
-                                />
-                              )}
-                              <span className="truncate">{selectedBot?.name || "Select a model"}</span>
-                            </div>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent align="start" className="w-[200px]">
-                          {uniqueBots.map((bot) => (
-                            <SelectItem key={bot.id} value={bot.id}>
-                              <div className="flex items-center gap-2">
-                                {bot.avatar && (
-                                  <img 
-                                    src={bot.avatar} 
-                                    alt={bot.name}
-                                    className="w-5 h-5 rounded-full object-cover shrink-0"
-                                  />
-                                )}
-                                <span className="truncate">{bot.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <BotDropdown
+                        selectedBotId={selectedBotId}
+                        setSelectedBotId={setSelectedBotId}
+                        uniqueBots={uniqueBots}
+                      />
                       {selectedBotId && (
                         <QuizButton 
                           botId={selectedBotId} 
@@ -181,40 +147,13 @@ export const MainChatHeader = ({
                 
                 <HeaderButtons isSuperAdmin={isSuperAdmin} isAdmin={isAdmin} />
                 
-                {isChat && (
+                {isChat && selectedBotId && setSelectedBotId && (
                   <>
-                    <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
-                      <SelectTrigger className="h-8 text-sm bg-transparent hover:bg-dropdown-hover min-w-0 w-auto">
-                        <SelectValue placeholder="Select a model">
-                          <div className="flex items-center gap-2 truncate">
-                            {selectedBot?.avatar && (
-                              <img 
-                                src={selectedBot.avatar} 
-                                alt={selectedBot.name}
-                                className="w-5 h-5 rounded-full object-cover shrink-0"
-                              />
-                            )}
-                            <span className="truncate">{selectedBot?.name || "Select a model"}</span>
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent align="start" className="w-[200px]">
-                        {uniqueBots.map((bot) => (
-                          <SelectItem key={bot.id} value={bot.id}>
-                            <div className="flex items-center gap-2">
-                              {bot.avatar && (
-                                <img 
-                                  src={bot.avatar} 
-                                  alt={bot.name}
-                                  className="w-5 h-5 rounded-full object-cover shrink-0"
-                                />
-                              )}
-                              <span className="truncate">{bot.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <BotDropdown
+                      selectedBotId={selectedBotId}
+                      setSelectedBotId={setSelectedBotId}
+                      uniqueBots={uniqueBots}
+                    />
                     {selectedBotId && (
                       <QuizButton 
                         botId={selectedBotId} 
