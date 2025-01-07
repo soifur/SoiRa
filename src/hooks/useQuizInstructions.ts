@@ -7,7 +7,10 @@ export const useQuizInstructions = (botId: string | undefined, quizMode?: boolea
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("useQuizInstructions hook called with:", { botId, quizMode });
+    
     const fetchQuizInstructions = async () => {
+      console.log("Starting fetchQuizInstructions");
       try {
         if (!botId || !quizMode) {
           console.log("Quiz mode disabled or no botId, skipping fetch", { botId, quizMode });
@@ -19,6 +22,8 @@ export const useQuizInstructions = (botId: string | undefined, quizMode?: boolea
         const { data: { user } } = await supabase.auth.getUser();
         const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
         const userId = user?.id || user_ip;
+
+        console.log("Auth check result:", { userId, user, user_ip });
 
         if (!userId) {
           console.log("No user ID or client IP found");
@@ -82,5 +87,6 @@ export const useQuizInstructions = (botId: string | undefined, quizMode?: boolea
     fetchQuizInstructions();
   }, [botId, quizMode, toast]);
 
+  console.log("useQuizInstructions returning:", { combinedInstructions });
   return { combinedInstructions };
 };

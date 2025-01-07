@@ -17,6 +17,8 @@ interface DedicatedBotChatProps {
 }
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
+  console.log("DedicatedBotChat rendering with bot:", bot);
+  
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +26,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
   const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
+
+  console.log("Quiz mode status:", { 
+    botId: bot.id, 
+    quizMode: bot.quiz_mode, 
+    combinedInstructions 
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
