@@ -28,8 +28,8 @@ export const BotDropdown = ({
       <SelectTrigger 
         className={cn(
           "h-8 text-sm bg-transparent hover:bg-dropdown-hover",
-          "w-auto inline-flex items-center whitespace-nowrap",
-          isMobile ? "max-w-[200px]" : "flex-shrink"
+          "inline-flex items-center whitespace-nowrap",
+          isMobile ? "w-auto max-w-[calc(100vw-120px)]" : "flex-shrink"
         )}
       >
         <SelectValue placeholder="Select a model">
@@ -46,7 +46,7 @@ export const BotDropdown = ({
         </SelectValue>
       </SelectTrigger>
       <SelectContent 
-        align="start"
+        align={isMobile ? "center" : "start"}
         className="min-w-[240px] rounded-xl p-1"
         position="popper"
         side="bottom"
