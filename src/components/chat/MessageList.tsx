@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuizButton } from "./header/QuizButton";
+import { Bot } from "@/hooks/useBots";
 
 export interface Message {
   id: string;
@@ -15,7 +16,7 @@ export interface Message {
 
 interface MessageListProps {
   messages: Message[];
-  selectedBot?: any;
+  selectedBot?: Bot;
   starters?: string[];
   onStarterClick?: (value: string) => void;
   isLoading?: boolean;
