@@ -19,7 +19,7 @@ export class ChatService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log("No authenticated user found");
+        console.log("Quiz instructions: No authenticated user");
         return null;
       }
 
@@ -40,7 +40,7 @@ export class ChatService {
           .single();
 
         if (quizResponse?.combined_instructions) {
-          console.log("Found quiz instructions from shared bot");
+          console.log("Quiz instructions found from shared bot");
           return quizResponse.combined_instructions;
         }
       }
@@ -55,14 +55,15 @@ export class ChatService {
           .single();
 
         if (quizResponse?.combined_instructions) {
-          console.log("Found quiz instructions from regular bot");
+          console.log("Quiz instructions found from regular bot");
           return quizResponse.combined_instructions;
         }
       }
 
+      console.log("No quiz instructions found");
       return null;
     } catch (error) {
-      console.error("Error fetching quiz instructions:", error);
+      console.error("Error fetching quiz instructions");
       return null;
     }
   }
@@ -84,12 +85,12 @@ export class ChatService {
 
     // Get quiz instructions if available
     const quizInstructions = await this.getQuizInstructions(bot);
-    console.log("Quiz instructions:", quizInstructions);
+    console.log("Quiz instructions status:", quizInstructions ? "Found" : "Not found");
 
     // Use quiz instructions if available, otherwise fall back to bot instructions
     const instructionsToUse = quizInstructions || bot.instructions;
     const sanitizedInstructions = instructionsToUse ? this.sanitizeText(instructionsToUse) : '';
-    console.log("Using instructions:", sanitizedInstructions);
+    console.log("Instructions status:", sanitizedInstructions ? "Using custom instructions" : "No instructions");
 
     try {
       const headers = {
@@ -116,7 +117,6 @@ export class ChatService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
         console.error('OpenRouter API error status:', response.status);
         throw new Error('Failed to process request');
       }
@@ -153,7 +153,7 @@ export class ChatService {
                 }
               }
             } catch (e) {
-              console.warn('Error parsing streaming response:', e);
+              console.warn('Error parsing streaming response');
             }
           }
         }
@@ -179,11 +179,11 @@ export class ChatService {
 
     // Get quiz instructions if available
     const quizInstructions = await this.getQuizInstructions(bot);
-    console.log("Quiz instructions for Gemini:", quizInstructions);
+    console.log("Quiz instructions status for Gemini:", quizInstructions ? "Found" : "Not found");
 
     // Use quiz instructions if available, otherwise fall back to bot instructions
     const instructionsToUse = quizInstructions || bot.instructions;
-    console.log("Using instructions for Gemini:", instructionsToUse);
+    console.log("Instructions status for Gemini:", instructionsToUse ? "Using custom instructions" : "No instructions");
 
     try {
       const genAI = new GoogleGenerativeAI(bot.apiKey);
