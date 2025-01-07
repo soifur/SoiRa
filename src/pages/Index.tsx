@@ -14,7 +14,6 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -179,12 +178,7 @@ const Index = () => {
       <UpgradeModal 
         isOpen={showUpgradeModal} 
         onClose={() => setShowUpgradeModal(false)} 
-      >
-        <DialogTitle>Upgrade Your Plan</DialogTitle>
-        <DialogDescription>
-          Choose a plan that better suits your needs
-        </DialogDescription>
-      </UpgradeModal>
+      />
     </div>
   );
 };

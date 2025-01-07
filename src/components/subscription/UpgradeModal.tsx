@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { SubscriptionTierCard } from "./SubscriptionTierCard";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -109,6 +110,9 @@ export const UpgradeModal = ({ isOpen, onClose }: UpgradeModalProps) => {
           <DialogTitle className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
             Choose Your Plan
           </DialogTitle>
+          <DialogDescription className="text-center text-muted-foreground">
+            Select a plan that better suits your needs
+          </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {subscriptionTiers?.map((tier) => (
