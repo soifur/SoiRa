@@ -1,5 +1,8 @@
+import { BaseModel } from "@/hooks/useBots";
+import { Json } from "@/integrations/supabase/types";
+
 export interface ChatMessage {
-  role: string;
+  role: "user" | "assistant";
   content: string;
   timestamp?: Date;
   id?: string;
@@ -19,7 +22,7 @@ export interface Bot {
   name: string;
   instructions: string;
   starters: string[];
-  model: string;
+  model: BaseModel;
   apiKey: string;
   openRouterModel?: string;
   avatar?: string;
@@ -38,7 +41,7 @@ export interface ChatHistoryItem {
 export interface ChatHistoryData {
   id?: string;
   bot_id: string;
-  messages?: any;
+  messages?: Json;
   client_id?: string;
   share_key?: string;
   sequence_number: number;

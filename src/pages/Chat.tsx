@@ -12,7 +12,7 @@ import { Bot, ChatMessage, Message } from "@/components/chat/types/chatTypes";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 
 const Chat = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { botId: selectedBotId } = useParams();
   const { toast } = useToast();
@@ -49,7 +49,7 @@ const Chat = () => {
           name: bot.name,
           instructions: bot.instructions || "",
           starters: bot.starters || [],
-          model: bot.model,
+          model: bot.model as BaseModel,
           apiKey: bot.api_key,
           openRouterModel: bot.open_router_model,
           avatar: bot.avatar,
