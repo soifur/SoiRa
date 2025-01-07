@@ -112,7 +112,6 @@ export const MessageList = ({
           message={message.content}
           isBot={message.role === "assistant"}
           avatar={selectedBot?.avatar}
-          isLast={index === messages.length - 1}
           isLoading={isLoading && index === messages.length - 1}
           isStreaming={isStreaming && index === messages.length - 1}
           botName={selectedBot?.name}
