@@ -16,7 +16,7 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
   const [isLoading, setIsLoading] = useState(false);
   
   // First check if the bot is published and has quiz mode enabled
-  const { data: bot } = useQuery({
+  const { data: bot, isLoading: isBotLoading } = useQuery({
     queryKey: ['bot', botId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,14 +25,16 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
         .eq('id', botId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching bot:', error);
+        return null;
+      }
       return data;
     },
-    enabled: !!botId,
   });
 
   // Then check for quiz configuration if bot is published and has quiz mode
-  const { data: quizConfig } = useQuery({
+  const { data: quizConfig, isLoading: isQuizConfigLoading } = useQuery({
     queryKey: ['quiz-config', botId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -42,10 +44,13 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
         .eq('enabled', true)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching quiz config:', error);
+        return null;
+      }
       return data;
     },
-    enabled: !!botId && !!bot?.published && !!bot?.quiz_mode,
+    enabled: !!bot?.published && !!bot?.quiz_mode,
   });
 
   const handleQuizComplete = async (instructions: string) => {
@@ -57,11 +62,18 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
     setIsLoading(false);
   };
 
+  // Show loading state while checking permissions
+  if (isBotLoading || isQuizConfigLoading) {
+    return null;
+  }
+
   // Only show the button if:
   // 1. The bot exists and is published
   // 2. Quiz mode is enabled for the bot
   // 3. There is an enabled quiz configuration
-  if (!bot?.published || !bot?.quiz_mode || !quizConfig?.enabled) return null;
+  if (!bot?.published || !bot?.quiz_mode || !quizConfig?.enabled) {
+    return null;
+  }
 
   return (
     <>
