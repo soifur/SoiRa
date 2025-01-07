@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { QuizModal } from "../quiz/QuizModal";
 import { Loader2 } from "lucide-react";
+import { QuizModal } from "../quiz/QuizModal";
+import { useQuiz } from "@/hooks/useQuiz";
 
 interface QuizButtonProps {
   botId: string;
@@ -12,66 +10,16 @@ interface QuizButtonProps {
 }
 
 export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonProps) => {
-  const [showModal, setShowModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // First check if the bot is published and has quiz mode enabled
-  const { data: bot, isLoading: isBotLoading } = useQuery({
-    queryKey: ['bot', botId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bots')
-        .select('published, quiz_mode')
-        .eq('id', botId)
-        .single();
+  const {
+    showModal,
+    isLoading,
+    shouldShowQuiz,
+    handleQuizStart,
+    handleQuizComplete,
+    handleCloseModal
+  } = useQuiz({ botId, onQuizComplete });
 
-      if (error) {
-        console.error('Error fetching bot:', error);
-        return null;
-      }
-      return data;
-    },
-  });
-
-  // Then check for quiz configuration if bot is published and has quiz mode
-  const { data: quizConfig, isLoading: isQuizConfigLoading } = useQuery({
-    queryKey: ['quiz-config', botId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('quiz_configurations')
-        .select('*')
-        .eq('bot_id', botId)
-        .eq('enabled', true)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching quiz config:', error);
-        return null;
-      }
-      return data;
-    },
-    enabled: !!bot?.published && !!bot?.quiz_mode,
-  });
-
-  const handleQuizComplete = async (instructions: string) => {
-    setIsLoading(true);
-    // Add a delay to ensure Supabase has time to update
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    onQuizComplete?.(instructions);
-    setShowModal(false);
-    setIsLoading(false);
-  };
-
-  // Show loading state while checking permissions
-  if (isBotLoading || isQuizConfigLoading) {
-    return null;
-  }
-
-  // Only show the button if:
-  // 1. The bot exists and is published
-  // 2. Quiz mode is enabled for the bot
-  // 3. There is an enabled quiz configuration
-  if (!bot?.published || !bot?.quiz_mode || !quizConfig?.enabled) {
+  if (!shouldShowQuiz) {
     return null;
   }
 
@@ -82,7 +30,7 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
         size="sm"
         onClick={() => {
           onStartQuiz();
-          setShowModal(true);
+          handleQuizStart();
         }}
         className="ml-2"
         disabled={isLoading}
@@ -99,7 +47,7 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
       
       <QuizModal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={handleCloseModal}
         botId={botId}
         onComplete={handleQuizComplete}
       />
