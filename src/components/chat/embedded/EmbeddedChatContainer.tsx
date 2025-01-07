@@ -95,7 +95,7 @@ const EmbeddedChatContainer = () => {
           const { data: quizResponses } = await supabase
             .from('quiz_responses')
             .select('combined_instructions')
-            .eq('quiz_id', sharedBotData.bot_id)
+            .eq('bot_id', sharedBotData.bot_id)
             .eq('user_id', clientId)
             .order('created_at', { ascending: false })
             .limit(1)
