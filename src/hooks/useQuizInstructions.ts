@@ -7,23 +7,19 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
   useEffect(() => {
     const fetchQuizInstructions = async () => {
       if (!quizMode || !botId) {
+        console.log("Quiz mode disabled or no bot ID, skipping fetch");
         setCombinedInstructions(null);
         return;
       }
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          console.log("No authenticated user found");
-          return;
-        }
-
+        console.log("Fetching quiz instructions for bot:", botId);
+        
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
           .eq('bot_id', botId)
-          .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching quiz responses:", error);
@@ -32,6 +28,7 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
 
         console.log("Quiz response found:", quizResponse);
         setCombinedInstructions(quizResponse?.combined_instructions || null);
+        
       } catch (error) {
         console.error("Error in fetchQuizInstructions:", error);
       }
