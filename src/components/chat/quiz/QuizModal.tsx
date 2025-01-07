@@ -1,147 +1,160 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
 import { QuizSection } from "./QuizSection";
 import { X } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
 
 interface QuizModalProps {
   isOpen: boolean;
   onClose: () => void;
   botId: string;
-  onComplete?: (instructions: string) => void;
+  onComplete: (instructions: string) => void;
+}
+
+interface QuizSectionData {
+  fields: Field[];
+  responses: Record<string, string | string[]>;
 }
 
 export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps) => {
+  const [sections, setSections] = useState<QuizSectionData[]>([]);
   const [currentSection, setCurrentSection] = useState(0);
-  const [sections, setSections] = useState<Field[]>([]);
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
-  const { toast } = useToast();
+  const [fields, setFields] = useState<Field[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen && botId) {
-      loadQuizFields();
+      loadQuizConfiguration();
     }
   }, [isOpen, botId]);
 
-  const loadQuizFields = async () => {
+  const loadQuizConfiguration = async () => {
     try {
-      // First get the quiz configuration
       const { data: quizConfig } = await supabase
         .from('quiz_configurations')
         .select('*')
         .eq('bot_id', botId)
+        .eq('enabled', true)
         .single();
 
-      if (!quizConfig) {
-        console.error('No quiz configuration found');
-        return;
-      }
+      if (quizConfig) {
+        const { data: quizFields } = await supabase
+          .from('quiz_fields')
+          .select('*')
+          .eq('quiz_id', quizConfig.id)
+          .order('sequence_number', { ascending: true });
 
-      // Then get the fields
-      const { data: fields } = await supabase
-        .from('quiz_fields')
-        .select('*')
-        .eq('quiz_id', quizConfig.id)
-        .order('sequence_number', { ascending: true });
+        if (quizFields) {
+          setFields(quizFields);
+          
+          const groupedSections: QuizSectionData[] = [];
+          let currentSectionFields: Field[] = [];
 
-      if (fields) {
-        setSections(fields);
-      }
-    } catch (error) {
-      console.error('Error loading quiz fields:', error);
-    }
-  };
+          quizFields.forEach((field) => {
+            if (field.single_section && currentSectionFields.length > 0) {
+              groupedSections.push({ fields: currentSectionFields, responses: {} });
+              currentSectionFields = [];
+            }
+            currentSectionFields.push(field);
+            if (field.single_section) {
+              groupedSections.push({ fields: [field], responses: {} });
+              currentSectionFields = [];
+            }
+          });
 
-  const handleResponse = async (response: string | string[]) => {
-    try {
-      const currentField = sections[currentSection];
-      if (!currentField) return;
-
-      // Update responses
-      const updatedResponses = {
-        ...responses,
-        [currentField.id]: response
-      };
-      setResponses(updatedResponses);
-
-      // If this is the last section, save all responses
-      if (currentSection === sections.length - 1) {
-        await saveResponses(updatedResponses);
-      } else {
-        // Move to next section
-        setCurrentSection(prev => prev + 1);
-      }
-    } catch (error) {
-      console.error('Error handling response:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save response",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const saveResponses = async (finalResponses: Record<string, string | string[]>) => {
-    try {
-      // Get the quiz configuration for this bot
-      const { data: quizConfig } = await supabase
-        .from('quiz_configurations')
-        .select('*')
-        .eq('bot_id', botId)
-        .single();
-
-      if (!quizConfig) {
-        throw new Error('No quiz configuration found');
-      }
-
-      // Combine all responses into instructions
-      const combinedInstructions = sections
-        .map(field => {
-          const response = finalResponses[field.id];
-          if (Array.isArray(response)) {
-            return `${field.title}: ${response.join(', ')}`;
+          if (currentSectionFields.length > 0) {
+            groupedSections.push({ fields: currentSectionFields, responses: {} });
           }
-          return `${field.title}: ${response || ''}`;
-        })
-        .join('\n');
 
-      // Save to quiz_responses with bot_id
-      const { data: quizResponse, error } = await supabase
-        .from('quiz_responses')
-        .insert({
-          quiz_id: quizConfig.id,
-          bot_id: botId, // Make sure we're setting the bot_id
-          responses: finalResponses,
-          combined_instructions: combinedInstructions
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Call onComplete with the combined instructions
-      if (onComplete) {
-        onComplete(combinedInstructions);
+          setSections(groupedSections);
+        }
       }
-
-      // Close the modal
-      onClose();
-
-      toast({
-        title: "Success",
-        description: "Quiz completed successfully",
-      });
+      setLoading(false);
     } catch (error) {
-      console.error('Error saving responses:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save quiz responses",
-        variant: "destructive",
-      });
+      console.error('Error loading quiz configuration:', error);
+      setLoading(false);
     }
   };
+
+  const handleResponse = (fieldId: string, value: string | string[]) => {
+    setResponses(prev => ({ ...prev, [fieldId]: value }));
+  };
+
+  const handleNext = async () => {
+    if (currentSection < sections.length - 1) {
+      setCurrentSection(prev => prev + 1);
+    } else {
+      const allFields = fields;
+      let userResponses = '';
+
+      allFields.forEach(field => {
+        const response = responses[field.id!];
+        if (response) {
+          const instruction = field.instructions?.replace('{input}', 
+            Array.isArray(response) ? response.join(', ') : response
+          );
+          if (instruction) {
+            userResponses += instruction + ' ';
+          }
+        }
+      });
+
+      try {
+        const { data: sharedBot } = await supabase
+          .from('shared_bots')
+          .select('instructions')
+          .eq('bot_id', botId)
+          .maybeSingle();
+
+        const originalInstructions = sharedBot?.instructions || '';
+        const combinedInstructions = `${originalInstructions} ${userResponses}`.trim();
+
+        const { data: quizConfig } = await supabase
+          .from('quiz_configurations')
+          .select('id')
+          .eq('bot_id', botId)
+          .single();
+
+        if (quizConfig) {
+          const { data: existingResponse } = await supabase
+            .from('quiz_responses')
+            .select('*')
+            .eq('quiz_id', quizConfig.id)
+            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+            .single();
+
+          const responseData = {
+            quiz_id: quizConfig.id,
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+            responses,
+            combined_instructions: combinedInstructions
+          };
+
+          if (existingResponse) {
+            await supabase
+              .from('quiz_responses')
+              .update(responseData)
+              .eq('id', existingResponse.id);
+          } else {
+            await supabase
+              .from('quiz_responses')
+              .insert([responseData]);
+          }
+        }
+
+        onComplete(combinedInstructions);
+        onClose();
+      } catch (error) {
+        console.error('Error saving quiz responses:', error);
+      }
+    }
+  };
+
+  if (loading) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -156,9 +169,11 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         <div className="w-full h-full flex items-center justify-center p-4 overflow-y-auto">
           {sections[currentSection] && (
             <QuizSection
-              field={sections[currentSection]}
+              fields={sections[currentSection].fields}
+              responses={responses}
               onResponse={handleResponse}
-              isLast={currentSection === sections.length - 1}
+              onNext={handleNext}
+              isLastSection={currentSection === sections.length - 1}
             />
           )}
         </div>
