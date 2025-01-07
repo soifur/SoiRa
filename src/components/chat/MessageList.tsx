@@ -86,7 +86,21 @@ export const MessageList = ({
                     {selectedBot.name}
                   </h2>
                   
-                  {(!selectedBot.quiz_mode && starters && starters.length > 0) ? (
+                  {selectedBot.quiz_mode ? (
+                    <>
+                      <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
+                        Ready to start the quiz?
+                      </h1>
+                      <Button
+                        variant="default"
+                        size="lg"
+                        onClick={() => onStartQuiz && onStartQuiz()}
+                        className="mb-8 md:mb-12 w-64 h-16 text-xl font-semibold hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      >
+                        Start Quiz Now
+                      </Button>
+                    </>
+                  ) : starters && starters.length > 0 ? (
                     <>
                       <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                         What can I help with?
@@ -116,21 +130,7 @@ export const MessageList = ({
                         })}
                       </div>
                     </>
-                  ) : (
-                    <>
-                      <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
-                        Ready to start the quiz?
-                      </h1>
-                      <Button
-                        variant="default"
-                        size="lg"
-                        onClick={() => onStartQuiz && onStartQuiz()}
-                        className="mb-8 md:mb-12 w-64 h-16 text-xl font-semibold hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                      >
-                        Start Quiz Now
-                      </Button>
-                    </>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
