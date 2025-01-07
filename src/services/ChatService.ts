@@ -20,25 +20,9 @@ export class ChatService {
     abortSignal?: AbortSignal,
     onStream?: (chunk: string) => void
   ) {
-    console.log("=== OpenRouter Message Start ===");
-    console.log("Bot config:", {
-      id: bot.id,
-      model: bot.model,
-      openRouterModel: bot.openRouterModel,
-      hasInstructions: !!bot.instructions,
-      instructionsPreview: bot.instructions?.substring(0, 100),
-      quizMode: bot.quiz_mode
-    });
-
     if (!bot.apiKey) {
-      console.error("OpenRouter API key missing for bot:", bot.id);
       throw new Error("OpenRouter API key is missing");
     }
-
-    console.log("Incoming messages:", messages.map(m => ({
-      role: m.role,
-      contentPreview: m.content.substring(0, 50)
-    })));
 
     const sanitizedMessages = messages.map(msg => ({
       ...msg,
@@ -46,7 +30,6 @@ export class ChatService {
     }));
 
     const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
-    console.log("Sanitized instructions preview:", sanitizedInstructions.substring(0, 100));
 
     try {
       const headers = {
@@ -56,38 +39,25 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      const requestBody = {
-        model: bot.openRouterModel,
-        messages: [
-          ...(sanitizedInstructions
-            ? [{ role: 'system', content: sanitizedInstructions }]
-            : []),
-          ...sanitizedMessages,
-        ],
-        stream: true
-      };
-
-      console.log("OpenRouter request configuration:", {
-        model: requestBody.model,
-        messageCount: requestBody.messages.length,
-        hasSystemMessage: sanitizedInstructions ? "yes" : "no",
-        systemMessagePreview: sanitizedInstructions ? sanitizedInstructions.substring(0, 50) : "none"
-      });
-
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers,
         signal: abortSignal,
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          model: bot.openRouterModel,
+          messages: [
+            ...(sanitizedInstructions
+              ? [{ role: 'system', content: sanitizedInstructions }]
+              : []),
+            ...sanitizedMessages,
+          ],
+          stream: true, // Always enable streaming
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('OpenRouter API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData
-        });
+        console.error('OpenRouter API error status:', response.status);
         throw new Error('Failed to process request');
       }
 
@@ -129,19 +99,12 @@ export class ChatService {
         }
       }
       
-      console.log("=== OpenRouter Message Complete ===", {
-        responseLength: accumulatedResponse.length,
-        responsePreview: accumulatedResponse.substring(0, 100)
-      });
-      
       return accumulatedResponse;
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log("OpenRouter message cancelled by user");
         return "Message cancelled by user.";
       }
-      console.error("OpenRouter error:", error);
       throw error;
     }
   }
@@ -150,24 +113,9 @@ export class ChatService {
     messages: Array<{ role: string; content: string }>,
     bot: Bot
   ) {
-    console.log("=== Gemini Message Start ===");
-    console.log("Bot config:", {
-      id: bot.id,
-      model: bot.model,
-      hasInstructions: !!bot.instructions,
-      instructionsPreview: bot.instructions?.substring(0, 100),
-      quizMode: bot.quiz_mode
-    });
-
     if (!bot.apiKey) {
-      console.error("Gemini API key missing for bot:", bot.id);
       throw new Error("API key is missing. Please check your configuration.");
     }
-
-    console.log("Incoming messages:", messages.map(m => ({
-      role: m.role,
-      contentPreview: m.content.substring(0, 50)
-    })));
 
     try {
       const genAI = new GoogleGenerativeAI(bot.apiKey);
@@ -183,19 +131,10 @@ export class ChatService {
         `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
       ).join("\n");
 
-      console.log("Gemini full prompt preview:", fullPrompt.substring(0, 200));
-
       const result = await chat.sendMessage(fullPrompt);
       const response = await result.response.text();
-
-      console.log("=== Gemini Message Complete ===", {
-        responseLength: response.length,
-        responsePreview: response.substring(0, 100)
-      });
-
       return response;
     } catch (error) {
-      console.error("Gemini error:", error);
       throw new Error("Failed to process message");
     }
   }

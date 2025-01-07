@@ -17,16 +17,6 @@ interface DedicatedBotChatProps {
 }
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
-  console.log("=== DedicatedBotChat Component Mount ===");
-  console.log("Received bot props:", {
-    botId: bot?.id,
-    botName: bot?.name,
-    quizMode: bot?.quiz_mode,
-    hasInstructions: !!bot?.instructions,
-    instructionsLength: bot?.instructions?.length,
-    originalInstructions: bot?.instructions?.substring(0, 100) + "..." // First 100 chars
-  });
-  
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,23 +24,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
   const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
-
-  console.log("=== Instructions Status ===", { 
-    botId: bot.id, 
-    quizMode: bot.quiz_mode, 
-    hasOriginalInstructions: !!bot.instructions,
-    originalInstructionsPreview: bot.instructions?.substring(0, 50),
-    hasCombinedInstructions: !!combinedInstructions,
-    combinedInstructionsPreview: combinedInstructions?.substring(0, 50)
-  });
-
-  useEffect(() => {
-    console.log("=== Component Effect Triggered ===", {
-      botId: bot.id,
-      messagesCount: messages.length,
-      hasQuizInstructions: !!combinedInstructions
-    });
-  }, [bot.id, messages, combinedInstructions]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,21 +34,11 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   }, [messages]);
 
   useEffect(() => {
-    console.log("=== Loading Saved Messages ===", {
-      botId: bot.id,
-      chatId,
-      hasAvatar: !!bot.avatar
-    });
-
     const chatKey = `chat_${bot.id}_${chatId}`;
     const savedMessages = localStorage.getItem(chatKey);
     if (savedMessages) {
       try {
         const parsedMessages = JSON.parse(savedMessages);
-        console.log("Found saved messages:", {
-          count: parsedMessages.length,
-          firstMessagePreview: parsedMessages[0]?.content?.substring(0, 50)
-        });
         setMessages(parsedMessages.map((msg: any) => ({
           ...msg,
           timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
@@ -86,17 +49,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         setMessages([]);
       }
     } else {
-      console.log("No saved messages found for chat:", chatKey);
       setMessages([]);
     }
   }, [bot.id, chatId, bot.avatar]);
 
   const clearChat = () => {
-    console.log("=== Clearing Chat ===", { botId: bot.id, chatId });
     setMessages([]);
     const chatKey = `chat_${bot.id}_${chatId}`;
     localStorage.removeItem(chatKey);
     toast({
+      title: "Chat Cleared",
       description: "The chat history has been cleared.",
     });
   };
@@ -104,42 +66,26 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
 
-    console.log("=== Sending Message ===", {
-      botId: bot.id,
-      messageLength: message.length,
-      messagePreview: message.substring(0, 50)
-    });
-
     try {
       setIsLoading(true);
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
 
+      // Add temporary streaming message
       const streamingMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, streamingMessage]);
       setIsStreaming(true);
 
       let response: string = "";
-      
-      const finalInstructions = bot.quiz_mode && combinedInstructions 
-        ? `${bot.instructions || ''} ${combinedInstructions}`.trim()
-        : bot.instructions;
-
-      console.log("=== Message Configuration ===", {
-        quizMode: bot.quiz_mode,
-        model: bot.model,
-        hasOriginalInstructions: !!bot.instructions,
-        originalInstructionsPreview: bot.instructions?.substring(0, 50),
-        hasCombinedInstructions: !!combinedInstructions,
-        combinedInstructionsPreview: combinedInstructions?.substring(0, 50),
-        finalInstructionsPreview: finalInstructions?.substring(0, 50)
-      });
+      // Use combinedInstructions if quiz mode is enabled and instructions are available
+      const instructions = bot.quiz_mode && combinedInstructions ? combinedInstructions : bot.instructions;
+      console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode, "Combined instructions:", combinedInstructions);
 
       if (bot.model === "openrouter") {
         await ChatService.sendOpenRouterMessage(
           newMessages,
-          { ...bot, instructions: finalInstructions },
+          { ...bot, instructions },
           undefined,
           (chunk: string) => {
             response += chunk;
@@ -156,7 +102,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           }
         );
       } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions: finalInstructions });
+        response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions });
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === "assistant") {
@@ -169,13 +115,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         });
       }
 
-      console.log("=== Saving Chat ===", {
-        chatId,
-        botId: bot.id,
-        messageCount: messages.length + 1,
-        responseLength: response.length
-      });
-
+      // Get the next sequence number
       const { data: chatData } = await supabase
         .from('chat_history')
         .select('sequence_number')
@@ -186,6 +126,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       const nextSequenceNumber = (chatData?.sequence_number || 0) + 1;
 
+      // Save to Supabase with avatar URL and sequence number
       const { error } = await supabase
         .from('chat_history')
         .upsert({
@@ -205,6 +146,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         throw error;
       }
 
+      // Save to localStorage
       const chatKey = `chat_${bot.id}_${chatId}`;
       localStorage.setItem(chatKey, JSON.stringify([...newMessages, { ...streamingMessage, content: response }]));
 
