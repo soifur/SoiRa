@@ -78,9 +78,15 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setIsStreaming(true);
 
       let response: string = "";
+      
       // Use combinedInstructions if quiz mode is enabled and instructions are available
-      const instructions = bot.quiz_mode && combinedInstructions ? combinedInstructions : bot.instructions;
-      console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode, "Combined instructions:", combinedInstructions);
+      const instructions = bot.quiz_mode && combinedInstructions 
+        ? `${bot.instructions || ''} ${combinedInstructions}`.trim()
+        : bot.instructions;
+        
+      console.log("Using instructions:", instructions);
+      console.log("Quiz mode:", bot.quiz_mode);
+      console.log("Combined instructions:", combinedInstructions);
 
       if (bot.model === "openrouter") {
         await ChatService.sendOpenRouterMessage(
@@ -136,7 +142,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
             ...msg,
             timestamp: msg.timestamp?.toISOString(),
           })),
-          avatar_url: bot.avatar,
           sequence_number: nextSequenceNumber,
           updated_at: new Date().toISOString()
         });

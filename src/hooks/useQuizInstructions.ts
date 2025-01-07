@@ -12,17 +12,25 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
       }
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          console.log("No authenticated user found");
+        // First get the quiz configuration for this bot
+        const { data: quizConfig } = await supabase
+          .from('quiz_configurations')
+          .select('id')
+          .eq('bot_id', botId)
+          .single();
+
+        if (!quizConfig) {
+          console.log("No quiz configuration found for bot:", botId);
           return;
         }
 
+        // Then get the latest quiz response for this bot
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
           .eq('bot_id', botId)
-          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single();
 
         if (error) {
