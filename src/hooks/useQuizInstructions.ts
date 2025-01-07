@@ -7,6 +7,7 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
     queryKey: ['quiz-instructions', botId, quizMode],
     queryFn: async () => {
       if (!quizMode || !botId) {
+        console.log("Quiz mode disabled or no botId, skipping fetch");
         return null;
       }
 
@@ -17,6 +18,8 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
           return null;
         }
 
+        console.log("Fetching quiz responses for bot:", botId, "user:", user.id);
+        
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
@@ -29,7 +32,7 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
           return null;
         }
 
-        console.log("Quiz response found:", quizResponse);
+        console.log("Quiz response data:", quizResponse);
         return quizResponse?.combined_instructions || null;
       } catch (error) {
         console.error("Error in fetchQuizInstructions:", error);

@@ -78,9 +78,13 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setIsStreaming(true);
 
       let response: string = "";
-      // Use combinedInstructions if quiz mode is enabled and instructions are available
-      const instructions = bot.quiz_mode && combinedInstructions ? combinedInstructions : bot.instructions;
-      console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode, "Combined instructions:", combinedInstructions);
+      
+      // Use combinedInstructions if available, otherwise fall back to bot.instructions
+      const instructions = combinedInstructions || bot.instructions;
+      console.log("Using instructions:", instructions, 
+                  "Quiz mode:", bot.quiz_mode, 
+                  "Combined instructions:", combinedInstructions,
+                  "Bot instructions:", bot.instructions);
 
       if (bot.model === "openrouter") {
         await ChatService.sendOpenRouterMessage(
