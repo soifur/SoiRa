@@ -178,7 +178,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed inset-0 w-full h-full max-w-none m-0 p-0 bg-gradient-to-br from-background to-background/95 backdrop-blur-sm z-[200]"
+        className="fixed inset-0 w-full h-full max-w-none max-h-none m-0 p-0 bg-gradient-to-br from-background to-background/95 backdrop-blur-sm z-[200] overflow-y-auto"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -191,8 +191,8 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
           <X className="h-6 w-6" />
         </Button>
         
-        <div className="h-full flex flex-col justify-center items-center p-6 md:p-8 max-w-2xl mx-auto">
-          <div className="w-full">
+        <div className="min-h-screen flex flex-col justify-center items-center p-6 md:p-8">
+          <div className="w-full max-w-2xl mx-auto">
             <div className="flex-1">
               <div 
                 className={cn(
