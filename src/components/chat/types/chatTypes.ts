@@ -28,6 +28,7 @@ export interface Bot {
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
+  quiz_mode?: boolean;
 }
 
 export interface ChatHistoryItem {
