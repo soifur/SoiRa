@@ -18,20 +18,15 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      if (!isSignUp && email !== "soifur2@gmail.com") {
-        toast({
-          variant: "destructive",
-          title: "Access Denied",
-          description: "This application is restricted to authorized users only.",
-        });
-        setIsLoading(false);
-        return;
-      }
-
       const { data, error } = isSignUp 
         ? await supabase.auth.signUp({
             email,
             password,
+            options: {
+              data: {
+                role: 'user' // Set default role for new users
+              }
+            }
           })
         : await supabase.auth.signInWithPassword({
             email,
