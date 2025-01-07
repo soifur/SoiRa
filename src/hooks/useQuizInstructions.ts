@@ -18,20 +18,44 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
           return;
         }
 
-        // First try to get the bot ID from shared_bots if this is a shared bot
+        // First check if this is a shared bot
         const { data: sharedBot } = await supabase
           .from('shared_bots')
-          .select('bot_id')
+          .select('quiz_mode, share_key')
           .eq('share_key', botId)
           .maybeSingle();
 
-        const actualBotId = sharedBot?.bot_id || botId;
+        console.log("Shared bot data:", sharedBot);
 
-        // Fetch the latest quiz response for this bot and user
+        // If this is a shared bot and quiz mode is enabled
+        if (sharedBot?.quiz_mode) {
+          console.log("Fetching quiz responses for shared bot with share_key:", sharedBot.share_key);
+          
+          // Use share_key as bot_id for quiz responses
+          const { data: quizResponse, error: sharedError } = await supabase
+            .from('quiz_responses')
+            .select('combined_instructions')
+            .eq('bot_id', sharedBot.share_key)  // Match share_key with bot_id
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (sharedError) {
+            console.error("Error fetching shared bot quiz responses:", sharedError);
+            return;
+          }
+
+          console.log("Shared bot quiz response:", quizResponse);
+          setCombinedInstructions(quizResponse?.combined_instructions || null);
+          return;
+        }
+
+        // If not a shared bot, fetch quiz response normally
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
-          .eq('bot_id', actualBotId)
+          .eq('bot_id', botId)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
@@ -42,7 +66,7 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
           return;
         }
 
-        console.log("Quiz response found:", quizResponse);
+        console.log("Regular bot quiz response:", quizResponse);
         setCombinedInstructions(quizResponse?.combined_instructions || null);
       } catch (error) {
         console.error("Error in fetchQuizInstructions:", error);
