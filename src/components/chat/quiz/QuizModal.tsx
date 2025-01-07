@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
 import { QuizSection } from "./QuizSection";
+import { X } from "lucide-react";
 
 interface QuizModalProps {
   isOpen: boolean;
@@ -157,7 +158,14 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+      <DialogContent className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" style={{ zIndex: 9999 }}>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors duration-200"
+          style={{ zIndex: 9999 }}
+        >
+          <X className="h-6 w-6" />
+        </button>
         <div className="w-full h-full flex items-center justify-center p-4 overflow-y-auto">
           {sections[currentSection] && (
             <QuizSection
