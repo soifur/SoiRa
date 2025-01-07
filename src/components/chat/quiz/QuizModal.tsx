@@ -178,7 +178,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed inset-0 w-full h-full max-w-none max-h-none m-0 p-0 bg-gradient-to-br from-background to-background/95 backdrop-blur-sm z-[200] overflow-y-auto"
+        className="fixed inset-0 w-full h-screen max-w-none max-h-none m-0 p-0 bg-gradient-to-br from-background to-background/95 backdrop-blur-sm z-[200]"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -191,31 +191,33 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
           <X className="h-6 w-6" />
         </Button>
         
-        <div className="min-h-screen flex flex-col justify-center items-center p-6 md:p-8">
-          <div className="w-full max-w-2xl mx-auto">
-            <div className="flex-1">
-              <div 
-                className={cn(
-                  "transition-all duration-1000 transform",
-                  showTransition ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"
-                )}
-              >
-                {sections[currentSection] && (
-                  <QuizSection
-                    fields={sections[currentSection].fields}
-                    responses={responses}
-                    onResponse={handleResponse}
-                  />
-                )}
+        <div className="w-full h-full overflow-y-auto">
+          <div className="min-h-full flex items-center justify-center p-6 md:p-8">
+            <div className="w-full max-w-2xl">
+              <div className="flex-1">
+                <div 
+                  className={cn(
+                    "transition-all duration-1000 transform",
+                    showTransition ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"
+                  )}
+                >
+                  {sections[currentSection] && (
+                    <QuizSection
+                      fields={sections[currentSection].fields}
+                      responses={responses}
+                      onResponse={handleResponse}
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="pt-6 mt-8">
-              <QuizNavigation
-                currentSection={currentSection}
-                totalSections={sections.length}
-                onNext={handleNext}
-                onPrevious={handlePrevious}
-              />
+              <div className="pt-6 mt-8">
+                <QuizNavigation
+                  currentSection={currentSection}
+                  totalSections={sections.length}
+                  onNext={handleNext}
+                  onPrevious={handlePrevious}
+                />
+              </div>
             </div>
           </div>
         </div>
