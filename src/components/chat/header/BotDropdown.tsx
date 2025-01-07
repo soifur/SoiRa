@@ -27,13 +27,13 @@ export const BotDropdown = ({
     <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
       <SelectTrigger 
         className={cn(
-          "h-8 text-sm bg-transparent hover:bg-dropdown-hover min-w-0",
-          "w-auto inline-flex items-center whitespace-nowrap",
+          "h-8 text-sm bg-transparent hover:bg-dropdown-hover",
+          "w-auto inline-flex items-center whitespace-nowrap px-2",
           isMobile ? "max-w-[200px]" : "max-w-[160px]"
         )}
       >
         <SelectValue placeholder="Select a model">
-          <div className="flex items-center gap-2 truncate">
+          <div className="flex items-center gap-2">
             {selectedBot?.avatar && (
               <img 
                 src={selectedBot.avatar} 
@@ -46,14 +46,18 @@ export const BotDropdown = ({
         </SelectValue>
       </SelectTrigger>
       <SelectContent 
-        align="start" 
-        className="w-[200px]"
+        align="start"
+        className="min-w-[200px]"
         position="popper"
         side="bottom"
         sideOffset={4}
       >
         {uniqueBots.map((bot) => (
-          <SelectItem key={bot.id} value={bot.id}>
+          <SelectItem 
+            key={bot.id} 
+            value={bot.id}
+            className="py-2"
+          >
             <div className="flex items-center gap-2">
               {bot.avatar && (
                 <img 
@@ -62,7 +66,7 @@ export const BotDropdown = ({
                   className="w-5 h-5 rounded-full object-cover shrink-0"
                 />
               )}
-              <span className="truncate">{bot.name}</span>
+              <span className="whitespace-nowrap">{bot.name}</span>
             </div>
           </SelectItem>
         ))}

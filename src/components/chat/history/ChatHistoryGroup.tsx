@@ -43,7 +43,7 @@ export const ChatHistoryGroup = ({
     return (
       <div className="space-y-2">
         <h3 className={cn(
-          "font-bold text-foreground/70",
+          "font-bold text-foreground/70 px-3",
           isMobile ? "text-base" : "text-xs"
         )}>
           {label}
@@ -93,7 +93,7 @@ export const ChatHistoryGroup = ({
         )}
         <span className={cn(
           "truncate flex-1 text-left pr-1",
-          isMobile ? "text-lg max-w-[280px]" : "text-sm max-w-[150px]",
+          isMobile ? "text-lg max-w-[280px]" : "text-sm max-w-[120px]",
           isModelGroup && "text-primary"
         )}>{label}</span>
         {chats.length > 0 && (
