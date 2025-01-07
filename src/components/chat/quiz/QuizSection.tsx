@@ -9,6 +9,7 @@ interface QuizSectionProps {
   onResponse: (fieldId: string, value: string | string[]) => void;
   onNext: () => void;
   isLastSection: boolean;
+  onKeyPress: (e: React.KeyboardEvent) => void;
 }
 
 export const QuizSection = ({ 
@@ -16,7 +17,8 @@ export const QuizSection = ({
   responses, 
   onResponse, 
   onNext,
-  isLastSection 
+  isLastSection,
+  onKeyPress
 }: QuizSectionProps) => {
   const isComplete = fields.every(field => {
     const response = responses[field.id!];
@@ -31,6 +33,7 @@ export const QuizSection = ({
           field={field}
           value={responses[field.id!] || (field.field_type.includes('choice') ? [] : '')}
           onChange={(value) => onResponse(field.id!, value)}
+          onKeyPress={onKeyPress}
         />
       ))}
       
