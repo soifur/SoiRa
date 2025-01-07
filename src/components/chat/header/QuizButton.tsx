@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QuizModal } from "../quiz/QuizModal";
 import { Loader2 } from "lucide-react";
-import { useQuizInstructions } from "@/hooks/useQuizInstructions";
 
 interface QuizButtonProps {
   botId: string;
@@ -32,14 +31,10 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
     enabled: !!botId,
   });
 
-  const { refetch: refetchInstructions } = useQuizInstructions(botId, true);
-
   const handleQuizComplete = async (instructions: string) => {
     setIsLoading(true);
     // Add a delay to ensure Supabase has time to update
     await new Promise(resolve => setTimeout(resolve, 3000));
-    // Refetch instructions after the delay
-    await refetchInstructions();
     onQuizComplete?.(instructions);
     setShowModal(false);
     setIsLoading(false);
