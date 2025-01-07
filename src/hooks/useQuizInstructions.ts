@@ -22,7 +22,7 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
           .select('combined_instructions')
           .eq('bot_id', botId)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching quiz responses:", error);
