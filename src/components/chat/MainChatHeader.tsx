@@ -103,12 +103,21 @@ export const MainChatHeader = ({
                   {selectedBotId && setSelectedBotId && (
                     <>
                       <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
-                        <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-transparent hover:bg-dropdown-hover">
+                        <SelectTrigger className="h-9 text-sm bg-transparent hover:bg-dropdown-hover min-w-0 w-auto">
                           <SelectValue placeholder="Select a model">
-                            {selectedBot?.name || "Select a model"}
+                            <div className="flex items-center gap-2 truncate">
+                              {selectedBot?.avatar && (
+                                <img 
+                                  src={selectedBot.avatar} 
+                                  alt={selectedBot.name}
+                                  className="w-5 h-5 rounded-full object-cover shrink-0"
+                                />
+                              )}
+                              <span className="truncate">{selectedBot?.name || "Select a model"}</span>
+                            </div>
                           </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent align="start" className="w-[200px]">
                           {uniqueBots.map((bot) => (
                             <SelectItem key={bot.id} value={bot.id}>
                               <div className="flex items-center gap-2">
@@ -116,10 +125,10 @@ export const MainChatHeader = ({
                                   <img 
                                     src={bot.avatar} 
                                     alt={bot.name}
-                                    className="w-5 h-5 rounded-full object-cover"
+                                    className="w-5 h-5 rounded-full object-cover shrink-0"
                                   />
                                 )}
-                                {bot.name}
+                                <span className="truncate">{bot.name}</span>
                               </div>
                             </SelectItem>
                           ))}
@@ -175,12 +184,21 @@ export const MainChatHeader = ({
                 {isChat && (
                   <>
                     <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
-                      <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-transparent hover:bg-dropdown-hover">
+                      <SelectTrigger className="h-8 text-sm bg-transparent hover:bg-dropdown-hover min-w-0 w-auto">
                         <SelectValue placeholder="Select a model">
-                          {selectedBot?.name || "Select a model"}
+                          <div className="flex items-center gap-2 truncate">
+                            {selectedBot?.avatar && (
+                              <img 
+                                src={selectedBot.avatar} 
+                                alt={selectedBot.name}
+                                className="w-5 h-5 rounded-full object-cover shrink-0"
+                              />
+                            )}
+                            <span className="truncate">{selectedBot?.name || "Select a model"}</span>
+                          </div>
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent align="start" className="w-[200px]">
                         {uniqueBots.map((bot) => (
                           <SelectItem key={bot.id} value={bot.id}>
                             <div className="flex items-center gap-2">
@@ -188,10 +206,10 @@ export const MainChatHeader = ({
                                 <img 
                                   src={bot.avatar} 
                                   alt={bot.name}
-                                  className="w-5 h-5 rounded-full object-cover"
+                                  className="w-5 h-5 rounded-full object-cover shrink-0"
                                 />
                               )}
-                              {bot.name}
+                              <span className="truncate">{bot.name}</span>
                             </div>
                           </SelectItem>
                         ))}

@@ -48,7 +48,7 @@ export const ProfileSection = ({ showViewPlans = false, onClose }: ProfileSectio
   return (
     <>
       <div className="flex flex-col border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        {showViewPlans && !isPaidUser && (
+        {!isPaidUser && (
           <button
             onClick={handleViewPlans}
             className="w-full p-4 text-left hover:bg-accent/50 transition-colors border-b"

@@ -92,7 +92,7 @@ export const ChatHistoryGroup = ({
           </Avatar>
         )}
         <span className={cn(
-          "truncate flex-1 text-left pr-1",
+          "truncate flex-1 text-left pr-1 max-w-[120px]",
           isMobile ? "text-lg" : "text-sm",
           isModelGroup && "text-primary"
         )}>{label}</span>
