@@ -73,10 +73,13 @@
 }
 
 .chat-input {
-  @apply fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-50;
-  position: fixed !important; /* Force fixed position for Safari */
-  -webkit-overflow-scrolling: touch; /* Improve Safari scrolling */
-  overflow: hidden !important; /* Prevent scrolling in Safari */
+  @apply p-4 bg-white border-t border-gray-200;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 .message {

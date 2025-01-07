@@ -27,6 +27,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   const loadQuizConfiguration = async () => {
     try {
+      // First check if the bot exists and is published or owned by the user
       const { data: bot, error: botError } = await supabase
         .from('bots')
         .select('published, quiz_mode')
@@ -39,6 +40,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         return;
       }
 
+      // Only proceed if the bot is published and has quiz mode enabled
       if (!bot.published || !bot.quiz_mode) {
         console.log('Bot is not published or quiz mode is not enabled');
         setLoading(false);
@@ -172,19 +174,9 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
     return null;
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleNext();
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" 
-        style={{ zIndex: 9999 }}
-      >
+      <DialogContent className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" style={{ zIndex: 9999 }}>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors duration-200"
@@ -200,7 +192,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
               onResponse={handleResponse}
               onNext={handleNext}
               isLastSection={currentSection === sections.length - 1}
-              onKeyPress={handleKeyPress}
             />
           )}
         </div>
