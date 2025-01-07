@@ -66,10 +66,6 @@ export const MainChatHeader = ({
     }
   });
 
-  const role = userProfile?.role as UserRole;
-  const isSuperAdmin = role === 'super_admin';
-  const isAdmin = role === 'admin';
-
   useEffect(() => {
     if (bots) {
       const botsMap = new Map();
@@ -81,6 +77,10 @@ export const MainChatHeader = ({
       setUniqueBots(Array.from(botsMap.values()));
     }
   }, [bots]);
+
+  const role = userProfile?.role as UserRole;
+  const isSuperAdmin = role === 'super_admin';
+  const isAdmin = role === 'admin';
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
