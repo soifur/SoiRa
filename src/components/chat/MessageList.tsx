@@ -1,125 +1,152 @@
-import { useEffect, useRef } from "react";
-import { Message } from "./types/chatTypes";
+import React, { useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
-import { Button } from "../ui/button";
-import { Bot } from "@/hooks/useBots";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export interface MessageListProps {
-  messages: Message[];
-  isLoading?: boolean;
-  isStreaming?: boolean;
-  selectedBot?: Bot;
-  onStarterClick?: (starter: string) => void;
-  onStartQuiz?: () => void;
-  starters?: string[];
-  disabled?: boolean;
-  disabledReason?: string;
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp?: Date;
+  avatar?: string;
 }
 
-export const MessageList = ({
-  messages,
+interface MessageListProps {
+  messages: Message[];
+  selectedBot?: any;
+  starters?: string[];
+  onStarterClick?: (value: string) => void;
+  isLoading?: boolean;
+  isStreaming?: boolean;
+  onClearChat?: () => void;
+  disabled?: boolean;
+  disabledReason?: string;
+  onStartQuiz?: () => void;
+  showQuizButton?: boolean;
+}
+
+export const MessageList = ({ 
+  messages = [],
+  selectedBot, 
+  starters = [], 
+  onStarterClick, 
   isLoading,
   isStreaming,
-  selectedBot,
-  onStarterClick,
-  onStartQuiz,
-  starters,
+  onClearChat,
   disabled,
   disabledReason,
+  onStartQuiz,
+  showQuizButton
 }: MessageListProps) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const { data: quizEnabled } = useQuery({
-    queryKey: ['quiz-enabled', selectedBot?.id],
-    queryFn: async () => {
-      if (!selectedBot?.id) return false;
-
-      // First check bots table
-      const { data: bot } = await supabase
-        .from('bots')
-        .select('quiz_mode')
-        .eq('id', selectedBot.id)
-        .maybeSingle();
-
-      if (bot?.quiz_mode) return true;
-
-      // If not found or not enabled, check shared_bots table
-      const { data: sharedBot } = await supabase
-        .from('shared_bots')
-        .select('quiz_mode')
-        .eq('bot_id', selectedBot.id)
-        .maybeSingle();
-
-      return sharedBot?.quiz_mode || false;
-    },
-    enabled: !!selectedBot?.id
-  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (lastMessageRef.current && !isLoading) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isLoading]);
 
-  if (!messages || messages.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-4 space-y-4">
-        {selectedBot && (
-          <>
-            <div className="text-2xl font-semibold mb-4">
-              Chat with {selectedBot.name}
-            </div>
-            {quizEnabled ? (
-              <Button
-                variant="default"
-                size="lg"
-                onClick={onStartQuiz}
-                className="mb-8 md:mb-12 w-64 h-16 text-xl font-semibold hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              >
-                Start Quiz Now
-              </Button>
-            ) : starters && starters.length > 0 ? (
-              <div className="flex flex-col items-center space-y-2">
-                <p className="text-lg font-medium mb-4">Start the conversation with:</p>
-                <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
-                  {starters.map((starter, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      onClick={() => onStarterClick?.(starter)}
-                      className="text-sm"
-                      disabled={disabled}
-                    >
-                      {starter}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </>
-        )}
-      </div>
-    );
+  const getStarterIcon = (starter: string) => {
+    const lowerStarter = starter.toLowerCase();
+    if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
+      return HelpCircle;
+    }
+    if (lowerStarter.includes('code') || lowerStarter.includes('program')) {
+      return Code;
+    }
+    if (lowerStarter.includes('explain') || lowerStarter.includes('learn')) {
+      return BookOpen;
+    }
+    if (lowerStarter.includes('idea') || lowerStarter.includes('suggest')) {
+      return Lightbulb;
+    }
+    return MessageCircle;
+  };
+
+  if (!Array.isArray(messages)) {
+    console.warn("Messages prop is not an array:", messages);
+    return null;
   }
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-4 p-4">
-      {messages.map((message, index) => (
-        <ChatMessage
-          key={index}
-          message={message.content}
-          isBot={message.role === "assistant"}
-          avatar={selectedBot?.avatar}
-          isLoading={isLoading && index === messages.length - 1}
-          isStreaming={isStreaming && index === messages.length - 1}
-          botName={selectedBot?.name}
-          showQuizButton={quizEnabled && index === messages.length - 1}
-          onStartQuiz={onStartQuiz}
-        />
-      ))}
-      <div ref={messagesEndRef} />
+    <div className="relative h-full flex flex-col overflow-hidden">
+      <ScrollArea className="flex-1">
+        <div className={cn(
+          "h-full p-4",
+          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
+        )}>
+          {messages.length === 0 ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
+              {selectedBot && (
+                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+                  {selectedBot.name}
+                </h2>
+              )}
+              {showQuizButton ? (
+                <ChatMessage
+                  message=""
+                  isBot={true}
+                  avatar={selectedBot?.avatar}
+                  botName={selectedBot?.name}
+                  showQuizButton={true}
+                  onStartQuiz={onStartQuiz}
+                />
+              ) : starters && starters.length > 0 && (
+                <>
+                  <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
+                    What can I help with?
+                  </h1>
+                  <div className="grid grid-cols-1 gap-2 md:gap-3 w-full max-w-xl">
+                    {starters.map((starter, index) => {
+                      const Icon = getStarterIcon(starter);
+                      return (
+                        <button
+                          key={index}
+                          className={cn(
+                            "flex items-center justify-start gap-2 md:gap-3 p-3 md:p-4 h-auto",
+                            "text-sm md:text-base w-full",
+                            "rounded-xl md:rounded-2xl hover:bg-accent/50 transition-colors",
+                            "bg-background/50 backdrop-blur-sm border border-muted-foreground/20",
+                            "whitespace-normal text-left",
+                            disabled && "opacity-50 cursor-not-allowed"
+                          )}
+                          onClick={() => !disabled && onStarterClick && onStarterClick(starter)}
+                          disabled={disabled}
+                          title={disabled ? disabledReason : undefined}
+                        >
+                          <Icon className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+                          <span className="text-left break-words">{starter}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div
+                  key={message.id}
+                  ref={index === messages.length - 1 ? lastMessageRef : null}
+                  className="relative group"
+                >
+                  <ChatMessage
+                    message={message.content}
+                    isBot={message.role === "assistant"}
+                    avatar={message.avatar || selectedBot?.avatar}
+                    botName={selectedBot?.name}
+                    isLoading={index === messages.length - 1 && message.role === "assistant" && isLoading}
+                    isStreaming={index === messages.length - 1 && message.role === "assistant" && isStreaming}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
