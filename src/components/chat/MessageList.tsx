@@ -22,8 +22,6 @@ interface MessageListProps {
   onClearChat?: () => void;
   disabled?: boolean;
   disabledReason?: string;
-  onStartQuiz?: () => void;
-  showQuizButton?: boolean;
 }
 
 export const MessageList = ({ 
@@ -35,9 +33,7 @@ export const MessageList = ({
   isStreaming,
   onClearChat,
   disabled,
-  disabledReason,
-  onStartQuiz,
-  showQuizButton
+  disabledReason
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
@@ -84,16 +80,7 @@ export const MessageList = ({
                   {selectedBot.name}
                 </h2>
               )}
-              {showQuizButton ? (
-                <ChatMessage
-                  message=""
-                  isBot={true}
-                  avatar={selectedBot?.avatar}
-                  botName={selectedBot?.name}
-                  showQuizButton={true}
-                  onStartQuiz={onStartQuiz}
-                />
-              ) : starters && starters.length > 0 && (
+              {starters && starters.length > 0 && (
                 <>
                   <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                     What can I help with?
