@@ -1,5 +1,6 @@
 import { Bot } from "@/hooks/useBots";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { supabase } from "@/integrations/supabase/client";
 
 export class ChatService {
   private static sanitizeText(text: string): string {
@@ -12,6 +13,58 @@ export class ChatService {
       .replace(/\u2013/g, "-")
       .replace(/\u2026/g, "...")
       .replace(/[^\x00-\x7F]/g, " ");
+  }
+
+  private static async getQuizInstructions(bot: Bot): Promise<string | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log("No authenticated user found");
+        return null;
+      }
+
+      // First check shared_bots table
+      const { data: sharedBot } = await supabase
+        .from('shared_bots')
+        .select('*')
+        .eq('bot_id', bot.id)
+        .eq('quiz_mode', true)
+        .single();
+
+      if (sharedBot) {
+        const { data: quizResponse } = await supabase
+          .from('quiz_responses')
+          .select('combined_instructions')
+          .eq('bot_id', sharedBot.bot_id)
+          .eq('user_id', user.id)
+          .single();
+
+        if (quizResponse?.combined_instructions) {
+          console.log("Found quiz instructions from shared bot");
+          return quizResponse.combined_instructions;
+        }
+      }
+
+      // If not found in shared_bots, check regular bots
+      if (bot.quiz_mode) {
+        const { data: quizResponse } = await supabase
+          .from('quiz_responses')
+          .select('combined_instructions')
+          .eq('bot_id', bot.id)
+          .eq('user_id', user.id)
+          .single();
+
+        if (quizResponse?.combined_instructions) {
+          console.log("Found quiz instructions from regular bot");
+          return quizResponse.combined_instructions;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error fetching quiz instructions:", error);
+      return null;
+    }
   }
 
   static async sendOpenRouterMessage(
@@ -29,7 +82,14 @@ export class ChatService {
       content: this.sanitizeText(msg.content)
     }));
 
-    const sanitizedInstructions = bot.instructions ? this.sanitizeText(bot.instructions) : '';
+    // Get quiz instructions if available
+    const quizInstructions = await this.getQuizInstructions(bot);
+    console.log("Quiz instructions:", quizInstructions);
+
+    // Use quiz instructions if available, otherwise fall back to bot instructions
+    const instructionsToUse = quizInstructions || bot.instructions;
+    const sanitizedInstructions = instructionsToUse ? this.sanitizeText(instructionsToUse) : '';
+    console.log("Using instructions:", sanitizedInstructions);
 
     try {
       const headers = {
@@ -51,7 +111,7 @@ export class ChatService {
               : []),
             ...sanitizedMessages,
           ],
-          stream: true, // Always enable streaming
+          stream: true,
         }),
       });
 
@@ -117,6 +177,14 @@ export class ChatService {
       throw new Error("API key is missing. Please check your configuration.");
     }
 
+    // Get quiz instructions if available
+    const quizInstructions = await this.getQuizInstructions(bot);
+    console.log("Quiz instructions for Gemini:", quizInstructions);
+
+    // Use quiz instructions if available, otherwise fall back to bot instructions
+    const instructionsToUse = quizInstructions || bot.instructions;
+    console.log("Using instructions for Gemini:", instructionsToUse);
+
     try {
       const genAI = new GoogleGenerativeAI(bot.apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -127,8 +195,13 @@ export class ChatService {
         },
       });
 
-      const fullPrompt = messages.map(msg => 
-        `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
+      // Add instructions as system message if available
+      const messagesWithInstructions = instructionsToUse
+        ? [{ role: 'system', content: instructionsToUse }, ...messages]
+        : messages;
+
+      const fullPrompt = messagesWithInstructions.map(msg => 
+        `${msg.role === "user" ? "User" : msg.role === "system" ? "System" : "Assistant"}: ${msg.content}`
       ).join("\n");
 
       const result = await chat.sendMessage(fullPrompt);
