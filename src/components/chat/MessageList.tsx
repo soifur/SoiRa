@@ -5,6 +5,8 @@ import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-rea
 import { cn } from "@/lib/utils";
 import { QuizButton } from "./quiz/QuizButton";
 import { Bot } from "@/hooks/useBots";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Message {
   id: string;
@@ -42,6 +44,26 @@ export const MessageList = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
+  // Fetch shared bot quiz mode status
+  const { data: sharedBot } = useQuery({
+    queryKey: ['shared-bot', selectedBot?.id],
+    queryFn: async () => {
+      if (!selectedBot?.id) return null;
+      const { data, error } = await supabase
+        .from('shared_bots')
+        .select('quiz_mode')
+        .eq('bot_id', selectedBot.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching shared bot:', error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!selectedBot?.id
+  });
+
   useEffect(() => {
     if (lastMessageRef.current && !isLoading) {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
@@ -70,6 +92,8 @@ export const MessageList = ({
     return null;
   }
 
+  const showQuizButton = selectedBot && sharedBot?.quiz_mode;
+
   return (
     <div className="relative h-full flex flex-col overflow-hidden">
       <ScrollArea className="flex-1">
@@ -84,7 +108,7 @@ export const MessageList = ({
                   <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                     {selectedBot.name}
                   </h2>
-                  {selectedBot.quiz_mode && (
+                  {showQuizButton && (
                     <div className="mb-4">
                       <QuizButton 
                         botId={selectedBot.id}
