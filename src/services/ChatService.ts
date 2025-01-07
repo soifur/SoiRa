@@ -22,16 +22,13 @@ export class ChatService {
         return null;
       }
 
-      // First check shared_bots table with correct Accept header
+      // First check shared_bots table
       const { data: sharedBot } = await supabase
         .from('shared_bots')
         .select('*')
         .eq('bot_id', bot.id)
         .eq('quiz_mode', true)
-        .single()
-        .headers({
-          'Accept': 'application/json'
-        });
+        .single();
 
       if (sharedBot) {
         const { data: quizResponse } = await supabase
@@ -188,11 +185,9 @@ export class ChatService {
       throw new Error("API key is missing. Please check your configuration.");
     }
 
-    // Get quiz instructions if available
     const quizInstructions = await this.getQuizInstructions(bot);
     console.log("Quiz instructions status for Gemini:", quizInstructions ? "Found" : "Not found");
 
-    // Use quiz instructions if available, otherwise fall back to bot instructions
     const instructionsToUse = quizInstructions || bot.instructions;
     console.log("Instructions status for Gemini:", instructionsToUse ? "Using custom instructions" : "No instructions");
 
@@ -206,7 +201,6 @@ export class ChatService {
         },
       });
 
-      // Add instructions as system message if available
       const messagesWithInstructions = instructionsToUse
         ? [{ role: 'system', content: instructionsToUse }, ...messages]
         : messages;
