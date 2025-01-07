@@ -91,17 +91,23 @@ const EmbeddedChatContainer = () => {
         let instructions = sharedBotData.instructions || "";
         
         if (sharedBotData.quiz_mode) {
+          console.log("Quiz mode is enabled, fetching responses...");
           const { data: quizResponses } = await supabase
             .from('quiz_responses')
             .select('combined_instructions')
             .eq('quiz_id', sharedBotData.bot_id)
             .eq('user_id', clientId)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
 
           if (quizResponses?.combined_instructions) {
-            instructions = quizResponses.combined_instructions;
+            console.log("Found quiz responses:", quizResponses);
+            instructions = `${instructions} ${quizResponses.combined_instructions}`.trim();
           }
         }
+
+        console.log("Final instructions:", instructions);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -114,6 +120,7 @@ const EmbeddedChatContainer = () => {
           avatar: avatarUrl,
           accessType: "public",
           memory_enabled: memory_enabled,
+          quiz_mode: sharedBotData.quiz_mode
         };
 
         setBot(transformedBot);
