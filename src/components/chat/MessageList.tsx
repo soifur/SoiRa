@@ -4,7 +4,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { QuizButton } from "./header/QuizButton";
 
 export interface Message {
   id: string;
@@ -88,14 +87,19 @@ export const MessageList = ({
                   </h2>
                   
                   {selectedBot.quiz_mode && (
-                    <Button
-                      variant="default"
-                      size="lg"
-                      onClick={onStartQuiz}
-                      className="mb-8 md:mb-12"
-                    >
-                      Start Quiz Now
-                    </Button>
+                    <>
+                      <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
+                        Ready to start the quiz?
+                      </h1>
+                      <Button
+                        variant="default"
+                        size="lg"
+                        onClick={onStartQuiz}
+                        className="mb-8 md:mb-12"
+                      >
+                        Start Quiz Now
+                      </Button>
+                    </>
                   )}
                   
                   {!selectedBot.quiz_mode && starters && starters.length > 0 && (
