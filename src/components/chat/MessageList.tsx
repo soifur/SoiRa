@@ -85,15 +85,15 @@ export const MessageList = ({
                   <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                     {selectedBot.name}
                   </h2>
-                  {showQuizButton && (
+                  
+                  {showQuizButton ? (
                     <Button
                       onClick={onStartQuiz}
                       className="mb-8 md:mb-12 bg-gradient-to-r from-purple-400 to-pink-600 text-white hover:from-purple-500 hover:to-pink-700"
                     >
                       Start Now Quiz
                     </Button>
-                  )}
-                  {starters && starters.length > 0 && (
+                  ) : starters && starters.length > 0 && (
                     <>
                       <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                         What can I help with?
