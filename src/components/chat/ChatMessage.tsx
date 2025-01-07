@@ -52,10 +52,10 @@ export const ChatMessage = ({
             </ReactMarkdown>
             {showQuizButton && onStartQuiz && (
               <QuizButton
-                botId=""
-                onStartQuiz={onStartQuiz}
-                onQuizComplete={() => {}}
-              />
+                onClick={onStartQuiz}
+              >
+                Start Quiz
+              </QuizButton>
             )}
           </>
         )}

@@ -5,9 +5,17 @@ interface QuizButtonProps {
   selected?: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  botId?: string;
+  onQuizComplete?: () => void;
 }
 
-export const QuizButton = ({ selected, onClick, children }: QuizButtonProps) => {
+export const QuizButton = ({ 
+  selected, 
+  onClick, 
+  children,
+  botId,
+  onQuizComplete 
+}: QuizButtonProps) => {
   return (
     <button
       onClick={onClick}
