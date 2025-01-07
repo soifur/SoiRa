@@ -12,13 +12,8 @@ interface QuizModalProps {
   onComplete: (instructions: string) => void;
 }
 
-interface QuizSectionData {
-  fields: Field[];
-  responses: Record<string, string | string[]>;
-}
-
 export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps) => {
-  const [sections, setSections] = useState<QuizSectionData[]>([]);
+  const [sections, setSections] = useState<{ fields: Field[]; responses: Record<string, string | string[]>; }[]>([]);
   const [currentSection, setCurrentSection] = useState(0);
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
   const [fields, setFields] = useState<Field[]>([]);
@@ -32,6 +27,26 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   const loadQuizConfiguration = async () => {
     try {
+      // First check if the bot exists and is published or owned by the user
+      const { data: bot, error: botError } = await supabase
+        .from('bots')
+        .select('published, quiz_mode')
+        .eq('id', botId)
+        .single();
+
+      if (botError || !bot) {
+        console.error('Error loading bot:', botError);
+        setLoading(false);
+        return;
+      }
+
+      // Only proceed if the bot is published and has quiz mode enabled
+      if (!bot.published || !bot.quiz_mode) {
+        console.log('Bot is not published or quiz mode is not enabled');
+        setLoading(false);
+        return;
+      }
+
       const { data: quizConfig } = await supabase
         .from('quiz_configurations')
         .select('*')
@@ -49,7 +64,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         if (quizFields) {
           setFields(quizFields);
           
-          const groupedSections: QuizSectionData[] = [];
+          const groupedSections: { fields: Field[]; responses: Record<string, string | string[]>; }[] = [];
           let currentSectionFields: Field[] = [];
 
           quizFields.forEach((field) => {
@@ -118,29 +133,32 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
           .single();
 
         if (quizConfig) {
-          const { data: existingResponse } = await supabase
-            .from('quiz_responses')
-            .select('*')
-            .eq('quiz_id', quizConfig.id)
-            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-            .single();
-
-          const responseData = {
-            quiz_id: quizConfig.id,
-            user_id: (await supabase.auth.getUser()).data.user?.id,
-            responses,
-            combined_instructions: combinedInstructions
-          };
-
-          if (existingResponse) {
-            await supabase
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: existingResponse } = await supabase
               .from('quiz_responses')
-              .update(responseData)
-              .eq('id', existingResponse.id);
-          } else {
-            await supabase
-              .from('quiz_responses')
-              .insert([responseData]);
+              .select('*')
+              .eq('quiz_id', quizConfig.id)
+              .eq('user_id', user.id)
+              .single();
+
+            const responseData = {
+              quiz_id: quizConfig.id,
+              user_id: user.id,
+              responses,
+              combined_instructions: combinedInstructions
+            };
+
+            if (existingResponse) {
+              await supabase
+                .from('quiz_responses')
+                .update(responseData)
+                .eq('id', existingResponse.id);
+            } else {
+              await supabase
+                .from('quiz_responses')
+                .insert([responseData]);
+            }
           }
         }
 
