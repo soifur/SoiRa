@@ -6,15 +6,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
 import { MainChatHistory } from "@/components/chat/MainChatHistory";
-import { ChatContainer } from "@/components/chat/ChatContainer";
+import { MainChatContainer } from "@/components/chat/MainChatContainer";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
-import { Button } from "@/components/ui/button";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -25,7 +25,6 @@ const Index = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isMobile = useIsMobile();
 
-  // Query to get all published bots
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['published-bots'],
     queryFn: async () => {
@@ -62,7 +61,6 @@ const Index = () => {
     }
   });
 
-  // Effect to set the default bot on load
   useEffect(() => {
     if (userBots && userBots.length > 0 && !selectedBotId) {
       const defaultBot = userBots.find(bot => bot.default_bot);
@@ -115,38 +113,14 @@ const Index = () => {
 
   const handleChatSelect = (chatId: string) => {
     handleSelectChat(chatId);
-    // Only close sidebar on mobile
     if (isMobile) {
       setShowHistory(false);
     }
   };
 
-  const LimitExceededMessage = () => (
-    <div className="fixed bottom-24 left-0 right-0 p-4 bg-destructive/10 backdrop-blur">
-      <div className="max-w-3xl mx-auto flex items-center justify-between">
-        <p className="text-sm text-destructive">
-          You have exceeded your {limitType} limit of {maxUsage}.
-          {resetDate && ` Access will be restored on ${resetDate.toLocaleDateString()}`}
-        </p>
-        <Button 
-          variant="destructive" 
-          size="sm"
-          onClick={() => setShowUpgradeModal(true)}
-        >
-          Upgrade Now
-        </Button>
-      </div>
-    </div>
-  );
-
-  if (isLoadingUserBots) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
   const handleQuizComplete = async (quizInstructions: string) => {
     if (!selectedBot) return;
 
-    // Get original bot instructions
     const { data: bot } = await supabase
       .from('bots')
       .select('instructions')
@@ -154,10 +128,12 @@ const Index = () => {
       .single();
 
     const combinedInstructions = `${bot?.instructions || ''} ${quizInstructions}`.trim();
-    
-    // Send initial message with combined instructions
     await handleSendMessage("Let's start");
   };
+
+  if (isLoadingUserBots) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -184,27 +160,31 @@ const Index = () => {
               onClose={toggleHistory}
               setSelectedBotId={setSelectedBotId}
             />
-            <div className="flex-1 relative overflow-hidden">
-              <ChatContainer
-                selectedBot={selectedBot}
-                messages={messages}
-                isLoading={isLoading}
-                isStreaming={isStreaming}
-                sendMessage={handleSendMessage}
-                disabled={isExceeded}
-                disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
-                onUpgradeClick={() => setShowUpgradeModal(true)}
-                showHistory={showHistory}
-              />
-              {isExceeded && <LimitExceededMessage />}
-            </div>
+            <MainChatContainer
+              selectedBot={selectedBot}
+              messages={messages}
+              isLoading={isLoading}
+              isStreaming={isStreaming}
+              sendMessage={handleSendMessage}
+              isExceeded={isExceeded}
+              maxUsage={maxUsage}
+              limitType={limitType}
+              resetDate={resetDate}
+              onUpgradeClick={() => setShowUpgradeModal(true)}
+              showHistory={showHistory}
+            />
           </div>
         </div>
       </Card>
       <UpgradeModal 
         isOpen={showUpgradeModal} 
         onClose={() => setShowUpgradeModal(false)} 
-      />
+      >
+        <DialogTitle>Upgrade Your Plan</DialogTitle>
+        <DialogDescription>
+          Choose a plan that better suits your needs
+        </DialogDescription>
+      </UpgradeModal>
     </div>
   );
 };
