@@ -27,7 +27,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   const loadQuizConfiguration = async () => {
     try {
-      // First check if the bot exists and is published or owned by the user
       const { data: bot, error: botError } = await supabase
         .from('bots')
         .select('published, quiz_mode')
@@ -40,7 +39,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         return;
       }
 
-      // Only proceed if the bot is published and has quiz mode enabled
       if (!bot.published || !bot.quiz_mode) {
         console.log('Bot is not published or quiz mode is not enabled');
         setLoading(false);

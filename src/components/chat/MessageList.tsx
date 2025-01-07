@@ -3,6 +3,7 @@ import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export interface Message {
   id: string;
@@ -85,12 +86,12 @@ export const MessageList = ({
                     {selectedBot.name}
                   </h2>
                   {showQuizButton && (
-                    <button
+                    <Button
                       onClick={onStartQuiz}
                       className="mt-4 px-8 py-3 text-lg font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white rounded-xl transform hover:scale-105 transition-all duration-200"
                     >
                       Start Now
-                    </button>
+                    </Button>
                   )}
                 </>
               )}
