@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { createMessage } from "@/utils/messageUtils";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { PlusCircle } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { Bot, ChatMessage, Message } from "@/components/chat/types/chatTypes";
 import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
+import { BaseModel } from "@/hooks/useBots";
 
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -78,12 +78,14 @@ const Chat = () => {
 
         if (existingChat) {
           setChatId(existingChat.id);
-          // Properly type cast the messages from JSON
-          const chatMessages = (existingChat.messages as any[]).map((msg): ChatMessage => ({
+          // Transform ChatMessage to Message ensuring id is present
+          const chatMessages = (existingChat.messages as any[]).map((msg): Message => ({
+            id: msg.id || uuidv4(),
             role: msg.role,
             content: msg.content,
             timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-            id: msg.id || uuidv4()
+            isBot: msg.role === 'assistant',
+            avatar: msg.role === 'assistant' ? selectedBot?.avatar : undefined
           }));
           setMessages(chatMessages);
         } else {
@@ -96,9 +98,9 @@ const Chat = () => {
     };
 
     loadExistingChat();
-  }, [selectedBotId]);
+  }, [selectedBotId, selectedBot?.avatar]);
 
-  const saveChatHistory = async (updatedMessages: ChatMessage[]) => {
+  const saveChatHistory = async (updatedMessages: Message[]) => {
     try {
       if (!selectedBotId) return;
 
@@ -154,18 +156,6 @@ const Chat = () => {
     setChatId(null);
   };
 
-  // Convert ChatMessage[] to Message[] for MessageList
-  const convertToMessages = (chatMessages: ChatMessage[]): Message[] => {
-    return chatMessages.map(msg => ({
-      id: msg.id || uuidv4(), // Ensure id is always present
-      role: msg.role,
-      content: msg.content,
-      timestamp: msg.timestamp,
-      isBot: msg.role === 'assistant',
-      avatar: msg.role === 'assistant' ? selectedBot?.avatar : undefined
-    }));
-  };
-
   return (
     <div className="flex flex-col h-screen max-w-4xl mx-auto">
       <div className="flex justify-end p-4">
@@ -180,7 +170,7 @@ const Chat = () => {
       </div>
       <div className="flex-1 overflow-hidden">
         <MessageList
-          messages={convertToMessages(messages)}
+          messages={messages}
           isLoading={isLoading}
           selectedBot={selectedBot}
           disabled={isExceeded}
@@ -191,11 +181,12 @@ const Chat = () => {
         <ChatInput
           onSend={async (message: string) => {
             if (!message.trim() || isExceeded) return;
-            const newMessage: ChatMessage = {
+            const newMessage: Message = {
+              id: uuidv4(),
               role: 'user',
               content: message,
               timestamp: new Date(),
-              id: uuidv4()
+              isBot: false
             };
             const updatedMessages = [...messages, newMessage];
             setMessages(updatedMessages);
