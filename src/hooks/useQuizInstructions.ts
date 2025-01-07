@@ -10,43 +10,42 @@ export const useQuizInstructions = (botId: string | undefined, quizMode?: boolea
     const fetchQuizInstructions = async () => {
       try {
         if (!botId || !quizMode) {
+          console.log("Quiz mode disabled or no botId, skipping fetch", { botId, quizMode });
           setCombinedInstructions(null);
           return;
         }
 
-        // Get the current user
+        // Get the current user or client IP
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          console.log("No user found, skipping quiz instructions fetch");
+        const { data: { user_ip } } = await supabase.functions.invoke('get-client-ip');
+        const userId = user?.id || user_ip;
+
+        if (!userId) {
+          console.log("No user ID or client IP found");
           return;
         }
 
-        console.log("Fetching quiz instructions for botId:", botId);
+        console.log("Fetching quiz instructions for:", { botId, userId });
 
         // First check if this is a shared bot
         const { data: sharedBot } = await supabase
           .from('shared_bots')
-          .select('quiz_mode, share_key, bot_id')
+          .select('quiz_mode, share_key, bot_id, short_key')
           .eq('short_key', botId)
           .maybeSingle();
 
-        console.log("Shared bot data:", sharedBot);
+        console.log("Shared bot lookup result:", sharedBot);
 
         // Determine which bot ID to use for quiz responses
-        let quizBotId = botId;
-        
-        // If this is a shared bot and quiz mode is enabled
-        if (sharedBot?.quiz_mode) {
-          console.log("Using share_key as bot_id for quiz responses:", sharedBot.share_key);
-          quizBotId = sharedBot.share_key;
-        }
+        const quizBotId = sharedBot?.share_key || botId;
+        console.log("Using bot ID for quiz responses:", quizBotId);
 
         // Fetch the quiz response
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
           .eq('bot_id', quizBotId)
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -62,7 +61,14 @@ export const useQuizInstructions = (botId: string | undefined, quizMode?: boolea
         }
 
         console.log("Quiz response found:", quizResponse);
-        setCombinedInstructions(quizResponse?.combined_instructions || null);
+        
+        if (quizResponse?.combined_instructions) {
+          console.log("Setting combined instructions:", quizResponse.combined_instructions);
+          setCombinedInstructions(quizResponse.combined_instructions);
+        } else {
+          console.log("No combined instructions found");
+          setCombinedInstructions(null);
+        }
       } catch (error) {
         console.error("Error in fetchQuizInstructions:", error);
         toast({
