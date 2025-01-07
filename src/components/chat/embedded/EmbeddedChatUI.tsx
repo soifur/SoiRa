@@ -15,11 +15,11 @@ import { ChatInput } from "@/components/chat/ChatInput";
 
 interface EmbeddedChatUIProps {
   bot: Bot;
-  clientId: string;
+  userId: string;
   shareKey?: string;
 }
 
-const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
+const EmbeddedChatUI = ({ bot, userId, shareKey }: EmbeddedChatUIProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const isMobile = useIsMobile();
   const { sessionToken, hasConsent, handleCookieAccept, handleCookieReject } = useSessionToken();
@@ -33,7 +33,7 @@ const EmbeddedChatUI = ({ bot, clientId, shareKey }: EmbeddedChatUIProps) => {
     loadExistingChat,
     createNewChat,
     clearMessages
-  } = useEmbeddedChat(bot, clientId, shareKey, sessionToken);
+  } = useEmbeddedChat(bot, userId, shareKey, sessionToken);
 
   const handleClearChat = async () => {
     try {
