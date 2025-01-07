@@ -44,14 +44,14 @@ export const MessageList = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
-  // Fetch shared bot quiz mode status
+  // Fetch shared bot data including quiz_mode and share_key
   const { data: sharedBot } = useQuery({
     queryKey: ['shared-bot', selectedBot?.id],
     queryFn: async () => {
       if (!selectedBot?.id) return null;
       const { data, error } = await supabase
         .from('shared_bots')
-        .select('quiz_mode')
+        .select('quiz_mode, share_key')
         .eq('bot_id', selectedBot.id)
         .single();
 
@@ -92,7 +92,8 @@ export const MessageList = ({
     return null;
   }
 
-  const showQuizButton = selectedBot && sharedBot?.quiz_mode;
+  // Only show quiz button if shared bot exists and has quiz_mode enabled
+  const showQuizButton = selectedBot && sharedBot?.quiz_mode && sharedBot?.share_key;
 
   return (
     <div className="relative h-full flex flex-col overflow-hidden">
@@ -111,7 +112,7 @@ export const MessageList = ({
                   {showQuizButton && (
                     <div className="mb-4">
                       <QuizButton 
-                        botId={selectedBot.id}
+                        bot_id={selectedBot.id}
                         onStartQuiz={() => {}}
                         onQuizComplete={onQuizComplete}
                       />

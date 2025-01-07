@@ -4,12 +4,12 @@ import { QuizModal } from "../quiz/QuizModal";
 import { useQuiz } from "@/hooks/useQuiz";
 
 interface QuizButtonProps {
-  botId: string;
+  bot_id: string;
   onStartQuiz: () => void;
   onQuizComplete?: (instructions: string) => void;
 }
 
-export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonProps) => {
+export const QuizButton = ({ bot_id, onStartQuiz, onQuizComplete }: QuizButtonProps) => {
   const {
     showModal,
     isLoading,
@@ -17,7 +17,7 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
     handleQuizStart,
     handleQuizComplete,
     handleCloseModal
-  } = useQuiz({ botId, onQuizComplete });
+  } = useQuiz({ botId: bot_id, onQuizComplete });
 
   if (!shouldShowQuiz) {
     return null;
@@ -48,7 +48,7 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
       <QuizModal
         isOpen={showModal}
         onClose={handleCloseModal}
-        botId={botId}
+        botId={bot_id}
         onComplete={handleQuizComplete}
       />
     </>
