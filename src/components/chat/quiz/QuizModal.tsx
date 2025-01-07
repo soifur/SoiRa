@@ -176,7 +176,17 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" style={{ zIndex: 9999 }}>
+      <DialogContent 
+        className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" 
+        style={{ zIndex: 9999 }}
+      >
+        <style>
+          {`
+            [data-radix-popper-content-wrapper] button[type="button"] {
+              display: none !important;
+            }
+          `}
+        </style>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors duration-200"
