@@ -28,7 +28,7 @@ export class ChatService {
         .select('*')
         .eq('bot_id', bot.id)
         .eq('quiz_mode', true)
-        .single();
+        .maybeSingle();
 
       if (sharedBot) {
         const { data: quizResponse } = await supabase
@@ -125,7 +125,14 @@ export class ChatService {
           statusText: response.statusText,
           data: errorData
         });
-        throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        
+        if (response.status === 404) {
+          throw new Error("OpenRouter API endpoint not found. Please check your configuration.");
+        } else if (response.status === 401) {
+          throw new Error("Invalid OpenRouter API key. Please check your credentials.");
+        } else {
+          throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        }
       }
 
       const reader = response.body?.getReader();
@@ -213,6 +220,7 @@ export class ChatService {
       const response = await result.response.text();
       return response;
     } catch (error) {
+      console.error("Gemini API error:", error);
       throw new Error("Failed to process message");
     }
   }
