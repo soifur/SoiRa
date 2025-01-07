@@ -1,18 +1,21 @@
 import { useEffect, useRef } from "react";
-import { Message } from "../chat/types/chatTypes";
+import { Message } from "./types/chatTypes";
 import { ChatMessage } from "./ChatMessage";
 import { Button } from "../ui/button";
 import { Bot } from "@/hooks/useBots";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface MessageListProps {
+export interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
   isStreaming?: boolean;
   selectedBot?: Bot;
   onStarterClick?: (starter: string) => void;
   onStartQuiz?: () => void;
+  starters?: string[];
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export const MessageList = ({
@@ -22,6 +25,9 @@ export const MessageList = ({
   selectedBot,
   onStarterClick,
   onStartQuiz,
+  starters,
+  disabled,
+  disabledReason,
 }: MessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -74,16 +80,17 @@ export const MessageList = ({
               >
                 Start Quiz Now
               </Button>
-            ) : selectedBot.starters && selectedBot.starters.length > 0 ? (
+            ) : starters && starters.length > 0 ? (
               <div className="flex flex-col items-center space-y-2">
                 <p className="text-lg font-medium mb-4">Start the conversation with:</p>
                 <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
-                  {selectedBot.starters.map((starter, index) => (
+                  {starters.map((starter, index) => (
                     <Button
                       key={index}
                       variant="outline"
                       onClick={() => onStarterClick?.(starter)}
                       className="text-sm"
+                      disabled={disabled}
                     >
                       {starter}
                     </Button>
