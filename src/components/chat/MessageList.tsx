@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { QuizButton } from "./header/QuizButton";
 
 export interface Message {
   id: string;
@@ -86,14 +87,16 @@ export const MessageList = ({
                     {selectedBot.name}
                   </h2>
                   
-                  {showQuizButton ? (
-                    <Button
-                      onClick={onStartQuiz}
-                      className="mb-8 md:mb-12 bg-gradient-to-r from-purple-400 to-pink-600 text-white hover:from-purple-500 hover:to-pink-700"
-                    >
-                      Start Now Quiz
-                    </Button>
-                  ) : starters && starters.length > 0 && (
+                  {selectedBot.quiz_mode && (
+                    <QuizButton 
+                      botId={selectedBot.id} 
+                      onStartQuiz={onStartQuiz} 
+                      onQuizComplete={() => {}}
+                      className="mb-8 md:mb-12"
+                    />
+                  )}
+                  
+                  {!selectedBot.quiz_mode && starters && starters.length > 0 && (
                     <>
                       <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                         What can I help with?
