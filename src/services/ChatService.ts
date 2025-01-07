@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 export class ChatService {
   private static sanitizeText(text: string): string {
     if (!text) return "";
-    
     return text
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
@@ -23,13 +22,16 @@ export class ChatService {
         return null;
       }
 
-      // First check shared_bots table
+      // First check shared_bots table with correct Accept header
       const { data: sharedBot } = await supabase
         .from('shared_bots')
         .select('*')
         .eq('bot_id', bot.id)
         .eq('quiz_mode', true)
-        .single();
+        .single()
+        .headers({
+          'Accept': 'application/json'
+        });
 
       if (sharedBot) {
         const { data: quizResponse } = await supabase
@@ -37,7 +39,7 @@ export class ChatService {
           .select('combined_instructions')
           .eq('bot_id', sharedBot.bot_id)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (quizResponse?.combined_instructions) {
           console.log("Quiz instructions found from shared bot");
@@ -45,14 +47,13 @@ export class ChatService {
         }
       }
 
-      // If not found in shared_bots, check regular bots
       if (bot.quiz_mode) {
         const { data: quizResponse } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
           .eq('bot_id', bot.id)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (quizResponse?.combined_instructions) {
           console.log("Quiz instructions found from regular bot");
@@ -63,7 +64,7 @@ export class ChatService {
       console.log("No quiz instructions found");
       return null;
     } catch (error) {
-      console.error("Error fetching quiz instructions");
+      console.error("Error fetching quiz instructions:", error);
       return null;
     }
   }
@@ -78,16 +79,18 @@ export class ChatService {
       throw new Error("OpenRouter API key is missing");
     }
 
+    if (!bot.openRouterModel) {
+      throw new Error("OpenRouter model is not specified");
+    }
+
     const sanitizedMessages = messages.map(msg => ({
       ...msg,
       content: this.sanitizeText(msg.content)
     }));
 
-    // Get quiz instructions if available
     const quizInstructions = await this.getQuizInstructions(bot);
     console.log("Quiz instructions status:", quizInstructions ? "Found" : "Not found");
 
-    // Use quiz instructions if available, otherwise fall back to bot instructions
     const instructionsToUse = quizInstructions || bot.instructions;
     const sanitizedInstructions = instructionsToUse ? this.sanitizeText(instructionsToUse) : '';
     console.log("Instructions status:", sanitizedInstructions ? "Using custom instructions" : "No instructions");
@@ -99,6 +102,8 @@ export class ChatService {
         'HTTP-Referer': window.location.origin,
         'X-Title': 'Lovable Chat Interface'
       };
+
+      console.log("Sending request to OpenRouter with model:", bot.openRouterModel);
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -117,8 +122,13 @@ export class ChatService {
       });
 
       if (!response.ok) {
-        console.error('OpenRouter API error status:', response.status);
-        throw new Error('Failed to process request');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('OpenRouter API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: errorData
+        });
+        throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
       }
 
       const reader = response.body?.getReader();
@@ -153,7 +163,7 @@ export class ChatService {
                 }
               }
             } catch (e) {
-              console.warn('Error parsing streaming response');
+              console.warn('Error parsing streaming response:', e);
             }
           }
         }
@@ -165,6 +175,7 @@ export class ChatService {
       if (error instanceof DOMException && error.name === 'AbortError') {
         return "Message cancelled by user.";
       }
+      console.error("OpenRouter API error:", error);
       throw error;
     }
   }
