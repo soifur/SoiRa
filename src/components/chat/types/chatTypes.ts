@@ -1,19 +1,20 @@
-import { BaseModel } from "@/hooks/useBots";
 import { Json } from "@/integrations/supabase/types";
-
-export interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp?: Date;
-  avatar?: string;
-}
+import { BaseModel } from "@/hooks/useBots";
 
 export interface ChatMessage {
-  role: "user" | "assistant";
+  role: string;
   content: string;
   timestamp?: Date;
   id?: string;
+}
+
+export interface Message {
+  id: string;
+  role: string;
+  content: string;
+  timestamp?: Date;
+  isBot?: boolean;
+  avatar?: string;
 }
 
 export interface Bot {
@@ -27,8 +28,6 @@ export interface Bot {
   avatar?: string;
   accessType?: "public" | "private";
   memory_enabled?: boolean;
-  published?: boolean;
-  default_bot?: boolean;
   quiz_mode?: boolean;
 }
 
@@ -52,30 +51,4 @@ export interface ChatHistoryData {
   session_token?: string;
   avatar_url?: string;
   deleted?: string;
-}
-
-export interface MessageListProps {
-  messages: Message[];
-  selectedBot?: Bot;
-  starters?: string[];
-  onStarterClick?: (starter: string) => void;
-  isLoading?: boolean;
-  isStreaming?: boolean;
-  onClearChat?: () => void;
-  disabled?: boolean;
-  disabledReason?: string;
-  isQuizMode?: boolean;
-  onStartQuiz?: () => void;
-}
-
-export interface MainChatHeaderProps {
-  bots: Bot[];
-  selectedBotId: string;
-  onBotSelect: (botId: string) => void;
-  setSelectedBotId?: (id: string) => void;
-  onNewChat?: () => void;
-  onSignOut?: () => Promise<void>;
-  onToggleHistory?: () => void;
-  showHistory?: boolean;
-  onQuizComplete?: (instructions: string) => Promise<void>;
 }

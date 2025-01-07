@@ -4,7 +4,6 @@ import { Avatar } from "@/components/ui/avatar";
 import { LoaderCircle, Copy } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
 
 export interface ChatMessageProps {
   message: string;
@@ -12,21 +11,9 @@ export interface ChatMessageProps {
   avatar?: string;
   isLoading?: boolean;
   isStreaming?: boolean;
-  botName?: string;
-  isQuizMode?: boolean;
-  onStartQuiz?: () => void;
 }
 
-export const ChatMessage = ({ 
-  message, 
-  isBot, 
-  avatar, 
-  isLoading, 
-  isStreaming,
-  botName = "AI Assistant",
-  isQuizMode,
-  onStartQuiz
-}: ChatMessageProps) => {
+export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: ChatMessageProps) => {
   const { toast } = useToast();
   const isEmbedded = window.location.pathname === '/embedded';
 
@@ -39,23 +26,6 @@ export const ChatMessage = ({
   };
 
   const cleanedMessage = message.replace(/^(Assistant|Human):\s*/i, '');
-
-  // If it's the initial state with no messages and quiz mode is enabled
-  if (isBot && isQuizMode && !cleanedMessage) {
-    return (
-      <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto px-4 py-12">
-        <h2 className="text-xl md:text-2xl font-bold mb-8 text-center">
-          Take a quick quiz to personalize your experience
-        </h2>
-        <Button
-          onClick={onStartQuiz}
-          className="px-8 py-6 text-lg font-semibold rounded-xl bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white transition-all duration-200 transform hover:scale-105"
-        >
-          Start Now
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -75,12 +45,12 @@ export const ChatMessage = ({
               <img src={avatar || "/placeholder.svg"} alt="Bot" className="h-full w-full object-cover" />
             )}
           </Avatar>
-          <span className="text-sm font-medium">{botName}</span>
+          <span className="text-sm font-medium">AI Assistant</span>
         </div>
       )}
       <div
         className={cn(
-          "relative group w-full break-words",
+          "relative group w-full",
           !isBot && "ml-auto md:max-w-[85%]"
         )}
       >

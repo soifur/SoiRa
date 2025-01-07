@@ -109,12 +109,8 @@ span[class*="overflow-hidden rounded-full"] img,
 }
 
 /* Update MainChatHistory sidebar styles */
-
-/* Update MainChatHistory sidebar styles */
 .fixed.top-0.left-0.h-screen {
   @apply bg-[hsl(var(--sidebar-bg))] border-0 shadow-none;
-  max-width: 100vw; /* Ensure it doesn't overflow on mobile */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Update hover states */
@@ -126,28 +122,18 @@ span[class*="overflow-hidden rounded-full"] img,
   @apply hover:bg-[hsl(var(--button-hover))] bg-[hsl(var(--button-bg))];
 }
 
-/* Ensure proper text wrapping */
-.prose {
-  @apply break-words;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
+/* Remove borders in light mode */
+.light .border-r,
+.light .border-b,
+.light .border-t {
+  @apply border-0;
 }
 
-/* Ensure Safari mobile compatibility for profile section */
+/* Keep dark mode borders */
 .dark .border-r,
 .dark .border-b,
 .dark .border-t {
   @apply border-border;
-}
-
-/* Fix Safari mobile profile section visibility */
-@supports (-webkit-touch-callout: none) {
-  .fixed.bottom-0 {
-    position: sticky;
-    bottom: 0;
-    z-index: 50;
-  }
 }
 
 /* Make avatar background transparent */
