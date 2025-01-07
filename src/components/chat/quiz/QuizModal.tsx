@@ -12,6 +12,11 @@ interface QuizModalProps {
   onComplete: (instructions: string) => void;
 }
 
+interface QuizSectionData {
+  fields: Field[];
+  responses: Record<string, string | string[]>;
+}
+
 export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps) => {
   const [sections, setSections] = useState<QuizSectionData[]>([]);
   const [currentSection, setCurrentSection] = useState(0);
