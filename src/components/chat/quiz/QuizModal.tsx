@@ -159,16 +159,16 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 fixed inset-0" style={{ zIndex: 9999 }}>
+      <DialogContent className="fixed inset-0 w-full h-full max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" style={{ zIndex: 9999 }}>
         <Button 
           variant="ghost" 
           size="icon" 
-          className="absolute top-4 right-4 z-50 hover:bg-white/10"
+          className="absolute top-4 right-4 z-[9999] hover:bg-white/10"
           onClick={onClose}
         >
           <X className="h-6 w-6" />
         </Button>
-        <div className="w-full h-full flex items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full h-full flex items-center justify-center">
           {sections[currentSection] && (
             <QuizSection
               fields={sections[currentSection].fields}
