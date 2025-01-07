@@ -86,23 +86,7 @@ export const MessageList = ({
                     {selectedBot.name}
                   </h2>
                   
-                  {selectedBot.quiz_mode && (
-                    <>
-                      <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
-                        Ready to start the quiz?
-                      </h1>
-                      <Button
-                        variant="default"
-                        size="lg"
-                        onClick={onStartQuiz}
-                        className="mb-8 md:mb-12"
-                      >
-                        Start Quiz Now
-                      </Button>
-                    </>
-                  )}
-                  
-                  {!selectedBot.quiz_mode && starters && starters.length > 0 && (
+                  {(!selectedBot.quiz_mode && starters && starters.length > 0) ? (
                     <>
                       <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                         What can I help with?
@@ -131,6 +115,20 @@ export const MessageList = ({
                           );
                         })}
                       </div>
+                    </>
+                  ) : (
+                    <>
+                      <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
+                        Ready to start the quiz?
+                      </h1>
+                      <Button
+                        variant="default"
+                        size="lg"
+                        onClick={onStartQuiz}
+                        className="mb-8 md:mb-12"
+                      >
+                        Start Quiz Now
+                      </Button>
                     </>
                   )}
                 </>
