@@ -53,6 +53,7 @@ export const ChatMessage = ({
             {showQuizButton && onStartQuiz && (
               <QuizButton
                 onClick={onStartQuiz}
+                className="mt-4"
               >
                 Start Quiz
               </QuizButton>
