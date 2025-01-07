@@ -26,23 +26,10 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   const loadQuizConfiguration = async () => {
     try {
-      // First get the shared bot id
-      const { data: sharedBot } = await supabase
-        .from('shared_bots')
-        .select('id')
-        .eq('bot_id', botId)
-        .single();
-
-      if (!sharedBot) {
-        console.error('No shared bot found for bot_id:', botId);
-        setLoading(false);
-        return;
-      }
-
       const { data: quizConfig } = await supabase
         .from('quiz_configurations')
         .select('*')
-        .eq('bot_id', sharedBot.id)
+        .eq('bot_id', botId)
         .eq('enabled', true)
         .single();
 
@@ -109,26 +96,26 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
       });
 
       try {
-        // Get the shared bot id
-        const { data: sharedBot } = await supabase
-          .from('shared_bots')
-          .select('id, instructions')
-          .eq('bot_id', botId)
+        // Get the bot's instructions
+        const { data: bot } = await supabase
+          .from('bots')
+          .select('instructions')
+          .eq('id', botId)
           .single();
 
-        if (!sharedBot) {
-          console.error('No shared bot found');
+        if (!bot) {
+          console.error('No bot found');
           return;
         }
 
-        const originalInstructions = sharedBot.instructions || '';
+        const originalInstructions = bot.instructions || '';
         const combinedInstructions = `${originalInstructions} ${userResponses}`.trim();
 
         // Get quiz configuration
         const { data: quizConfig } = await supabase
           .from('quiz_configurations')
           .select('id')
-          .eq('bot_id', sharedBot.id)
+          .eq('bot_id', botId)
           .single();
 
         if (quizConfig) {
