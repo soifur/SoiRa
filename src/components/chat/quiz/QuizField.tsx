@@ -23,8 +23,8 @@ export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
-      <h3 className="text-3xl font-semibold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-pink-500">
+    <div className="w-full max-w-2xl mx-auto space-y-4">
+      <h3 className="text-2xl font-semibold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-pink-500">
         {field.title}
       </h3>
       
@@ -33,7 +33,7 @@ export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
           type={field.field_type}
           value={value as string || ''}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full p-4 text-lg rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
+          className="w-full p-3 text-lg"
           placeholder={`Enter your ${field.field_type}`}
         />
       )}
