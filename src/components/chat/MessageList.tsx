@@ -3,13 +3,15 @@ import { Message } from "./types/chatTypes";
 import { ChatMessage } from "./ChatMessage";
 import { Button } from "../ui/button";
 
-interface MessageListProps {
+export interface MessageListProps {
   messages: Message[];
   selectedBot?: Bot;
   starters?: string[];
   onStarterClick?: (starter: string) => void;
   isLoading?: boolean;
   isStreaming?: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export const MessageList = ({
@@ -18,7 +20,9 @@ export const MessageList = ({
   starters,
   onStarterClick,
   isLoading,
-  isStreaming
+  isStreaming,
+  disabled,
+  disabledReason
 }: MessageListProps) => {
   const showStartNowButton = messages.length === 0 && selectedBot;
 
