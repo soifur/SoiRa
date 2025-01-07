@@ -17,6 +17,7 @@ export interface Bot {
   memory_enabled?: boolean;
   published?: boolean;
   default_bot?: boolean;
+  quiz_mode?: boolean;
 }
 
 export const useBots = () => {
