@@ -124,8 +124,8 @@ export const MessageList = ({
                       <Button
                         variant="default"
                         size="lg"
-                        onClick={onStartQuiz}
-                        className="mb-8 md:mb-12"
+                        onClick={() => onStartQuiz && onStartQuiz()}
+                        className="mb-8 md:mb-12 w-64 h-16 text-xl font-semibold hover:scale-105 transition-transform duration-200 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                       >
                         Start Quiz Now
                       </Button>
