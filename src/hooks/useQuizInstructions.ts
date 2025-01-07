@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from '@tanstack/react-query';
 
 export const useQuizInstructions = (botId: string, quizMode: boolean = false) => {
-  const [combinedInstructions, setCombinedInstructions] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchQuizInstructions = async () => {
+  const { data: combinedInstructions, refetch } = useQuery({
+    queryKey: ['quiz-instructions', botId, quizMode],
+    queryFn: async () => {
       if (!quizMode || !botId) {
-        setCombinedInstructions(null);
-        return;
+        return null;
       }
 
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           console.log("No authenticated user found");
-          return;
+          return null;
         }
 
         const { data: quizResponse, error } = await supabase
@@ -27,18 +26,18 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
 
         if (error) {
           console.error("Error fetching quiz responses:", error);
-          return;
+          return null;
         }
 
         console.log("Quiz response found:", quizResponse);
-        setCombinedInstructions(quizResponse?.combined_instructions || null);
+        return quizResponse?.combined_instructions || null;
       } catch (error) {
         console.error("Error in fetchQuizInstructions:", error);
+        return null;
       }
-    };
+    },
+    enabled: !!botId && quizMode,
+  });
 
-    fetchQuizInstructions();
-  }, [botId, quizMode]);
-
-  return { combinedInstructions };
+  return { combinedInstructions, refetch };
 };
