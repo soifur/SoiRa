@@ -415,10 +415,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "quiz_configurations_shared_bot_id_fkey"
+            foreignKeyName: "quiz_configurations_bot_id_fkey"
             columns: ["bot_id"]
             isOneToOne: false
-            referencedRelation: "shared_bots"
+            referencedRelation: "bots"
             referencedColumns: ["id"]
           },
         ]

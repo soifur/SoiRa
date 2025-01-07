@@ -82,17 +82,6 @@ export const updateBotMemorySettings = async (botId: string, memoryEnabled: bool
 
 export const updateQuizConfiguration = async (botId: string, enabled: boolean, fields: Field[]) => {
   try {
-    // First verify the bot exists
-    const { data: botExists, error: botError } = await supabase
-      .from('bots')
-      .select('id')
-      .eq('id', botId)
-      .single();
-
-    if (botError || !botExists) {
-      throw new Error('Bot not found');
-    }
-
     // First, try to get existing configuration
     const { data: existingConfig } = await supabase
       .from('quiz_configurations')
@@ -106,7 +95,7 @@ export const updateQuizConfiguration = async (botId: string, enabled: boolean, f
       // Update existing configuration
       const { data, error } = await supabase
         .from('quiz_configurations')
-        .update({ enabled, bot_id: botId })
+        .update({ enabled })
         .eq('id', existingConfig.id)
         .select()
         .single();

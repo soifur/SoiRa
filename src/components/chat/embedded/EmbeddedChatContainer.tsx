@@ -9,43 +9,26 @@ import { Helmet } from "react-helmet";
 const EmbeddedChatContainer = () => {
   const { botId } = useParams();
   const [bot, setBot] = useState<Bot | null>(null);
-  const [userId, setUserId] = useState<string>("");
+  const [clientId, setClientId] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
-    const getUser = async () => {
+    const getClientId = async () => {
       try {
-        // First try to get authenticated user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.id) {
-          console.log("Found authenticated user:", user.id);
-          setUserId(user.id);
-          return;
-        }
-
-        // If no authenticated user, use IP as anonymous ID
         const { data: { user_ip }, error } = await supabase.functions.invoke('get-client-ip');
         if (error) throw error;
-        const anonymousId = user_ip || Math.random().toString(36).substring(7);
-        console.log("Using anonymous ID:", anonymousId);
-        setUserId(anonymousId);
-      } catch (error) {
-        console.error("Error getting user:", error);
-        const fallbackId = Math.random().toString(36).substring(7);
-        console.log("Using fallback ID:", fallbackId);
-        setUserId(fallbackId);
+        setClientId(user_ip || Math.random().toString(36).substring(7));
+      } catch {
+        setClientId(Math.random().toString(36).substring(7));
       }
     };
-    getUser();
+    getClientId();
   }, []);
 
   useEffect(() => {
     const fetchBotData = async () => {
       try {
-        if (!botId || !userId) return;
-
-        console.log("Starting bot data fetch for botId:", botId);
-        console.log("Current user ID:", userId);
+        if (!botId) return;
 
         const { data: sharedBotData, error: sharedBotError } = await supabase
           .from("shared_bots")
@@ -58,13 +41,9 @@ const EmbeddedChatContainer = () => {
           .eq("short_key", botId)
           .maybeSingle();
 
-        if (sharedBotError) {
-          console.error("Error fetching shared bot:", sharedBotError);
-          throw sharedBotError;
-        }
+        if (sharedBotError) throw sharedBotError;
         
         if (!sharedBotData) {
-          console.error("No shared bot data found for ID:", botId);
           toast({
             title: "Error",
             description: "Bot not found or sharing has expired",
@@ -72,11 +51,6 @@ const EmbeddedChatContainer = () => {
           });
           return;
         }
-
-        console.log("Shared bot data retrieved:", {
-          ...sharedBotData,
-          bot_api_keys: "[REDACTED]"
-        });
 
         const validModel = (model: string): model is Bot['model'] => {
           return ['gemini', 'claude', 'openai', 'openrouter'].includes(model);
@@ -90,7 +64,6 @@ const EmbeddedChatContainer = () => {
         let avatarUrl = sharedBotData.avatar;
         
         if (!avatarUrl && sharedBotData.bot_id) {
-          console.log("No avatar in shared bot, fetching from bots table");
           const { data: botData } = await supabase
             .from('bots')
             .select('avatar')
@@ -98,51 +71,37 @@ const EmbeddedChatContainer = () => {
             .single();
           
           if (botData?.avatar) {
-            avatarUrl = botData.avatar.startsWith('avatars/') 
-              ? supabase.storage.from('avatars').getPublicUrl(botData.avatar).data.publicUrl
-              : botData.avatar;
+            if (botData.avatar.startsWith('avatars/')) {
+              const { data } = supabase
+                .storage
+                .from('avatars')
+                .getPublicUrl(botData.avatar);
+              avatarUrl = data.publicUrl;
+            } else {
+              avatarUrl = botData.avatar;
+            }
           }
         }
 
         if (!avatarUrl) {
-          console.log("Using default avatar");
           avatarUrl = "/lovable-uploads/5dd98599-640e-42ab-b5f9-51965516a74d.png";
         }
 
+        // Get quiz responses for this user/client if quiz mode is enabled
         let instructions = sharedBotData.instructions || "";
         
-        if (sharedBotData.quiz_mode === true) {
-          console.log("Quiz mode is enabled, checking for quiz responses...");
-          console.log("User ID for quiz responses:", userId);
-          
-          // Wait for any pending quiz responses to be saved
-          console.log("Waiting 2 seconds for quiz responses to be saved...");
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          console.log("Fetching quiz responses from Supabase...");
-          const { data: quizResponses, error: quizError } = await supabase
+        if (sharedBotData.quiz_mode) {
+          const { data: quizResponses } = await supabase
             .from('quiz_responses')
             .select('combined_instructions')
             .eq('quiz_id', sharedBotData.bot_id)
-            .eq('user_id', userId)
+            .eq('user_id', clientId)
             .maybeSingle();
 
-          if (quizError) {
-            console.error("Error fetching quiz responses:", quizError);
-          }
-
           if (quizResponses?.combined_instructions) {
-            console.log("Found quiz responses with combined instructions:", quizResponses.combined_instructions);
             instructions = quizResponses.combined_instructions;
-          } else {
-            console.log("No quiz responses found. Quiz ID:", sharedBotData.bot_id, "User ID:", userId);
-            console.log("Using default instructions:", instructions);
           }
-        } else {
-          console.log("Quiz mode is not enabled for this bot");
         }
-
-        console.log("Final instructions to be used:", instructions);
 
         const transformedBot: Bot = {
           id: sharedBotData.bot_id,
@@ -157,16 +116,10 @@ const EmbeddedChatContainer = () => {
           memory_enabled: memory_enabled,
         };
 
-        console.log("Final bot configuration:", {
-          ...transformedBot,
-          apiKey: "[REDACTED]",
-          instructions: instructions.substring(0, 100) + (instructions.length > 100 ? "..." : "")
-        });
-
         setBot(transformedBot);
 
       } catch (error) {
-        console.error("Error in fetchBotData:", error);
+        console.error("Error fetching bot data:", error);
         toast({
           title: "Error",
           description: "Failed to load bot data",
@@ -175,13 +128,10 @@ const EmbeddedChatContainer = () => {
       }
     };
 
-    if (botId && userId) {
-      console.log("Triggering bot data fetch with botId:", botId, "and userId:", userId);
-      fetchBotData();
-    }
-  }, [botId, toast, userId]);
+    fetchBotData();
+  }, [botId, toast, clientId]);
 
-  if (!bot || !userId) {
+  if (!bot || !clientId) {
     return <div>Loading...</div>;
   }
 
@@ -200,7 +150,7 @@ const EmbeddedChatContainer = () => {
         <meta name="twitter:image" content={bot.avatar} />
         <link rel="icon" type="image/png" href={bot.avatar} />
       </Helmet>
-      <EmbeddedChatUI bot={bot} userId={userId} shareKey={botId} />
+      <EmbeddedChatUI bot={bot} clientId={clientId} shareKey={botId} />
     </>
   );
 };

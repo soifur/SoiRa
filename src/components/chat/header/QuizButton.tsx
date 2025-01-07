@@ -16,7 +16,6 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
   const { data: quizConfig } = useQuery({
     queryKey: ['quiz-config', botId],
     queryFn: async () => {
-      console.log("Fetching quiz config for bot:", botId);
       const { data, error } = await supabase
         .from('quiz_configurations')
         .select('*')
@@ -25,36 +24,13 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
         .maybeSingle();
 
       if (error) throw error;
-      console.log("Quiz config:", data);
       return data;
     },
     enabled: !!botId,
   });
 
-  const handleQuizComplete = async (instructions: string) => {
-    console.log("Quiz completed with instructions:", instructions);
-    
-    // Wait a moment for Supabase to finish saving
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Double check that the instructions were saved
-    const { data: quizResponse } = await supabase
-      .from('quiz_responses')
-      .select('combined_instructions')
-      .eq('quiz_id', botId)
-      .maybeSingle();
-      
-    console.log("Verified quiz response:", quizResponse);
-    
-    if (quizResponse?.combined_instructions) {
-      console.log("Using verified instructions:", quizResponse.combined_instructions);
-      onQuizComplete?.(quizResponse.combined_instructions);
-    } else {
-      console.warn("Quiz response not found after waiting");
-      // Use the original instructions as fallback
-      onQuizComplete?.(instructions);
-    }
-    
+  const handleQuizComplete = (instructions: string) => {
+    onQuizComplete?.(instructions);
     setShowModal(false);
   };
 
@@ -66,7 +42,6 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
         variant="default"
         size="sm"
         onClick={() => {
-          console.log("Starting quiz for bot:", botId);
           onStartQuiz();
           setShowModal(true);
         }}
