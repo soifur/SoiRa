@@ -95,7 +95,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         handleComplete();
       }
       setShowTransition(false);
-    }, 1000); // Reduced from 3000 to 1000ms
+    }, 1000);
   };
 
   const handlePrevious = () => {
