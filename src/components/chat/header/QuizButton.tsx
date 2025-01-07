@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QuizModal } from "../quiz/QuizModal";
+import { Loader2 } from "lucide-react";
 
 interface QuizButtonProps {
   botId: string;
@@ -12,6 +13,7 @@ interface QuizButtonProps {
 
 export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonProps) => {
   const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const { data: quizConfig } = useQuery({
     queryKey: ['quiz-config', botId],
@@ -29,9 +31,13 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
     enabled: !!botId,
   });
 
-  const handleQuizComplete = (instructions: string) => {
+  const handleQuizComplete = async (instructions: string) => {
+    setIsLoading(true);
+    // Add a delay to ensure Supabase has time to update
+    await new Promise(resolve => setTimeout(resolve, 3000));
     onQuizComplete?.(instructions);
     setShowModal(false);
+    setIsLoading(false);
   };
 
   if (!quizConfig?.enabled) return null;
@@ -46,8 +52,16 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
           setShowModal(true);
         }}
         className="ml-2"
+        disabled={isLoading}
       >
-        Start Now
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Loading...
+          </>
+        ) : (
+          'Start Now'
+        )}
       </Button>
       
       <QuizModal
