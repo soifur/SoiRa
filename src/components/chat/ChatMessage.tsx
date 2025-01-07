@@ -30,12 +30,12 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
   return (
     <div
       className={cn(
-        "flex gap-3 max-w-3xl mx-auto px-4",
-        isBot ? "justify-start" : "justify-end"
+        "flex flex-col gap-3 w-full max-w-3xl mx-auto px-4",
+        isBot ? "items-start" : "items-end"
       )}
     >
       {isBot && (
-        <Avatar className="h-8 w-8 shrink-0">
+        <Avatar className="h-8 w-8">
           {isLoading ? (
             <div className="animate-spin">
               <LoaderCircle className="h-4 w-4" />
@@ -47,9 +47,8 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
       )}
       <div
         className={cn(
-          "relative group",
-          !isBot && "ml-auto max-w-[85%]",
-          isBot && "w-full"
+          "relative group w-full md:max-w-[85%]",
+          !isBot && "ml-auto"
         )}
       >
         {isBot && (
@@ -62,9 +61,9 @@ export const ChatMessage = ({ message, isBot, avatar, isLoading, isStreaming }: 
         )}
         <div
           className={cn(
-            "prose prose-sm dark:prose-invert",
+            "prose prose-sm dark:prose-invert w-full break-words",
             !isBot && "px-6 py-4 rounded-2xl bg-primary text-primary-foreground",
-            isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm w-full",
+            isBot && !isEmbedded && "px-6 py-4 rounded-2xl bg-accent/50 backdrop-blur-sm",
             isBot && isEmbedded && "px-6 py-4",
             isStreaming && "after:content-['▋'] after:ml-1 after:animate-[blink_1s_infinite]"
           )}
