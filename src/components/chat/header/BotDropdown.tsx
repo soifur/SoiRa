@@ -28,8 +28,8 @@ export const BotDropdown = ({
       <SelectTrigger 
         className={cn(
           "h-8 text-sm bg-transparent hover:bg-dropdown-hover",
-          "w-auto inline-flex items-center whitespace-nowrap px-2",
-          isMobile ? "max-w-[200px]" : "max-w-[160px]"
+          "w-auto inline-flex items-center whitespace-nowrap",
+          isMobile ? "max-w-[200px]" : "flex-shrink"
         )}
       >
         <SelectValue placeholder="Select a model">
@@ -41,13 +41,13 @@ export const BotDropdown = ({
                 className="w-5 h-5 rounded-full object-cover shrink-0"
               />
             )}
-            <span className="truncate">{selectedBot?.name || "Select a model"}</span>
+            <span>{selectedBot?.name || "Select a model"}</span>
           </div>
         </SelectValue>
       </SelectTrigger>
       <SelectContent 
         align="start"
-        className="min-w-[200px]"
+        className="min-w-[240px] rounded-xl p-1"
         position="popper"
         side="bottom"
         sideOffset={4}
@@ -56,17 +56,17 @@ export const BotDropdown = ({
           <SelectItem 
             key={bot.id} 
             value={bot.id}
-            className="py-2"
+            className="py-3 px-2 rounded-lg hover:bg-dropdown-hover cursor-pointer"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {bot.avatar && (
                 <img 
                   src={bot.avatar} 
                   alt={bot.name}
-                  className="w-5 h-5 rounded-full object-cover shrink-0"
+                  className="w-6 h-6 rounded-full object-cover shrink-0"
                 />
               )}
-              <span className="whitespace-nowrap">{bot.name}</span>
+              <span className="text-base">{bot.name}</span>
             </div>
           </SelectItem>
         ))}
