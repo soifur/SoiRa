@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Bot as BotType } from "@/hooks/useBots";
@@ -76,7 +76,7 @@ export const MainChatHeader = ({
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
         <div className={cn(
-          "flex-1 flex items-center gap-3",
+          "flex-1 flex items-center gap-6",
           "transition-[margin] duration-300 ease-in-out",
           showHistory ? "ml-64" : "ml-0"
         )}>
@@ -123,7 +123,7 @@ export const MainChatHeader = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-6">
                 {isChat && !showHistory && (
                   <>
                     <Button
@@ -154,13 +154,6 @@ export const MainChatHeader = ({
                       setSelectedBotId={setSelectedBotId}
                       uniqueBots={uniqueBots}
                     />
-                    {selectedBotId && (
-                      <QuizButton 
-                        botId={selectedBotId} 
-                        onStartQuiz={() => {}} 
-                        onQuizComplete={onQuizComplete}
-                      />
-                    )}
                   </>
                 )}
               </div>

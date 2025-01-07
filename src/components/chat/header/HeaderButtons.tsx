@@ -1,7 +1,6 @@
 import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { UserRole } from "@/types/user";
 
 interface HeaderButtonsProps {
   isSuperAdmin: boolean;
@@ -12,7 +11,7 @@ export const HeaderButtons = ({ isSuperAdmin, isAdmin }: HeaderButtonsProps) => 
   const navigate = useNavigate();
 
   return (
-    <>
+    <div className="flex items-center gap-6">
       {(isSuperAdmin || isAdmin) && (
         <Button
           variant="ghost"
@@ -63,6 +62,6 @@ export const HeaderButtons = ({ isSuperAdmin, isAdmin }: HeaderButtonsProps) => 
           </Button>
         </>
       )}
-    </>
+    </div>
   );
 };
