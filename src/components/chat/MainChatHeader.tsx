@@ -72,10 +72,6 @@ export const MainChatHeader = ({
     }
   }, [bots]);
 
-  const handleQuizStart = () => {
-    console.log("Quiz started"); // Add this to debug
-  };
-
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
@@ -107,7 +103,7 @@ export const MainChatHeader = ({
                       {selectedBotId && (
                         <QuizButton 
                           botId={selectedBotId} 
-                          onStartQuiz={handleQuizStart}
+                          onStartQuiz={() => {}} 
                           onQuizComplete={onQuizComplete}
                         />
                       )}
@@ -157,11 +153,6 @@ export const MainChatHeader = ({
                       selectedBotId={selectedBotId}
                       setSelectedBotId={setSelectedBotId}
                       uniqueBots={uniqueBots}
-                    />
-                    <QuizButton 
-                      botId={selectedBotId}
-                      onStartQuiz={handleQuizStart}
-                      onQuizComplete={onQuizComplete}
                     />
                   </>
                 )}
