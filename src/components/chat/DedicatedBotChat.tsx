@@ -25,6 +25,19 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [chatId] = useState(() => uuidv4());
   const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
 
+  // Temporarily override bot instructions when quiz mode is enabled
+  const modifiedBot = {
+    ...bot,
+    instructions: bot.quiz_mode ? combinedInstructions || bot.instructions : bot.instructions
+  };
+
+  console.log("Bot state:", {
+    originalInstructions: bot.instructions,
+    quizMode: bot.quiz_mode,
+    combinedInstructions,
+    finalInstructions: modifiedBot.instructions
+  });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -32,36 +45,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    const chatKey = `chat_${bot.id}_${chatId}`;
-    const savedMessages = localStorage.getItem(chatKey);
-    if (savedMessages) {
-      try {
-        const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages.map((msg: any) => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-          avatar: msg.role === "assistant" ? (msg.avatar || bot.avatar) : undefined
-        })));
-      } catch (error) {
-        console.error("Error parsing saved messages:", error);
-        setMessages([]);
-      }
-    } else {
-      setMessages([]);
-    }
-  }, [bot.id, chatId, bot.avatar]);
-
-  const clearChat = () => {
-    setMessages([]);
-    const chatKey = `chat_${bot.id}_${chatId}`;
-    localStorage.removeItem(chatKey);
-    toast({
-      title: "Chat Cleared",
-      description: "The chat history has been cleared.",
-    });
-  };
 
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
@@ -73,23 +56,21 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setMessages(newMessages);
 
       // Add temporary streaming message
-      const streamingMessage = createMessage("assistant", "", true, bot.avatar);
+      const streamingMessage = createMessage("assistant", "", true, modifiedBot.avatar);
       setMessages([...newMessages, streamingMessage]);
       setIsStreaming(true);
 
       let response: string = "";
       
-      // Use combinedInstructions if available, otherwise fall back to bot.instructions
-      const instructions = combinedInstructions || bot.instructions;
-      console.log("Using instructions:", instructions, 
-                  "Quiz mode:", bot.quiz_mode, 
+      console.log("Using instructions:", modifiedBot.instructions, 
+                  "Quiz mode:", modifiedBot.quiz_mode, 
                   "Combined instructions:", combinedInstructions,
-                  "Bot instructions:", bot.instructions);
+                  "Original instructions:", bot.instructions);
 
-      if (bot.model === "openrouter") {
+      if (modifiedBot.model === "openrouter") {
         await ChatService.sendOpenRouterMessage(
           newMessages,
-          { ...bot, instructions },
+          modifiedBot,
           undefined,
           (chunk: string) => {
             response += chunk;
@@ -105,8 +86,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
             });
           }
         );
-      } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions });
+      } else if (modifiedBot.model === "gemini") {
+        response = await ChatService.sendGeminiMessage(newMessages, modifiedBot);
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === "assistant") {
@@ -183,8 +164,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       <div className="flex-1 overflow-hidden flex flex-col">
         <MessageList
           messages={formatMessages(messages)}
-          selectedBot={bot}
-          starters={bot.starters}
+          selectedBot={modifiedBot}
+          starters={modifiedBot.starters}
           onStarterClick={sendMessage}
           isLoading={isLoading}
           isStreaming={isStreaming}
