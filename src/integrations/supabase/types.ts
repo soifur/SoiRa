@@ -82,6 +82,7 @@ export type Database = {
           name: string
           open_router_model: string | null
           published: boolean | null
+          quiz_mode: boolean | null
           starters: string[] | null
           token_limit: number | null
           updated_at: string
@@ -101,6 +102,7 @@ export type Database = {
           name: string
           open_router_model?: string | null
           published?: boolean | null
+          quiz_mode?: boolean | null
           starters?: string[] | null
           token_limit?: number | null
           updated_at?: string
@@ -120,6 +122,7 @@ export type Database = {
           name?: string
           open_router_model?: string | null
           published?: boolean | null
+          quiz_mode?: boolean | null
           starters?: string[] | null
           token_limit?: number | null
           updated_at?: string
@@ -472,6 +475,7 @@ export type Database = {
       }
       quiz_responses: {
         Row: {
+          bot_id: string | null
           combined_instructions: string | null
           created_at: string | null
           id: string
@@ -481,6 +485,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          bot_id?: string | null
           combined_instructions?: string | null
           created_at?: string | null
           id?: string
@@ -490,6 +495,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          bot_id?: string | null
           combined_instructions?: string | null
           created_at?: string | null
           id?: string
@@ -499,6 +505,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "quiz_responses_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quiz_responses_quiz_id_fkey"
             columns: ["quiz_id"]
