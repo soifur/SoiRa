@@ -186,7 +186,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
       <DialogContent 
         className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" 
         style={{ zIndex: 9999 }}
-        hideCloseButton={true}
       >
         <button
           onClick={onClose}
