@@ -84,15 +84,15 @@ export const ChatHistoryGroup = ({
         )} />
         {avatar && (
           <Avatar className={cn(
-            "mr-2",
+            "mr-2 shrink-0",
             isMobile ? "h-8 w-8" : "h-6 w-6"
           )}>
-            <AvatarImage src={avatar} alt={label} />
+            <AvatarImage src={avatar} alt={label} className="object-cover" />
             <AvatarFallback>{label[0]}</AvatarFallback>
           </Avatar>
         )}
         <span className={cn(
-          "truncate flex-1 text-left pr-1 max-w-[120px]", // Reduced max-width from 180px to 120px
+          "truncate flex-1 text-left pr-1",
           isMobile ? "text-lg" : "text-sm",
           isModelGroup && "text-primary"
         )}>{label}</span>

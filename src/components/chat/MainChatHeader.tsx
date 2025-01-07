@@ -77,6 +77,8 @@ export const MainChatHeader = ({
     }
   }, [bots]);
 
+  const selectedBot = uniqueBots.find(bot => bot.id === selectedBotId);
+
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="h-14 flex items-center px-4">
@@ -100,14 +102,25 @@ export const MainChatHeader = ({
 
                   {selectedBotId && setSelectedBotId && (
                     <>
-                      <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+                      <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
                         <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-transparent hover:bg-dropdown-hover">
-                          <SelectValue placeholder="Select a model" />
+                          <SelectValue placeholder="Select a model">
+                            {selectedBot?.name || "Select a model"}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {uniqueBots.map((bot) => (
                             <SelectItem key={bot.id} value={bot.id}>
-                              {bot.name}
+                              <div className="flex items-center gap-2">
+                                {bot.avatar && (
+                                  <img 
+                                    src={bot.avatar} 
+                                    alt={bot.name}
+                                    className="w-5 h-5 rounded-full object-cover"
+                                  />
+                                )}
+                                {bot.name}
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -159,16 +172,27 @@ export const MainChatHeader = ({
                 
                 <HeaderButtons isSuperAdmin={isSuperAdmin} isAdmin={isAdmin} />
                 
-                {isChat && selectedBotId && setSelectedBotId && (
+                {isChat && (
                   <>
-                    <Select value={selectedBotId} onValueChange={setSelectedBotId}>
+                    <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
                       <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-transparent hover:bg-dropdown-hover">
-                        <SelectValue placeholder="Select a model" />
+                        <SelectValue placeholder="Select a model">
+                          {selectedBot?.name || "Select a model"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {uniqueBots.map((bot) => (
                           <SelectItem key={bot.id} value={bot.id}>
-                            {bot.name}
+                            <div className="flex items-center gap-2">
+                              {bot.avatar && (
+                                <img 
+                                  src={bot.avatar} 
+                                  alt={bot.name}
+                                  className="w-5 h-5 rounded-full object-cover"
+                                />
+                              )}
+                              {bot.name}
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
