@@ -53,7 +53,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         if (quizFields) {
           setFields(quizFields);
           
-          const groupedSections: QuizSection[] = [];
+          const groupedSections: QuizSectionData[] = [];
           let currentSectionFields: Field[] = [];
 
           quizFields.forEach((field) => {
