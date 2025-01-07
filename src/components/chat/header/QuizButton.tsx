@@ -15,6 +15,23 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
+  // First check if the bot is published and has quiz mode enabled
+  const { data: bot } = useQuery({
+    queryKey: ['bot', botId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bots')
+        .select('published, quiz_mode')
+        .eq('id', botId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!botId,
+  });
+
+  // Then check for quiz configuration if bot is published and has quiz mode
   const { data: quizConfig } = useQuery({
     queryKey: ['quiz-config', botId],
     queryFn: async () => {
@@ -28,7 +45,7 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
       if (error) throw error;
       return data;
     },
-    enabled: !!botId,
+    enabled: !!botId && !!bot?.published && !!bot?.quiz_mode,
   });
 
   const handleQuizComplete = async (instructions: string) => {
@@ -40,7 +57,11 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
     setIsLoading(false);
   };
 
-  if (!quizConfig?.enabled) return null;
+  // Only show the button if:
+  // 1. The bot exists and is published
+  // 2. Quiz mode is enabled for the bot
+  // 3. There is an enabled quiz configuration
+  if (!bot?.published || !bot?.quiz_mode || !quizConfig?.enabled) return null;
 
   return (
     <>
