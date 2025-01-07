@@ -23,6 +23,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
   const [fields, setFields] = useState<Field[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quizConfigId, setQuizConfigId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && botId) {
@@ -40,6 +41,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         .single();
 
       if (quizConfig) {
+        setQuizConfigId(quizConfig.id);
         const { data: quizFields } = await supabase
           .from('quiz_fields')
           .select('*')
@@ -111,22 +113,17 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         const originalInstructions = sharedBot?.instructions || '';
         const combinedInstructions = `${originalInstructions} ${userResponses}`.trim();
 
-        const { data: quizConfig } = await supabase
-          .from('quiz_configurations')
-          .select('id')
-          .eq('bot_id', botId)
-          .single();
-
-        if (quizConfig) {
+        if (quizConfigId) {
           const { data: existingResponse } = await supabase
             .from('quiz_responses')
             .select('*')
-            .eq('quiz_id', quizConfig.id)
+            .eq('quiz_id', quizConfigId)
             .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
             .single();
 
           const responseData = {
-            quiz_id: quizConfig.id,
+            quiz_id: quizConfigId,
+            bot_id: botId,
             user_id: (await supabase.auth.getUser()).data.user?.id,
             responses,
             combined_instructions: combinedInstructions
