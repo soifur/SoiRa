@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
-import { QuizField } from "./QuizField";
+import { QuizSection } from "./QuizSection";
+import { QuizNavigation } from "./QuizNavigation";
 import { cn } from "@/lib/utils";
 
 interface QuizModalProps {
@@ -13,13 +15,13 @@ interface QuizModalProps {
   onComplete: (instructions: string) => void;
 }
 
-interface QuizSection {
+interface QuizSectionData {
   fields: Field[];
   responses: Record<string, string | string[]>;
 }
 
 export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps) => {
-  const [sections, setSections] = useState<QuizSection[]>([]);
+  const [sections, setSections] = useState<QuizSectionData[]>([]);
   const [currentSection, setCurrentSection] = useState(0);
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
   const [fields, setFields] = useState<Field[]>([]);
@@ -93,7 +95,11 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         handleComplete();
       }
       setShowTransition(false);
-    }, 1000);
+    }, 1000); // Reduced from 3000 to 1000ms
+  };
+
+  const handlePrevious = () => {
+    setCurrentSection(prev => prev - 1);
   };
 
   const handleComplete = async () => {
@@ -172,45 +178,44 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="fixed inset-0 w-screen h-screen max-w-none m-0 p-0 rounded-none bg-gradient-to-br from-background to-background/95 backdrop-blur-sm z-[200]"
+        className="fixed inset-0 w-full h-full max-w-none m-0 p-0 bg-gradient-to-br from-background to-background/95 backdrop-blur-sm z-[200]"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <div className="h-full flex flex-col justify-center items-center p-6 md:p-8">
-          <div className="w-full max-w-2xl">
-            <div className="flex-1 overflow-y-auto">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-50"
+        >
+          <X className="h-6 w-6" />
+        </Button>
+        
+        <div className="h-full flex flex-col justify-center items-center p-6 md:p-8 max-w-2xl mx-auto">
+          <div className="w-full">
+            <div className="flex-1">
               <div 
                 className={cn(
-                  "transition-all duration-1000 transform space-y-6",
+                  "transition-all duration-1000 transform",
                   showTransition ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"
                 )}
               >
-                {sections[currentSection]?.fields.map((field) => (
-                  <QuizField
-                    key={field.id}
-                    field={field}
-                    response={responses[field.id!]}
+                {sections[currentSection] && (
+                  <QuizSection
+                    fields={sections[currentSection].fields}
+                    responses={responses}
                     onResponse={handleResponse}
                   />
-                ))}
+                )}
               </div>
             </div>
-            <div className="flex justify-end space-x-4 pt-6 mt-8">
-              {currentSection > 0 && (
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentSection(prev => prev - 1)}
-                  className="px-6 py-2 text-base"
-                >
-                  Previous
-                </Button>
-              )}
-              <Button 
-                onClick={handleNext}
-                className="px-6 py-2 text-base bg-primary hover:bg-primary/90"
-              >
-                {currentSection < sections.length - 1 ? 'Next' : "Let's Start"}
-              </Button>
+            <div className="pt-6 mt-8">
+              <QuizNavigation
+                currentSection={currentSection}
+                totalSections={sections.length}
+                onNext={handleNext}
+                onPrevious={handlePrevious}
+              />
             </div>
           </div>
         </div>
