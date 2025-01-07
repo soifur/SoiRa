@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QuizModal } from "../quiz/QuizModal";
-import { LoaderCircle } from "lucide-react";
 
 interface QuizButtonProps {
   botId: string;
@@ -13,7 +12,6 @@ interface QuizButtonProps {
 
 export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonProps) => {
   const [showModal, setShowModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   
   const { data: quizConfig } = useQuery({
     queryKey: ['quiz-config', botId],
@@ -31,16 +29,9 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
     enabled: !!botId,
   });
 
-  const handleQuizComplete = async (instructions: string) => {
-    setIsLoading(true);
-    try {
-      // Wait for 3 seconds to ensure Supabase has updated
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      onQuizComplete?.(instructions);
-    } finally {
-      setIsLoading(false);
-      setShowModal(false);
-    }
+  const handleQuizComplete = (instructions: string) => {
+    onQuizComplete?.(instructions);
+    setShowModal(false);
   };
 
   if (!quizConfig?.enabled) return null;
@@ -55,21 +46,13 @@ export const QuizButton = ({ botId, onStartQuiz, onQuizComplete }: QuizButtonPro
           setShowModal(true);
         }}
         className="ml-2"
-        disabled={isLoading}
       >
-        {isLoading ? (
-          <div className="flex items-center gap-2">
-            <LoaderCircle className="h-4 w-4 animate-spin" />
-            <span>Loading...</span>
-          </div>
-        ) : (
-          "Start Now"
-        )}
+        Start Now
       </Button>
       
       <QuizModal
         isOpen={showModal}
-        onClose={() => !isLoading && setShowModal(false)}
+        onClose={() => setShowModal(false)}
         botId={botId}
         onComplete={handleQuizComplete}
       />

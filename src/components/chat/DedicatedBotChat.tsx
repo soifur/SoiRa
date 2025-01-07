@@ -23,7 +23,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
-  const { combinedInstructions, refetch } = useQuizInstructions(bot.id, bot.quiz_mode);
+  const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,11 +76,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const streamingMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, streamingMessage]);
       setIsStreaming(true);
-
-      // Refetch instructions before sending message
-      if (bot.quiz_mode) {
-        await refetch();
-      }
 
       let response: string = "";
       // Use combinedInstructions if quiz mode is enabled and instructions are available
