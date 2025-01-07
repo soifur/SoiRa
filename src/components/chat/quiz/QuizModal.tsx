@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
+import { QuizSection } from "./QuizSection";
 
 interface QuizModalProps {
   isOpen: boolean;
@@ -11,13 +11,13 @@ interface QuizModalProps {
   onComplete: (instructions: string) => void;
 }
 
-interface QuizSection {
+interface QuizSectionData {
   fields: Field[];
   responses: Record<string, string | string[]>;
 }
 
 export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps) => {
-  const [sections, setSections] = useState<QuizSection[]>([]);
+  const [sections, setSections] = useState<QuizSectionData[]>([]);
   const [currentSection, setCurrentSection] = useState(0);
   const [responses, setResponses] = useState<Record<string, string | string[]>>({});
   const [fields, setFields] = useState<Field[]>([]);
@@ -48,8 +48,7 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         if (quizFields) {
           setFields(quizFields);
           
-          // Group fields into sections
-          const groupedSections: QuizSection[] = [];
+          const groupedSections: QuizSectionData[] = [];
           let currentSectionFields: Field[] = [];
 
           quizFields.forEach((field) => {
@@ -86,7 +85,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
     if (currentSection < sections.length - 1) {
       setCurrentSection(prev => prev + 1);
     } else {
-      // Process all responses and generate instructions
       const allFields = fields;
       let userResponses = '';
 
@@ -103,7 +101,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
       });
 
       try {
-        // Get the original instructions from shared_bots
         const { data: sharedBot } = await supabase
           .from('shared_bots')
           .select('instructions')
@@ -113,7 +110,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         const originalInstructions = sharedBot?.instructions || '';
         const combinedInstructions = `${originalInstructions} ${userResponses}`.trim();
 
-        // Save quiz responses
         const { data: quizConfig } = await supabase
           .from('quiz_configurations')
           .select('id')
@@ -121,7 +117,6 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
           .single();
 
         if (quizConfig) {
-          // Update quiz_responses
           const { data: existingResponse } = await supabase
             .from('quiz_responses')
             .select('*')
@@ -156,92 +151,23 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
     }
   };
 
-  const renderField = (field: Field) => {
-    switch (field.field_type) {
-      case 'text':
-      case 'email':
-      case 'phone':
-        return (
-          <input
-            type={field.field_type}
-            value={responses[field.id!] as string || ''}
-            onChange={(e) => handleResponse(field.id!, e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder={`Enter your ${field.field_type}`}
-          />
-        );
-      case 'single_choice':
-        return (
-          <div className="space-y-2">
-            {field.choices?.map((choice) => (
-              <label key={choice} className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name={field.id!}
-                  value={choice}
-                  checked={(responses[field.id!] as string) === choice}
-                  onChange={(e) => handleResponse(field.id!, e.target.value)}
-                />
-                <span>{choice}</span>
-              </label>
-            ))}
-          </div>
-        );
-      case 'multiple_choice':
-        return (
-          <div className="space-y-2">
-            {field.choices?.map((choice) => (
-              <label key={choice} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  value={choice}
-                  checked={Array.isArray(responses[field.id!]) && 
-                    (responses[field.id!] as string[]).includes(choice)}
-                  onChange={(e) => {
-                    const currentValues = (responses[field.id!] as string[]) || [];
-                    const newValues = e.target.checked
-                      ? [...currentValues, choice]
-                      : currentValues.filter(v => v !== choice);
-                    handleResponse(field.id!, newValues);
-                  }}
-                />
-                <span>{choice}</span>
-              </label>
-            ))}
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
   if (loading) {
     return null;
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <div className="space-y-6 py-4">
-          {sections[currentSection]?.fields.map((field) => (
-            <div key={field.id} className="space-y-4">
-              <h3 className="text-lg font-medium">{field.title}</h3>
-              {renderField(field)}
-            </div>
-          ))}
-          <div className="flex justify-end space-x-2">
-            {currentSection > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => setCurrentSection(prev => prev - 1)}
-              >
-                Previous
-              </Button>
-            )}
-            <Button onClick={handleNext}>
-              {currentSection < sections.length - 1 ? 'Next' : "Let's Start"}
-            </Button>
-          </div>
+      <DialogContent className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="w-full h-full flex items-center justify-center p-4 overflow-y-auto">
+          {sections[currentSection] && (
+            <QuizSection
+              fields={sections[currentSection].fields}
+              responses={responses}
+              onResponse={handleResponse}
+              onNext={handleNext}
+              isLastSection={currentSection === sections.length - 1}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>
