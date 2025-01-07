@@ -10,6 +10,7 @@ import { Trash2 } from "lucide-react";
 import { createMessage, formatMessages } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
+import { useQuizInstructions } from "@/hooks/useQuizInstructions";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -22,6 +23,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
+  const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,11 +78,13 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setIsStreaming(true);
 
       let response: string = "";
+      const instructions = bot.quiz_mode ? combinedInstructions : bot.instructions;
+      console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode);
 
       if (bot.model === "openrouter") {
         await ChatService.sendOpenRouterMessage(
           newMessages,
-          bot,
+          { ...bot, instructions },
           undefined,
           (chunk: string) => {
             response += chunk;
@@ -97,8 +101,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           }
         );
       } else if (bot.model === "gemini") {
-        response = await ChatService.sendGeminiMessage(newMessages, bot);
-        // For Gemini, update the message all at once since it doesn't support streaming
+        response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions });
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === "assistant") {
@@ -109,8 +112,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           }
           return prev;
         });
-      } else {
-        throw new Error("Unsupported model type");
       }
 
       // Get the next sequence number
