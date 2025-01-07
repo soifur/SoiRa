@@ -46,6 +46,16 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     scrollToBottom();
   }, [messages]);
 
+  const clearChat = () => {
+    setMessages([]);
+    const chatKey = `chat_${bot.id}_${chatId}`;
+    localStorage.removeItem(chatKey);
+    toast({
+      title: "Chat Cleared",
+      description: "The chat history has been cleared.",
+    });
+  };
+
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
 
