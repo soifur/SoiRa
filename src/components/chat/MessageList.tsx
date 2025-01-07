@@ -43,9 +43,12 @@ export const MessageList = ({
       {messages.map((message, index) => (
         <ChatMessage
           key={index}
-          message={message}
+          message={message.content}
+          isBot={message.role === 'assistant'}
+          avatar={selectedBot?.avatar}
           isLoading={isLoading}
           isStreaming={isStreaming && index === messages.length - 1}
+          botName={selectedBot?.name}
         />
       ))}
     </div>
