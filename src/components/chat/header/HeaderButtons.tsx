@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { Bot, Archive, Folder, Users, CreditCard } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { UserRole } from "@/types/user";
 
 interface HeaderButtonsProps {
   isSuperAdmin: boolean;
@@ -8,67 +9,60 @@ interface HeaderButtonsProps {
 }
 
 export const HeaderButtons = ({ isSuperAdmin, isAdmin }: HeaderButtonsProps) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex items-center gap-6">
+    <>
       {(isSuperAdmin || isAdmin) && (
-        <Link to="/bots">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-foreground hover:bg-accent hover:text-accent-foreground"
-          >
-            <Bot className="h-5 w-5" />
-          </Button>
-        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate('/bots')}
+          className="h-8 w-8 hover:bg-dropdown-hover"
+        >
+          <Bot className="h-4 w-4" />
+        </Button>
       )}
-      
       {isSuperAdmin && (
-        <Link to="/folders">
+        <>
           <Button
             variant="ghost"
             size="icon"
-            className="text-foreground hover:bg-accent hover:text-accent-foreground"
+            onClick={() => navigate('/folders')}
+            className="h-8 w-8 hover:bg-dropdown-hover"
           >
-            <Folder className="h-5 w-5" />
+            <Folder className="h-4 w-4" />
           </Button>
-        </Link>
-      )}
-
-      {isSuperAdmin && (
-        <Link to="/subscriptions">
           <Button
             variant="ghost"
             size="icon"
-            className="text-foreground hover:bg-accent hover:text-accent-foreground"
+            onClick={() => navigate('/subscriptions')}
+            className="h-8 w-8 hover:bg-dropdown-hover"
           >
-            <CreditCard className="h-5 w-5" />
+            <CreditCard className="h-4 w-4" />
           </Button>
-        </Link>
+        </>
       )}
-
       {(isSuperAdmin || isAdmin) && (
-        <Link to="/users">
+        <>
           <Button
             variant="ghost"
             size="icon"
-            className="text-foreground hover:bg-accent hover:text-accent-foreground"
+            onClick={() => navigate('/users')}
+            className="h-8 w-8 hover:bg-dropdown-hover"
           >
-            <Users className="h-5 w-5" />
+            <Users className="h-4 w-4" />
           </Button>
-        </Link>
-      )}
-
-      {(isSuperAdmin || isAdmin) && (
-        <Link to="/archive">
           <Button
             variant="ghost"
             size="icon"
-            className="text-foreground hover:bg-accent hover:text-accent-foreground"
+            onClick={() => navigate('/archive')}
+            className="h-8 w-8 hover:bg-dropdown-hover"
           >
-            <Archive className="h-5 w-5" />
+            <Archive className="h-4 w-4" />
           </Button>
-        </Link>
+        </>
       )}
-    </div>
+    </>
   );
 };

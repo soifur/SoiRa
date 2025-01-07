@@ -76,8 +76,7 @@ export const ChatMessage = ({
           </button>
         )}
         {showQuizButton ? (
-          <div className="flex flex-col items-center justify-center py-8 space-y-4">
-            <div className="text-lg font-medium text-center mb-4">{cleanedMessage}</div>
+          <div className="flex items-center justify-center py-8">
             <Button
               onClick={onStartQuiz}
               className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200"

@@ -23,12 +23,6 @@ export const QuizSection = ({
     return response && (typeof response === 'string' ? response.trim() !== '' : response.length > 0);
   });
 
-  const handleEnterPress = () => {
-    if (isComplete) {
-      onNext();
-    }
-  };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-full w-full max-w-4xl mx-auto p-6 space-y-8">
       {fields.map((field) => (
@@ -37,7 +31,6 @@ export const QuizSection = ({
           field={field}
           value={responses[field.id!] || (field.field_type.includes('choice') ? [] : '')}
           onChange={(value) => onResponse(field.id!, value)}
-          onEnterPress={handleEnterPress}
         />
       ))}
       

@@ -1,4 +1,4 @@
-import React, { KeyboardEvent } from 'react';
+import React from 'react';
 import { Input } from "@/components/ui/input";
 import { QuizButton } from './QuizButton';
 import { Field } from '@/components/bot/quiz/QuizFieldBuilder';
@@ -7,10 +7,9 @@ interface QuizFieldProps {
   field: Field;
   value: string | string[];
   onChange: (value: string | string[]) => void;
-  onEnterPress?: () => void;
 }
 
-export const QuizField = ({ field, value, onChange, onEnterPress }: QuizFieldProps) => {
+export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
   const handleSingleChoice = (choice: string) => {
     onChange(choice);
   };
@@ -21,13 +20,6 @@ export const QuizField = ({ field, value, onChange, onEnterPress }: QuizFieldPro
       ? currentValues.filter(v => v !== choice)
       : [...currentValues, choice];
     onChange(newValues);
-  };
-
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && onEnterPress) {
-      e.preventDefault();
-      onEnterPress();
-    }
   };
 
   return (
@@ -41,7 +33,6 @@ export const QuizField = ({ field, value, onChange, onEnterPress }: QuizFieldPro
           type={field.field_type}
           value={value as string || ''}
           onChange={(e) => onChange(e.target.value)}
-          onKeyPress={handleKeyPress}
           className="w-full p-3 text-lg"
           placeholder={`Enter your ${field.field_type}`}
         />
