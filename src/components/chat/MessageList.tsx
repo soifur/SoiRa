@@ -3,6 +3,7 @@ import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { QuizButton } from "./header/QuizButton";
 
 export interface Message {
   id: string;
@@ -22,6 +23,7 @@ interface MessageListProps {
   onClearChat?: () => void;
   disabled?: boolean;
   disabledReason?: string;
+  onQuizComplete?: (instructions: string) => void;
 }
 
 export const MessageList = ({ 
@@ -33,7 +35,8 @@ export const MessageList = ({
   isStreaming,
   onClearChat,
   disabled,
-  disabledReason
+  disabledReason,
+  onQuizComplete
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
@@ -76,9 +79,20 @@ export const MessageList = ({
           {messages.length === 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
               {selectedBot && (
-                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
-                  {selectedBot.name}
-                </h2>
+                <>
+                  <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+                    {selectedBot.name}
+                  </h2>
+                  {selectedBot.quiz_mode && (
+                    <div className="mb-4">
+                      <QuizButton 
+                        botId={selectedBot.id}
+                        onStartQuiz={() => {}}
+                        onQuizComplete={onQuizComplete}
+                      />
+                    </div>
+                  )}
+                </>
               )}
               {starters && starters.length > 0 && (
                 <>
