@@ -18,11 +18,20 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
           return;
         }
 
+        // First try to get the bot ID from shared_bots if this is a shared bot
+        const { data: sharedBot } = await supabase
+          .from('shared_bots')
+          .select('bot_id')
+          .eq('share_key', botId)
+          .maybeSingle();
+
+        const actualBotId = sharedBot?.bot_id || botId;
+
         // Fetch the latest quiz response for this bot and user
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
-          .eq('bot_id', botId)
+          .eq('bot_id', actualBotId)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
