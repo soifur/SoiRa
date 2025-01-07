@@ -172,46 +172,46 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="w-screen h-screen max-w-none m-0 p-0 rounded-none bg-background"
+        className="fixed inset-0 w-screen h-screen max-w-none m-0 p-0 rounded-none bg-gradient-to-br from-background to-background/95 backdrop-blur-sm z-[200]"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <div className="h-full flex flex-col p-6 md:p-8 overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
-            <div 
-              className={cn(
-                "transition-all duration-1000 transform",
-                showTransition ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"
-              )}
-            >
-              {sections[currentSection]?.fields.map((field) => (
-                <QuizField
-                  key={field.id}
-                  field={field}
-                  response={responses[field.id!]}
-                  onResponse={handleResponse}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-end space-x-4 pt-6 border-t">
-            {currentSection > 0 && (
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => setCurrentSection(prev => prev - 1)}
-                className="text-lg px-8"
+        <div className="h-full flex flex-col justify-center items-center p-6 md:p-8">
+          <div className="w-full max-w-2xl">
+            <div className="flex-1 overflow-y-auto">
+              <div 
+                className={cn(
+                  "transition-all duration-1000 transform space-y-6",
+                  showTransition ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"
+                )}
               >
-                Previous
+                {sections[currentSection]?.fields.map((field) => (
+                  <QuizField
+                    key={field.id}
+                    field={field}
+                    response={responses[field.id!]}
+                    onResponse={handleResponse}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end space-x-4 pt-6 mt-8">
+              {currentSection > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentSection(prev => prev - 1)}
+                  className="px-6 py-2 text-base"
+                >
+                  Previous
+                </Button>
+              )}
+              <Button 
+                onClick={handleNext}
+                className="px-6 py-2 text-base bg-primary hover:bg-primary/90"
+              >
+                {currentSection < sections.length - 1 ? 'Next' : "Let's Start"}
               </Button>
-            )}
-            <Button 
-              onClick={handleNext}
-              size="lg"
-              className="text-lg px-8"
-            >
-              {currentSection < sections.length - 1 ? 'Next' : "Let's Start"}
-            </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
