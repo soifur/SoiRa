@@ -1,61 +1,51 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
-export const useQuizInstructions = (botId: string, quizMode: boolean = false) => {
+export const useQuizInstructions = (botId: string | undefined, quizMode?: boolean) => {
   const [combinedInstructions, setCombinedInstructions] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchQuizInstructions = async () => {
-      if (!quizMode || !botId) {
-        setCombinedInstructions(null);
-        return;
-      }
-
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          console.log("No authenticated user found");
+        if (!botId || !quizMode) {
+          setCombinedInstructions(null);
           return;
         }
+
+        // Get the current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log("No user found, skipping quiz instructions fetch");
+          return;
+        }
+
+        console.log("Fetching quiz instructions for botId:", botId);
 
         // First check if this is a shared bot
         const { data: sharedBot } = await supabase
           .from('shared_bots')
-          .select('quiz_mode, share_key')
-          .eq('share_key', botId)
+          .select('quiz_mode, share_key, bot_id')
+          .eq('short_key', botId)
           .maybeSingle();
 
         console.log("Shared bot data:", sharedBot);
 
+        // Determine which bot ID to use for quiz responses
+        let quizBotId = botId;
+        
         // If this is a shared bot and quiz mode is enabled
         if (sharedBot?.quiz_mode) {
-          console.log("Fetching quiz responses for shared bot with share_key:", sharedBot.share_key);
-          
-          // Use share_key as bot_id for quiz responses
-          const { data: quizResponse, error: sharedError } = await supabase
-            .from('quiz_responses')
-            .select('combined_instructions')
-            .eq('bot_id', sharedBot.share_key)  // Match share_key with bot_id
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (sharedError) {
-            console.error("Error fetching shared bot quiz responses:", sharedError);
-            return;
-          }
-
-          console.log("Shared bot quiz response:", quizResponse);
-          setCombinedInstructions(quizResponse?.combined_instructions || null);
-          return;
+          console.log("Using share_key as bot_id for quiz responses:", sharedBot.share_key);
+          quizBotId = sharedBot.share_key;
         }
 
-        // If not a shared bot, fetch quiz response normally
+        // Fetch the quiz response
         const { data: quizResponse, error } = await supabase
           .from('quiz_responses')
           .select('combined_instructions')
-          .eq('bot_id', botId)
+          .eq('bot_id', quizBotId)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
@@ -63,18 +53,28 @@ export const useQuizInstructions = (botId: string, quizMode: boolean = false) =>
 
         if (error) {
           console.error("Error fetching quiz responses:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch quiz responses",
+            variant: "destructive",
+          });
           return;
         }
 
-        console.log("Regular bot quiz response:", quizResponse);
+        console.log("Quiz response found:", quizResponse);
         setCombinedInstructions(quizResponse?.combined_instructions || null);
       } catch (error) {
         console.error("Error in fetchQuizInstructions:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch quiz instructions",
+          variant: "destructive",
+        });
       }
     };
 
     fetchQuizInstructions();
-  }, [botId, quizMode]);
+  }, [botId, quizMode, toast]);
 
   return { combinedInstructions };
 };
