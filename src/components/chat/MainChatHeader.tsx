@@ -10,13 +10,13 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Bot } from "@/hooks/useBots";
 
-interface ChatHeaderProps {
+interface MainChatHeaderProps {
   bots: Bot[];
   selectedBotId: string;
   onBotSelect: (botId: string) => void;
 }
 
-export const ChatHeader = ({ bots, selectedBotId, onBotSelect }: ChatHeaderProps) => {
+export const MainChatHeader = ({ bots, selectedBotId, onBotSelect }: MainChatHeaderProps) => {
   const { toast } = useToast();
   // Filter to only show published bots (those with a model)
   const publishedBots = bots.filter(bot => bot.model);

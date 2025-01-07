@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MessageListProps } from "./types/chatTypes";
 
 export const MessageList = ({ 
   messages = [],
