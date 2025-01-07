@@ -1,13 +1,4 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Bot as BotType } from "@/hooks/useBots";
 import { useNavigate } from "react-router-dom";
 import { ProfileMenu } from "@/components/ProfileMenu";
@@ -16,8 +7,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
-import { HeaderButtons } from "./header/HeaderButtons";
-import { QuizButton } from "./header/QuizButton";
+import { MobileHeader } from "./header/MobileHeader";
+import { DesktopHeader } from "./header/DesktopHeader";
 
 interface MainChatHeaderProps {
   selectedBotId?: string | null;
@@ -91,104 +82,30 @@ export const MainChatHeader = ({
           showHistory ? "ml-64" : "ml-0"
         )}>
           {isMobile ? (
-            <div className="flex items-center justify-between w-full">
-              {isChat && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                    onClick={onToggleHistory}
-                  >
-                    <Clock className="h-4 w-4" />
-                  </Button>
-
-                  {selectedBotId && setSelectedBotId && (
-                    <>
-                      <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                        <SelectTrigger className="min-w-[200px] max-w-fit h-9 text-sm bg-transparent hover:bg-dropdown-hover">
-                          <SelectValue placeholder="Select a model" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {uniqueBots.map((bot) => (
-                            <SelectItem key={bot.id} value={bot.id}>
-                              {bot.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {selectedBotId && quizModeEnabled && (
-                        <QuizButton 
-                          botId={selectedBotId} 
-                          onStartQuiz={() => {}} 
-                          onQuizComplete={onQuizComplete}
-                        />
-                      )}
-                    </>
-                  )}
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-dropdown-hover"
-                    onClick={onNewChat}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
+            <MobileHeader
+              isChat={isChat}
+              onToggleHistory={onToggleHistory!}
+              selectedBotId={selectedBotId!}
+              setSelectedBotId={setSelectedBotId}
+              uniqueBots={uniqueBots}
+              quizModeEnabled={quizModeEnabled}
+              onNewChat={onNewChat!}
+              onQuizComplete={onQuizComplete}
+            />
           ) : (
-            <>
-              <div className="flex items-center gap-2">
-                {isChat && !showHistory && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-dropdown-hover"
-                      onClick={onToggleHistory}
-                    >
-                      <Clock className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 hover:bg-dropdown-hover"
-                      onClick={onNewChat}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </>
-                )}
-                
-                <HeaderButtons isSuperAdmin={isSuperAdmin} isAdmin={isAdmin} />
-                
-                {isChat && selectedBotId && setSelectedBotId && (
-                  <>
-                    <Select value={selectedBotId} onValueChange={setSelectedBotId}>
-                      <SelectTrigger className="min-w-[180px] max-w-fit h-8 text-sm bg-transparent hover:bg-dropdown-hover">
-                        <SelectValue placeholder="Select a model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {uniqueBots.map((bot) => (
-                          <SelectItem key={bot.id} value={bot.id}>
-                            {bot.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {selectedBotId && quizModeEnabled && (
-                      <QuizButton 
-                        botId={selectedBotId} 
-                        onStartQuiz={() => {}} 
-                        onQuizComplete={onQuizComplete}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-            </>
+            <DesktopHeader
+              isChat={isChat}
+              showHistory={showHistory!}
+              onToggleHistory={onToggleHistory!}
+              onNewChat={onNewChat!}
+              isSuperAdmin={isSuperAdmin}
+              isAdmin={isAdmin}
+              selectedBotId={selectedBotId!}
+              setSelectedBotId={setSelectedBotId}
+              uniqueBots={uniqueBots}
+              quizModeEnabled={quizModeEnabled}
+              onQuizComplete={onQuizComplete}
+            />
           )}
         </div>
 
