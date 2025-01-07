@@ -17,7 +17,12 @@ interface DedicatedBotChatProps {
 }
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
-  console.log("DedicatedBotChat rendering with bot:", bot);
+  console.log("DedicatedBotChat rendering with bot:", {
+    botId: bot.id,
+    botName: bot.name,
+    quizMode: bot.quiz_mode,
+    originalInstructions: bot.instructions
+  });
   
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
@@ -27,9 +32,12 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [chatId] = useState(() => uuidv4());
   const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
 
-  console.log("Quiz mode status:", { 
+  console.log("Quiz and instruction status:", { 
     botId: bot.id, 
     quizMode: bot.quiz_mode, 
+    hasOriginalInstructions: !!bot.instructions,
+    originalInstructions: bot.instructions,
+    hasCombinedInstructions: !!combinedInstructions,
     combinedInstructions 
   });
 
@@ -66,7 +74,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     const chatKey = `chat_${bot.id}_${chatId}`;
     localStorage.removeItem(chatKey);
     toast({
-      title: "Chat Cleared",
       description: "The chat history has been cleared.",
     });
   };
@@ -92,11 +99,13 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         ? `${bot.instructions || ''} ${combinedInstructions}`.trim()
         : bot.instructions;
 
-      console.log("Using instructions:", {
+      console.log("Preparing to send message with instructions:", {
         quizMode: bot.quiz_mode,
         botInstructions: bot.instructions,
         combinedInstructions,
-        finalInstructions
+        finalInstructions,
+        model: bot.model,
+        messageContent: message
       });
 
       if (bot.model === "openrouter") {
@@ -119,7 +128,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           }
         );
       } else if (bot.model === "gemini") {
+        console.log("Sending Gemini message with config:", {
+          instructions: finalInstructions,
+          messageCount: newMessages.length
+        });
+        
         response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions: finalInstructions });
+        console.log("Received Gemini response:", { responseLength: response.length });
+        
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === "assistant") {
