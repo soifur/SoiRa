@@ -52,7 +52,7 @@ export const MobileHeader = ({
                   ))}
                 </SelectContent>
               </Select>
-              {selectedBotId && quizModeEnabled && (
+              {quizModeEnabled && (
                 <QuizButton 
                   botId={selectedBotId} 
                   onStartQuiz={() => {}} 

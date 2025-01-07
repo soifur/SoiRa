@@ -72,7 +72,7 @@ export const DesktopHeader = ({
                 ))}
               </SelectContent>
             </Select>
-            {selectedBotId && quizModeEnabled && (
+            {quizModeEnabled && (
               <QuizButton 
                 botId={selectedBotId} 
                 onStartQuiz={() => {}} 
