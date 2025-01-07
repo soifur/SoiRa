@@ -3,6 +3,7 @@ import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export interface Message {
   id: string;
@@ -80,20 +81,21 @@ export const MessageList = ({
           {messages.length === 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
               {selectedBot && (
-                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
-                  {selectedBot.name}
-                </h2>
+                <>
+                  <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+                    {selectedBot.name}
+                  </h2>
+                  {showQuizButton && (
+                    <Button
+                      onClick={onStartQuiz}
+                      className="mb-8 md:mb-12 bg-gradient-to-r from-purple-400 to-pink-600 text-white hover:from-purple-500 hover:to-pink-700"
+                    >
+                      Start Now Quiz
+                    </Button>
+                  )}
+                </>
               )}
-              {showQuizButton ? (
-                <ChatMessage
-                  message=""
-                  isBot={true}
-                  avatar={selectedBot?.avatar}
-                  botName={selectedBot?.name}
-                  showQuizButton={true}
-                  onStartQuiz={onStartQuiz}
-                />
-              ) : starters && starters.length > 0 && (
+              {starters && starters.length > 0 && (
                 <>
                   <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                     What can I help with?
