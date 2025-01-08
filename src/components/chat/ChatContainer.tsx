@@ -55,21 +55,17 @@ export const ChatContainer = ({
           </div>
         )}
       </div>
-      <div className="sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-        <div className="max-w-3xl mx-auto">
-          <ChatInput
-            onSend={sendMessage}
-            disabled={!selectedBot || disabled}
-            isLoading={isLoading}
-            placeholder={
-              disabled ? disabledReason :
-              selectedBot ? "Type your message..." : 
-              "Select a model to start chatting"
-            }
-            onUpgradeClick={onUpgradeClick}
-          />
-        </div>
-      </div>
+      <ChatInput
+        onSend={sendMessage}
+        disabled={!selectedBot || disabled}
+        isLoading={isLoading}
+        placeholder={
+          disabled ? disabledReason :
+          selectedBot ? "Type your message..." : 
+          "Select a model to start chatting"
+        }
+        onUpgradeClick={onUpgradeClick}
+      />
     </div>
   );
 };
