@@ -1,44 +1,29 @@
-import { useState } from "react";
+import { useCallback } from "react";
 import { Message } from "@/components/chat/types/chatTypes";
 import { Bot } from "@/hooks/useBots";
-import { useToast } from "@/components/ui/use-toast";
 
 export const useChatMessaging = (
   messages: Message[],
   selectedBot: Bot | undefined,
   sendMessage: (message: string) => Promise<void>,
-  isExceeded: boolean,
-  disabledReason?: string
+  isExceeded: boolean
 ) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const { toast } = useToast();
+  const handleSendMessage = useCallback(async (message: string) => {
+    if (!selectedBot) return;
+    await sendMessage(message);
+  }, [selectedBot, sendMessage]);
 
-  const handleSendMessage = async (message: string) => {
-    if (!selectedBot) {
-      toast({
-        title: "No bot selected",
-        description: "Please select a bot to start chatting",
-        variant: "destructive",
-      });
-      return;
-    }
+  const isLoading = messages.length > 0 && messages[messages.length - 1].role === "user";
+  const isStreaming = false; // This would be set by your streaming implementation
 
-    try {
-      setIsLoading(true);
-      setIsStreaming(true);
-      await sendMessage(message);
-    } finally {
-      setIsLoading(false);
-      setIsStreaming(false);
-    }
-  };
+  const disabled = !selectedBot || isExceeded;
+  const disabledReason = isExceeded ? "Usage limit exceeded" : !selectedBot ? "Select a model to start chatting" : "";
 
   return {
     isLoading,
     isStreaming,
     handleSendMessage,
-    disabled: !selectedBot || isExceeded,
-    disabledReason: isExceeded ? "Usage limit exceeded" : disabledReason
+    disabled,
+    disabledReason
   };
 };
