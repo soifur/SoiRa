@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuizButton } from "./quiz/QuizButton";
@@ -41,7 +40,6 @@ export const MessageList = ({
   disabledReason,
   onQuizComplete
 }: MessageListProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   // Fetch shared bot data including quiz_mode and share_key
@@ -96,11 +94,11 @@ export const MessageList = ({
   const showQuizButton = selectedBot && sharedBot?.quiz_mode && sharedBot?.share_key;
 
   return (
-    <div className="h-full relative flex flex-col overflow-hidden">
-      <ScrollArea className="h-full">
+    <div className="h-full relative">
+      <div className="fixed inset-0 pt-16 pb-24">
         <div className={cn(
           "h-full p-4",
-          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
+          messages.length === 0 ? "flex flex-col items-center justify-center" : "relative"
         )}>
           {messages.length === 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
@@ -173,7 +171,7 @@ export const MessageList = ({
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
