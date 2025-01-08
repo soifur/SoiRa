@@ -70,23 +70,6 @@ export const MessageList = ({
     }
   }, [messages, isLoading]);
 
-  const getStarterIcon = (starter: string) => {
-    const lowerStarter = starter.toLowerCase();
-    if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
-      return HelpCircle;
-    }
-    if (lowerStarter.includes('code') || lowerStarter.includes('program')) {
-      return Code;
-    }
-    if (lowerStarter.includes('explain') || lowerStarter.includes('learn')) {
-      return BookOpen;
-    }
-    if (lowerStarter.includes('idea') || lowerStarter.includes('suggest')) {
-      return Lightbulb;
-    }
-    return MessageCircle;
-  };
-
   if (!Array.isArray(messages)) {
     console.warn("Messages prop is not an array:", messages);
     return null;
@@ -99,7 +82,6 @@ export const MessageList = ({
     <div className="h-full relative flex flex-col overflow-hidden">
       <ScrollArea className="h-full">
         <div className={cn(
-          "h-full p-4",
           messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
         )}>
           {messages.length === 0 ? (
@@ -176,4 +158,21 @@ export const MessageList = ({
       </ScrollArea>
     </div>
   );
+};
+
+const getStarterIcon = (starter: string) => {
+  const lowerStarter = starter.toLowerCase();
+  if (lowerStarter.includes('help') || lowerStarter.includes('how')) {
+    return HelpCircle;
+  }
+  if (lowerStarter.includes('code') || lowerStarter.includes('program')) {
+    return Code;
+  }
+  if (lowerStarter.includes('explain') || lowerStarter.includes('learn')) {
+    return BookOpen;
+  }
+  if (lowerStarter.includes('idea') || lowerStarter.includes('suggest')) {
+    return Lightbulb;
+  }
+  return MessageCircle;
 };
