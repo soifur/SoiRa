@@ -33,8 +33,8 @@ export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
           type={field.field_type}
           value={value as string || ''}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full p-3 text-lg"
-          placeholder={`Enter your ${field.field_type}`}
+          className="w-full p-6 text-lg min-h-[100px] text-center"
+          placeholder="Type here..."
         />
       )}
 
