@@ -97,7 +97,7 @@ export const MessageList = ({
 
   return (
     <div className="h-full relative flex flex-col">
-      <ScrollArea>
+      <ScrollArea className="h-full">
         <div className={cn(
           "h-full p-4",
           messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
