@@ -34,10 +34,10 @@ export const ChatLayout = ({
     useChatMessaging(messages, selectedBot, sendMessage, isExceeded);
 
   return (
-    <div className="flex-1 relative overflow-hidden">
-      <div className={layoutClasses.container}>
+    <div className="fixed top-14 left-0 right-0 bottom-0 overflow-hidden bg-background">
+      <div className={`h-full transition-[margin] duration-300 ease-in-out ${showHistory ? 'ml-64' : 'ml-0'}`}>
         <div className="flex-1 overflow-hidden">
-          <div className="h-full pt-16 pb-16">
+          <div className="h-full pt-4 pb-16">
             {selectedBot ? (
               <MessageList
                 messages={messages}
@@ -57,8 +57,8 @@ export const ChatLayout = ({
           </div>
         </div>
 
-        <div className={layoutClasses.inputContainer}>
-          <div className="max-w-3xl mx-auto p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t transition-[margin] duration-300 ease-in-out">
+          <div className={`max-w-3xl mx-auto p-4 ${showHistory ? 'ml-64' : 'ml-0'}`}>
             <ChatInput
               onSend={handleSendMessage}
               disabled={disabled}
