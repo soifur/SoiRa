@@ -109,7 +109,7 @@ export const MessageList = ({
                   <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
                     {selectedBot.name}
                   </h2>
-                  {showQuizButton && (
+                  {showQuizButton && selectedBot.id && (
                     <div className="mb-4">
                       <QuizButton 
                         bot_id={selectedBot.id}

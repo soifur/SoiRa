@@ -102,8 +102,8 @@ export const MainChatHeader = ({
                       />
                       {selectedBotId && (
                         <QuizButton 
-                          bot_id={selectedBotId} 
-                          onStartQuiz={() => {}} 
+                          bot_id={selectedBotId}
+                          onStartQuiz={() => {}}
                           onQuizComplete={onQuizComplete}
                         />
                       )}
