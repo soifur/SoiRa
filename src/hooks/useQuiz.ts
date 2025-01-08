@@ -10,6 +10,7 @@ interface UseQuizProps {
 export const useQuiz = ({ botId, onQuizComplete }: UseQuizProps) => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
 
   // Check if bot is published and has quiz mode enabled
   const { data: bot, isLoading: isBotLoading } = useQuery({
@@ -56,18 +57,25 @@ export const useQuiz = ({ botId, onQuizComplete }: UseQuizProps) => {
 
   const handleQuizComplete = async (instructions: string) => {
     setIsLoading(true);
-    // Add a delay to ensure Supabase has time to update
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    onQuizComplete?.(instructions);
-    setShowModal(false);
-    setIsLoading(false);
+    try {
+      onQuizComplete?.(instructions);
+      setHasCompleted(true);
+    } finally {
+      setShowModal(false);
+      setIsLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
   };
 
-  const shouldShowQuiz = !isBotLoading && !isQuizConfigLoading && bot?.published && bot?.quiz_mode && quizConfig?.enabled;
+  const shouldShowQuiz = !isBotLoading && 
+                        !isQuizConfigLoading && 
+                        bot?.published && 
+                        bot?.quiz_mode && 
+                        quizConfig?.enabled &&
+                        !hasCompleted;
 
   return {
     showModal,

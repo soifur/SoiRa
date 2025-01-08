@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { QuizModal } from "./QuizModal";
 import { useQuiz } from "@/hooks/useQuiz";
 
@@ -18,7 +18,13 @@ export const QuizButton = ({ bot_id, onStartQuiz, onQuizComplete }: QuizButtonPr
     handleQuizStart,
     handleQuizComplete,
     handleCloseModal
-  } = useQuiz({ botId: bot_id, onQuizComplete });
+  } = useQuiz({ 
+    botId: bot_id, 
+    onQuizComplete: (instructions) => {
+      handleCloseModal();
+      onQuizComplete?.(instructions);
+    }
+  });
 
   if (!shouldShowQuiz) {
     return null;
@@ -27,22 +33,27 @@ export const QuizButton = ({ bot_id, onStartQuiz, onQuizComplete }: QuizButtonPr
   return (
     <>
       <Button
-        variant="default"
-        size="sm"
+        size="lg"
         onClick={() => {
           onStartQuiz();
           handleQuizStart();
         }}
-        className="ml-2"
+        className="w-full md:w-auto px-8 py-6 text-lg font-semibold rounded-xl
+                   bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600
+                   transform transition-all duration-200 hover:scale-105 active:scale-95
+                   shadow-lg hover:shadow-xl"
         disabled={isLoading}
       >
         {isLoading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Loading...
           </>
         ) : (
-          'Start Now'
+          <>
+            Click Here to Get Started
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </>
         )}
       </Button>
       

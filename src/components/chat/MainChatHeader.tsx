@@ -10,7 +10,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/user";
 import { HeaderButtons } from "./header/HeaderButtons";
-import { QuizButton } from "./header/QuizButton";
 import { BotDropdown } from "./header/BotDropdown";
 
 interface MainChatHeaderProps {
@@ -32,7 +31,6 @@ export const MainChatHeader = ({
   onSignOut,
   onToggleHistory,
   showHistory,
-  onQuizComplete
 }: MainChatHeaderProps) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -100,13 +98,6 @@ export const MainChatHeader = ({
                         setSelectedBotId={setSelectedBotId}
                         uniqueBots={uniqueBots}
                       />
-                      {selectedBotId && (
-                        <QuizButton 
-                          bot_id={selectedBotId}
-                          onStartQuiz={() => {}}
-                          onQuizComplete={onQuizComplete}
-                        />
-                      )}
                     </>
                   )}
 
