@@ -1,8 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Root theme variables */
+ 
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -26,6 +25,7 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
   }
+ 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -48,51 +48,42 @@
     --ring: 212.7 26.8% 83.9%;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
-    margin: 0;
-    padding: 0;
-    height: 100%;
+    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+    position: fixed;
+    width: 100%;
     overflow: hidden;
   }
-  #root {
-    height: 100vh;
-    overflow: hidden;
-  }
 }
 
-/* Main layout containers */
-.main-layout {
-  @apply flex flex-col h-full w-full;
-  height: 100vh;
-  overflow: hidden;
+.chat-container {
+  @apply flex flex-col h-[100dvh] max-w-[1200px] mx-auto p-4;
+  position: relative;
 }
 
-.header-container {
-  @apply w-full;
-  height: 5%;
-  min-height: 48px;
+.chat-messages {
+  @apply flex-1 overflow-y-auto p-4 mb-4 pt-16;
 }
 
-.messages-container {
-  @apply w-full relative;
-  height: 88%;
-  overflow-y: auto;
+.chat-input {
+  @apply p-4 bg-white border-t border-gray-200;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--background);
   -webkit-overflow-scrolling: touch;
 }
 
-.input-container {
-  @apply w-full bg-background border-t border-gray-200;
-  height: 7%;
-  min-height: 56px;
-}
-
-/* Keep all existing message and markdown styling */
 .message {
   @apply mb-4 p-2 rounded-lg;
 }
@@ -103,6 +94,14 @@
 
 .bot-message {
   @apply bg-gray-50 mr-auto max-w-[80%];
+}
+
+.typing-indicator {
+  @apply flex items-center gap-2;
+}
+
+.dot {
+  @apply w-2 h-2 bg-gray-500 rounded-full animate-bounce;
 }
 
 .markdown-content {

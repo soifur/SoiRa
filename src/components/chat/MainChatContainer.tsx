@@ -1,8 +1,6 @@
 import { Bot } from "@/hooks/useBots";
 import { Message } from "@/components/chat/types/chatTypes";
-import { MainChatHeader } from "@/components/chat/MainChatHeader";
-import { ChatInput } from "@/components/chat/ChatInput";
-import { MessageList } from "@/components/chat/MessageList";
+import { ChatContainer } from "@/components/chat/ChatContainer";
 import { LimitExceededMessage } from "@/components/chat/LimitExceededMessage";
 
 interface MainChatContainerProps {
@@ -33,50 +31,25 @@ export const MainChatContainer = ({
   showHistory
 }: MainChatContainerProps) => {
   return (
-    <div className="main-layout">
-      <div className="header-container">
-        <MainChatHeader
-          selectedBotId={selectedBot?.id}
-          showHistory={showHistory}
-        />
-      </div>
-
-      <div className="messages-container">
-        <MessageList
-          messages={messages}
-          selectedBot={selectedBot}
-          starters={selectedBot?.starters || []}
-          onStarterClick={!isExceeded ? sendMessage : undefined}
-          isLoading={isLoading}
-          isStreaming={isStreaming}
-          disabled={isExceeded}
-          disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
-        />
-      </div>
-
-      <div className="input-container">
-        <ChatInput
-          onSend={sendMessage}
-          disabled={!selectedBot || isExceeded}
-          isLoading={isLoading}
-          placeholder={
-            isExceeded ? "Usage limit exceeded" :
-            selectedBot ? "Type your message..." :
-            "Select a model to start chatting"
-          }
-          onUpgradeClick={onUpgradeClick}
-        />
-      </div>
-
+    <div className="flex-1 relative overflow-hidden">
+      <ChatContainer
+        selectedBot={selectedBot}
+        messages={messages}
+        isLoading={isLoading}
+        isStreaming={isStreaming}
+        sendMessage={sendMessage}
+        disabled={isExceeded}
+        disabledReason={isExceeded ? "Usage limit exceeded" : undefined}
+        onUpgradeClick={onUpgradeClick}
+        showHistory={showHistory}
+      />
       {isExceeded && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <LimitExceededMessage
-            limitType={limitType}
-            maxUsage={maxUsage}
-            resetDate={resetDate}
-            onUpgrade={onUpgradeClick}
-          />
-        </div>
+        <LimitExceededMessage
+          limitType={limitType}
+          maxUsage={maxUsage}
+          resetDate={resetDate}
+          onUpgrade={onUpgradeClick}
+        />
       )}
     </div>
   );
