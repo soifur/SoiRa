@@ -34,9 +34,9 @@ export const ChatLayout = ({
     useChatMessaging(messages, selectedBot, sendMessage, isExceeded);
 
   return (
-    <div className="flex-1 relative">
+    <div className="flex-1 relative overflow-hidden">
       <div className={layoutClasses.container}>
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden">
           <div className="h-full pt-16 pb-16">
             {selectedBot ? (
               <MessageList
