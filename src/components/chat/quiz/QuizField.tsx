@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input } from "@/components/ui/input";
-import { QuizButton } from './QuizButton';
+import { QuizChoiceButton } from './QuizChoiceButton';
 import { Field } from '@/components/bot/quiz/QuizFieldBuilder';
 
 interface QuizFieldProps {
@@ -41,13 +41,13 @@ export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
       {field.field_type === 'single_choice' && field.choices && (
         <div className="grid gap-4">
           {field.choices.map((choice) => (
-            <QuizButton
+            <QuizChoiceButton
               key={choice}
               selected={value === choice}
               onClick={() => handleSingleChoice(choice)}
             >
               {choice}
-            </QuizButton>
+            </QuizChoiceButton>
           ))}
         </div>
       )}
@@ -55,13 +55,13 @@ export const QuizField = ({ field, value, onChange }: QuizFieldProps) => {
       {field.field_type === 'multiple_choice' && field.choices && (
         <div className="grid gap-4">
           {field.choices.map((choice) => (
-            <QuizButton
+            <QuizChoiceButton
               key={choice}
               selected={Array.isArray(value) && value.includes(choice)}
               onClick={() => handleMultipleChoice(choice)}
             >
               {choice}
-            </QuizButton>
+            </QuizChoiceButton>
           ))}
         </div>
       )}
