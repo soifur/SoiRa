@@ -166,25 +166,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const handleQuizComplete = async (quizInstructions: string) => {
     if (!bot) return;
     
-    try {
-      const { data: botData } = await supabase
-        .from('bots')
-        .select('instructions')
-        .eq('id', bot.id)
-        .single();
+    const { data: botData } = await supabase
+      .from('bots')
+      .select('instructions')
+      .eq('id', bot.id)
+      .single();
 
-      const combinedInstructions = `${botData?.instructions || ''} ${quizInstructions}`.trim();
-      
-      // Create a user message first
-      const userMessage = createMessage("user", "Let's start");
-      const updatedMessages = [...messages, userMessage];
-      setMessages(updatedMessages);
-      
-      // Then trigger the bot response
-      await sendMessage("Let's start");
-    } catch (error) {
-      console.error('Error handling quiz completion:', error);
-    }
+    const combinedInstructions = `${botData?.instructions || ''} ${quizInstructions}`.trim();
+    await sendMessage("Let's start");
   };
 
   return (

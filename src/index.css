@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -10,7 +10,7 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -20,57 +20,157 @@
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
+    --border: 240 5.9% 90%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --dropdown: 0 0% 100%;
+    --dropdown-hover: 0 0% 96%;
   }
- 
+
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 240 2% 13%;
+    --foreground: 210 20% 98%;
+    --card: 240 2% 13%;
+    --card-foreground: 210 20% 98%;
+    --popover: 240 2% 13%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 220 10% 12%;
+    --secondary: 240 2% 13%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 240 2% 13%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 240 2% 13%;
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 240 2% 13%;
+    --input: 240 2% 13%;
+    --ring: 216 12.2% 83.9%;
+    --dropdown: 0 0% 4%;  /* #0b0b0b */
+    --dropdown-hover: 0 0% 16%;  /* #2a2a2a */
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+* {
+  @apply border-border;
 }
 
-/* Ensure dropdowns have proper styling */
-[data-radix-popper-content-wrapper] {
-  @apply z-50 !important;
+body {
+  @apply bg-background text-foreground;
 }
 
-.select-content {
-  @apply bg-popover border border-border shadow-md rounded-md overflow-hidden;
+#root {
+  @apply min-h-screen bg-background;
 }
 
-.select-viewport {
-  @apply p-1;
+/* Remove smooth scrolling which can interfere with theme toggle */
+* {
+  scroll-behavior: auto !important;
 }
 
-.select-item {
-  @apply relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+/* Light mode overrides */
+:root {
+  --sidebar-bg: 240 5.9% 95%;
+  --sidebar-hover: 0 0% 85%;
+  --button-bg: 240 5.9% 95%;
+  --button-hover: 0 0% 85%;
+}
+
+/* Make avatar background transparent */
+.avatar-container,
+[role="menuitem"] .avatar,
+.avatar,
+.avatar > *,
+.avatar-fallback,
+span[class*="overflow-hidden rounded-full"],
+span[class*="overflow-hidden rounded-full"] img,
+[data-radix-popper-content-wrapper] .avatar,
+[data-radix-popper-content-wrapper] span[class*="overflow-hidden rounded-full"],
+.relative.flex.shrink-0.overflow-hidden.rounded-full {
+  @apply bg-transparent !important;
+}
+
+/* Override any Radix UI or other library defaults */
+.avatar img,
+.avatar-fallback,
+.relative.flex.shrink-0.overflow-hidden.rounded-full img {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Dark mode overrides */
+.dark {
+  --sidebar-bg: 0 0% 8%;  /* #141414 */
+  --sidebar-hover: 0 0% 15%;  /* #262626 */
+  --button-bg: 0 0% 8%;  /* #141414 */
+  --button-hover: 0 0% 15%;  /* #262626 */
+}
+
+/* Update MainChatHistory sidebar styles */
+.fixed.top-0.left-0.h-screen {
+  @apply bg-[hsl(var(--sidebar-bg))] border-0 shadow-none;
+}
+
+/* Update hover states */
+.hover\:bg-accent {
+  @apply hover:bg-[hsl(var(--button-hover))] bg-[hsl(var(--button-bg))];
+}
+
+.hover\:bg-accent\/50 {
+  @apply hover:bg-[hsl(var(--button-hover))] bg-[hsl(var(--button-bg))];
+}
+
+/* Remove borders in light mode */
+.light .border-r,
+.light .border-b,
+.light .border-t {
+  @apply border-0;
+}
+
+/* Keep dark mode borders */
+.dark .border-r,
+.dark .border-b,
+.dark .border-t {
+  @apply border-border;
+}
+
+/* Make avatar background transparent */
+.avatar-container {
+  @apply bg-transparent !important;
+}
+
+[role="menuitem"] .avatar {
+  @apply bg-transparent !important;
+}
+
+.avatar {
+  @apply bg-transparent !important;
+}
+
+/* Override any other avatar background styles */
+.avatar > * {
+  @apply bg-transparent !important;
+}
+
+.avatar-fallback {
+  @apply bg-transparent !important;
+}
+
+/* Ensure transparent background for all avatar-related elements */
+span[class*="overflow-hidden rounded-full"] {
+  @apply bg-transparent !important;
+}
+
+/* Force transparent background on avatar images */
+.avatar img,
+span[class*="overflow-hidden rounded-full"] img {
+  @apply bg-transparent !important;
+}
+
+/* Override any Radix UI default backgrounds */
+[data-radix-popper-content-wrapper] .avatar,
+[data-radix-popper-content-wrapper] span[class*="overflow-hidden rounded-full"] {
+  @apply bg-transparent !important;
 }

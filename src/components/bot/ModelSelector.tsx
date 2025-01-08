@@ -7,7 +7,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bot } from "@/hooks/useBots";
-import { cn } from "@/lib/utils";
 
 interface ModelSelectorProps {
   bot: Bot;
@@ -119,21 +118,10 @@ export const ModelSelector = ({
           }
           disabled={disabled}
         >
-          <SelectTrigger 
-            className={cn(
-              "w-full bg-background border border-input hover:bg-accent hover:text-accent-foreground",
-              "h-10 px-3 py-2",
-              disabled ? "opacity-50 cursor-not-allowed" : "",
-              "dark:bg-gray-800 dark:border-gray-700"
-            )}
-          >
+          <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
-          <SelectContent 
-            className="z-50 min-w-[200px] bg-popover border border-border shadow-md rounded-md overflow-hidden"
-            position="popper"
-            align="start"
-          >
+          <SelectContent>
             <SelectItem value="gemini">Google Gemini</SelectItem>
             <SelectItem value="claude">Anthropic Claude</SelectItem>
             <SelectItem value="openai">OpenAI GPT</SelectItem>
@@ -152,21 +140,10 @@ export const ModelSelector = ({
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
             disabled={disabled}
           >
-            <SelectTrigger 
-              className={cn(
-                "w-full bg-background border border-input hover:bg-accent hover:text-accent-foreground",
-                "h-10 px-3 py-2",
-                disabled ? "opacity-50 cursor-not-allowed" : "",
-                "dark:bg-gray-800 dark:border-gray-700"
-              )}
-            >
+            <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
-            <SelectContent 
-              className="z-50 max-h-[300px] overflow-y-auto bg-popover border border-border shadow-md rounded-md"
-              position="popper"
-              align="start"
-            >
+            <SelectContent className="max-h-[300px] overflow-y-auto">
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}
