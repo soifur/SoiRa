@@ -27,7 +27,7 @@ export const BotDropdown = ({
     <Select value={selectedBotId || ''} onValueChange={setSelectedBotId}>
       <SelectTrigger 
         className={cn(
-          "custom-bot-dropdown h-8 text-sm bg-transparent hover:bg-dropdown-hover",
+          "h-8 text-sm bg-transparent hover:bg-dropdown-hover",
           "inline-flex items-center whitespace-nowrap",
           isMobile ? "w-auto max-w-[calc(100vw-120px)]" : "flex-shrink"
         )}
@@ -47,7 +47,7 @@ export const BotDropdown = ({
       </SelectTrigger>
       <SelectContent 
         align={isMobile ? "center" : "start"}
-        className="custom-bot-dropdown-content min-w-[240px] rounded-xl p-1 bg-background border"
+        className="min-w-[240px] rounded-xl p-1"
         position="popper"
         side="bottom"
         sideOffset={4}
@@ -56,7 +56,7 @@ export const BotDropdown = ({
           <SelectItem 
             key={bot.id} 
             value={bot.id}
-            className="custom-bot-dropdown-item py-3 px-2 rounded-lg hover:bg-dropdown-hover cursor-pointer"
+            className="py-3 px-2 rounded-lg hover:bg-dropdown-hover cursor-pointer"
           >
             <div className="flex items-center gap-3">
               {bot.avatar && (

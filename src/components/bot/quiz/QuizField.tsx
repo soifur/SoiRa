@@ -1,18 +1,11 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { QuizChoiceButton } from "@/components/chat/quiz/QuizChoiceButton";
-import { Field, FieldType } from '@/components/bot/quiz/QuizFieldBuilder';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Field, FieldType } from "./QuizFieldBuilder";
 import { Trash2 } from "lucide-react";
 
 interface QuizFieldProps {
@@ -47,14 +40,11 @@ export const QuizField = ({ field, onChange, onRemove }: QuizFieldProps) => {
         <div className="flex-1 space-y-4">
           <div>
             <Label>Field Type</Label>
-            <Select 
-              value={field.field_type} 
-              onValueChange={handleTypeChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select field type" />
+            <Select value={field.field_type} onValueChange={handleTypeChange}>
+              <SelectTrigger>
+                <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-background border">
+              <SelectContent>
                 <SelectItem value="text">Text</SelectItem>
                 <SelectItem value="email">Email</SelectItem>
                 <SelectItem value="phone">Phone</SelectItem>

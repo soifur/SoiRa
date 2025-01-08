@@ -156,8 +156,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             />
 
             <ModelSelector 
-              selectedModel={editingBot.model}
-              selectedOpenRouterModel={editingBot.openRouterModel}
+              bot={editingBot}
               onModelChange={handleModelChange}
               onOpenRouterModelChange={(model) => handleBotChange({ openRouterModel: model })}
             />

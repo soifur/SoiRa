@@ -192,34 +192,3 @@
 .dark .text-destructive {
   color: #ffffff !important;
 }
-
-/* Custom styles for BotDropdown */
-.custom-bot-dropdown {
-  @apply bg-background border;
-}
-
-.custom-bot-dropdown-content {
-  @apply z-50;
-}
-
-.custom-bot-dropdown-item {
-  @apply bg-background;
-}
-
-/* Custom styles for ProfileMenu */
-.custom-profile-menu {
-  @apply bg-background;
-}
-
-.custom-profile-menu-content {
-  @apply z-50;
-}
-
-/* Reset other dropdowns to default shadcn/ui styling */
-.select-trigger:not(.custom-bot-dropdown):not(.custom-profile-menu) {
-  @apply w-full bg-background border;
-}
-
-.select-content:not(.custom-bot-dropdown-content):not(.custom-profile-menu-content) {
-  @apply z-50 bg-background border;
-}

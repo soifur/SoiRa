@@ -9,8 +9,7 @@ import {
 import { Bot } from "@/hooks/useBots";
 
 interface ModelSelectorProps {
-  selectedModel: Bot['model'];
-  selectedOpenRouterModel?: string;
+  bot: Bot;
   onModelChange: (model: "gemini" | "claude" | "openai" | "openrouter") => void;
   onOpenRouterModelChange: (model: string) => void;
   isMemorySelector?: boolean;
@@ -28,8 +27,7 @@ interface OpenRouterModel {
 }
 
 export const ModelSelector = ({ 
-  selectedModel,
-  selectedOpenRouterModel,
+  bot, 
   onModelChange, 
   onOpenRouterModelChange, 
   isMemorySelector = false,
@@ -45,8 +43,10 @@ export const ModelSelector = ({
         const response = await fetch('https://openrouter.ai/api/v1/models');
         const data = await response.json();
         
+        // Filter, transform, and sort the models
         const models = (data.data || [])
           .filter((model: OpenRouterModel) => 
+            // Only include models that have required fields
             model?.id && 
             model?.name && 
             typeof model?.pricing === 'object'
@@ -64,6 +64,7 @@ export const ModelSelector = ({
             a.name.localeCompare(b.name)
           );
 
+        // Add the auto router option at the beginning
         setOpenRouterModels([
           {
             id: "auto",
@@ -75,6 +76,7 @@ export const ModelSelector = ({
         ]);
       } catch (error) {
         console.error('Error fetching OpenRouter models:', error);
+        // Fallback to a minimal set of reliable models if the API fails
         setOpenRouterModels([
           {
             id: "auto",
@@ -110,16 +112,16 @@ export const ModelSelector = ({
           {isMemorySelector ? "Memory Model" : "Model"}
         </label>
         <Select
-          value={selectedModel}
+          value={bot.model}
           onValueChange={(value: "gemini" | "claude" | "openai" | "openrouter") =>
             onModelChange(value)
           }
           disabled={disabled}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
-          <SelectContent className="bg-background border">
+          <SelectContent>
             <SelectItem value="gemini">Google Gemini</SelectItem>
             <SelectItem value="claude">Anthropic Claude</SelectItem>
             <SelectItem value="openai">OpenAI GPT</SelectItem>
@@ -128,20 +130,20 @@ export const ModelSelector = ({
         </Select>
       </div>
 
-      {selectedModel === "openrouter" && (
+      {bot.model === "openrouter" && (
         <div>
           <label className="block text-sm font-medium mb-1">
             {isMemorySelector ? "OpenRouter Memory Model" : "OpenRouter Model"}
           </label>
           <Select
-            value={selectedOpenRouterModel}
+            value={bot.openRouterModel}
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
             disabled={disabled}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
-            <SelectContent className="bg-background border">
+            <SelectContent className="max-h-[300px] overflow-y-auto">
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}
