@@ -162,25 +162,22 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
         onComplete(combinedInstructions);
         
-        // Send "Start Now" message after quiz completion
-        const startMessage = "Start Now";
-        const chatInput = document.querySelector('textarea') as HTMLTextAreaElement;
-        if (chatInput) {
-          chatInput.value = startMessage;
-          // Trigger input event to update any React state
-          const inputEvent = new Event('input', { bubbles: true });
-          chatInput.dispatchEvent(inputEvent);
+        // Find the chat form and submit button
+        const chatForm = document.querySelector('form') as HTMLFormElement;
+        const chatInput = chatForm?.querySelector('textarea') as HTMLTextAreaElement;
+        const submitButton = chatForm?.querySelector('button[type="submit"]') as HTMLButtonElement;
+        
+        if (chatInput && submitButton) {
+          // Set the input value
+          chatInput.value = "Start Now";
           
-          // Find the closest form and trigger submit without page refresh
-          const form = chatInput.closest('form');
-          if (form) {
-            const submitEvent = new Event('submit');
-            const originalSubmit = form.onsubmit;
-            if (originalSubmit && typeof originalSubmit === 'function') {
-              originalSubmit.call(form, submitEvent);
-            }
-          }
+          // Trigger input event to update React state
+          chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+          
+          // Click the submit button to trigger the form submission
+          submitButton.click();
         }
+
         onClose();
       } catch (error) {
         console.error('Error saving quiz responses:', error);
