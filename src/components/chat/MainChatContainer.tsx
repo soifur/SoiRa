@@ -36,9 +36,7 @@ export const MainChatContainer = ({
     <div className="main-layout">
       <div className="header-container">
         <MainChatHeader
-          selectedBot={selectedBot}
-          messages={messages}
-          isLoading={isLoading}
+          selectedBotId={selectedBot?.id}
           showHistory={showHistory}
         />
       </div>
