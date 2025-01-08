@@ -55,7 +55,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    height: 100%;
     margin: 0;
     padding: 0;
   }
@@ -63,7 +62,7 @@
 
 .chat-container {
   @apply flex flex-col max-w-[1200px] mx-auto;
-  height: 100vh;
+  min-height: 100dvh;
 }
 
 .chat-messages {
