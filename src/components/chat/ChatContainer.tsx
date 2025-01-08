@@ -39,7 +39,7 @@ export const ChatContainer = ({
     )}>
       {/* Message List Container */}
       <div className="flex-1 overflow-hidden">
-        <div className="h-full pt-14 pb-[80px]"> {/* Added padding bottom to account for fixed input */}
+        <div className="h-full pt-16 pb-20"> {/* Adjusted padding to create perfect spacing */}
           {selectedBot ? (
             <MessageList
               messages={messages}
