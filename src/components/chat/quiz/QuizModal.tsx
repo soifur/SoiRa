@@ -170,6 +170,12 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
     }
   };
 
+  const handlePrevious = () => {
+    if (currentSection > 0) {
+      setCurrentSection(prev => prev - 1);
+    }
+  };
+
   if (loading) {
     return null;
   }
@@ -210,7 +216,9 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
               responses={responses}
               onResponse={handleResponse}
               onNext={handleNext}
+              onPrevious={handlePrevious}
               isLastSection={currentSection === sections.length - 1}
+              isFirstSection={currentSection === 0}
             />
           )}
         </div>

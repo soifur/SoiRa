@@ -2,13 +2,16 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { QuizField } from './QuizField';
 import { Field } from '@/components/bot/quiz/QuizFieldBuilder';
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface QuizSectionProps {
   fields: Field[];
   responses: Record<string, string | string[]>;
   onResponse: (fieldId: string, value: string | string[]) => void;
   onNext: () => void;
+  onPrevious?: () => void;
   isLastSection: boolean;
+  isFirstSection?: boolean;
 }
 
 export const QuizSection = ({ 
@@ -16,7 +19,9 @@ export const QuizSection = ({
   responses, 
   onResponse, 
   onNext,
-  isLastSection 
+  onPrevious,
+  isLastSection,
+  isFirstSection = true
 }: QuizSectionProps) => {
   const isComplete = fields.every(field => {
     const response = responses[field.id!];
@@ -34,14 +39,39 @@ export const QuizSection = ({
         />
       ))}
       
-      {isComplete && (
-        <Button
-          onClick={onNext}
-          className="mt-8 px-8 py-6 text-lg font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200"
-        >
-          {isLastSection ? "Let's Start" : "Next"}
-        </Button>
-      )}
+      <div className="flex gap-4 mt-8">
+        {!isFirstSection && (
+          <Button
+            onClick={onPrevious}
+            className="px-6 py-4 text-lg font-semibold bg-gray-500 hover:bg-gray-600
+                     transform hover:scale-105 transition-all duration-200"
+          >
+            <ArrowLeft className="mr-2 h-5 w-5" />
+            Previous
+          </Button>
+        )}
+        
+        {isComplete && (
+          <Button
+            onClick={onNext}
+            className="px-8 py-4 text-lg font-semibold bg-gradient-to-r from-violet-500 to-pink-500 
+                     hover:from-violet-600 hover:to-pink-600 transform hover:scale-105 
+                     transition-all duration-200"
+          >
+            {isLastSection ? (
+              <>
+                Let's Start
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </>
+            ) : (
+              <>
+                Next
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </>
+            )}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

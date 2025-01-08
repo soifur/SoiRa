@@ -163,6 +163,19 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
     }
   };
 
+  const handleQuizComplete = async (quizInstructions: string) => {
+    if (!bot) return;
+    
+    const { data: botData } = await supabase
+      .from('bots')
+      .select('instructions')
+      .eq('id', bot.id)
+      .single();
+
+    const combinedInstructions = `${botData?.instructions || ''} ${quizInstructions}`.trim();
+    await sendMessage("Let's start");
+  };
+
   return (
     <Card className="flex flex-col h-full p-4 bg-card">
       <div className="flex justify-end mb-4">
@@ -184,6 +197,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           onStarterClick={sendMessage}
           isLoading={isLoading}
           isStreaming={isStreaming}
+          onQuizComplete={handleQuizComplete}
         />
         <div ref={messagesEndRef} />
       </div>
