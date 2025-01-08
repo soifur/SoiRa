@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import { LoaderCircle, Copy } from "lucide-react";
@@ -17,7 +17,7 @@ export interface ChatMessageProps {
   showQuizButton?: boolean;
 }
 
-export const ChatMessage = ({ 
+export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(({ 
   message, 
   isBot, 
   avatar, 
@@ -26,7 +26,7 @@ export const ChatMessage = ({
   botName,
   onStartQuiz,
   showQuizButton
-}: ChatMessageProps) => {
+}, ref) => {
   const { toast } = useToast();
   const isEmbedded = window.location.pathname === '/embedded';
 
@@ -42,6 +42,7 @@ export const ChatMessage = ({
 
   return (
     <div
+      ref={ref}
       className={cn(
         "flex flex-col gap-3 w-full max-w-3xl mx-auto px-4",
         isBot ? "items-start" : "items-end"
@@ -149,4 +150,6 @@ export const ChatMessage = ({
       </div>
     </div>
   );
-};
+});
+
+ChatMessage.displayName = "ChatMessage";
