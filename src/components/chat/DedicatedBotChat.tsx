@@ -222,6 +222,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         />
       </div>
     </Card>
+  );
 };
 
 export default DedicatedBotChat;
