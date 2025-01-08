@@ -116,10 +116,10 @@ export const ModelSelector = ({
           }
           disabled={disabled}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background border">
             <SelectItem value="gemini">Google Gemini</SelectItem>
             <SelectItem value="claude">Anthropic Claude</SelectItem>
             <SelectItem value="openai">OpenAI GPT</SelectItem>
@@ -138,10 +138,10 @@ export const ModelSelector = ({
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
             disabled={disabled}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border">
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}

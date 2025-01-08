@@ -133,7 +133,7 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <div className="p-4 hover:bg-accent/0 transition-colors cursor-pointer bg-transparent">
+          <div className="custom-profile-menu p-4 hover:bg-accent/0 transition-colors cursor-pointer bg-transparent">
             <div className="flex items-center gap-3">
               <ProfileAvatar avatarUrl={avatarUrl} initials={initials} />
               {fullName && (
@@ -148,7 +148,10 @@ export const ProfileMenu = ({ fullName }: ProfileMenuProps) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="end" 
-          className={`${isMobile ? 'w-[calc(100vw-2rem)]' : 'w-48'}`}
+          className={cn(
+            "custom-profile-menu-content bg-background border",
+            isMobile ? 'w-[calc(100vw-2rem)]' : 'w-48'
+          )}
         >
           <ProfileMenuItems 
             onUpgrade={handleUpgrade}

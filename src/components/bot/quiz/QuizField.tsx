@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { QuizChoiceButton } from './QuizChoiceButton';
+import { Field } from '@/components/bot/quiz/QuizFieldBuilder';
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -11,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Field, FieldType } from "./QuizFieldBuilder";
 import { Trash2 } from "lucide-react";
 
 interface QuizFieldProps {
@@ -50,10 +51,10 @@ export const QuizField = ({ field, onChange, onRemove }: QuizFieldProps) => {
               value={field.field_type} 
               onValueChange={handleTypeChange}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select field type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background border">
                 <SelectItem value="text">Text</SelectItem>
                 <SelectItem value="email">Email</SelectItem>
                 <SelectItem value="phone">Phone</SelectItem>
