@@ -7,6 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { ProfileAvatar } from "./profile/ProfileAvatar";
 import { ProfileMenuItems } from "./profile/ProfileMenuItems";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
