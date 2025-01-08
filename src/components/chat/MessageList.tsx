@@ -97,13 +97,16 @@ export const MessageList = ({
 
   return (
     <div className="relative h-full flex flex-col overflow-hidden">
-      <ScrollArea className="flex-1">
+      <ScrollArea className={cn(
+        "flex-1",
+        messages.length === 0 && "overflow-hidden"
+      )}>
         <div className={cn(
           "h-full",
           messages.length === 0 ? "flex items-center justify-center" : "space-y-4 relative p-4"
         )}>
           {messages.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto">
+            <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto h-full">
               {selectedBot && (
                 <>
                   <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
