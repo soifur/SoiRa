@@ -136,7 +136,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Card className="w-full h-[100dvh] overflow-hidden relative">
+      <Card className="w-full overflow-hidden relative">
         <div className="flex h-full">
           <div className="flex-1 flex flex-col h-full relative w-full overflow-hidden">
             <MainChatHeader
