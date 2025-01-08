@@ -7,7 +7,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bot } from "@/hooks/useBots";
-import { cn } from "@/lib/utils";
 
 interface ModelSelectorProps {
   bot: Bot;
@@ -15,7 +14,6 @@ interface ModelSelectorProps {
   onOpenRouterModelChange: (model: string) => void;
   isMemorySelector?: boolean;
   disabled?: boolean;
-  className?: string;
 }
 
 interface OpenRouterModel {
@@ -33,8 +31,7 @@ export const ModelSelector = ({
   onModelChange, 
   onOpenRouterModelChange, 
   isMemorySelector = false,
-  disabled = false,
-  className 
+  disabled = false 
 }: ModelSelectorProps) => {
   const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -108,10 +105,8 @@ export const ModelSelector = ({
     fetchModels();
   }, []);
 
-  const isIndexPage = window.location.pathname === "/";
-
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium mb-1">
           {isMemorySelector ? "Memory Model" : "Model"}
@@ -123,17 +118,10 @@ export const ModelSelector = ({
           }
           disabled={disabled}
         >
-          <SelectTrigger 
-            className={cn(
-              disabled ? "opacity-50 cursor-not-allowed" : "",
-              isIndexPage ? "bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50" : ""
-            )}
-          >
+          <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
-          <SelectContent className={cn(
-            isIndexPage ? "bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50" : ""
-          )}>
+          <SelectContent>
             <SelectItem value="gemini">Google Gemini</SelectItem>
             <SelectItem value="claude">Anthropic Claude</SelectItem>
             <SelectItem value="openai">OpenAI GPT</SelectItem>
@@ -152,18 +140,10 @@ export const ModelSelector = ({
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
             disabled={disabled}
           >
-            <SelectTrigger 
-              className={cn(
-                disabled ? "opacity-50 cursor-not-allowed" : "",
-                isIndexPage ? "bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50" : ""
-              )}
-            >
+            <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
-            <SelectContent className={cn(
-              "max-h-[300px] overflow-y-auto",
-              isIndexPage ? "bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50" : ""
-            )}>
+            <SelectContent className="max-h-[300px] overflow-y-auto">
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}
