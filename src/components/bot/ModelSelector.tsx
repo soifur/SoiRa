@@ -45,7 +45,6 @@ export const ModelSelector = ({
         const response = await fetch('https://openrouter.ai/api/v1/models');
         const data = await response.json();
         
-        // Filter, transform, and sort the models
         const models = (data.data || [])
           .filter((model: OpenRouterModel) => 
             model?.id && 
@@ -117,7 +116,7 @@ export const ModelSelector = ({
           }
           disabled={disabled}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
@@ -139,7 +138,7 @@ export const ModelSelector = ({
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
             disabled={disabled}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
             <SelectContent>
