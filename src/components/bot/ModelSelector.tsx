@@ -9,7 +9,8 @@ import {
 import { Bot } from "@/hooks/useBots";
 
 interface ModelSelectorProps {
-  bot: Bot;
+  selectedModel: Bot['model'];
+  selectedOpenRouterModel?: string;
   onModelChange: (model: "gemini" | "claude" | "openai" | "openrouter") => void;
   onOpenRouterModelChange: (model: string) => void;
   isMemorySelector?: boolean;
@@ -27,7 +28,8 @@ interface OpenRouterModel {
 }
 
 export const ModelSelector = ({ 
-  bot, 
+  selectedModel,
+  selectedOpenRouterModel,
   onModelChange, 
   onOpenRouterModelChange, 
   isMemorySelector = false,
@@ -112,13 +114,13 @@ export const ModelSelector = ({
           {isMemorySelector ? "Memory Model" : "Model"}
         </label>
         <Select
-          value={bot.model}
+          value={selectedModel}
           onValueChange={(value: "gemini" | "claude" | "openai" | "openrouter") =>
             onModelChange(value)
           }
           disabled={disabled}
         >
-          <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
+          <SelectTrigger>
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
@@ -130,20 +132,20 @@ export const ModelSelector = ({
         </Select>
       </div>
 
-      {bot.model === "openrouter" && (
+      {selectedModel === "openrouter" && (
         <div>
           <label className="block text-sm font-medium mb-1">
             {isMemorySelector ? "OpenRouter Memory Model" : "OpenRouter Model"}
           </label>
           <Select
-            value={bot.openRouterModel}
+            value={selectedOpenRouterModel}
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
             disabled={disabled}
           >
-            <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
+            <SelectTrigger>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
-            <SelectContent className="max-h-[300px] overflow-y-auto">
+            <SelectContent>
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}
