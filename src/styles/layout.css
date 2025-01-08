@@ -14,13 +14,14 @@
 }
 
 .chat-messages {
-  @apply flex-1 overflow-hidden mb-24 mt-16;
+  @apply flex-1 mb-24 mt-16;
   position: fixed;
   top: 64px; /* header height */
   bottom: 96px; /* input height */
   left: 0;
   right: 0;
-  overflow-y: auto;
+  overflow: hidden;
+  background: hsl(var(--background));
 }
 
 .chat-input {
