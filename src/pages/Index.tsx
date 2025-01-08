@@ -159,11 +159,9 @@ const Index = () => {
               onClose={toggleHistory}
               setSelectedBotId={setSelectedBotId}
             />
-            <MainChatContainer
+            <ChatLayout
               selectedBot={selectedBot}
               messages={messages}
-              isLoading={isLoading}
-              isStreaming={isStreaming}
               sendMessage={handleSendMessage}
               isExceeded={isExceeded}
               maxUsage={maxUsage}
