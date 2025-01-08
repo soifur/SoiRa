@@ -161,15 +161,24 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
         }
 
         onComplete(combinedInstructions);
+        
         // Send "Start Now" message after quiz completion
         const startMessage = "Start Now";
         const chatInput = document.querySelector('textarea') as HTMLTextAreaElement;
         if (chatInput) {
           chatInput.value = startMessage;
-          chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+          // Trigger input event to update any React state
+          const inputEvent = new Event('input', { bubbles: true });
+          chatInput.dispatchEvent(inputEvent);
+          
+          // Find the closest form and trigger submit without page refresh
           const form = chatInput.closest('form');
           if (form) {
-            form.dispatchEvent(new Event('submit', { bubbles: true }));
+            const submitEvent = new Event('submit');
+            const originalSubmit = form.onsubmit;
+            if (originalSubmit && typeof originalSubmit === 'function') {
+              originalSubmit.call(form, submitEvent);
+            }
           }
         }
         onClose();
@@ -191,7 +200,8 @@ export const QuizModal = ({ isOpen, onClose, botId, onComplete }: QuizModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" 
+      <DialogContent 
+        className="w-screen h-screen max-w-none max-h-none m-0 p-0 rounded-none border-none bg-gradient-to-br from-violet-50 to-pink-50 dark:from-gray-900 dark:to-gray-800" 
         style={{ zIndex: 9999 }}
         onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
           if (e.key === 'Enter' && !e.shiftKey) {
