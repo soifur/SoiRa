@@ -80,6 +80,7 @@ export const MessageList = ({
 
   return (
     <div className="h-full relative flex flex-col overflow-hidden">
+      <ScrollArea className="h-full">
       <div className={cn(
         messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
       )}>
@@ -135,7 +136,6 @@ export const MessageList = ({
           </div>
         ) : (
             <div className="space-y-4">
-                        <ScrollArea>
               {messages.map((message, index) => (
                 <div
                   key={message.id}
