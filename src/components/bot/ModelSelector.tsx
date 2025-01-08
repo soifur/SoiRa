@@ -43,10 +43,8 @@ export const ModelSelector = ({
         const response = await fetch('https://openrouter.ai/api/v1/models');
         const data = await response.json();
         
-        // Filter, transform, and sort the models
         const models = (data.data || [])
           .filter((model: OpenRouterModel) => 
-            // Only include models that have required fields
             model?.id && 
             model?.name && 
             typeof model?.pricing === 'object'
@@ -64,7 +62,6 @@ export const ModelSelector = ({
             a.name.localeCompare(b.name)
           );
 
-        // Add the auto router option at the beginning
         setOpenRouterModels([
           {
             id: "auto",
@@ -76,7 +73,6 @@ export const ModelSelector = ({
         ]);
       } catch (error) {
         console.error('Error fetching OpenRouter models:', error);
-        // Fallback to a minimal set of reliable models if the API fails
         setOpenRouterModels([
           {
             id: "auto",
@@ -143,7 +139,7 @@ export const ModelSelector = ({
             <SelectTrigger className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
-            <SelectContent className="max-h-[300px] overflow-y-auto">
+            <SelectContent>
               {openRouterModels.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   {`${model.name} - ${model.pricing?.prompt || 'N/A'}/${model.pricing?.completion || 'N/A'} per 1M tokens - ${Math.floor((model.context_length || 0)/1000)}k ctx`}

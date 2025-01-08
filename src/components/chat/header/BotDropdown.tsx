@@ -47,7 +47,7 @@ export const BotDropdown = ({
       </SelectTrigger>
       <SelectContent 
         align={isMobile ? "center" : "start"}
-        className="min-w-[240px] rounded-xl p-1"
+        className="min-w-[240px] rounded-xl p-1 bg-background border-border"
         position="popper"
         side="bottom"
         sideOffset={4}
