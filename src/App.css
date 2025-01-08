@@ -62,7 +62,7 @@
 
 .chat-container {
   @apply flex flex-col max-w-[1200px] mx-auto;
-  min-height: 100dvh;
+  min-height: 100%;
 }
 
 .chat-messages {
