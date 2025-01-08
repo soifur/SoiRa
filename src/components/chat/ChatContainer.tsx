@@ -37,26 +37,31 @@ export const ChatContainer = ({
       "transition-[margin] duration-300 ease-in-out",
       !isMobile && showHistory && "ml-64" // Add margin when sidebar is open and not on mobile
     )}>
-      <div className="flex-1 overflow-hidden mt-14">
-        {selectedBot ? (
-          <MessageList
-            messages={messages}
-            selectedBot={selectedBot}
-            starters={selectedBot.starters || []}
-            onStarterClick={disabled ? undefined : sendMessage}
-            isLoading={isLoading}
-            isStreaming={isStreaming}
-            disabled={disabled}
-            disabledReason={disabledReason}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center text-muted-foreground">
-            Select a model to start chatting
-          </div>
-        )}
+      {/* Message List Container */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full pt-14 pb-[80px]"> {/* Added padding bottom to account for fixed input */}
+          {selectedBot ? (
+            <MessageList
+              messages={messages}
+              selectedBot={selectedBot}
+              starters={selectedBot.starters || []}
+              onStarterClick={disabled ? undefined : sendMessage}
+              isLoading={isLoading}
+              isStreaming={isStreaming}
+              disabled={disabled}
+              disabledReason={disabledReason}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              Select a model to start chatting
+            </div>
+          )}
+        </div>
       </div>
-      <div className="sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-        <div className="max-w-3xl mx-auto">
+
+      {/* Chat Input Container - Now fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+        <div className="max-w-3xl mx-auto p-4">
           <ChatInput
             onSend={sendMessage}
             disabled={!selectedBot || disabled}
