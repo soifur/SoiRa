@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Bot } from "@/hooks/useBots";
+import { cn } from "@/lib/utils";
 
 interface ModelSelectorProps {
   bot: Bot;
