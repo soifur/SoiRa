@@ -48,7 +48,6 @@ export const ModelSelector = ({
         // Filter, transform, and sort the models
         const models = (data.data || [])
           .filter((model: OpenRouterModel) => 
-            // Only include models that have required fields
             model?.id && 
             model?.name && 
             typeof model?.pricing === 'object'
@@ -66,7 +65,6 @@ export const ModelSelector = ({
             a.name.localeCompare(b.name)
           );
 
-        // Add the auto router option at the beginning
         setOpenRouterModels([
           {
             id: "auto",
@@ -78,7 +76,6 @@ export const ModelSelector = ({
         ]);
       } catch (error) {
         console.error('Error fetching OpenRouter models:', error);
-        // Fallback to a minimal set of reliable models if the API fails
         setOpenRouterModels([
           {
             id: "auto",
