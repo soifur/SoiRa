@@ -79,7 +79,60 @@ export const MessageList = ({
   const showQuizButton = selectedBot && sharedBot?.quiz_mode && sharedBot?.share_key;
 
   return (
-
+    <div className="h-full relative flex flex-col overflow-hidden">
+      <div className={cn(
+        messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
+      )}>
+        {messages.length === 0 ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
+            {selectedBot && (
+              <>
+                <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
+                  {selectedBot.name}
+                </h2>
+                {showQuizButton && selectedBot.id && (
+                  <div className="mb-4">
+                    <QuizButton 
+                      bot_id={selectedBot.id}
+                      onStartQuiz={() => {}}
+                      onQuizComplete={onQuizComplete}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+            {starters && starters.length > 0 && (
+              <>
+                <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
+                  What can I help with?
+                </h1>
+                <div className="grid grid-cols-1 gap-2 md:gap-3 w-full max-w-xl">
+                  {starters.map((starter, index) => {
+                    const Icon = getStarterIcon(starter);
+                    return (
+                      <button
+                        key={index}
+                        className={cn(
+                          "flex items-center justify-start gap-2 md:gap-3 p-3 md:p-4 h-auto",
+                          "text-sm md:text-base w-full", 
+                          "rounded-xl md:rounded-2xl hover:bg-accent/50 transition-colors",
+                          "bg-background/50 backdrop-blur-sm border border-muted-foreground/20",
+                          "whitespace-normal text-left",
+                          disabled && "opacity-50 cursor-not-allowed"
+                        )}
+                        onClick={() => !disabled && onStarterClick && onStarterClick(starter)}
+                        disabled={disabled}
+                        title={disabled ? disabledReason : undefined}
+                      >
+                        <Icon className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+                        <span className="text-left break-words">{starter}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
         ) : (
             <div className="space-y-4">
                         <ScrollArea>
