@@ -97,16 +97,13 @@ export const MessageList = ({
 
   return (
     <div className="relative h-full flex flex-col overflow-hidden">
-      <ScrollArea className={cn(
-        "flex-1",
-        messages.length === 0 && "overflow-hidden"
-      )}>
+      <ScrollArea className="flex-1">
         <div className={cn(
-          "h-full",
-          messages.length === 0 ? "flex items-center justify-center" : "space-y-4 relative p-4"
+          "h-full p-4",
+          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
         )}>
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto h-full">
+            <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
               {selectedBot && (
                 <>
                   <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
@@ -128,7 +125,7 @@ export const MessageList = ({
                   <h1 className="text-2xl md:text-4xl font-bold mb-8 md:mb-12 text-foreground text-center">
                     What can I help with?
                   </h1>
-                  <div className="grid grid-cols-1 gap-2 md:gap-3 w-full max-w-xl px-4">
+                  <div className="grid grid-cols-1 gap-2 md:gap-3 w-full max-w-xl">
                     {starters.map((starter, index) => {
                       const Icon = getStarterIcon(starter);
                       return (
