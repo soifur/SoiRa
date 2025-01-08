@@ -31,9 +31,7 @@ export const MainChatContainer = ({
   showHistory
 }: MainChatContainerProps) => {
   return (
-    // 1) Use min-h-screen so it can grow beyond one viewport if needed
-    <div className="relative flex flex-col min-h-screen">
-      {/* 2) ChatContainer handles pinned .chat-input internally */}
+    <div className="flex-1 relative overflow-hidden">
       <ChatContainer
         selectedBot={selectedBot}
         messages={messages}
@@ -45,17 +43,13 @@ export const MainChatContainer = ({
         onUpgradeClick={onUpgradeClick}
         showHistory={showHistory}
       />
-
-      {/* 3) If user has exceeded limit, overlay the limit message on top */}
       {isExceeded && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <LimitExceededMessage
-            limitType={limitType}
-            maxUsage={maxUsage}
-            resetDate={resetDate}
-            onUpgrade={onUpgradeClick}
-          />
-        </div>
+        <LimitExceededMessage
+          limitType={limitType}
+          maxUsage={maxUsage}
+          resetDate={resetDate}
+          onUpgrade={onUpgradeClick}
+        />
       )}
     </div>
   );

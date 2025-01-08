@@ -1,9 +1,7 @@
-/* Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Root & Dark Theme Variables */
+ 
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -27,7 +25,7 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
   }
-
+ 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -50,130 +48,131 @@
     --ring: 212.7 26.8% 83.9%;
   }
 }
-
-/* Universal border styling via Tailwind's border-border class */
+ 
 @layer base {
   * {
     @apply border-border;
   }
-
-  /* Body should NOT be fixed or forced to a certain height. 
-     Let .chat-container handle the layout. */
   body {
     @apply bg-background text-foreground;
-    margin: 0;
-    padding: 0;
+    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
   }
 }
 
-/* The container that holds your header (optional), messages, and input. 
-   Using min-height: 100vh helps adapt to iOS Safari's dynamic address bar. */
 .chat-container {
-  @apply flex flex-col max-w-[1200px] mx-auto;
-  min-height: 100vh;
+  @apply flex flex-col h-[100dvh] max-w-[1200px] mx-auto p-4;
+  position: relative;
 }
 
-/* The scrollable chat region. 
-   flex-1 ensures it fills remaining vertical space, 
-   overflow-y-auto for scrolling, 
-   and an extra bottom padding so content isn't hidden behind .chat-input. */
 .chat-messages {
-  @apply flex-1 overflow-y-auto p-4 pt-16;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 1rem));
+  @apply flex-1 overflow-y-auto p-4 mb-4 pt-16;
 }
 
-/* The pinned chat input that always remains at the bottom of the screen. 
-   Use a high z-index to float above the messages. */
 .chat-input {
-  @apply p-4 bg-background border-t border-gray-200;
+  @apply p-4 bg-white border-t border-gray-200;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 50;
-
-  /* If you want safe-area support for iPhones with notches, 
-     keep this extra bottom padding. */
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0.5rem));
-
+  background: var(--background);
   -webkit-overflow-scrolling: touch;
 }
 
-/* Chat message styling */
 .message {
   @apply mb-4 p-2 rounded-lg;
 }
+
 .user-message {
   @apply bg-gray-100 ml-auto max-w-[80%];
 }
+
 .bot-message {
   @apply bg-gray-50 mr-auto max-w-[80%];
 }
 
-/* Typing indicator dots */
 .typing-indicator {
   @apply flex items-center gap-2;
 }
+
 .dot {
   @apply w-2 h-2 bg-gray-500 rounded-full animate-bounce;
 }
 
-/* Markdown-specific styling */
 .markdown-content {
   @apply text-sm leading-5;
 }
+
 .markdown-content p {
   @apply mb-4;
 }
+
 .markdown-content h1 {
   @apply text-xl font-bold mt-8 mb-4;
 }
+
 .markdown-content h2 {
   @apply text-lg font-bold mt-6 mb-3;
 }
+
 .markdown-content h3 {
   @apply text-base font-bold mt-5 mb-2;
 }
+
 .markdown-content ul {
   @apply list-disc ml-6 mb-4;
 }
+
 .markdown-content ol {
   @apply list-decimal ml-6 mb-4;
 }
+
 .markdown-content li {
   @apply mb-2;
 }
+
 .markdown-content code {
   @apply bg-gray-100 px-1.5 py-0.5 rounded font-mono;
 }
+
 .markdown-content pre {
   @apply bg-gray-800 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
 }
+
 .markdown-content blockquote {
   @apply border-l-4 border-gray-200 pl-4 my-4 text-gray-500;
 }
+
 .markdown-content a {
   @apply text-blue-600 underline hover:text-blue-800;
 }
+
 .markdown-content table {
   @apply w-full border-collapse mb-4;
 }
+
 .markdown-content th,
 .markdown-content td {
   @apply border border-gray-200 p-2 text-left;
 }
+
 .markdown-content th {
   @apply bg-gray-100 font-bold;
 }
+
 .markdown-content img {
   @apply max-w-full h-auto my-4;
 }
+
 .markdown-content hr {
   @apply border-0 border-t border-gray-200 my-8;
 }
 
-/* Animation for messages as they appear */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -184,6 +183,7 @@
     transform: translateY(0);
   }
 }
+
 .message-animation {
   animation: fadeIn 0.3s ease-out forwards;
 }
