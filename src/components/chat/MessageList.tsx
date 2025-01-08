@@ -44,6 +44,7 @@ export const MessageList = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
+  // Fetch shared bot data including quiz_mode and share_key
   const { data: sharedBot } = useQuery({
     queryKey: ['shared-bot', selectedBot?.id],
     queryFn: async () => {
@@ -91,17 +92,18 @@ export const MessageList = ({
     return null;
   }
 
+  // Only show quiz button if shared bot exists and has quiz_mode enabled
   const showQuizButton = selectedBot && sharedBot?.quiz_mode && sharedBot?.share_key;
 
   return (
-    <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 h-full">
+    <div className="relative h-full flex flex-col overflow-hidden">
+      <ScrollArea className="flex-1">
         <div className={cn(
-          "h-full",
-          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4"
+          "h-full p-4",
+          messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
         )}>
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
+            <div className="absolute inset-0 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-4">
               {selectedBot && (
                 <>
                   <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-600 text-transparent bg-clip-text">
@@ -151,7 +153,7 @@ export const MessageList = ({
               )}
             </div>
           ) : (
-            <div className="space-y-4 p-4">
+            <div className="space-y-4">
               {messages.map((message, index) => (
                 <div
                   key={message.id}
