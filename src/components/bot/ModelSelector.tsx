@@ -116,7 +116,7 @@ export const ModelSelector = ({
           }
           disabled={disabled}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger>
             <SelectValue placeholder="Select a model" />
           </SelectTrigger>
           <SelectContent>
@@ -138,7 +138,7 @@ export const ModelSelector = ({
             onValueChange={(value: string) => onOpenRouterModelChange(value)}
             disabled={disabled}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger>
               <SelectValue placeholder={isLoading ? "Loading models..." : "Select an OpenRouter model"} />
             </SelectTrigger>
             <SelectContent>

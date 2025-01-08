@@ -50,7 +50,7 @@ export const QuizField = ({ field, onChange, onRemove }: QuizFieldProps) => {
               value={field.field_type} 
               onValueChange={handleTypeChange}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger>
                 <SelectValue placeholder="Select field type" />
               </SelectTrigger>
               <SelectContent>
