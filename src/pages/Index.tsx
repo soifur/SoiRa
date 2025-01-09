@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Bot as BotType } from "@/hooks/useBots";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
 import { MainChatHistory } from "@/components/chat/MainChatHistory";
 import { ChatLayout } from "@/components/chat/ChatLayout";
@@ -135,7 +134,7 @@ const Index = () => {
   }
 
   return (
-    <Card className="w-full h-[100dvh] overflow-hidden">
+    <div className="w-full h-[100dvh] overflow-hidden">
       <MainChatHeader
         selectedBotId={selectedBotId}
         setSelectedBotId={setSelectedBotId}
@@ -171,7 +170,7 @@ const Index = () => {
         isOpen={showUpgradeModal} 
         onClose={() => setShowUpgradeModal(false)} 
       />
-    </Card>
+    </div>
   );
 };
 
