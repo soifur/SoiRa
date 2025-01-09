@@ -53,32 +53,6 @@
   }
 }
 
-/* Scroll behavior control */
-.scroll-container {
-  pointer-events: none;
-}
-
-.scroll-container button,
-.scroll-container input,
-.scroll-container textarea,
-.scroll-container [role="button"],
-.scroll-container a {
-  pointer-events: auto;
-}
-
-.message-list-scroll {
-  pointer-events: auto;
-  touch-action: pan-y;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-.non-scroll-area {
-  user-select: none;
-  touch-action: none;
-}
-
-/* Keep existing styles */
 * {
   @apply border-border;
 }

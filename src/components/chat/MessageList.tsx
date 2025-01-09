@@ -96,7 +96,7 @@ export const MessageList = ({
   const showQuizButton = selectedBot && sharedBot?.quiz_mode && sharedBot?.share_key;
 
   return (
-    <div className="h-full relative flex flex-col overflow-hidden message-list-scroll">
+    <div className="h-full relative flex flex-col overflow-hidden">
       <ScrollArea className="h-full">
         <div className={cn(
           "h-full p-4",
