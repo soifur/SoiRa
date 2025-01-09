@@ -55,12 +55,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    min-height: 100dvh;
-    height: 100dvh;
-    max-height: 100dvh;
-    position: fixed;
-    width: 100%;
-    overflow: hidden;
   }
 }
 
