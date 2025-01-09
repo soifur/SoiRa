@@ -135,47 +135,43 @@ const Index = () => {
   }
 
   return (
-    <div className="flex flex-col bg-background">
-      <Card className="w-full h-[100dvh] overflow-hidden relative">
-        <div className="flex-1 flex flex-col h-full relative w-full overflow-hidden">
-          <MainChatHeader
-            selectedBotId={selectedBotId}
-            setSelectedBotId={setSelectedBotId}
-            bots={userBots}
-            onNewChat={handleNewChat}
-            onSignOut={handleSignOut}
-            onToggleHistory={toggleHistory}
-            showHistory={showHistory}
-            onQuizComplete={handleQuizComplete}
-          />
-          <MainChatHistory
-            sessionToken={sessionToken}
-            botId={selectedBotId}
-            onSelectChat={handleChatSelect}
-            onNewChat={handleNewChat}
-            currentChatId={currentChatId}
-            isOpen={showHistory}
-            onClose={toggleHistory}
-            setSelectedBotId={setSelectedBotId}
-          />
-          <ChatLayout
-            selectedBot={selectedBot}
-            messages={messages}
-            sendMessage={handleSendMessage}
-            isExceeded={isExceeded}
-            maxUsage={maxUsage}
-            limitType={limitType}
-            resetDate={resetDate}
-            onUpgradeClick={() => setShowUpgradeModal(true)}
-            showHistory={showHistory}
-          />
-        </div>
-      </Card>
+    <Card className="w-full h-[100dvh] overflow-hidden">
+      <MainChatHeader
+        selectedBotId={selectedBotId}
+        setSelectedBotId={setSelectedBotId}
+        bots={userBots}
+        onNewChat={handleNewChat}
+        onSignOut={handleSignOut}
+        onToggleHistory={toggleHistory}
+        showHistory={showHistory}
+        onQuizComplete={handleQuizComplete}
+      />
+      <MainChatHistory
+        sessionToken={sessionToken}
+        botId={selectedBotId}
+        onSelectChat={handleChatSelect}
+        onNewChat={handleNewChat}
+        currentChatId={currentChatId}
+        isOpen={showHistory}
+        onClose={toggleHistory}
+        setSelectedBotId={setSelectedBotId}
+      />
+      <ChatLayout
+        selectedBot={selectedBot}
+        messages={messages}
+        sendMessage={handleSendMessage}
+        isExceeded={isExceeded}
+        maxUsage={maxUsage}
+        limitType={limitType}
+        resetDate={resetDate}
+        onUpgradeClick={() => setShowUpgradeModal(true)}
+        showHistory={showHistory}
+      />
       <UpgradeModal 
         isOpen={showUpgradeModal} 
         onClose={() => setShowUpgradeModal(false)} 
       />
-    </div>
+    </Card>
   );
 };
 
