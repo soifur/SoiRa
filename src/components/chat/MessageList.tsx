@@ -97,14 +97,7 @@ export const MessageList = ({
 
   return (
     <div className="h-full relative flex flex-col overflow-hidden">
-      <ScrollArea 
-        className="h-full"
-        style={{
-          overscrollBehavior: 'contain',
-          WebkitOverflowScrolling: 'touch',
-          touchAction: 'pan-y'
-        }}
-      >
+      <ScrollArea className="h-full">
         <div className={cn(
           "h-full p-4",
           messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
