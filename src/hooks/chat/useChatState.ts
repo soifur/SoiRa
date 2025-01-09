@@ -80,19 +80,20 @@ export const useChatState = (selectedBot: Bot | undefined) => {
         });
       }
 
-      const chatId = uuidv4();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
+        const chatData = {
+          bot_id: selectedBot.id,
+          messages: [...newMessages, { ...streamingMessage, content: response }],
+          user_id: user.id,
+          sequence_number: 1,
+          updated_at: new Date().toISOString()
+        };
+
         await supabase
           .from('chat_history')
-          .upsert({
-            id: chatId,
-            bot_id: selectedBot.id,
-            messages: [...newMessages, { ...streamingMessage, content: response }],
-            user_id: user.id,
-            updated_at: new Date().toISOString()
-          });
+          .insert([chatData]);
       }
 
     } catch (error) {
