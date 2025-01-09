@@ -13,7 +13,13 @@ interface ChatLayoutProps {
 export const ChatLayout = ({ onNewChat, children }: ChatLayoutProps) => {
   return (
     <div className="absolute inset-0 bg-background">
-      <div className="h-[100dvh] w-full flex flex-col touch-none">
+      <div 
+        className="h-[100dvh] w-full flex flex-col overflow-hidden touch-none"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'none'
+        }}
+      >
         {/* Header */}
         <div className="flex-none h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="h-full flex items-center justify-end px-4">

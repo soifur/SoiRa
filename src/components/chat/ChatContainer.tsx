@@ -33,13 +33,13 @@ export const ChatContainer = ({
   
   return (
     <div className={cn(
-      "relative flex flex-col h-full w-full",
-      "transition-all duration-300 ease-in-out",
-      !isMobile && showHistory ? "ml-64" : "ml-0"
+      "relative flex flex-col h-full",
+      "transition-[margin] duration-300 ease-in-out",
+      !isMobile && showHistory && "ml-64" // Add margin when sidebar is open and not on mobile
     )}>
       {/* Message List Container */}
       <div className="flex-1 overflow-hidden">
-        <div className="h-full pt-16 pb-16">
+        <div className="h-full pt-16 pb-16"> {/* Adjusted padding to be equal top and bottom */}
           {selectedBot ? (
             <MessageList
               messages={messages}
@@ -59,12 +59,11 @@ export const ChatContainer = ({
         </div>
       </div>
 
-      {/* Chat Input Container - Fixed at bottom with transition */}
+      {/* Chat Input Container - Now fixed at bottom with transition */}
       <div className={cn(
-        "fixed bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t w-full",
-        "transition-all duration-300 ease-in-out",
-        !isMobile && showHistory ? "left-64" : "left-0",
-        "right-0"
+        "fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t",
+        "transition-[left,right] duration-300 ease-in-out",
+        !isMobile && showHistory && "left-64" // Move input container when sidebar is open
       )}>
         <div className="max-w-3xl mx-auto p-4">
           <ChatInput

@@ -48,8 +48,8 @@
     --border: 240 2% 13%;
     --input: 240 2% 13%;
     --ring: 216 12.2% 83.9%;
-    --dropdown: 0 0% 4%;
-    --dropdown-hover: 0 0% 16%;
+    --dropdown: 0 0% 4%;  /* #0b0b0b */
+    --dropdown-hover: 0 0% 16%;  /* #2a2a2a */
   }
 }
 
@@ -59,6 +59,10 @@
 
 body {
   @apply bg-background text-foreground;
+}
+
+#root {
+  @apply min-h-screen bg-background;
 }
 
 /* Remove smooth scrolling which can interfere with theme toggle */
