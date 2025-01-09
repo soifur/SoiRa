@@ -18,6 +18,17 @@ export interface Bot {
   published?: boolean;
   default_bot?: boolean;
   quiz_mode?: boolean;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  max_tokens?: number;
+  temperature?: number;
+  top_p?: number;
+  response_format?: { type: string; [key: string]: any };
+  stream?: boolean;
+  tool_config?: any[];
+  system_templates?: any[];
+  memory_model?: string;
+  memory_enabled_model?: boolean;
 }
 
 export const useBots = () => {

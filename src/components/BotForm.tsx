@@ -16,6 +16,7 @@ import { BotSubscriptionSettings } from "./bot/BotSubscriptionSettings";
 import { QuizModeSettings } from "./bot/quiz/QuizModeSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "./bot/quiz/QuizFieldBuilder";
+import { BotAdvancedSettings } from "./bot/BotAdvancedSettings";
 
 interface BotFormProps {
   bot: Bot;
@@ -27,7 +28,17 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published ?? false
+    published: bot.published ?? false,
+    memory_enabled_model: bot.memory_enabled_model ?? false,
+    temperature: bot.temperature ?? 1,
+    top_p: bot.top_p ?? 1,
+    frequency_penalty: bot.frequency_penalty ?? 0,
+    presence_penalty: bot.presence_penalty ?? 0,
+    max_tokens: bot.max_tokens ?? 4096,
+    stream: bot.stream ?? true,
+    system_templates: bot.system_templates ?? [],
+    tool_config: bot.tool_config ?? [],
+    response_format: bot.response_format ?? { type: "text" }
   });
   const [quizEnabled, setQuizEnabled] = useState(false);
   const [quizFields, setQuizFields] = useState<Field[]>([]);
@@ -38,7 +49,17 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       ...prev,
       ...bot,
       memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published ?? false
+      published: bot.published ?? false,
+      memory_enabled_model: bot.memory_enabled_model ?? false,
+      temperature: bot.temperature ?? 1,
+      top_p: bot.top_p ?? 1,
+      frequency_penalty: bot.frequency_penalty ?? 0,
+      presence_penalty: bot.presence_penalty ?? 0,
+      max_tokens: bot.max_tokens ?? 4096,
+      stream: bot.stream ?? true,
+      system_templates: bot.system_templates ?? [],
+      tool_config: bot.tool_config ?? [],
+      response_format: bot.response_format ?? { type: "text" }
     }));
 
     if (bot.id) {
@@ -122,10 +143,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         return;
       }
 
-      // First update the bot
       await updateBotAndSharedConfig(editingBot);
-
-      // Then save quiz configuration
       await updateQuizConfiguration(editingBot.id, quizEnabled, quizFields);
 
       onSave(editingBot);
@@ -186,6 +204,18 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               />
               <Label htmlFor="memory-mode">Enable Memory Mode</Label>
             </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="memory-enabled-model"
+                checked={editingBot.memory_enabled_model}
+                onCheckedChange={(checked) => handleBotChange({ memory_enabled_model: checked })}
+                className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
+              />
+              <Label htmlFor="memory-enabled-model">Enable Memory for Current Model</Label>
+            </div>
+
+            <BotAdvancedSettings bot={editingBot} onBotChange={handleBotChange} />
 
             <StartersInput 
               starters={editingBot.starters}
