@@ -36,7 +36,7 @@ export const ChatLayout = ({
   return (
     <div className="flex-1 relative overflow-hidden">
       <div className={layoutClasses.container}>
-        <div className="pt-16 pb-16">
+        <div className="h-full pt-16 pb-16">
           {selectedBot ? (
             <MessageList
               messages={messages}
