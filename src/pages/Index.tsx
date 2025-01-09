@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
 import { MainChatHistory } from "@/components/chat/MainChatHistory";
-import { ChatLayout } from "@/components/chat/ChatLayout";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
 import { useToast } from "@/hooks/use-toast";
@@ -157,17 +156,6 @@ const Index = () => {
             isOpen={showHistory}
             onClose={toggleHistory}
             setSelectedBotId={setSelectedBotId}
-          />
-          <ChatLayout
-            selectedBot={selectedBot}
-            messages={messages}
-            sendMessage={handleSendMessage}
-            isExceeded={isExceeded}
-            maxUsage={maxUsage}
-            limitType={limitType}
-            resetDate={resetDate}
-            onUpgradeClick={() => setShowUpgradeModal(true)}
-            showHistory={showHistory}
           />
         </div>
       </Card>
