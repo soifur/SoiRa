@@ -34,9 +34,9 @@ export const ChatLayout = ({
     useChatMessaging(messages, selectedBot, sendMessage, isExceeded);
 
   return (
-    <div className="flex-1 relative overflow-hidden">
+    <div className="flex-1 relative overflow-hidden scroll-container">
       <div className={layoutClasses.container}>
-        <div className="h-full pt-16 pb-16">
+        <div className="h-full pt-16 pb-16 message-list-scroll">
           {selectedBot ? (
             <MessageList
               messages={messages}
@@ -55,7 +55,7 @@ export const ChatLayout = ({
           )}
         </div>
 
-        <div className={layoutClasses.inputContainer}>
+        <div className={`${layoutClasses.inputContainer} non-scroll-area`}>
           <div className="max-w-3xl mx-auto p-4">
             <ChatInput
               onSend={handleSendMessage}
