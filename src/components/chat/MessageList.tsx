@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
@@ -43,6 +43,8 @@ export const MessageList = ({
 }: MessageListProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Fetch shared bot data including quiz_mode and share_key
   const { data: sharedBot } = useQuery({
@@ -64,11 +66,31 @@ export const MessageList = ({
     enabled: !!selectedBot?.id
   });
 
+  const checkShouldAutoScroll = useCallback(() => {
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
+
+    const { scrollHeight, scrollTop, clientHeight } = scrollArea;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    setShouldAutoScroll(distanceFromBottom < 100);
+  }, []);
+
   useEffect(() => {
-    if (lastMessageRef.current && !isLoading) {
-      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    const scrollArea = scrollAreaRef.current;
+    if (scrollArea) {
+      scrollArea.addEventListener('scroll', checkShouldAutoScroll);
+      return () => scrollArea.removeEventListener('scroll', checkShouldAutoScroll);
     }
-  }, [messages, isLoading]);
+  }, [checkShouldAutoScroll]);
+
+  useEffect(() => {
+    if (lastMessageRef.current && shouldAutoScroll && (isStreaming || !isLoading)) {
+      lastMessageRef.current.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end"
+      });
+    }
+  }, [messages, isLoading, isStreaming, shouldAutoScroll]);
 
   const getStarterIcon = (starter: string) => {
     const lowerStarter = starter.toLowerCase();
@@ -97,7 +119,10 @@ export const MessageList = ({
 
   return (
     <div className="h-full relative flex flex-col overflow-hidden">
-      <ScrollArea className="h-full">
+      <ScrollArea 
+        className="h-full" 
+        ref={scrollAreaRef}
+      >
         <div className={cn(
           "h-full p-4",
           messages.length === 0 ? "flex flex-col items-center justify-center" : "space-y-4 relative"
