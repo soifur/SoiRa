@@ -61,10 +61,6 @@ body {
   @apply bg-background text-foreground;
 }
 
-#root {
-  @apply min-h-screen bg-background;
-}
-
 /* Remove smooth scrolling which can interfere with theme toggle */
 * {
   scroll-behavior: auto !important;
