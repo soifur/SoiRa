@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { MainChatHeader } from "@/components/chat/MainChatHeader";
 import { MainChatHistory } from "@/components/chat/MainChatHistory";
-import { ChatLayout } from "@/components/chat/ChatLayout";
+import { MainChatContainer } from "@/components/chat/MainChatContainer";
 import { useSessionToken } from "@/hooks/useSessionToken";
 import { useChat } from "@/hooks/useChat";
 import { useToast } from "@/hooks/use-toast";
@@ -135,40 +135,44 @@ const Index = () => {
   }
 
   return (
-    <div className="flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <Card className="w-full h-[100dvh] overflow-hidden relative">
-        <div className="flex-1 flex flex-col h-full relative w-full overflow-hidden">
-          <MainChatHeader
-            selectedBotId={selectedBotId}
-            setSelectedBotId={setSelectedBotId}
-            bots={userBots}
-            onNewChat={handleNewChat}
-            onSignOut={handleSignOut}
-            onToggleHistory={toggleHistory}
-            showHistory={showHistory}
-            onQuizComplete={handleQuizComplete}
-          />
-          <MainChatHistory
-            sessionToken={sessionToken}
-            botId={selectedBotId}
-            onSelectChat={handleChatSelect}
-            onNewChat={handleNewChat}
-            currentChatId={currentChatId}
-            isOpen={showHistory}
-            onClose={toggleHistory}
-            setSelectedBotId={setSelectedBotId}
-          />
-          <ChatLayout
-            selectedBot={selectedBot}
-            messages={messages}
-            sendMessage={handleSendMessage}
-            isExceeded={isExceeded}
-            maxUsage={maxUsage}
-            limitType={limitType}
-            resetDate={resetDate}
-            onUpgradeClick={() => setShowUpgradeModal(true)}
-            showHistory={showHistory}
-          />
+        <div className="flex h-full">
+          <div className="flex-1 flex flex-col h-full relative w-full overflow-hidden">
+            <MainChatHeader
+              selectedBotId={selectedBotId}
+              setSelectedBotId={setSelectedBotId}
+              bots={userBots}
+              onNewChat={handleNewChat}
+              onSignOut={handleSignOut}
+              onToggleHistory={toggleHistory}
+              showHistory={showHistory}
+              onQuizComplete={handleQuizComplete}
+            />
+            <MainChatHistory
+              sessionToken={sessionToken}
+              botId={selectedBotId}
+              onSelectChat={handleChatSelect}
+              onNewChat={handleNewChat}
+              currentChatId={currentChatId}
+              isOpen={showHistory}
+              onClose={toggleHistory}
+              setSelectedBotId={setSelectedBotId}
+            />
+            <MainChatContainer
+              selectedBot={selectedBot}
+              messages={messages}
+              isLoading={isLoading}
+              isStreaming={isStreaming}
+              sendMessage={handleSendMessage}
+              isExceeded={isExceeded}
+              maxUsage={maxUsage}
+              limitType={limitType}
+              resetDate={resetDate}
+              onUpgradeClick={() => setShowUpgradeModal(true)}
+              showHistory={showHistory}
+            />
+          </div>
         </div>
       </Card>
       <UpgradeModal 
