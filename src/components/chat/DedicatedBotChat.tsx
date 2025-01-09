@@ -1,16 +1,15 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
-import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { createMessage, formatMessages } from "@/utils/messageUtils";
+import { createMessage } from "@/utils/messageUtils";
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuizInstructions } from "@/hooks/useQuizInstructions";
+import { DedicatedChatMessages } from "./DedicatedChatMessages";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -21,37 +20,8 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
   const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
-    const chatKey = `chat_${bot.id}_${chatId}`;
-    const savedMessages = localStorage.getItem(chatKey);
-    if (savedMessages) {
-      try {
-        const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages.map((msg: any) => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-          avatar: msg.role === "assistant" ? (msg.avatar || bot.avatar) : undefined
-        })));
-      } catch (error) {
-        console.error("Error parsing saved messages:", error);
-        setMessages([]);
-      }
-    } else {
-      setMessages([]);
-    }
-  }, [bot.id, chatId, bot.avatar]);
 
   const clearChat = () => {
     setMessages([]);
@@ -78,7 +48,6 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       setIsStreaming(true);
 
       let response: string = "";
-      // Use combinedInstructions if quiz mode is enabled and instructions are available
       const instructions = bot.quiz_mode && combinedInstructions ? combinedInstructions : bot.instructions;
       console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode, "Combined instructions:", combinedInstructions);
 
@@ -189,18 +158,14 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         </Button>
       </div>
       
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <MessageList
-          messages={formatMessages(messages)}
-          selectedBot={bot}
-          starters={bot.starters}
-          onStarterClick={sendMessage}
-          isLoading={isLoading}
-          isStreaming={isStreaming}
-          onQuizComplete={handleQuizComplete}
-        />
-        <div ref={messagesEndRef} />
-      </div>
+      <DedicatedChatMessages
+        messages={messages}
+        isLoading={isLoading}
+        isStreaming={isStreaming}
+        bot={bot}
+        onSend={sendMessage}
+        onQuizComplete={handleQuizComplete}
+      />
       
       <div className="mt-4">
         <ChatInput
