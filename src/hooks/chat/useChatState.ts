@@ -5,6 +5,7 @@ import { ChatService } from '@/services/ChatService';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { Json } from '@/integrations/supabase/types';
 
 export const useChatState = (selectedBot: Bot | undefined) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -83,9 +84,17 @@ export const useChatState = (selectedBot: Bot | undefined) => {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
+        const messagesForDb = [...newMessages, { ...streamingMessage, content: response }].map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp?.toISOString(),
+          id: msg.id,
+          avatar: msg.avatar
+        }));
+
         const chatData = {
           bot_id: selectedBot.id,
-          messages: [...newMessages, { ...streamingMessage, content: response }],
+          messages: messagesForDb as Json,
           user_id: user.id,
           sequence_number: 1,
           updated_at: new Date().toISOString()
