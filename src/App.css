@@ -158,6 +158,20 @@
   @apply border-0 border-t border-gray-200 my-8;
 }
 
+.message-list-container {
+  isolation: isolate;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.message-scroll-area {
+  height: 100%;
+  overflow-y: auto;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
