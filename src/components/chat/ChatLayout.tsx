@@ -36,24 +36,22 @@ export const ChatLayout = ({
   return (
     <div className="flex-1 relative overflow-hidden">
       <div className={layoutClasses.container}>
-        <div className="h-full pt-16 pb-16">
-          {selectedBot ? (
-            <MessageList
-              messages={messages}
-              selectedBot={selectedBot}
-              starters={selectedBot.starters || []}
-              onStarterClick={disabled ? undefined : handleSendMessage}
-              isLoading={isLoading}
-              isStreaming={isStreaming}
-              disabled={disabled}
-              disabledReason={disabledReason}
-            />
-          ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              Select a model to start chatting
-            </div>
-          )}
-        </div>
+        {selectedBot ? (
+          <MessageList
+            messages={messages}
+            selectedBot={selectedBot}
+            starters={selectedBot.starters || []}
+            onStarterClick={disabled ? undefined : handleSendMessage}
+            isLoading={isLoading}
+            isStreaming={isStreaming}
+            disabled={disabled}
+            disabledReason={disabledReason}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-muted-foreground">
+            Select a model to start chatting
+          </div>
+        )}
 
         <div className={layoutClasses.inputContainer}>
           <div className="max-w-3xl mx-auto p-4">
