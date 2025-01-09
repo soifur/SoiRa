@@ -34,7 +34,7 @@ export const ChatContainer = ({
   return (
     <div className={cn(
       "relative flex flex-col h-full",
-      "transition-[margin] duration-300 ease-in-out",
+      "transition-all duration-300 ease-in-out",
       !isMobile && showHistory ? "ml-64" : "ml-0" // Add margin when sidebar is open and not on mobile
     )}>
       {/* Message List Container */}
@@ -59,10 +59,10 @@ export const ChatContainer = ({
         </div>
       </div>
 
-      {/* Chat Input Container - Now fixed at bottom with transition */}
+      {/* Chat Input Container - Fixed at bottom with transition */}
       <div className={cn(
         "fixed bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t",
-        "transition-[left,right] duration-300 ease-in-out",
+        "transition-all duration-300 ease-in-out",
         !isMobile && showHistory ? "left-64 right-0" : "left-0 right-0" // Move input container when sidebar is open
       )}>
         <div className="max-w-3xl mx-auto p-4">
