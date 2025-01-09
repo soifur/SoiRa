@@ -102,20 +102,32 @@ export class ChatService {
 
       console.log("Sending request to OpenRouter with model:", bot.openRouterModel);
 
+      // Prepare the request body with all the new parameters
+      const requestBody = {
+        model: bot.openRouterModel,
+        messages: [
+          ...(sanitizedInstructions
+            ? [{ role: 'system', content: sanitizedInstructions }]
+            : []),
+          ...sanitizedMessages,
+        ],
+        stream: bot.stream ?? true,
+        temperature: bot.temperature ?? 1,
+        top_p: bot.top_p ?? 1,
+        frequency_penalty: bot.frequency_penalty ?? 0,
+        presence_penalty: bot.presence_penalty ?? 0,
+        max_tokens: bot.max_tokens ?? 4096,
+        ...(bot.response_format && { response_format: bot.response_format }),
+        ...(bot.tool_config && bot.tool_config.length > 0 && { tools: bot.tool_config }),
+      };
+
+      console.log("OpenRouter request configuration:", requestBody);
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers,
         signal: abortSignal,
-        body: JSON.stringify({
-          model: bot.openRouterModel,
-          messages: [
-            ...(sanitizedInstructions
-              ? [{ role: 'system', content: sanitizedInstructions }]
-              : []),
-            ...sanitizedMessages,
-          ],
-          stream: true,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -200,11 +212,21 @@ export class ChatService {
 
     try {
       const genAI = new GoogleGenerativeAI(bot.apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-pro",
+        generationConfig: {
+          temperature: bot.temperature ?? 1,
+          topP: bot.top_p ?? 1,
+          maxOutputTokens: bot.max_tokens ?? 4096,
+        }
+      });
+
       const chat = model.startChat({
         history: [],
         generationConfig: {
-          maxOutputTokens: 1000,
+          temperature: bot.temperature ?? 1,
+          topP: bot.top_p ?? 1,
+          maxOutputTokens: bot.max_tokens ?? 4096,
         },
       });
 
