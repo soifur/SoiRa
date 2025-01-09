@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { useQuizInstructions } from "@/hooks/useQuizInstructions";
 import { DedicatedChatMessages } from "./DedicatedChatMessages";
+import { ChatService } from "@/services/ChatService";
+import { Message } from "./types/chatTypes";
 
 interface DedicatedBotChatProps {
   bot: Bot;
@@ -17,7 +19,7 @@ interface DedicatedBotChatProps {
 
 const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [chatId] = useState(() => uuidv4());

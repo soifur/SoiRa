@@ -2,9 +2,10 @@ import { useEffect } from "react";
 import { MessageList } from "@/components/chat/MessageList";
 import { Bot } from "@/hooks/useBots";
 import { useScrollBehavior } from "@/hooks/chat/useScrollBehavior";
+import { Message } from "./types/chatTypes";
 
 interface DedicatedChatMessagesProps {
-  messages: Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>;
+  messages: Message[];
   isLoading: boolean;
   isStreaming: boolean;
   bot: Bot;
