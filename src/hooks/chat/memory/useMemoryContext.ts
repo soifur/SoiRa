@@ -10,6 +10,23 @@ export interface MemoryContext {
   facts: string[];
 }
 
+interface DatabaseContext {
+  context: {
+    name?: string | null;
+    faith?: string | null;
+    likes?: string[];
+    topics?: string[];
+    facts?: string[];
+  };
+  combined_context?: {
+    name?: string | null;
+    faith?: string | null;
+    likes?: string[];
+    topics?: string[];
+    facts?: string[];
+  };
+}
+
 export const useMemoryContext = (
   bot: Bot | undefined,
   clientId: string,
@@ -40,13 +57,13 @@ export const useMemoryContext = (
         if (error) throw error;
         
         if (data) {
-          const contextData = data.combined_context || data.context;
+          const contextData = (data as DatabaseContext).combined_context || (data as DatabaseContext).context || {};
           setContext({
-            name: contextData?.name || null,
-            faith: contextData?.faith || null,
-            likes: Array.isArray(contextData?.likes) ? contextData.likes : [],
-            topics: Array.isArray(contextData?.topics) ? contextData.topics : [],
-            facts: Array.isArray(contextData?.facts) ? contextData.facts : []
+            name: contextData.name || null,
+            faith: contextData.faith || null,
+            likes: Array.isArray(contextData.likes) ? contextData.likes : [],
+            topics: Array.isArray(contextData.topics) ? contextData.topics : [],
+            facts: Array.isArray(contextData.facts) ? contextData.facts : []
           });
         }
       } catch (error) {
@@ -70,7 +87,7 @@ export const useMemoryContext = (
           client_id: clientId,
           session_token: sessionToken,
           context: newContext,
-          is_global: bot.memory_enabled_model
+          is_global: bot.memory_enabled
         });
 
       if (error) throw error;
