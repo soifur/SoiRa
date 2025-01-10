@@ -43,10 +43,15 @@ export const useBots = () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) return;
 
-      // Fetch bots
+      // Fetch bots with their API keys
       const { data: botsData, error: botsError } = await supabase
         .from('shared_bots')
-        .select('*')
+        .select(`
+          *,
+          bot_api_keys (
+            api_key
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (botsError) throw botsError;
@@ -59,7 +64,7 @@ export const useBots = () => {
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
           model: sharedBot.model as BaseModel,
-          apiKey: sharedBot.api_key_id || "", // Using the correct field name api_key_id
+          apiKey: sharedBot.bot_api_keys?.api_key || "", // Get API key from bot_api_keys join
           openRouterModel: sharedBot.open_router_model,
           avatar: sharedBot.avatar,
           memory_enabled: sharedBot.memory_enabled,
