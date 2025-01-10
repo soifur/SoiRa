@@ -28,8 +28,7 @@ interface BotFormProps {
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>(() => {
     console.log("Initializing editingBot with:", bot);
-    return {
-      ...bot,
+    const defaultBot: Bot = {
       id: bot.id,
       name: bot.name || "",
       instructions: bot.instructions || "",
@@ -49,8 +48,11 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       stream: bot.stream ?? true,
       system_templates: bot.system_templates ?? [],
       tool_config: bot.tool_config ?? [],
-      response_format: bot.response_format ?? { type: "text" }
+      response_format: bot.response_format ?? { type: "text" },
+      accessType: bot.accessType || "private"
     };
+    console.log("Initialized defaultBot:", defaultBot);
+    return defaultBot;
   });
   
   const [quizEnabled, setQuizEnabled] = useState(false);
@@ -84,7 +86,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
           stream: bot.stream ?? prev.stream,
           system_templates: bot.system_templates ?? prev.system_templates,
           tool_config: bot.tool_config ?? prev.tool_config,
-          response_format: bot.response_format ?? prev.response_format
+          response_format: bot.response_format ?? prev.response_format,
+          accessType: bot.accessType || prev.accessType
         };
         console.log("Updated editingBot state:", updated);
         return updated;
