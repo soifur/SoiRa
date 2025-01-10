@@ -1,22 +1,28 @@
 import React from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Bot } from "@/hooks/useBots";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 
 interface SmartResponsesSettingsProps {
-  bot: Bot;
-  onBotChange: (updates: Partial<Bot>) => void;
+  responseFormat: { type: string; schema?: any };
+  memoryEnabledModel: boolean;
+  onResponseFormatChange: (responseFormat: { type: string; schema?: any }) => void;
+  onMemoryEnabledModelChange: (enabled: boolean) => void;
 }
 
-export const SmartResponsesSettings = ({ bot, onBotChange }: SmartResponsesSettingsProps) => {
+export const SmartResponsesSettings = ({ 
+  responseFormat,
+  memoryEnabledModel,
+  onResponseFormatChange,
+  onMemoryEnabledModelChange
+}: SmartResponsesSettingsProps) => {
   const { toast } = useToast();
 
   const handleSmartResponsesToggle = (checked: boolean) => {
     try {
-      onBotChange({
-        response_format: checked
+      onResponseFormatChange(
+        checked
           ? {
               type: "json_object",
               schema: {
@@ -45,7 +51,7 @@ export const SmartResponsesSettings = ({ bot, onBotChange }: SmartResponsesSetti
               }
             }
           : { type: "text" }
-      });
+      );
       toast({
         title: "Success",
         description: `Smart responses ${checked ? 'enabled' : 'disabled'} successfully`,
@@ -62,7 +68,7 @@ export const SmartResponsesSettings = ({ bot, onBotChange }: SmartResponsesSetti
 
   const handleGlobalMemoryToggle = (checked: boolean) => {
     try {
-      onBotChange({ memory_enabled_model: checked });
+      onMemoryEnabledModelChange(checked);
       toast({
         title: "Success",
         description: `Global memory ${checked ? 'enabled' : 'disabled'} successfully`,
@@ -88,7 +94,7 @@ export const SmartResponsesSettings = ({ bot, onBotChange }: SmartResponsesSetti
             </p>
           </div>
           <Switch
-            checked={bot.response_format?.type === "json_object"}
+            checked={responseFormat?.type === "json_object"}
             onCheckedChange={handleSmartResponsesToggle}
           />
         </div>
@@ -101,7 +107,7 @@ export const SmartResponsesSettings = ({ bot, onBotChange }: SmartResponsesSetti
             </p>
           </div>
           <Switch
-            checked={bot.memory_enabled_model}
+            checked={memoryEnabledModel}
             onCheckedChange={handleGlobalMemoryToggle}
           />
         </div>

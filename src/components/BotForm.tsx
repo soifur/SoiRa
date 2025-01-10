@@ -216,8 +216,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             <BotBasicInfo bot={editingBot} onBotChange={handleBotChange} />
             
             <BotPublishToggle 
-              isPublished={editingBot.published}
-              onPublishChange={handlePublishToggle}
+              published={editingBot.published}
+              onPublishedChange={(published) => handleBotChange({ published })}
             />
 
             <ModelSelector 
@@ -243,8 +243,10 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
             </div>
 
             <SmartResponsesSettings 
-              bot={editingBot}
-              onBotChange={handleBotChange}
+              responseFormat={editingBot.response_format}
+              memoryEnabledModel={editingBot.memory_enabled_model}
+              onResponseFormatChange={(response_format) => handleBotChange({ response_format })}
+              onMemoryEnabledModelChange={(memory_enabled_model) => handleBotChange({ memory_enabled_model })}
             />
 
             <div className="flex items-center space-x-2">
