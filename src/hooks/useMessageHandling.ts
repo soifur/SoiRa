@@ -4,7 +4,7 @@ import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
 import { useToast } from "@/components/ui/use-toast";
-import { useMemoryContext } from "./memory/useMemoryContext";
+import { useMemoryContext } from "@/hooks/chat/memory/useMemoryContext";
 
 export const useMessageHandling = (
   bot: Bot,
