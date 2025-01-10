@@ -36,10 +36,9 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     frequency_penalty: bot.frequency_penalty ?? 0,
     presence_penalty: bot.presence_penalty ?? 0,
     max_tokens: bot.max_tokens ?? 4096,
-    stream: bot.stream ?? true,
-    system_templates: bot.system_templates ?? [],
+    response_format: bot.response_format ?? { type: "text" },
     tool_config: bot.tool_config ?? [],
-    response_format: bot.response_format ?? { type: "text" }
+    system_templates: bot.system_templates ?? []
   });
   const [quizEnabled, setQuizEnabled] = useState(false);
   const [quizFields, setQuizFields] = useState<Field[]>([]);
@@ -58,10 +57,9 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
       frequency_penalty: bot.frequency_penalty ?? 0,
       presence_penalty: bot.presence_penalty ?? 0,
       max_tokens: bot.max_tokens ?? 4096,
-      stream: bot.stream ?? true,
-      system_templates: bot.system_templates ?? [],
+      response_format: bot.response_format ?? { type: "text" },
       tool_config: bot.tool_config ?? [],
-      response_format: bot.response_format ?? { type: "text" }
+      system_templates: bot.system_templates ?? []
     }));
 
     if (bot.id) {
@@ -165,10 +163,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         return;
       }
 
-      // Update bot and shared configuration
       await updateBotAndSharedConfig(editingBot);
-      
-      // Update quiz configuration if bot exists
       await updateQuizConfiguration(editingBot.id, quizEnabled, quizFields);
 
       onSave(editingBot);

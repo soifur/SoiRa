@@ -91,7 +91,6 @@ const jsonToMessages = (json: Json): Message[] => {
 export const useChat = (selectedBot: Bot | null, sessionToken: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
   const abortControllerRef = { current: null as AbortController | null };
@@ -190,7 +189,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
         }
       }
 
-      setIsStreaming(true);
       let botResponse = "";
       try {
         console.log('Processing message with model:', mergedBot.model);
@@ -200,21 +198,10 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
           botResponse = await ChatService.sendOpenRouterMessage(
             newMessages,
             mergedBot,
-            abortControllerRef.current.signal,
-            (chunk: string) => {
-              console.log('Received chunk:', chunk);
-              setMessages(prev => {
-                const lastMessage = prev[prev.length - 1];
-                if (lastMessage.role === "assistant") {
-                  return [
-                    ...prev.slice(0, -1),
-                    { ...lastMessage, content: lastMessage.content + chunk }
-                  ];
-                }
-                return prev;
-              });
-            }
+            abortControllerRef.current.signal
           );
+        } else {
+          throw new Error(`Unsupported model type: ${mergedBot.model}`);
         }
 
         console.log('Bot response:', botResponse);
@@ -252,7 +239,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
       });
     } finally {
       setIsLoading(false);
-      setIsStreaming(false);
       abortControllerRef.current = null;
     }
   }, [selectedBot, messages, currentChatId, toast]);
@@ -260,7 +246,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
   return {
     messages,
     isLoading,
-    isStreaming,
     currentChatId,
     handleNewChat,
     handleSelectChat,

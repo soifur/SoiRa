@@ -111,10 +111,9 @@ export class ChatService {
     messages: Array<{ role: string; content: string }>,
     bot: Bot,
     abortSignal?: AbortSignal,
-    onStream?: (chunk: string) => void,
     clientId?: string,
     sessionToken?: string
-  ) {
+  ): Promise<string> {
     if (!bot.apiKey) {
       throw new Error("OpenRouter API key is missing");
     }
@@ -160,7 +159,6 @@ export class ChatService {
           ...(contextMessage ? [contextMessage] : []),
           ...sanitizedMessages,
         ],
-        stream: bot.stream ?? true,
         temperature: bot.temperature ?? 1,
         top_p: bot.top_p ?? 1,
         frequency_penalty: bot.frequency_penalty ?? 0,
@@ -191,68 +189,23 @@ export class ChatService {
         }
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No response body");
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
 
-      let accumulatedResponse = '';
-      let buffer = '';
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = new TextDecoder().decode(value);
-        buffer += chunk;
-        
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        
-        for (const line of lines) {
-          if (line.trim() === '') continue;
-          if (line.startsWith('data: ')) {
-            const data = line.slice(5).trim();
-            if (data === '[DONE]') continue;
-            
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                accumulatedResponse += content;
-                if (onStream) {
-                  if (bot.response_format?.type === "json_object") {
-                    try {
-                      const jsonContent = JSON.parse(content);
-                      onStream(jsonContent.response || content);
-                    } catch {
-                      onStream(content);
-                    }
-                  } else {
-                    onStream(content);
-                  }
-                }
-              }
-            } catch (e) {
-              console.warn('Error parsing streaming response:', e);
-            }
-          }
-        }
-      }
-
-      if (!accumulatedResponse.trim()) {
-        console.error('Empty response from OpenRouter API');
+      if (!content || content.trim() === "") {
         throw new Error("The bot returned an empty response. Please try again.");
       }
-      
+
       if (bot.response_format?.type === "json_object") {
         try {
-          const jsonResponse = JSON.parse(accumulatedResponse);
-          return jsonResponse.response || accumulatedResponse;
+          const jsonResponse = JSON.parse(content);
+          return jsonResponse.response || content;
         } catch {
-          return accumulatedResponse;
+          return content;
         }
       }
-      
-      return accumulatedResponse;
+
+      return content;
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
