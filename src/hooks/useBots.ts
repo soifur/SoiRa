@@ -29,6 +29,7 @@ export interface Bot {
   system_templates?: any[];
   memory_model?: string;
   memory_enabled_model?: boolean;
+  share_key?: string;
 }
 
 export const useBots = () => {
@@ -90,7 +91,11 @@ export const useBots = () => {
           presence_penalty: sharedBot?.presence_penalty ?? 0,
           max_tokens: sharedBot?.max_tokens ?? 4096,
           stream: sharedBot?.stream ?? true,
-          response_format: sharedBot?.response_format ?? { type: "text" },
+          response_format: sharedBot?.response_format ? 
+            (typeof sharedBot.response_format === 'string' ? 
+              JSON.parse(sharedBot.response_format) : 
+              sharedBot.response_format) : 
+            { type: "text" },
           tool_config: sharedBot?.tool_config ?? [],
           system_templates: sharedBot?.system_templates ?? [],
           memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
