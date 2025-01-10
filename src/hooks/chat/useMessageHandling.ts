@@ -15,7 +15,7 @@ export const useMessageHandling = (
 ) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { handleMemoryUpdate } = useMemoryContext(bot, userContext, updateUserContext);
+  const { handleMemoryUpdate } = useMemoryContext(bot, "default-client", null);
   const abortControllerRef = { current: null as AbortController | null };
 
   const sendMessage = async (message: string) => {

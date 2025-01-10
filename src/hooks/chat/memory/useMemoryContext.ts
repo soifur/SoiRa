@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Bot } from '@/components/chat/types/chatTypes';
 import { supabase } from '@/integrations/supabase/client';
-import { Bot } from '@/hooks/useBots';
 
-interface MemoryContext {
+export interface MemoryContext {
   name: string | null;
   faith: string | null;
   likes: string[];
@@ -10,8 +10,18 @@ interface MemoryContext {
   facts: string[];
 }
 
-export const useMemoryContext = (bot: Bot | undefined, clientId: string, sessionToken?: string) => {
-  const [context, setContext] = useState<MemoryContext | null>(null);
+export const useMemoryContext = (
+  bot: Bot | undefined,
+  clientId: string,
+  sessionToken?: string
+) => {
+  const [context, setContext] = useState<MemoryContext>({
+    name: null,
+    faith: null,
+    likes: [],
+    topics: [],
+    facts: []
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,14 +40,13 @@ export const useMemoryContext = (bot: Bot | undefined, clientId: string, session
         if (error) throw error;
         
         if (data) {
-          setContext(data.combined_context || data.context);
-        } else {
+          const contextData = data.combined_context || data.context;
           setContext({
-            name: null,
-            faith: null,
-            likes: [],
-            topics: [],
-            facts: []
+            name: contextData?.name || null,
+            faith: contextData?.faith || null,
+            likes: Array.isArray(contextData?.likes) ? contextData.likes : [],
+            topics: Array.isArray(contextData?.topics) ? contextData.topics : [],
+            facts: Array.isArray(contextData?.facts) ? contextData.facts : []
           });
         }
       } catch (error) {
@@ -69,7 +78,7 @@ export const useMemoryContext = (bot: Bot | undefined, clientId: string, session
       setContext(prev => ({
         ...prev,
         ...newContext
-      } as MemoryContext));
+      }));
       
     } catch (error) {
       console.error('Error updating memory context:', error);
@@ -77,5 +86,18 @@ export const useMemoryContext = (bot: Bot | undefined, clientId: string, session
     }
   };
 
-  return { context, isLoading, updateContext };
+  const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
+    // Process messages and extract context
+    const newContext: Partial<MemoryContext> = {
+      // Add context extraction logic here if needed
+    };
+    await updateContext(newContext);
+  };
+
+  return { 
+    context, 
+    isLoading, 
+    updateContext,
+    handleMemoryUpdate 
+  };
 };
