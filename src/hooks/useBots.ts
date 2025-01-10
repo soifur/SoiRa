@@ -59,7 +59,7 @@ export const useBots = () => {
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
           model: sharedBot.model as BaseModel,
-          apiKey: "", // Initialize with empty string since it's not stored in shared_bots
+          apiKey: sharedBot.api_key_id || "", // Using the correct field name api_key_id
           openRouterModel: sharedBot.open_router_model,
           avatar: sharedBot.avatar,
           memory_enabled: sharedBot.memory_enabled,
