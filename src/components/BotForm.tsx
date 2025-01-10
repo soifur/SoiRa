@@ -26,61 +26,69 @@ interface BotFormProps {
 }
 
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
-  const [editingBot, setEditingBot] = useState<Bot>(() => ({
-    ...bot,
-    id: bot.id,
-    name: bot.name || "",
-    instructions: bot.instructions || "",
-    starters: bot.starters || [],
-    model: bot.model,
-    apiKey: bot.apiKey || "",
-    openRouterModel: bot.openRouterModel,
-    avatar: bot.avatar,
-    memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published ?? false,
-    memory_enabled_model: bot.memory_enabled_model ?? false,
-    temperature: bot.temperature ?? 1,
-    top_p: bot.top_p ?? 1,
-    frequency_penalty: bot.frequency_penalty ?? 0,
-    presence_penalty: bot.presence_penalty ?? 0,
-    max_tokens: bot.max_tokens ?? 4096,
-    stream: bot.stream ?? true,
-    system_templates: bot.system_templates ?? [],
-    tool_config: bot.tool_config ?? [],
-    response_format: bot.response_format ?? { type: "text" }
-  }));
+  const [editingBot, setEditingBot] = useState<Bot>(() => {
+    console.log("Initializing editingBot with:", bot);
+    return {
+      ...bot,
+      id: bot.id,
+      name: bot.name || "",
+      instructions: bot.instructions || "",
+      starters: bot.starters || [],
+      model: bot.model,
+      apiKey: bot.apiKey || "",
+      openRouterModel: bot.openRouterModel,
+      avatar: bot.avatar,
+      memory_enabled: bot.memory_enabled ?? false,
+      published: bot.published ?? false,
+      memory_enabled_model: bot.memory_enabled_model ?? false,
+      temperature: bot.temperature ?? 1,
+      top_p: bot.top_p ?? 1,
+      frequency_penalty: bot.frequency_penalty ?? 0,
+      presence_penalty: bot.presence_penalty ?? 0,
+      max_tokens: bot.max_tokens ?? 4096,
+      stream: bot.stream ?? true,
+      system_templates: bot.system_templates ?? [],
+      tool_config: bot.tool_config ?? [],
+      response_format: bot.response_format ?? { type: "text" }
+    };
+  });
   
   const [quizEnabled, setQuizEnabled] = useState(false);
   const [quizFields, setQuizFields] = useState<Field[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log("Bot data received:", bot);
+    console.log("Bot data received in useEffect:", bot);
+    console.log("Current editingBot state:", editingBot);
     if (bot.id) {
-      setEditingBot(prev => ({
-        ...prev,
-        ...bot,
-        id: bot.id,
-        name: bot.name || prev.name,
-        instructions: bot.instructions || prev.instructions,
-        starters: bot.starters || prev.starters,
-        model: bot.model,
-        apiKey: bot.apiKey || prev.apiKey,
-        openRouterModel: bot.openRouterModel,
-        avatar: bot.avatar,
-        memory_enabled: bot.memory_enabled ?? prev.memory_enabled,
-        published: bot.published ?? prev.published,
-        memory_enabled_model: bot.memory_enabled_model ?? prev.memory_enabled_model,
-        temperature: bot.temperature ?? prev.temperature,
-        top_p: bot.top_p ?? prev.top_p,
-        frequency_penalty: bot.frequency_penalty ?? prev.frequency_penalty,
-        presence_penalty: bot.presence_penalty ?? prev.presence_penalty,
-        max_tokens: bot.max_tokens ?? prev.max_tokens,
-        stream: bot.stream ?? prev.stream,
-        system_templates: bot.system_templates ?? prev.system_templates,
-        tool_config: bot.tool_config ?? prev.tool_config,
-        response_format: bot.response_format ?? prev.response_format
-      }));
+      setEditingBot(prev => {
+        const updated = {
+          ...prev,
+          ...bot,
+          id: bot.id,
+          name: bot.name || prev.name,
+          instructions: bot.instructions || prev.instructions,
+          starters: bot.starters || prev.starters,
+          model: bot.model,
+          apiKey: bot.apiKey || prev.apiKey,
+          openRouterModel: bot.openRouterModel,
+          avatar: bot.avatar,
+          memory_enabled: bot.memory_enabled ?? prev.memory_enabled,
+          published: bot.published ?? prev.published,
+          memory_enabled_model: bot.memory_enabled_model ?? prev.memory_enabled_model,
+          temperature: bot.temperature ?? prev.temperature,
+          top_p: bot.top_p ?? prev.top_p,
+          frequency_penalty: bot.frequency_penalty ?? prev.frequency_penalty,
+          presence_penalty: bot.presence_penalty ?? prev.presence_penalty,
+          max_tokens: bot.max_tokens ?? prev.max_tokens,
+          stream: bot.stream ?? prev.stream,
+          system_templates: bot.system_templates ?? prev.system_templates,
+          tool_config: bot.tool_config ?? prev.tool_config,
+          response_format: bot.response_format ?? prev.response_format
+        };
+        console.log("Updated editingBot state:", updated);
+        return updated;
+      });
       loadQuizConfiguration();
     }
   }, [bot]);
@@ -130,7 +138,11 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleBotChange = (updates: Partial<Bot>) => {
     console.log("Updating bot with:", updates);
-    setEditingBot(prev => ({ ...prev, ...updates }));
+    setEditingBot(prev => {
+      const updated = { ...prev, ...updates };
+      console.log("New bot state after update:", updated);
+      return updated;
+    });
   };
 
   const handleModelChange = (model: Bot['model']) => {
@@ -174,19 +186,20 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleSave = async () => {
     try {
-      console.log("Saving bot with data:", editingBot);
+      console.log("Starting save with editingBot:", editingBot);
       
       if (!editingBot.id) {
+        console.log("Creating new bot");
         onSave(editingBot);
         return;
       }
 
-      // Update bot and shared configuration
+      console.log("Updating existing bot");
       await updateBotAndSharedConfig(editingBot);
       
-      // Update quiz configuration if bot exists
       await updateQuizConfiguration(editingBot.id, quizEnabled, quizFields);
 
+      console.log("Save completed successfully");
       onSave(editingBot);
       toast({
         title: "Success",
