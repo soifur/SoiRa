@@ -64,7 +64,8 @@ export const useBots = () => {
             response_format,
             tool_config,
             system_templates,
-            memory_enabled_model
+            memory_enabled_model,
+            share_key
           `)
           .eq('bot_id', bot.id)
           .maybeSingle();
@@ -93,6 +94,7 @@ export const useBots = () => {
           tool_config: sharedBot?.tool_config ?? [],
           system_templates: sharedBot?.system_templates ?? [],
           memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
+          share_key: sharedBot?.share_key
         };
       }));
 
@@ -173,7 +175,7 @@ export const useBots = () => {
           instructions: bot.instructions,
           starters: bot.starters,
           open_router_model: bot.openRouterModel,
-          share_key: `${result.data.id}_${Date.now()}`, // Generate a unique share key
+          share_key: `${result.data.id}_${Date.now()}`,
         })
         .eq('bot_id', result.data.id);
 
