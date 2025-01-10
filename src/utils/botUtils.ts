@@ -38,42 +38,117 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
     throw botError;
   }
 
-  // Check if there's a shared bot configuration
-  const { data: sharedBot, error: fetchError } = await supabase
+  // Fetch each property individually from shared_bots
+  const { data: sharedBotName } = await supabase
     .from('shared_bots')
-    .select(`
-      id,
-      share_key,
-      bot_id,
-      bot_name,
-      instructions,
-      starters,
-      model,
-      open_router_model,
-      avatar,
-      memory_enabled,
-      published,
-      memory_enabled_model,
-      temperature,
-      top_p,
-      frequency_penalty,
-      presence_penalty,
-      max_tokens,
-      stream,
-      response_format,
-      tool_config,
-      system_templates
-    `)
+    .select('bot_name')
     .eq('bot_id', bot.id)
     .maybeSingle();
 
-  if (fetchError) {
-    console.error("Error fetching shared bot:", fetchError);
-    throw fetchError;
-  }
+  const { data: sharedBotInstructions } = await supabase
+    .from('shared_bots')
+    .select('instructions')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
 
-  if (sharedBot) {
-    console.log("Updating shared bot configuration with data from:", sharedBot);
+  const { data: sharedBotStarters } = await supabase
+    .from('shared_bots')
+    .select('starters')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotModel } = await supabase
+    .from('shared_bots')
+    .select('model')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotOpenRouterModel } = await supabase
+    .from('shared_bots')
+    .select('open_router_model')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotAvatar } = await supabase
+    .from('shared_bots')
+    .select('avatar')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotMemoryEnabled } = await supabase
+    .from('shared_bots')
+    .select('memory_enabled')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotPublished } = await supabase
+    .from('shared_bots')
+    .select('published')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotMemoryEnabledModel } = await supabase
+    .from('shared_bots')
+    .select('memory_enabled_model')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotTemperature } = await supabase
+    .from('shared_bots')
+    .select('temperature')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotTopP } = await supabase
+    .from('shared_bots')
+    .select('top_p')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotFrequencyPenalty } = await supabase
+    .from('shared_bots')
+    .select('frequency_penalty')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotPresencePenalty } = await supabase
+    .from('shared_bots')
+    .select('presence_penalty')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotMaxTokens } = await supabase
+    .from('shared_bots')
+    .select('max_tokens')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotStream } = await supabase
+    .from('shared_bots')
+    .select('stream')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotResponseFormat } = await supabase
+    .from('shared_bots')
+    .select('response_format')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotToolConfig } = await supabase
+    .from('shared_bots')
+    .select('tool_config')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  const { data: sharedBotSystemTemplates } = await supabase
+    .from('shared_bots')
+    .select('system_templates')
+    .eq('bot_id', bot.id)
+    .maybeSingle();
+
+  if (sharedBotName || sharedBotInstructions || sharedBotStarters || sharedBotModel) {
+    console.log("Updating shared bot configuration");
     const { error: sharedBotError } = await supabase
       .from('shared_bots')
       .update({
