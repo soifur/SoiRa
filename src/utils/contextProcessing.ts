@@ -1,6 +1,8 @@
 import { Message } from "@/components/chat/types/chatTypes";
+import { Json } from "@/integrations/supabase/types";
 
 interface ExtractedContext {
+  [key: string]: Json;
   name?: string;
   faith?: string;
   likes: string[];

@@ -57,7 +57,7 @@ export const useBots = () => {
       if (botsError) throw botsError;
 
       // Transform the data
-      const transformedBots = botsData.map((sharedBot) => {
+      const transformedBots = botsData.map((sharedBot): Bot => {
         return {
           id: sharedBot.share_key,
           name: sharedBot.bot_name,
