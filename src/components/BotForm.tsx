@@ -46,6 +46,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("Bot data received:", bot);
     setEditingBot(prev => ({
       ...prev,
       ...bot,
@@ -70,31 +71,49 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const loadQuizConfiguration = async () => {
     try {
-      const { data: quizConfig } = await supabase
+      const { data: quizConfig, error } = await supabase
         .from('quiz_configurations')
         .select('*')
         .eq('bot_id', bot.id)
         .maybeSingle();
 
+      if (error) {
+        console.error('Error loading quiz configuration:', error);
+        return;
+      }
+
       if (quizConfig) {
+        console.log("Loaded quiz config:", quizConfig);
         setQuizEnabled(quizConfig.enabled);
         
-        const { data: quizFields } = await supabase
+        const { data: quizFields, error: fieldsError } = await supabase
           .from('quiz_fields')
           .select('*')
           .eq('quiz_id', quizConfig.id)
           .order('sequence_number', { ascending: true });
 
+        if (fieldsError) {
+          console.error('Error loading quiz fields:', fieldsError);
+          return;
+        }
+
         if (quizFields) {
+          console.log("Loaded quiz fields:", quizFields);
           setQuizFields(quizFields);
         }
       }
     } catch (error) {
       console.error('Error loading quiz configuration:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load quiz configuration",
+        variant: "destructive",
+      });
     }
   };
 
   const handleBotChange = (updates: Partial<Bot>) => {
+    console.log("Updating bot with:", updates);
     setEditingBot(prev => ({ ...prev, ...updates }));
   };
 
@@ -139,12 +158,17 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleSave = async () => {
     try {
+      console.log("Saving bot with data:", editingBot);
+      
       if (!editingBot.id) {
         onSave(editingBot);
         return;
       }
 
+      // Update bot and shared configuration
       await updateBotAndSharedConfig(editingBot);
+      
+      // Update quiz configuration if bot exists
       await updateQuizConfiguration(editingBot.id, quizEnabled, quizFields);
 
       onSave(editingBot);
