@@ -11,12 +11,7 @@ interface MemoryContext {
   likes: string[];
   topics: string[];
   facts: string[];
-  [key: string]: string | string[] | null | undefined; // Add index signature
-}
-
-interface DatabaseContext {
-  context: MemoryContext;
-  last_updated: string;
+  [key: string]: string | string[] | null | undefined;
 }
 
 const MAX_RETRIES = 3;
@@ -26,6 +21,22 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const initializeContext = (): MemoryContext => ({
+    name: null,
+    faith: null,
+    likes: [],
+    topics: [],
+    facts: []
+  });
+
+  const validateContext = (context: MemoryContext): boolean => {
+    if (!Array.isArray(context.likes) || !Array.isArray(context.topics) || !Array.isArray(context.facts)) {
+      console.error('Invalid context structure:', context);
+      return false;
+    }
+    return true;
+  };
 
   const handleMemoryUpdate = useCallback(async (messages: Message[], retryCount = 0) => {
     if (!bot.memory_enabled) {
@@ -37,61 +48,54 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
       setIsLoading(true);
       setError(null);
 
-      // Extract context from messages
-      const context: MemoryContext = {
-        likes: [],
-        topics: [],
-        facts: []
-      };
+      // Initialize context with default values
+      const context = initializeContext();
 
       messages.forEach(message => {
         if (message.role === 'user') {
-          // Extract name
+          // Extract name with null fallback
           const nameMatch = message.content.match(/my name is ([^\.,!?]+)/i);
           if (nameMatch) {
-            context.name = nameMatch[1].trim();
+            context.name = nameMatch[1].trim() || null;
           }
 
-          // Extract faith
+          // Extract faith with null fallback
           const faithMatch = message.content.match(/I am (a |an )?([^\.,!?]+) (believer|faith|religion)/i);
           if (faithMatch) {
-            context.faith = faithMatch[2].trim();
+            context.faith = faithMatch[2].trim() || null;
           }
 
-          // Extract likes
+          // Extract and validate likes array
           const likeMatches = message.content.match(/I (like|love|enjoy|prefer) ([^\.,!?]+)/gi);
           if (likeMatches) {
-            likeMatches.forEach(match => {
-              const like = match.replace(/I (like|love|enjoy|prefer) /i, '').trim();
-              if (!context.likes.includes(like)) {
-                context.likes.push(like);
-              }
-            });
+            const newLikes = likeMatches.map(match => 
+              match.replace(/I (like|love|enjoy|prefer) /i, '').trim()
+            ).filter(Boolean);
+            context.likes = [...new Set([...context.likes, ...newLikes])];
           }
 
-          // Extract topics
+          // Extract and validate topics array
           const topicMatches = message.content.match(/\b(about|regarding|concerning) ([^\.,!?]+)/gi);
           if (topicMatches) {
-            topicMatches.forEach(match => {
-              const topic = match.replace(/\b(about|regarding|concerning) /i, '').trim();
-              if (!context.topics.includes(topic)) {
-                context.topics.push(topic);
-              }
-            });
+            const newTopics = topicMatches.map(match =>
+              match.replace(/\b(about|regarding|concerning) /i, '').trim()
+            ).filter(Boolean);
+            context.topics = [...new Set([...context.topics, ...newTopics])];
           }
 
-          // Extract facts
+          // Extract and validate facts array
           const factMatches = message.content.match(/I (am|work as|live in|have) ([^\.,!?]+)/gi);
           if (factMatches) {
-            factMatches.forEach(match => {
-              const fact = match.trim();
-              if (!context.facts.includes(fact)) {
-                context.facts.push(fact);
-              }
-            });
+            const newFacts = factMatches.map(match => match.trim()).filter(Boolean);
+            context.facts = [...new Set([...context.facts, ...newFacts])];
           }
         }
       });
+
+      // Validate context before database update
+      if (!validateContext(context)) {
+        throw new Error('Invalid context structure detected');
+      }
 
       // Update context in database
       const { error: updateError } = await supabase
