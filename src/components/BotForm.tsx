@@ -244,8 +244,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
             <SmartResponsesSettings 
               bot={editingBot}
-              onResponseFormatChange={(format) => handleBotChange({ response_format: format })}
-              onMemoryEnabledModelChange={(enabled) => handleBotChange({ memory_enabled_model: enabled })}
+              onBotChange={handleBotChange}
             />
 
             <div className="flex items-center space-x-2">
@@ -260,14 +259,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
             <BotAdvancedSettings 
               bot={editingBot}
-              onTemperatureChange={(temp) => handleBotChange({ temperature: temp })}
-              onTopPChange={(topP) => handleBotChange({ top_p: topP })}
-              onFrequencyPenaltyChange={(penalty) => handleBotChange({ frequency_penalty: penalty })}
-              onPresencePenaltyChange={(penalty) => handleBotChange({ presence_penalty: penalty })}
-              onMaxTokensChange={(tokens) => handleBotChange({ max_tokens: tokens })}
-              onStreamChange={(enabled) => handleBotChange({ stream: enabled })}
-              onSystemTemplatesChange={(templates) => handleBotChange({ system_templates: templates })}
-              onToolConfigChange={(config) => handleBotChange({ tool_config: config })}
+              onBotChange={handleBotChange}
             />
 
             <StartersInput 
