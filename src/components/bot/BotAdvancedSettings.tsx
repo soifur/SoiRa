@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
 
 interface BotAdvancedSettingsProps {
   bot: Bot;
@@ -15,9 +16,12 @@ interface BotAdvancedSettingsProps {
 }
 
 export const BotAdvancedSettings = ({ bot, onBotChange }: BotAdvancedSettingsProps) => {
-  const handleSliderChange = (key: keyof Bot, value: number[]) => {
-    onBotChange({ [key]: value[0] });
-  };
+  const handleSliderChange = useDebouncedCallback(
+    (key: keyof Bot, value: number[]) => {
+      onBotChange({ [key]: value[0] });
+    },
+    300
+  );
 
   return (
     <Collapsible>
