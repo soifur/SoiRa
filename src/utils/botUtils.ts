@@ -28,7 +28,7 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
       response_format: bot.response_format,
       tool_config: bot.tool_config,
       system_templates: bot.system_templates,
-      updated_at: new Date()
+      updated_at: new Date().toISOString()
     })
     .eq('id', bot.id)
     .select();
