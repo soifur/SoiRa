@@ -47,7 +47,7 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
 
   if (sharedBot) {
     console.log("Updating shared bot configuration");
-    // Update shared bot configuration
+    // Update shared bot configuration with ALL properties
     const { error: sharedBotError } = await supabase
       .from('shared_bots')
       .update({
