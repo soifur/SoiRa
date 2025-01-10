@@ -43,7 +43,6 @@ export const useBots = () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) return;
 
-      // Fetch bots with their API keys
       const { data: botsData, error: botsError } = await supabase
         .from('shared_bots')
         .select(`
@@ -57,44 +56,42 @@ export const useBots = () => {
       if (botsError) throw botsError;
 
       // Transform the data to match the Bot interface
-      const transformedBots = botsData.map((sharedBot): Bot => {
-        return {
-          id: sharedBot.share_key,
-          name: sharedBot.bot_name, // Map bot_name to name
-          instructions: sharedBot.instructions || "",
-          starters: sharedBot.starters || [],
-          model: sharedBot.model as BaseModel,
-          apiKey: sharedBot.bot_api_keys?.api_key || "", // Map API key correctly
-          openRouterModel: sharedBot.open_router_model,
-          avatar: sharedBot.avatar,
-          memory_enabled: sharedBot.memory_enabled,
-          published: sharedBot.published,
-          default_bot: false,
-          quiz_mode: sharedBot.quiz_mode,
-          frequency_penalty: sharedBot.frequency_penalty ?? 0,
-          presence_penalty: sharedBot.presence_penalty ?? 0,
-          max_tokens: sharedBot.max_tokens ?? 4096,
-          temperature: sharedBot.temperature ?? 1,
-          top_p: sharedBot.top_p ?? 1,
-          response_format: sharedBot?.response_format ? 
-            (typeof sharedBot.response_format === 'string' ? 
-              JSON.parse(sharedBot.response_format) : 
-              sharedBot.response_format) : 
-            { type: "text" },
-          tool_config: sharedBot?.tool_config ? 
-            (typeof sharedBot.tool_config === 'string' ? 
-              JSON.parse(sharedBot.tool_config) : 
-              sharedBot.tool_config) : 
-            [],
-          system_templates: sharedBot?.system_templates ? 
-            (typeof sharedBot.system_templates === 'string' ? 
-              JSON.parse(sharedBot.system_templates) : 
-              sharedBot.system_templates) : 
-            [],
-          memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
-          share_key: sharedBot?.share_key
-        };
-      });
+      const transformedBots = botsData.map((sharedBot): Bot => ({
+        id: sharedBot.share_key,
+        name: sharedBot.bot_name,
+        instructions: sharedBot.instructions || "",
+        starters: sharedBot.starters || [],
+        model: sharedBot.model as BaseModel,
+        apiKey: sharedBot.bot_api_keys?.api_key || "",
+        openRouterModel: sharedBot.open_router_model,
+        avatar: sharedBot.avatar,
+        memory_enabled: sharedBot.memory_enabled,
+        published: sharedBot.published,
+        default_bot: false,
+        quiz_mode: sharedBot.quiz_mode,
+        frequency_penalty: sharedBot.frequency_penalty ?? 0,
+        presence_penalty: sharedBot.presence_penalty ?? 0,
+        max_tokens: sharedBot.max_tokens ?? 4096,
+        temperature: sharedBot.temperature ?? 1,
+        top_p: sharedBot.top_p ?? 1,
+        response_format: sharedBot?.response_format ? 
+          (typeof sharedBot.response_format === 'string' ? 
+            JSON.parse(sharedBot.response_format) : 
+            sharedBot.response_format) : 
+          { type: "text" },
+        tool_config: sharedBot?.tool_config ? 
+          (typeof sharedBot.tool_config === 'string' ? 
+            JSON.parse(sharedBot.tool_config) : 
+            sharedBot.tool_config) : 
+          [],
+        system_templates: sharedBot?.system_templates ? 
+          (typeof sharedBot.system_templates === 'string' ? 
+            JSON.parse(sharedBot.system_templates) : 
+            sharedBot.system_templates) : 
+          [],
+        memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
+        share_key: sharedBot?.share_key
+      }));
 
       setBots(transformedBots);
     } catch (error) {
