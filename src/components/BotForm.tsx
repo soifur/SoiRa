@@ -17,6 +17,7 @@ import { QuizModeSettings } from "./bot/quiz/QuizModeSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "./bot/quiz/QuizFieldBuilder";
 import { BotAdvancedSettings } from "./bot/BotAdvancedSettings";
+import { SmartResponsesSettings } from "./bot/SmartResponsesSettings";
 
 interface BotFormProps {
   bot: Bot;
@@ -195,6 +196,11 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               />
             </div>
 
+            <SmartResponsesSettings 
+              bot={editingBot}
+              onBotChange={handleBotChange}
+            />
+
             <div className="flex items-center space-x-2">
               <Switch
                 id="memory-mode"
@@ -203,16 +209,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                 className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
               />
               <Label htmlFor="memory-mode">Enable Memory Mode</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="memory-enabled-model"
-                checked={editingBot.memory_enabled_model}
-                onCheckedChange={(checked) => handleBotChange({ memory_enabled_model: checked })}
-                className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
-              />
-              <Label htmlFor="memory-enabled-model">Enable Memory for Current Model</Label>
             </div>
 
             <BotAdvancedSettings bot={editingBot} onBotChange={handleBotChange} />

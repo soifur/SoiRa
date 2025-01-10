@@ -714,6 +714,7 @@ export type Database = {
           context: Json | null
           created_at: string | null
           id: string
+          is_global: boolean | null
           last_updated: string | null
           session_token: string | null
           user_id: string | null
@@ -725,6 +726,7 @@ export type Database = {
           context?: Json | null
           created_at?: string | null
           id?: string
+          is_global?: boolean | null
           last_updated?: string | null
           session_token?: string | null
           user_id?: string | null
@@ -736,6 +738,7 @@ export type Database = {
           context?: Json | null
           created_at?: string | null
           id?: string
+          is_global?: boolean | null
           last_updated?: string | null
           session_token?: string | null
           user_id?: string | null

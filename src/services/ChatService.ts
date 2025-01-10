@@ -86,11 +86,8 @@ export class ChatService {
     }));
 
     const quizInstructions = await this.getQuizInstructions(bot);
-    console.log("Quiz instructions status:", quizInstructions ? "Found" : "Not found");
-
     const instructionsToUse = quizInstructions || bot.instructions;
     const sanitizedInstructions = instructionsToUse ? this.sanitizeText(instructionsToUse) : '';
-    console.log("Instructions status:", sanitizedInstructions ? "Using custom instructions" : "No instructions");
 
     try {
       const headers = {
@@ -100,9 +97,6 @@ export class ChatService {
         'X-Title': 'Lovable Chat Interface'
       };
 
-      console.log("Sending request to OpenRouter with model:", bot.openRouterModel);
-
-      // Prepare the request body with all the new parameters
       const requestBody = {
         model: bot.openRouterModel,
         messages: [
@@ -117,11 +111,9 @@ export class ChatService {
         frequency_penalty: bot.frequency_penalty ?? 0,
         presence_penalty: bot.presence_penalty ?? 0,
         max_tokens: bot.max_tokens ?? 4096,
-        ...(bot.response_format && { response_format: bot.response_format }),
+        response_format: bot.response_format || { type: "text" },
         ...(bot.tool_config && bot.tool_config.length > 0 && { tools: bot.tool_config }),
       };
-
-      console.log("OpenRouter request configuration:", requestBody);
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -132,12 +124,6 @@ export class ChatService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('OpenRouter API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          data: errorData
-        });
-        
         if (response.status === 404) {
           throw new Error("OpenRouter API endpoint not found. Please check your configuration.");
         } else if (response.status === 401) {
@@ -175,13 +161,31 @@ export class ChatService {
               if (content) {
                 accumulatedResponse += content;
                 if (onStream) {
-                  onStream(content);
+                  if (bot.response_format?.type === "json_object") {
+                    try {
+                      const jsonContent = JSON.parse(content);
+                      onStream(jsonContent.response || content);
+                    } catch {
+                      onStream(content);
+                    }
+                  } else {
+                    onStream(content);
+                  }
                 }
               }
             } catch (e) {
               console.warn('Error parsing streaming response:', e);
             }
           }
+        }
+      }
+      
+      if (bot.response_format?.type === "json_object") {
+        try {
+          const jsonResponse = JSON.parse(accumulatedResponse);
+          return jsonResponse.response || accumulatedResponse;
+        } catch {
+          return accumulatedResponse;
         }
       }
       
