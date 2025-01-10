@@ -26,34 +26,29 @@ interface BotFormProps {
 }
 
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
-  const [editingBot, setEditingBot] = useState<Bot>(() => {
-    console.log("Initializing editingBot with:", bot);
-    const defaultBot: Bot = {
-      id: bot.id,
-      name: bot.name || "",
-      instructions: bot.instructions || "",
-      starters: bot.starters || [],
-      model: bot.model,
-      apiKey: bot.apiKey || "",
-      openRouterModel: bot.openRouterModel,
-      avatar: bot.avatar,
-      memory_enabled: bot.memory_enabled,
-      published: bot.published,
-      memory_enabled_model: bot.memory_enabled_model,
-      temperature: bot.temperature,
-      top_p: bot.top_p,
-      frequency_penalty: bot.frequency_penalty,
-      presence_penalty: bot.presence_penalty,
-      max_tokens: bot.max_tokens,
-      stream: bot.stream,
-      system_templates: bot.system_templates || [],
-      tool_config: bot.tool_config || [],
-      response_format: bot.response_format || { type: "text" },
-      accessType: bot.accessType || "private"
-    };
-    console.log("Initialized defaultBot:", defaultBot);
-    return defaultBot;
-  });
+  const [editingBot, setEditingBot] = useState<Bot>(() => ({
+    id: bot.id,
+    name: bot.name || "",
+    instructions: bot.instructions || "",
+    starters: bot.starters || [],
+    model: bot.model,
+    apiKey: bot.apiKey || "",
+    openRouterModel: bot.openRouterModel,
+    avatar: bot.avatar,
+    memory_enabled: bot.memory_enabled,
+    published: bot.published,
+    memory_enabled_model: bot.memory_enabled_model,
+    temperature: bot.temperature,
+    top_p: bot.top_p,
+    frequency_penalty: bot.frequency_penalty,
+    presence_penalty: bot.presence_penalty,
+    max_tokens: bot.max_tokens,
+    stream: bot.stream,
+    system_templates: bot.system_templates || [],
+    tool_config: bot.tool_config || [],
+    response_format: bot.response_format || { type: "text" },
+    accessType: bot.accessType || "private"
+  }));
   
   const [quizEnabled, setQuizEnabled] = useState(false);
   const [quizFields, setQuizFields] = useState<Field[]>([]);
@@ -63,34 +58,30 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     console.log("Bot data received in useEffect:", bot);
     console.log("Current editingBot state:", editingBot);
     if (bot.id) {
-      setEditingBot(prev => {
-        const updated = {
-          ...prev,
-          id: bot.id,
-          name: bot.name || prev.name,
-          instructions: bot.instructions || prev.instructions,
-          starters: bot.starters || prev.starters,
-          model: bot.model,
-          apiKey: bot.apiKey || prev.apiKey,
-          openRouterModel: bot.openRouterModel,
-          avatar: bot.avatar,
-          memory_enabled: bot.memory_enabled,
-          published: bot.published,
-          memory_enabled_model: bot.memory_enabled_model,
-          temperature: bot.temperature,
-          top_p: bot.top_p,
-          frequency_penalty: bot.frequency_penalty,
-          presence_penalty: bot.presence_penalty,
-          max_tokens: bot.max_tokens,
-          stream: bot.stream,
-          system_templates: bot.system_templates || prev.system_templates,
-          tool_config: bot.tool_config || prev.tool_config,
-          response_format: bot.response_format || prev.response_format,
-          accessType: bot.accessType || prev.accessType
-        };
-        console.log("Updated editingBot state:", updated);
-        return updated;
-      });
+      setEditingBot(prev => ({
+        ...prev,
+        id: bot.id,
+        name: bot.name || prev.name,
+        instructions: bot.instructions || prev.instructions,
+        starters: bot.starters || prev.starters,
+        model: bot.model,
+        apiKey: bot.apiKey || prev.apiKey,
+        openRouterModel: bot.openRouterModel,
+        avatar: bot.avatar,
+        memory_enabled: bot.memory_enabled,
+        published: bot.published,
+        memory_enabled_model: bot.memory_enabled_model,
+        temperature: bot.temperature,
+        top_p: bot.top_p,
+        frequency_penalty: bot.frequency_penalty,
+        presence_penalty: bot.presence_penalty,
+        max_tokens: bot.max_tokens,
+        stream: bot.stream,
+        system_templates: bot.system_templates || prev.system_templates,
+        tool_config: bot.tool_config || prev.tool_config,
+        response_format: bot.response_format || prev.response_format,
+        accessType: bot.accessType || prev.accessType
+      }));
       loadQuizConfiguration();
     }
   }, [bot]);
@@ -253,7 +244,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
             <SmartResponsesSettings 
               bot={editingBot}
-              onBotChange={handleBotChange}
+              onResponseFormatChange={(format) => handleBotChange({ response_format: format })}
+              onMemoryEnabledModelChange={(enabled) => handleBotChange({ memory_enabled_model: enabled })}
             />
 
             <div className="flex items-center space-x-2">
@@ -266,7 +258,17 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               <Label htmlFor="memory-mode">Enable Memory Mode</Label>
             </div>
 
-            <BotAdvancedSettings bot={editingBot} onBotChange={handleBotChange} />
+            <BotAdvancedSettings 
+              bot={editingBot}
+              onTemperatureChange={(temp) => handleBotChange({ temperature: temp })}
+              onTopPChange={(topP) => handleBotChange({ top_p: topP })}
+              onFrequencyPenaltyChange={(penalty) => handleBotChange({ frequency_penalty: penalty })}
+              onPresencePenaltyChange={(penalty) => handleBotChange({ presence_penalty: penalty })}
+              onMaxTokensChange={(tokens) => handleBotChange({ max_tokens: tokens })}
+              onStreamChange={(enabled) => handleBotChange({ stream: enabled })}
+              onSystemTemplatesChange={(templates) => handleBotChange({ system_templates: templates })}
+              onToolConfigChange={(config) => handleBotChange({ tool_config: config })}
+            />
 
             <StartersInput 
               starters={editingBot.starters}
