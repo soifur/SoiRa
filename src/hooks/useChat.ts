@@ -1,113 +1,85 @@
 import { useState, useCallback } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { Message } from "@/components/chat/types/chatTypes";
-import { supabase } from "@/integrations/supabase/client";
-import { v4 as uuidv4 } from 'uuid';
+import { Message, Bot } from "@/components/chat/types/chatTypes";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
-import { Bot } from "./useBots";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { v4 as uuidv4 } from 'uuid';
 
-export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
+interface BotSettings {
+  temperature: number;
+  top_p: number;
+  frequency_penalty: number;
+  presence_penalty: number;
+  max_tokens: number;
+  stream: boolean;
+  response_format: { type: string; [key: string]: any };
+  tool_config: any[];
+  system_templates: any[];
+  memory_enabled: boolean;
+  memory_enabled_model: boolean;
+}
+
+export const useChat = (selectedBot: Bot | null, sessionToken: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleNewChat = useCallback(() => {
-    setMessages([]);
-    setCurrentChatId(null);
-    toast({
-      title: "New Chat",
-      description: "Starting a new chat session",
-    });
-  }, [toast]);
-
-  const handleSelectChat = useCallback(async (selectedChatId: string) => {
-    try {
-      const { data: chat } = await supabase
-        .from('chat_history')
-        .select('*')
-        .eq('id', selectedChatId)
-        .single();
-
-      if (chat && chat.messages) {
-        const typedMessages = (chat.messages as any[]).map((msg): Message => ({
-          id: msg.id || uuidv4(),
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
-          isBot: msg.isBot,
-          avatar: msg.avatar
-        }));
-        setMessages(typedMessages);
-        setCurrentChatId(selectedChatId);
-      }
-    } catch (error) {
-      console.error('Error loading chat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load chat",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
+  const parseBotSettings = (sharedBot: any): BotSettings => {
+    return {
+      temperature: sharedBot.temperature ?? 1,
+      top_p: sharedBot.top_p ?? 1,
+      frequency_penalty: sharedBot.frequency_penalty ?? 0,
+      presence_penalty: sharedBot.presence_penalty ?? 0,
+      max_tokens: sharedBot.max_tokens ?? 4096,
+      stream: sharedBot.stream ?? true,
+      response_format: typeof sharedBot.response_format === 'string' 
+        ? JSON.parse(sharedBot.response_format) 
+        : sharedBot.response_format || { type: "text" },
+      tool_config: typeof sharedBot.tool_config === 'string' 
+        ? JSON.parse(sharedBot.tool_config) 
+        : sharedBot.tool_config || [],
+      system_templates: typeof sharedBot.system_templates === 'string' 
+        ? JSON.parse(sharedBot.system_templates) 
+        : sharedBot.system_templates || [],
+      memory_enabled: sharedBot.memory_enabled ?? false,
+      memory_enabled_model: sharedBot.memory_enabled_model ?? false
+    };
+  };
 
   const sendMessage = useCallback(async (message: string) => {
-    if (!selectedBot || !message.trim()) return;
-
+    if (!selectedBot) return;
+    
     try {
       setIsLoading(true);
-      setIsStreaming(true);
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
-      
-      const loadingMessage = createMessage("assistant", "", true);
-      setMessages([...newMessages, loadingMessage]);
 
       // Fetch shared bot settings
-      const { data: sharedBot, error: sharedBotError } = await supabase
+      const { data: sharedBot, error: settingsError } = await supabase
         .from('shared_bots')
         .select('*')
         .eq('bot_id', selectedBot.id)
         .single();
 
-      if (sharedBotError) {
+      if (settingsError || !sharedBot) {
+        console.error('Failed to fetch bot settings:', settingsError);
         throw new Error('Failed to fetch bot settings');
       }
 
-      // Parse JSON fields with proper type checking
-      const parsedSettings = {
-        ...sharedBot,
-        response_format: typeof sharedBot.response_format === 'string' 
-          ? JSON.parse(sharedBot.response_format) 
-          : sharedBot.response_format || { type: "text" },
-        tool_config: typeof sharedBot.tool_config === 'string' 
-          ? JSON.parse(sharedBot.tool_config) 
-          : sharedBot.tool_config || [],
-        system_templates: typeof sharedBot.system_templates === 'string' 
-          ? JSON.parse(sharedBot.system_templates) 
-          : sharedBot.system_templates || []
-      };
-
+      const botSettings = parseBotSettings(sharedBot);
       let response = "";
+
       if (selectedBot.model === "openrouter") {
+        setIsStreaming(true);
         response = await ChatService.sendOpenRouterMessage(
           newMessages,
           {
             ...selectedBot,
-            temperature: parsedSettings.temperature,
-            top_p: parsedSettings.top_p,
-            frequency_penalty: parsedSettings.frequency_penalty,
-            presence_penalty: parsedSettings.presence_penalty,
-            max_tokens: parsedSettings.max_tokens,
-            stream: parsedSettings.stream,
-            response_format: parsedSettings.response_format,
-            tool_config: parsedSettings.tool_config,
-            system_templates: parsedSettings.system_templates,
-            memory_enabled: parsedSettings.memory_enabled,
-            memory_enabled_model: parsedSettings.memory_enabled_model
+            ...botSettings
           },
           undefined,
           (chunk: string) => {
@@ -123,68 +95,73 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
             });
           }
         );
+        setIsStreaming(false);
       } else if (selectedBot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(newMessages, {
           ...selectedBot,
-          temperature: parsedSettings.temperature,
-          top_p: parsedSettings.top_p,
-          max_tokens: parsedSettings.max_tokens,
-          memory_enabled: parsedSettings.memory_enabled,
-          memory_enabled_model: parsedSettings.memory_enabled_model
+          ...botSettings
         });
         const botMessage = createMessage("assistant", response);
         setMessages([...newMessages, botMessage]);
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const chatId = currentChatId || uuidv4();
-      if (!currentChatId) {
-        setCurrentChatId(chatId);
+      // Save chat history
+      if (currentChatId) {
+        const { error: saveError } = await supabase
+          .from('chat_history')
+          .update({
+            messages: messages,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentChatId);
+
+        if (saveError) {
+          console.error('Error saving chat history:', saveError);
+          throw saveError;
+        }
       }
-
-      const finalMessages = [...newMessages, createMessage("assistant", response)];
-      const userMessageCount = finalMessages.filter(msg => msg.role === 'user').length;
-
-      const chatData = {
-        id: chatId,
-        bot_id: selectedBot.id,
-        messages: finalMessages.map(msg => ({
-          ...msg,
-          timestamp: msg.timestamp?.toISOString(),
-        })),
-        user_id: user?.id || null,
-        session_token: !user ? sessionToken : null,
-        sequence_number: 1,
-        updated_at: new Date().toISOString(),
-        messages_used: userMessageCount
-      };
-
-      console.log("Saving chat with data:", chatData);
-
-      const { error } = await supabase
-        .from('chat_history')
-        .upsert(chatData);
-
-      if (error) {
-        console.error("Error saving chat:", error);
-        throw error;
-      }
-
-      console.log("Chat saved successfully");
 
     } catch (error) {
-      console.error("Chat error:", error);
+      console.error('Error in sendMessage:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to process message",
+        description: error instanceof Error ? error.message : "Failed to send message",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
     }
-  }, [selectedBot, messages, currentChatId, sessionToken, toast]);
+  }, [selectedBot, messages, currentChatId, toast]);
+
+  const handleNewChat = async () => {
+    setMessages([]);
+    setCurrentChatId(null);
+  };
+
+  const handleSelectChat = async (chatId: string) => {
+    try {
+      const { data: chatHistory, error } = await supabase
+        .from('chat_history')
+        .select('messages')
+        .eq('id', chatId)
+        .single();
+
+      if (error) throw error;
+
+      if (chatHistory?.messages) {
+        setMessages(chatHistory.messages as Message[]);
+        setCurrentChatId(chatId);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat history",
+        variant: "destructive",
+      });
+    }
+  };
 
   return {
     messages,
