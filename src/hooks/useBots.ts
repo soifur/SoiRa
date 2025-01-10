@@ -56,15 +56,15 @@ export const useBots = () => {
 
       if (botsError) throw botsError;
 
-      // Transform the data
+      // Transform the data to match the Bot interface
       const transformedBots = botsData.map((sharedBot): Bot => {
         return {
           id: sharedBot.share_key,
-          name: sharedBot.bot_name,
+          name: sharedBot.bot_name, // Map bot_name to name
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
           model: sharedBot.model as BaseModel,
-          apiKey: sharedBot.bot_api_keys?.api_key || "",
+          apiKey: sharedBot.bot_api_keys?.api_key || "", // Map API key correctly
           openRouterModel: sharedBot.open_router_model,
           avatar: sharedBot.avatar,
           memory_enabled: sharedBot.memory_enabled,
