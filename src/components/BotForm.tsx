@@ -47,24 +47,24 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   useEffect(() => {
     console.log("Bot data received:", bot);
-    setEditingBot(prev => ({
-      ...prev,
-      ...bot,
-      memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published ?? false,
-      memory_enabled_model: bot.memory_enabled_model ?? false,
-      temperature: bot.temperature ?? 1,
-      top_p: bot.top_p ?? 1,
-      frequency_penalty: bot.frequency_penalty ?? 0,
-      presence_penalty: bot.presence_penalty ?? 0,
-      max_tokens: bot.max_tokens ?? 4096,
-      stream: bot.stream ?? true,
-      system_templates: bot.system_templates ?? [],
-      tool_config: bot.tool_config ?? [],
-      response_format: bot.response_format ?? { type: "text" }
-    }));
-
+    // Only update if bot data changes
     if (bot.id) {
+      setEditingBot(prev => ({
+        ...prev,
+        ...bot,
+        memory_enabled: bot.memory_enabled ?? prev.memory_enabled,
+        published: bot.published ?? prev.published,
+        memory_enabled_model: bot.memory_enabled_model ?? prev.memory_enabled_model,
+        temperature: bot.temperature ?? prev.temperature,
+        top_p: bot.top_p ?? prev.top_p,
+        frequency_penalty: bot.frequency_penalty ?? prev.frequency_penalty,
+        presence_penalty: bot.presence_penalty ?? prev.presence_penalty,
+        max_tokens: bot.max_tokens ?? prev.max_tokens,
+        stream: bot.stream ?? prev.stream,
+        system_templates: bot.system_templates ?? prev.system_templates,
+        tool_config: bot.tool_config ?? prev.tool_config,
+        response_format: bot.response_format ?? prev.response_format
+      }));
       loadQuizConfiguration();
     }
   }, [bot]);
