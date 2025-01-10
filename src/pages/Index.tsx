@@ -84,7 +84,6 @@ const Index = () => {
   const {
     messages,
     isLoading,
-    isStreaming,
     currentChatId,
     handleNewChat,
     handleSelectChat,
@@ -166,7 +165,6 @@ const Index = () => {
               selectedBot={selectedBot}
               messages={messages}
               isLoading={isLoading}
-              isStreaming={isStreaming}
               sendMessage={handleSendMessage}
               isExceeded={isExceeded}
               maxUsage={maxUsage}

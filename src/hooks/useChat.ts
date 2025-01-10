@@ -21,13 +21,6 @@ interface BotSettings {
   memory_enabled_model: boolean;
 }
 
-interface MessageJson {
-  id: string;
-  role: string;
-  content: string;
-  timestamp?: string;
-}
-
 const parseBotSettings = (sharedBot: any): BotSettings => {
   console.log('Parsing bot settings from:', sharedBot);
   return {
@@ -93,7 +86,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
   const [isLoading, setIsLoading] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
-  const abortControllerRef = { current: null as AbortController | null };
 
   const handleNewChat = useCallback(async () => {
     console.log('Creating new chat');
@@ -138,12 +130,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
       console.log('Sending message:', message);
       setIsLoading(true);
       
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      
-      abortControllerRef.current = new AbortController();
-
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
@@ -172,23 +158,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
         starters: sharedBot.starters || selectedBot.starters,
       };
 
-      // Save chat history
-      if (currentChatId) {
-        console.log('Updating existing chat:', currentChatId);
-        const { error: saveError } = await supabase
-          .from('chat_history')
-          .update({
-            messages: messagesToJson(newMessages),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', currentChatId);
-
-        if (saveError) {
-          console.error('Error saving chat history:', saveError);
-          throw saveError;
-        }
-      }
-
       let botResponse = "";
       try {
         console.log('Processing message with model:', mergedBot.model);
@@ -197,8 +166,7 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
         } else if (mergedBot.model === "openrouter") {
           botResponse = await ChatService.sendOpenRouterMessage(
             newMessages,
-            mergedBot,
-            abortControllerRef.current.signal
+            mergedBot
           );
         } else {
           throw new Error(`Unsupported model type: ${mergedBot.model}`);
@@ -226,11 +194,24 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
       console.log('Final messages:', updatedMessages);
       setMessages(updatedMessages);
 
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was cancelled');
-        return;
+      // Save chat history
+      if (currentChatId) {
+        console.log('Updating existing chat:', currentChatId);
+        const { error: saveError } = await supabase
+          .from('chat_history')
+          .update({
+            messages: messagesToJson(updatedMessages),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentChatId);
+
+        if (saveError) {
+          console.error('Error saving chat history:', saveError);
+          throw saveError;
+        }
       }
+
+    } catch (error) {
       console.error("Chat error:", error);
       toast({
         title: "Error",
@@ -239,7 +220,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
       });
     } finally {
       setIsLoading(false);
-      abortControllerRef.current = null;
     }
   }, [selectedBot, messages, currentChatId, toast]);
 
