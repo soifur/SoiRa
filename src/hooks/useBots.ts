@@ -29,8 +29,6 @@ export interface Bot {
   system_templates?: any[];
   memory_model?: string;
   memory_enabled_model?: boolean;
-  token_limit?: number;
-  message_limit?: number;
 }
 
 export const useBots = () => {

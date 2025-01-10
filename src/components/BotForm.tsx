@@ -47,9 +47,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     stream: bot.stream ?? true,
     system_templates: bot.system_templates ?? [],
     tool_config: bot.tool_config ?? [],
-    response_format: bot.response_format ?? { type: "text" },
-    token_limit: bot.token_limit,
-    message_limit: bot.message_limit
+    response_format: bot.response_format ?? { type: "text" }
   }));
   
   const [quizEnabled, setQuizEnabled] = useState(false);
@@ -81,9 +79,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         stream: bot.stream ?? prev.stream,
         system_templates: bot.system_templates ?? prev.system_templates,
         tool_config: bot.tool_config ?? prev.tool_config,
-        response_format: bot.response_format ?? prev.response_format,
-        token_limit: bot.token_limit ?? prev.token_limit,
-        message_limit: bot.message_limit ?? prev.message_limit
+        response_format: bot.response_format ?? prev.response_format
       }));
       loadQuizConfiguration();
     }
