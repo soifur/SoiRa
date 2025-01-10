@@ -21,6 +21,13 @@ interface BotSettings {
   memory_enabled_model: boolean;
 }
 
+interface MessageJson {
+  id: string;
+  role: string;
+  content: string;
+  timestamp?: string;
+}
+
 const parseBotSettings = (sharedBot: any): BotSettings => {
   console.log('Parsing bot settings from:', sharedBot);
   const settings = {
@@ -46,7 +53,6 @@ const parseBotSettings = (sharedBot: any): BotSettings => {
   return settings;
 };
 
-// Helper function to convert Message[] to Json
 const messagesToJson = (messages: Message[]): Json => {
   console.log('Converting messages to JSON:', messages);
   const jsonMessages = messages.map(msg => ({
@@ -54,24 +60,32 @@ const messagesToJson = (messages: Message[]): Json => {
     role: msg.role,
     content: msg.content,
     timestamp: msg.timestamp?.toISOString()
-  }));
+  })) as MessageJson[];
   console.log('Converted JSON messages:', jsonMessages);
   return jsonMessages as Json;
 };
 
-// Helper function to convert Json to Message[]
 const jsonToMessages = (json: Json): Message[] => {
   console.log('Converting JSON to messages:', json);
   if (!Array.isArray(json)) {
     console.warn('Invalid JSON format for messages:', json);
     return [];
   }
-  const messages = json.map(msg => ({
-    id: msg.id as string || uuidv4(),
-    role: msg.role as "user" | "assistant",
-    content: msg.content as string,
-    timestamp: msg.timestamp ? new Date(msg.timestamp as string) : undefined
-  }));
+  
+  const messages = json.map(msg => {
+    if (typeof msg === 'object' && msg !== null) {
+      const messageJson = msg as MessageJson;
+      return {
+        id: messageJson.id || uuidv4(),
+        role: messageJson.role === "user" ? "user" : "assistant",
+        content: messageJson.content || "",
+        timestamp: messageJson.timestamp ? new Date(messageJson.timestamp) : undefined
+      } as Message;
+    }
+    console.warn('Invalid message format:', msg);
+    return null;
+  }).filter((msg): msg is Message => msg !== null);
+  
   console.log('Converted messages:', messages);
   return messages;
 };
