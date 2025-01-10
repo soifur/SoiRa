@@ -30,7 +30,7 @@ interface MessageJson {
 
 const parseBotSettings = (sharedBot: any): BotSettings => {
   console.log('Parsing bot settings from:', sharedBot);
-  const settings = {
+  return {
     temperature: sharedBot.temperature ?? 1,
     top_p: sharedBot.top_p ?? 1,
     frequency_penalty: sharedBot.frequency_penalty ?? 0,
@@ -49,8 +49,6 @@ const parseBotSettings = (sharedBot: any): BotSettings => {
     memory_enabled: sharedBot.memory_enabled ?? false,
     memory_enabled_model: sharedBot.memory_enabled_model ?? false
   };
-  console.log('Parsed settings:', settings);
-  return settings;
 };
 
 const messagesToJson = (messages: Message[]): Json => {
@@ -159,13 +157,21 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
         .eq('bot_id', selectedBot.id)
         .single();
 
-      if (settingsError || !sharedBot) {
+      if (settingsError) {
         console.error('Failed to fetch bot settings:', settingsError);
         throw new Error('Failed to fetch bot settings');
       }
 
       console.log('Retrieved shared bot settings:', sharedBot);
       const botSettings = parseBotSettings(sharedBot);
+
+      // Create a merged bot configuration
+      const mergedBot = {
+        ...selectedBot,
+        ...botSettings,
+        instructions: sharedBot.instructions || selectedBot.instructions,
+        starters: sharedBot.starters || selectedBot.starters,
+      };
 
       // Save chat history
       if (currentChatId) {
@@ -187,19 +193,13 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
       setIsStreaming(true);
       let botResponse = "";
       try {
-        console.log('Processing message with model:', selectedBot.model);
-        if (selectedBot.model === "gemini") {
-          botResponse = await ChatService.sendGeminiMessage(newMessages, {
-            ...selectedBot,
-            ...botSettings
-          });
-        } else if (selectedBot.model === "openrouter") {
+        console.log('Processing message with model:', mergedBot.model);
+        if (mergedBot.model === "gemini") {
+          botResponse = await ChatService.sendGeminiMessage(newMessages, mergedBot);
+        } else if (mergedBot.model === "openrouter") {
           botResponse = await ChatService.sendOpenRouterMessage(
             newMessages,
-            {
-              ...selectedBot,
-              ...botSettings
-            },
+            mergedBot,
             abortControllerRef.current.signal,
             (chunk: string) => {
               console.log('Received chunk:', chunk);
