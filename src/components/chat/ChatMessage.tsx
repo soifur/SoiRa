@@ -5,7 +5,6 @@ import { LoaderCircle, Copy } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { parseSmartResponse } from "@/utils/smartResponseUtils";
 
 export interface ChatMessageProps {
   message: string;
@@ -40,8 +39,6 @@ export const ChatMessage = ({
   };
 
   const cleanedMessage = message.replace(/^(Assistant|Human):\s*/i, '');
-  const smartResponse = isBot ? parseSmartResponse(cleanedMessage) : { response: cleanedMessage };
-  const displayMessage = smartResponse.response;
 
   return (
     <div
@@ -62,11 +59,6 @@ export const ChatMessage = ({
             )}
           </Avatar>
           <span className="text-sm font-medium">{botName || "Assistant"}</span>
-          {smartResponse.context?.tone && (
-            <span className="text-xs text-muted-foreground">
-              Tone: {smartResponse.context.tone}
-            </span>
-          )}
         </div>
       )}
       <div
@@ -150,7 +142,7 @@ export const ChatMessage = ({
                 ),
               }}
             >
-              {displayMessage}
+              {cleanedMessage}
             </ReactMarkdown>
           </div>
         )}

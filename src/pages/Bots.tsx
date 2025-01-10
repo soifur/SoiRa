@@ -24,7 +24,7 @@ const Bots = () => {
     setEditingBot(null);
     
     if (selectedBot && selectedBot.id === bot.id) {
-      setSelectedBot(updatedBot as Bot);
+      setSelectedBot(updatedBot);
     }
     
     toast({
@@ -79,7 +79,7 @@ const Bots = () => {
               model: "gemini",
               apiKey: "",
               accessType: "private",
-            } as Bot)
+            })
           }
         >
           <Plus className="mr-2 h-4 w-4" /> New Bot

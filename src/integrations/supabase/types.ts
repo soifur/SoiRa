@@ -74,28 +74,17 @@ export type Database = {
           avatar: string | null
           created_at: string
           default_bot: boolean | null
-          frequency_penalty: number | null
           id: string
           instructions: string | null
-          max_tokens: number | null
           memory_enabled: boolean | null
-          memory_enabled_model: boolean | null
-          memory_model: string | null
           message_limit: number | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model: string | null
-          presence_penalty: number | null
           published: boolean | null
           quiz_mode: boolean | null
-          response_format: Json | null
           starters: string[] | null
-          stream: boolean | null
-          system_templates: Json | null
-          temperature: number | null
           token_limit: number | null
-          tool_config: Json | null
-          top_p: number | null
           updated_at: string
           user_id: string
           voice_enabled: boolean | null
@@ -105,28 +94,17 @@ export type Database = {
           avatar?: string | null
           created_at?: string
           default_bot?: boolean | null
-          frequency_penalty?: number | null
           id?: string
           instructions?: string | null
-          max_tokens?: number | null
           memory_enabled?: boolean | null
-          memory_enabled_model?: boolean | null
-          memory_model?: string | null
           message_limit?: number | null
           model: Database["public"]["Enums"]["bot_model"]
           name: string
           open_router_model?: string | null
-          presence_penalty?: number | null
           published?: boolean | null
           quiz_mode?: boolean | null
-          response_format?: Json | null
           starters?: string[] | null
-          stream?: boolean | null
-          system_templates?: Json | null
-          temperature?: number | null
           token_limit?: number | null
-          tool_config?: Json | null
-          top_p?: number | null
           updated_at?: string
           user_id: string
           voice_enabled?: boolean | null
@@ -136,28 +114,17 @@ export type Database = {
           avatar?: string | null
           created_at?: string
           default_bot?: boolean | null
-          frequency_penalty?: number | null
           id?: string
           instructions?: string | null
-          max_tokens?: number | null
           memory_enabled?: boolean | null
-          memory_enabled_model?: boolean | null
-          memory_model?: string | null
           message_limit?: number | null
           model?: Database["public"]["Enums"]["bot_model"]
           name?: string
           open_router_model?: string | null
-          presence_penalty?: number | null
           published?: boolean | null
           quiz_mode?: boolean | null
-          response_format?: Json | null
           starters?: string[] | null
-          stream?: boolean | null
-          system_templates?: Json | null
-          temperature?: number | null
           token_limit?: number | null
-          tool_config?: Json | null
-          top_p?: number | null
           updated_at?: string
           user_id?: string
           voice_enabled?: boolean | null
@@ -562,29 +529,19 @@ export type Database = {
           bot_name: string
           created_at: string | null
           expires_at: string | null
-          frequency_penalty: number | null
           id: string
           instructions: string | null
-          max_tokens: number | null
           memory_api_key: string | null
           memory_enabled: boolean | null
-          memory_enabled_model: boolean | null
           memory_instructions: string | null
           memory_model: string | null
           model: string
           open_router_model: string | null
-          presence_penalty: number | null
           published: boolean | null
           quiz_mode: boolean | null
-          response_format: Json | null
           share_key: string
           short_key: string | null
           starters: string[] | null
-          stream: boolean | null
-          system_templates: Json | null
-          temperature: number | null
-          tool_config: Json | null
-          top_p: number | null
           voice_enabled: boolean | null
         }
         Insert: {
@@ -594,29 +551,19 @@ export type Database = {
           bot_name: string
           created_at?: string | null
           expires_at?: string | null
-          frequency_penalty?: number | null
           id?: string
           instructions?: string | null
-          max_tokens?: number | null
           memory_api_key?: string | null
           memory_enabled?: boolean | null
-          memory_enabled_model?: boolean | null
           memory_instructions?: string | null
           memory_model?: string | null
           model: string
           open_router_model?: string | null
-          presence_penalty?: number | null
           published?: boolean | null
           quiz_mode?: boolean | null
-          response_format?: Json | null
           share_key: string
           short_key?: string | null
           starters?: string[] | null
-          stream?: boolean | null
-          system_templates?: Json | null
-          temperature?: number | null
-          tool_config?: Json | null
-          top_p?: number | null
           voice_enabled?: boolean | null
         }
         Update: {
@@ -626,29 +573,19 @@ export type Database = {
           bot_name?: string
           created_at?: string | null
           expires_at?: string | null
-          frequency_penalty?: number | null
           id?: string
           instructions?: string | null
-          max_tokens?: number | null
           memory_api_key?: string | null
           memory_enabled?: boolean | null
-          memory_enabled_model?: boolean | null
           memory_instructions?: string | null
           memory_model?: string | null
           model?: string
           open_router_model?: string | null
-          presence_penalty?: number | null
           published?: boolean | null
           quiz_mode?: boolean | null
-          response_format?: Json | null
           share_key?: string
           short_key?: string | null
           starters?: string[] | null
-          stream?: boolean | null
-          system_templates?: Json | null
-          temperature?: number | null
-          tool_config?: Json | null
-          top_p?: number | null
           voice_enabled?: boolean | null
         }
         Relationships: [
@@ -710,11 +647,9 @@ export type Database = {
         Row: {
           bot_id: string
           client_id: string
-          combined_context: Json | null
           context: Json | null
           created_at: string | null
           id: string
-          is_global: boolean | null
           last_updated: string | null
           session_token: string | null
           user_id: string | null
@@ -722,11 +657,9 @@ export type Database = {
         Insert: {
           bot_id: string
           client_id: string
-          combined_context?: Json | null
           context?: Json | null
           created_at?: string | null
           id?: string
-          is_global?: boolean | null
           last_updated?: string | null
           session_token?: string | null
           user_id?: string | null
@@ -734,11 +667,9 @@ export type Database = {
         Update: {
           bot_id?: string
           client_id?: string
-          combined_context?: Json | null
           context?: Json | null
           created_at?: string | null
           id?: string
-          is_global?: boolean | null
           last_updated?: string | null
           session_token?: string | null
           user_id?: string | null

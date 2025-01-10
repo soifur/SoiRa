@@ -16,8 +16,6 @@ import { BotSubscriptionSettings } from "./bot/BotSubscriptionSettings";
 import { QuizModeSettings } from "./bot/quiz/QuizModeSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Field } from "./bot/quiz/QuizFieldBuilder";
-import { BotAdvancedSettings } from "./bot/BotAdvancedSettings";
-import { SmartResponsesSettings } from "./bot/SmartResponsesSettings";
 
 interface BotFormProps {
   bot: Bot;
@@ -29,39 +27,18 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
   const [editingBot, setEditingBot] = useState<Bot>({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
-    published: bot.published ?? false,
-    memory_enabled_model: bot.memory_enabled_model ?? false,
-    temperature: bot.temperature ?? 1,
-    top_p: bot.top_p ?? 1,
-    frequency_penalty: bot.frequency_penalty ?? 0,
-    presence_penalty: bot.presence_penalty ?? 0,
-    max_tokens: bot.max_tokens ?? 4096,
-    stream: bot.stream ?? true,
-    system_templates: bot.system_templates ?? [],
-    tool_config: bot.tool_config ?? [],
-    response_format: bot.response_format ?? { type: "text" }
+    published: bot.published ?? false
   });
   const [quizEnabled, setQuizEnabled] = useState(false);
   const [quizFields, setQuizFields] = useState<Field[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log("Bot data received:", bot);
     setEditingBot(prev => ({
       ...prev,
       ...bot,
       memory_enabled: bot.memory_enabled ?? false,
-      published: bot.published ?? false,
-      memory_enabled_model: bot.memory_enabled_model ?? false,
-      temperature: bot.temperature ?? 1,
-      top_p: bot.top_p ?? 1,
-      frequency_penalty: bot.frequency_penalty ?? 0,
-      presence_penalty: bot.presence_penalty ?? 0,
-      max_tokens: bot.max_tokens ?? 4096,
-      stream: bot.stream ?? true,
-      system_templates: bot.system_templates ?? [],
-      tool_config: bot.tool_config ?? [],
-      response_format: bot.response_format ?? { type: "text" }
+      published: bot.published ?? false
     }));
 
     if (bot.id) {
@@ -71,49 +48,31 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const loadQuizConfiguration = async () => {
     try {
-      const { data: quizConfig, error } = await supabase
+      const { data: quizConfig } = await supabase
         .from('quiz_configurations')
         .select('*')
         .eq('bot_id', bot.id)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error loading quiz configuration:', error);
-        return;
-      }
-
       if (quizConfig) {
-        console.log("Loaded quiz config:", quizConfig);
         setQuizEnabled(quizConfig.enabled);
         
-        const { data: quizFields, error: fieldsError } = await supabase
+        const { data: quizFields } = await supabase
           .from('quiz_fields')
           .select('*')
           .eq('quiz_id', quizConfig.id)
           .order('sequence_number', { ascending: true });
 
-        if (fieldsError) {
-          console.error('Error loading quiz fields:', fieldsError);
-          return;
-        }
-
         if (quizFields) {
-          console.log("Loaded quiz fields:", quizFields);
           setQuizFields(quizFields);
         }
       }
     } catch (error) {
       console.error('Error loading quiz configuration:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load quiz configuration",
-        variant: "destructive",
-      });
     }
   };
 
   const handleBotChange = (updates: Partial<Bot>) => {
-    console.log("Updating bot with:", updates);
     setEditingBot(prev => ({ ...prev, ...updates }));
   };
 
@@ -158,17 +117,15 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
 
   const handleSave = async () => {
     try {
-      console.log("Saving bot with data:", editingBot);
-      
       if (!editingBot.id) {
         onSave(editingBot);
         return;
       }
 
-      // Update bot and shared configuration
+      // First update the bot
       await updateBotAndSharedConfig(editingBot);
-      
-      // Update quiz configuration if bot exists
+
+      // Then save quiz configuration
       await updateQuizConfiguration(editingBot.id, quizEnabled, quizFields);
 
       onSave(editingBot);
@@ -220,11 +177,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               />
             </div>
 
-            <SmartResponsesSettings 
-              bot={editingBot}
-              onBotChange={handleBotChange}
-            />
-
             <div className="flex items-center space-x-2">
               <Switch
                 id="memory-mode"
@@ -234,8 +186,6 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
               />
               <Label htmlFor="memory-mode">Enable Memory Mode</Label>
             </div>
-
-            <BotAdvancedSettings bot={editingBot} onBotChange={handleBotChange} />
 
             <StartersInput 
               starters={editingBot.starters}

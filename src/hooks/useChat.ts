@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Message } from "@/components/chat/types/chatTypes";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,16 +14,16 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleNewChat = useCallback(() => {
+  const handleNewChat = () => {
     setMessages([]);
     setCurrentChatId(null);
     toast({
       title: "New Chat",
       description: "Starting a new chat session",
     });
-  }, [toast]);
+  };
 
-  const handleSelectChat = useCallback(async (selectedChatId: string) => {
+  const handleSelectChat = async (selectedChatId: string) => {
     try {
       const { data: chat } = await supabase
         .from('chat_history')
@@ -51,9 +51,9 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  };
 
-  const sendMessage = useCallback(async (message: string) => {
+  const sendMessage = async (message: string) => {
     if (!selectedBot || !message.trim()) return;
 
     try {
@@ -91,6 +91,7 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
         setMessages([...newMessages, botMessage]);
       }
 
+      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       const chatId = currentChatId || uuidv4();
@@ -139,7 +140,7 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
       setIsLoading(false);
       setIsStreaming(false);
     }
-  }, [selectedBot, messages, currentChatId, sessionToken, toast]);
+  };
 
   return {
     messages,
