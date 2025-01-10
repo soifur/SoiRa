@@ -36,6 +36,11 @@ export const useBots = () => {
   const [bots, setBots] = useState<Bot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch bots from Supabase on component mount
+  useEffect(() => {
+    fetchBots();
+  }, []);
+
   const fetchBots = async () => {
     try {
       setIsLoading(true);
@@ -62,19 +67,6 @@ export const useBots = () => {
         accessType: "private",
         memory_enabled: bot.memory_enabled,
         published: bot.published,
-        default_bot: bot.default_bot,
-        quiz_mode: bot.quiz_mode,
-        frequency_penalty: bot.frequency_penalty,
-        presence_penalty: bot.presence_penalty,
-        max_tokens: bot.max_tokens,
-        temperature: bot.temperature,
-        top_p: bot.top_p,
-        response_format: bot.response_format,
-        stream: bot.stream,
-        tool_config: bot.tool_config,
-        system_templates: bot.system_templates,
-        memory_model: bot.memory_model,
-        memory_enabled_model: bot.memory_enabled_model
       }));
 
       setBots(transformedBots);
@@ -89,11 +81,6 @@ export const useBots = () => {
       setIsLoading(false);
     }
   };
-
-  // Fetch bots from Supabase on component mount
-  useEffect(() => {
-    fetchBots();
-  }, []);
 
   const saveBot = async (bot: Bot) => {
     try {
@@ -112,20 +99,6 @@ export const useBots = () => {
         avatar: bot.avatar,
         user_id: session.session.user.id,
         memory_enabled: bot.memory_enabled,
-        published: bot.published,
-        default_bot: bot.default_bot,
-        quiz_mode: bot.quiz_mode,
-        frequency_penalty: bot.frequency_penalty,
-        presence_penalty: bot.presence_penalty,
-        max_tokens: bot.max_tokens,
-        temperature: bot.temperature,
-        top_p: bot.top_p,
-        response_format: bot.response_format,
-        stream: bot.stream,
-        tool_config: bot.tool_config,
-        system_templates: bot.system_templates,
-        memory_model: bot.memory_model,
-        memory_enabled_model: bot.memory_enabled_model
       };
 
       let result;
@@ -160,20 +133,6 @@ export const useBots = () => {
         avatar: result.data.avatar,
         accessType: "private",
         memory_enabled: result.data.memory_enabled,
-        published: result.data.published,
-        default_bot: result.data.default_bot,
-        quiz_mode: result.data.quiz_mode,
-        frequency_penalty: result.data.frequency_penalty,
-        presence_penalty: result.data.presence_penalty,
-        max_tokens: result.data.max_tokens,
-        temperature: result.data.temperature,
-        top_p: result.data.top_p,
-        response_format: result.data.response_format,
-        stream: result.data.stream,
-        tool_config: result.data.tool_config,
-        system_templates: result.data.system_templates,
-        memory_model: result.data.memory_model,
-        memory_enabled_model: result.data.memory_enabled_model
       };
 
       // Refresh the bots list

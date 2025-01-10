@@ -3,17 +3,17 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 interface BotPublishToggleProps {
-  published: boolean;
-  onPublishedChange: (published: boolean) => void;
+  isPublished: boolean;
+  onPublishChange: (published: boolean) => void;
 }
 
-export const BotPublishToggle = ({ published, onPublishedChange }: BotPublishToggleProps) => {
+export const BotPublishToggle = ({ isPublished, onPublishChange }: BotPublishToggleProps) => {
   return (
     <div className="flex items-center space-x-2 py-2">
       <Switch
         id="publish-mode"
-        checked={published}
-        onCheckedChange={onPublishedChange}
+        checked={isPublished}
+        onCheckedChange={onPublishChange}
         className="dark:bg-gray-700 dark:data-[state=checked]:bg-primary"
       />
       <Label htmlFor="publish-mode">Enable Publishing</Label>
