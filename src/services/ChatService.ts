@@ -128,11 +128,6 @@ export class ChatService {
       content: this.sanitizeText(msg.content)
     }));
 
-    // Update memory context if enabled
-    if ((bot.memory_enabled || bot.memory_enabled_model) && clientId) {
-      await this.updateMemoryContext(messages, bot, clientId, sessionToken);
-    }
-
     // Get shared bot settings
     const sharedBotSettings = await this.getSharedBotSettings(bot.id);
     if (!sharedBotSettings) {
@@ -175,6 +170,8 @@ export class ChatService {
         ...(bot.tool_config && bot.tool_config.length > 0 && { tools: bot.tool_config }),
       };
 
+      console.log('OpenRouter request body:', requestBody);
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers,
@@ -184,6 +181,7 @@ export class ChatService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('OpenRouter API error response:', errorData);
         if (response.status === 404) {
           throw new Error("OpenRouter API endpoint not found. Please check your configuration.");
         } else if (response.status === 401) {
@@ -238,6 +236,11 @@ export class ChatService {
             }
           }
         }
+      }
+
+      if (!accumulatedResponse.trim()) {
+        console.error('Empty response from OpenRouter API');
+        throw new Error("The bot returned an empty response. Please try again.");
       }
       
       if (bot.response_format?.type === "json_object") {
