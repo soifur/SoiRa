@@ -60,9 +60,9 @@ const messagesToJson = (messages: Message[]): Json => {
     role: msg.role,
     content: msg.content,
     timestamp: msg.timestamp?.toISOString()
-  })) as MessageJson[];
+  }));
   console.log('Converted JSON messages:', jsonMessages);
-  return jsonMessages as Json;
+  return jsonMessages as unknown as Json;
 };
 
 const jsonToMessages = (json: Json): Message[] => {
@@ -74,7 +74,7 @@ const jsonToMessages = (json: Json): Message[] => {
   
   const messages = json.map(msg => {
     if (typeof msg === 'object' && msg !== null) {
-      const messageJson = msg as MessageJson;
+      const messageJson = msg as unknown as MessageJson;
       return {
         id: messageJson.id || uuidv4(),
         role: messageJson.role === "user" ? "user" : "assistant",
