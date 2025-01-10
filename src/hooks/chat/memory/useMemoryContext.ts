@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Message } from '@/components/chat/types/chatTypes';
 import { Bot } from '@/hooks/useBots';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Json } from '@/integrations/supabase/types';
 
 interface MemoryContext {
@@ -17,26 +17,44 @@ interface MemoryContext {
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 
+const isValidArray = (arr: any): arr is string[] => {
+  return Array.isArray(arr) && arr.every(item => typeof item === 'string');
+};
+
+const initializeContext = (): MemoryContext => ({
+  name: null,
+  faith: null,
+  likes: [],
+  topics: [],
+  facts: []
+});
+
+const validateContext = (context: MemoryContext): boolean => {
+  if (!context) return false;
+  
+  // Ensure arrays exist and are valid
+  if (!isValidArray(context.likes) || 
+      !isValidArray(context.topics) || 
+      !isValidArray(context.facts)) {
+    console.error('Invalid context structure:', context);
+    return false;
+  }
+
+  // Validate optional string fields
+  if (context.name !== null && context.name !== undefined && typeof context.name !== 'string') {
+    return false;
+  }
+  if (context.faith !== null && context.faith !== undefined && typeof context.faith !== 'string') {
+    return false;
+  }
+
+  return true;
+};
+
 export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: string | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  const initializeContext = (): MemoryContext => ({
-    name: null,
-    faith: null,
-    likes: [],
-    topics: [],
-    facts: []
-  });
-
-  const validateContext = (context: MemoryContext): boolean => {
-    if (!Array.isArray(context.likes) || !Array.isArray(context.topics) || !Array.isArray(context.facts)) {
-      console.error('Invalid context structure:', context);
-      return false;
-    }
-    return true;
-  };
 
   const handleMemoryUpdate = useCallback(async (messages: Message[], retryCount = 0) => {
     if (!bot.memory_enabled) {
@@ -65,7 +83,7 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
             context.faith = faithMatch[2].trim() || null;
           }
 
-          // Extract and validate likes array
+          // Extract and validate arrays
           const likeMatches = message.content.match(/I (like|love|enjoy|prefer) ([^\.,!?]+)/gi);
           if (likeMatches) {
             const newLikes = likeMatches.map(match => 
@@ -74,7 +92,6 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
             context.likes = [...new Set([...context.likes, ...newLikes])];
           }
 
-          // Extract and validate topics array
           const topicMatches = message.content.match(/\b(about|regarding|concerning) ([^\.,!?]+)/gi);
           if (topicMatches) {
             const newTopics = topicMatches.map(match =>
@@ -83,7 +100,6 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
             context.topics = [...new Set([...context.topics, ...newTopics])];
           }
 
-          // Extract and validate facts array
           const factMatches = message.content.match(/I (am|work as|live in|have) ([^\.,!?]+)/gi);
           if (factMatches) {
             const newFacts = factMatches.map(match => match.trim()).filter(Boolean);
@@ -97,7 +113,9 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
         throw new Error('Invalid context structure detected');
       }
 
-      // Update context in database
+      console.log('Updating context in database:', context);
+
+      // Update context in database with proper type casting
       const { error: updateError } = await supabase
         .from('user_context')
         .upsert({
@@ -109,6 +127,11 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
         });
 
       if (updateError) throw updateError;
+
+      toast({
+        title: "Context Updated",
+        description: "Memory context has been successfully updated.",
+      });
 
       console.log('Memory context updated successfully:', context);
 
