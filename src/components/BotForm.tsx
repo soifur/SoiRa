@@ -26,7 +26,7 @@ interface BotFormProps {
 }
 
 export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
-  const [editingBot, setEditingBot] = useState<Bot>({
+  const [editingBot, setEditingBot] = useState<Bot>(() => ({
     ...bot,
     memory_enabled: bot.memory_enabled ?? false,
     published: bot.published ?? false,
@@ -40,14 +40,14 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     system_templates: bot.system_templates ?? [],
     tool_config: bot.tool_config ?? [],
     response_format: bot.response_format ?? { type: "text" }
-  });
+  }));
+  
   const [quizEnabled, setQuizEnabled] = useState(false);
   const [quizFields, setQuizFields] = useState<Field[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     console.log("Bot data received:", bot);
-    // Only update if bot data changes
     if (bot.id) {
       setEditingBot(prev => ({
         ...prev,
