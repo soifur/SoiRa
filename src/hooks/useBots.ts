@@ -96,8 +96,16 @@ export const useBots = () => {
               JSON.parse(sharedBot.response_format) : 
               sharedBot.response_format) : 
             { type: "text" },
-          tool_config: sharedBot?.tool_config ?? [],
-          system_templates: sharedBot?.system_templates ?? [],
+          tool_config: sharedBot?.tool_config ? 
+            (typeof sharedBot.tool_config === 'string' ? 
+              JSON.parse(sharedBot.tool_config) : 
+              sharedBot.tool_config) : 
+            [],
+          system_templates: sharedBot?.system_templates ? 
+            (typeof sharedBot.system_templates === 'string' ? 
+              JSON.parse(sharedBot.system_templates) : 
+              sharedBot.system_templates) : 
+            [],
           memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
           share_key: sharedBot?.share_key
         };
