@@ -55,7 +55,6 @@ export const useBots = () => {
 
       if (botsError) throw botsError;
 
-      // Transform the data to match the Bot interface
       const transformedBots = botsData.map((sharedBot): Bot => ({
         id: sharedBot.share_key,
         name: sharedBot.bot_name,
@@ -90,7 +89,8 @@ export const useBots = () => {
             sharedBot.system_templates) : 
           [],
         memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
-        share_key: sharedBot?.share_key
+        share_key: sharedBot?.share_key,
+        accessType: "private"
       }));
 
       setBots(transformedBots);
@@ -186,7 +186,6 @@ export const useBots = () => {
     }
   };
 
-  // Fetch bots on component mount
   useEffect(() => {
     fetchBots();
   }, []);
