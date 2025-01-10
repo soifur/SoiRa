@@ -39,15 +39,19 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
   }
 
   // Check if there's a shared bot configuration
-  const { data: sharedBot } = await supabase
+  const { data: sharedBot, error: fetchError } = await supabase
     .from('shared_bots')
     .select('*')
     .eq('bot_id', bot.id)
     .maybeSingle();
 
+  if (fetchError) {
+    console.error("Error fetching shared bot:", fetchError);
+    throw fetchError;
+  }
+
   if (sharedBot) {
     console.log("Updating shared bot configuration");
-    // Update shared bot configuration with ALL properties
     const { error: sharedBotError } = await supabase
       .from('shared_bots')
       .update({
