@@ -15,88 +15,94 @@ export class ChatService {
       .replace(/[^\x00-\x7F]/g, " ");
   }
 
+  private static async getSharedBotSettings(botId: string) {
+    try {
+      const { data: sharedBot, error } = await supabase
+        .from('shared_bots')
+        .select('*')
+        .eq('share_key', botId)
+        .single();
+
+      if (error) throw error;
+      return sharedBot;
+    } catch (error) {
+      console.error('Error fetching shared bot settings:', error);
+      return null;
+    }
+  }
+
   private static async updateMemoryContext(messages: any[], bot: Bot, clientId: string, sessionToken?: string) {
-    if (!bot.memory_enabled) return;
+    if (!bot.memory_enabled && !bot.memory_enabled_model) {
+      console.log('Memory updates are disabled');
+      return;
+    }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       const extractedContext = extractContextFromMessages(messages);
       
-      const { data: existingContext } = await supabase
-        .from('user_context')
-        .select('context')
-        .eq('bot_id', bot.id)
-        .eq('client_id', clientId)
-        .eq('session_token', sessionToken)
-        .maybeSingle();
+      // Handle global memory context
+      if (bot.memory_enabled_model) {
+        await supabase
+          .from('user_context')
+          .upsert({
+            bot_id: bot.id,
+            client_id: clientId,
+            session_token: sessionToken,
+            context: extractedContext,
+            user_id: user?.id,
+            is_global: true
+          });
+      }
 
-      const mergedContext = mergeContexts(
-        existingContext?.context || {},
-        extractedContext
-      );
-
-      await supabase
-        .from('user_context')
-        .upsert({
-          bot_id: bot.id,
-          client_id: clientId,
-          session_token: sessionToken,
-          context: mergedContext,
-          is_global: bot.memory_enabled_model
-        });
-
+      // Handle bot-specific memory context
+      if (bot.memory_enabled) {
+        await supabase
+          .from('user_context')
+          .upsert({
+            bot_id: bot.id,
+            client_id: clientId,
+            session_token: sessionToken,
+            context: extractedContext,
+            user_id: user?.id,
+            is_global: false
+          });
+      }
     } catch (error) {
       console.error('Error updating memory context:', error);
     }
   }
 
-  private static async getQuizInstructions(bot: Bot): Promise<string | null> {
+  private static async getCombinedContext(bot: Bot, clientId: string, sessionToken?: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log("Quiz instructions: No authenticated user");
+      if (!user) return null;
+
+      let query = supabase
+        .from('user_context')
+        .select('combined_context')
+        .eq('bot_id', bot.id)
+        .eq('user_id', user.id);
+
+      if (bot.memory_enabled && bot.memory_enabled_model) {
+        // Get both global and bot-specific context
+        query = query.or('is_global.eq.true,is_global.eq.false');
+      } else if (bot.memory_enabled) {
+        // Get only bot-specific context
+        query = query.eq('is_global', false);
+      } else if (bot.memory_enabled_model) {
+        // Get only global context
+        query = query.eq('is_global', true);
+      } else {
         return null;
       }
 
-      // First check shared_bots table
-      const { data: sharedBot } = await supabase
-        .from('shared_bots')
-        .select('*')
-        .eq('bot_id', bot.id)
-        .eq('quiz_mode', true)
-        .maybeSingle();
+      const { data, error } = await query;
+      if (error) throw error;
 
-      if (sharedBot) {
-        const { data: quizResponse } = await supabase
-          .from('quiz_responses')
-          .select('combined_instructions')
-          .eq('bot_id', sharedBot.bot_id)
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (quizResponse?.combined_instructions) {
-          console.log("Quiz instructions found from shared bot");
-          return quizResponse.combined_instructions;
-        }
-      }
-
-      if (bot.quiz_mode) {
-        const { data: quizResponse } = await supabase
-          .from('quiz_responses')
-          .select('combined_instructions')
-          .eq('bot_id', bot.id)
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (quizResponse?.combined_instructions) {
-          console.log("Quiz instructions found from regular bot");
-          return quizResponse.combined_instructions;
-        }
-      }
-
-      console.log("No quiz instructions found");
-      return null;
+      return data?.[0]?.combined_context || null;
     } catch (error) {
-      console.error("Error fetching quiz instructions:", error);
+      console.error('Error fetching combined context:', error);
       return null;
     }
   }
@@ -123,9 +129,22 @@ export class ChatService {
     }));
 
     // Update memory context if enabled
-    if (bot.memory_enabled && clientId) {
+    if ((bot.memory_enabled || bot.memory_enabled_model) && clientId) {
       await this.updateMemoryContext(messages, bot, clientId, sessionToken);
     }
+
+    // Get shared bot settings
+    const sharedBotSettings = await this.getSharedBotSettings(bot.id);
+    if (!sharedBotSettings) {
+      throw new Error("Failed to fetch bot settings");
+    }
+
+    // Get combined context if memory is enabled
+    const combinedContext = await this.getCombinedContext(bot, clientId || '', sessionToken);
+    const contextMessage = combinedContext ? {
+      role: 'system',
+      content: `Previous context: ${JSON.stringify(combinedContext)}`
+    } : null;
 
     const quizInstructions = await this.getQuizInstructions(bot);
     const instructionsToUse = quizInstructions || bot.instructions;
@@ -142,17 +161,16 @@ export class ChatService {
       const requestBody = {
         model: bot.openRouterModel,
         messages: [
-          ...(sanitizedInstructions
-            ? [{ role: 'system', content: sanitizedInstructions }]
-            : []),
+          ...(sanitizedInstructions ? [{ role: 'system', content: sanitizedInstructions }] : []),
+          ...(contextMessage ? [contextMessage] : []),
           ...sanitizedMessages,
         ],
-        stream: bot.stream ?? true,
-        temperature: bot.temperature ?? 1,
-        top_p: bot.top_p ?? 1,
-        frequency_penalty: bot.frequency_penalty ?? 0,
-        presence_penalty: bot.presence_penalty ?? 0,
-        max_tokens: bot.max_tokens ?? 4096,
+        stream: sharedBotSettings.stream ?? true,
+        temperature: sharedBotSettings.temperature ?? 1,
+        top_p: sharedBotSettings.top_p ?? 1,
+        frequency_penalty: sharedBotSettings.frequency_penalty ?? 0,
+        presence_penalty: sharedBotSettings.presence_penalty ?? 0,
+        max_tokens: sharedBotSettings.max_tokens ?? 4096,
         response_format: bot.response_format || { type: "text" },
         ...(bot.tool_config && bot.tool_config.length > 0 && { tools: bot.tool_config }),
       };
@@ -297,6 +315,58 @@ export class ChatService {
     } catch (error) {
       console.error("Gemini API error:", error);
       throw new Error("Failed to process message");
+    }
+  }
+
+  private static async getQuizInstructions(bot: Bot): Promise<string | null> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log("Quiz instructions: No authenticated user");
+        return null;
+      }
+
+      // First check shared_bots table
+      const { data: sharedBot } = await supabase
+        .from('shared_bots')
+        .select('*')
+        .eq('bot_id', bot.id)
+        .eq('quiz_mode', true)
+        .maybeSingle();
+
+      if (sharedBot) {
+        const { data: quizResponse } = await supabase
+          .from('quiz_responses')
+          .select('combined_instructions')
+          .eq('bot_id', sharedBot.bot_id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (quizResponse?.combined_instructions) {
+          console.log("Quiz instructions found from shared bot");
+          return quizResponse.combined_instructions;
+        }
+      }
+
+      if (bot.quiz_mode) {
+        const { data: quizResponse } = await supabase
+          .from('quiz_responses')
+          .select('combined_instructions')
+          .eq('bot_id', bot.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (quizResponse?.combined_instructions) {
+          console.log("Quiz instructions found from regular bot");
+          return quizResponse.combined_instructions;
+        }
+      }
+
+      console.log("No quiz instructions found");
+      return null;
+    } catch (error) {
+      console.error("Error fetching quiz instructions:", error);
+      return null;
     }
   }
 }

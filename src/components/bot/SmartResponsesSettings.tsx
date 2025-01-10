@@ -16,6 +16,7 @@ export const SmartResponsesSettings = ({ bot, onBotChange }: SmartResponsesSetti
   const handleSmartResponsesToggle = (checked: boolean) => {
     try {
       onBotChange({
+        memory_enabled: checked,
         response_format: checked
           ? {
               type: "json_object",
@@ -88,7 +89,7 @@ export const SmartResponsesSettings = ({ bot, onBotChange }: SmartResponsesSetti
             </p>
           </div>
           <Switch
-            checked={bot.response_format?.type === "json_object"}
+            checked={bot.memory_enabled}
             onCheckedChange={handleSmartResponsesToggle}
           />
         </div>
