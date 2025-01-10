@@ -1,6 +1,7 @@
 import { Bot } from "@/hooks/useBots";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/integrations/supabase/client";
+import { extractContextFromMessages, mergeContexts } from "@/utils/contextProcessing";
 
 export class ChatService {
   private static sanitizeText(text: string): string {
@@ -12,6 +13,40 @@ export class ChatService {
       .replace(/\u2013/g, "-")
       .replace(/\u2026/g, "...")
       .replace(/[^\x00-\x7F]/g, " ");
+  }
+
+  private static async updateMemoryContext(messages: any[], bot: Bot, clientId: string, sessionToken?: string) {
+    if (!bot.memory_enabled) return;
+
+    try {
+      const extractedContext = extractContextFromMessages(messages);
+      
+      const { data: existingContext } = await supabase
+        .from('user_context')
+        .select('context')
+        .eq('bot_id', bot.id)
+        .eq('client_id', clientId)
+        .eq('session_token', sessionToken)
+        .maybeSingle();
+
+      const mergedContext = mergeContexts(
+        existingContext?.context || {},
+        extractedContext
+      );
+
+      await supabase
+        .from('user_context')
+        .upsert({
+          bot_id: bot.id,
+          client_id: clientId,
+          session_token: sessionToken,
+          context: mergedContext,
+          is_global: bot.memory_enabled_model
+        });
+
+    } catch (error) {
+      console.error('Error updating memory context:', error);
+    }
   }
 
   private static async getQuizInstructions(bot: Bot): Promise<string | null> {
@@ -70,7 +105,9 @@ export class ChatService {
     messages: Array<{ role: string; content: string }>,
     bot: Bot,
     abortSignal?: AbortSignal,
-    onStream?: (chunk: string) => void
+    onStream?: (chunk: string) => void,
+    clientId?: string,
+    sessionToken?: string
   ) {
     if (!bot.apiKey) {
       throw new Error("OpenRouter API key is missing");
@@ -84,6 +121,11 @@ export class ChatService {
       ...msg,
       content: this.sanitizeText(msg.content)
     }));
+
+    // Update memory context if enabled
+    if (bot.memory_enabled && clientId) {
+      await this.updateMemoryContext(messages, bot, clientId, sessionToken);
+    }
 
     const quizInstructions = await this.getQuizInstructions(bot);
     const instructionsToUse = quizInstructions || bot.instructions;
@@ -202,10 +244,17 @@ export class ChatService {
 
   static async sendGeminiMessage(
     messages: Array<{ role: string; content: string }>,
-    bot: Bot
+    bot: Bot,
+    clientId?: string,
+    sessionToken?: string
   ) {
     if (!bot.apiKey) {
       throw new Error("API key is missing. Please check your configuration.");
+    }
+
+    // Update memory context if enabled
+    if (bot.memory_enabled && clientId) {
+      await this.updateMemoryContext(messages, bot, clientId, sessionToken);
     }
 
     const quizInstructions = await this.getQuizInstructions(bot);
