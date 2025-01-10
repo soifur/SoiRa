@@ -37,6 +37,44 @@ export const useBots = () => {
   const [bots, setBots] = useState<Bot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const transformSharedBotToBot = (sharedBot: any): Bot => ({
+    id: sharedBot.share_key,
+    name: sharedBot.bot_name,
+    instructions: sharedBot.instructions || "",
+    starters: sharedBot.starters || [],
+    model: sharedBot.model as BaseModel,
+    apiKey: sharedBot.bot_api_keys?.api_key || "",
+    openRouterModel: sharedBot.open_router_model,
+    avatar: sharedBot.avatar,
+    memory_enabled: sharedBot.memory_enabled,
+    published: sharedBot.published,
+    default_bot: false,
+    quiz_mode: sharedBot.quiz_mode,
+    frequency_penalty: sharedBot.frequency_penalty ?? 0,
+    presence_penalty: sharedBot.presence_penalty ?? 0,
+    max_tokens: sharedBot.max_tokens ?? 4096,
+    temperature: sharedBot.temperature ?? 1,
+    top_p: sharedBot.top_p ?? 1,
+    response_format: sharedBot?.response_format ? 
+      (typeof sharedBot.response_format === 'string' ? 
+        JSON.parse(sharedBot.response_format) : 
+        sharedBot.response_format) : 
+      { type: "text" },
+    tool_config: sharedBot?.tool_config ? 
+      (typeof sharedBot.tool_config === 'string' ? 
+        JSON.parse(sharedBot.tool_config) : 
+        sharedBot.tool_config) : 
+      [],
+    system_templates: sharedBot?.system_templates ? 
+      (typeof sharedBot.system_templates === 'string' ? 
+        JSON.parse(sharedBot.system_templates) : 
+        sharedBot.system_templates) : 
+      [],
+    memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
+    share_key: sharedBot?.share_key,
+    accessType: "private"
+  });
+
   const fetchBots = async () => {
     try {
       setIsLoading(true);
@@ -55,44 +93,7 @@ export const useBots = () => {
 
       if (botsError) throw botsError;
 
-      const transformedBots = botsData.map((sharedBot): Bot => ({
-        id: sharedBot.share_key,
-        name: sharedBot.bot_name,
-        instructions: sharedBot.instructions || "",
-        starters: sharedBot.starters || [],
-        model: sharedBot.model as BaseModel,
-        apiKey: sharedBot.bot_api_keys?.api_key || "",
-        openRouterModel: sharedBot.open_router_model,
-        avatar: sharedBot.avatar,
-        memory_enabled: sharedBot.memory_enabled,
-        published: sharedBot.published,
-        default_bot: false,
-        quiz_mode: sharedBot.quiz_mode,
-        frequency_penalty: sharedBot.frequency_penalty ?? 0,
-        presence_penalty: sharedBot.presence_penalty ?? 0,
-        max_tokens: sharedBot.max_tokens ?? 4096,
-        temperature: sharedBot.temperature ?? 1,
-        top_p: sharedBot.top_p ?? 1,
-        response_format: sharedBot?.response_format ? 
-          (typeof sharedBot.response_format === 'string' ? 
-            JSON.parse(sharedBot.response_format) : 
-            sharedBot.response_format) : 
-          { type: "text" },
-        tool_config: sharedBot?.tool_config ? 
-          (typeof sharedBot.tool_config === 'string' ? 
-            JSON.parse(sharedBot.tool_config) : 
-            sharedBot.tool_config) : 
-          [],
-        system_templates: sharedBot?.system_templates ? 
-          (typeof sharedBot.system_templates === 'string' ? 
-            JSON.parse(sharedBot.system_templates) : 
-            sharedBot.system_templates) : 
-          [],
-        memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
-        share_key: sharedBot?.share_key,
-        accessType: "private"
-      }));
-
+      const transformedBots = botsData.map(transformSharedBotToBot);
       setBots(transformedBots);
     } catch (error) {
       console.error("Error fetching bots:", error);
@@ -113,7 +114,6 @@ export const useBots = () => {
         throw new Error("No authenticated user");
       }
 
-      // Prepare the shared bot data
       const sharedBotData = {
         bot_name: bot.name,
         instructions: bot.instructions,
@@ -134,20 +134,23 @@ export const useBots = () => {
         memory_enabled_model: bot.memory_enabled_model,
       };
 
-      // Update existing shared bot using share_key
       const { data: updatedSharedBot, error: sharedBotError } = await supabase
         .from('shared_bots')
         .update(sharedBotData)
         .eq('share_key', bot.id)
-        .select()
+        .select(`
+          *,
+          bot_api_keys (
+            api_key
+          )
+        `)
         .single();
 
       if (sharedBotError) throw sharedBotError;
 
-      // Refresh the bots list
       await fetchBots();
 
-      return updatedSharedBot;
+      return transformSharedBotToBot(updatedSharedBot);
 
     } catch (error) {
       console.error("Error saving bot:", error);
@@ -169,7 +172,6 @@ export const useBots = () => {
 
       if (error) throw error;
 
-      // Update local state
       setBots(bots.filter((b) => b.id !== id));
 
       toast({
