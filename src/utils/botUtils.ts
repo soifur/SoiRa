@@ -27,9 +27,11 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
       stream: bot.stream,
       response_format: bot.response_format,
       tool_config: bot.tool_config,
-      system_templates: bot.system_templates
+      system_templates: bot.system_templates,
+      updated_at: new Date()
     })
-    .eq('id', bot.id);
+    .eq('id', bot.id)
+    .select();
 
   if (botError) {
     console.error("Error updating bot:", botError);
