@@ -3,6 +3,8 @@ import { Bot } from "@/hooks/useBots";
 import { Field } from "@/components/bot/quiz/QuizFieldBuilder";
 
 export const updateBotAndSharedConfig = async (bot: Bot) => {
+  console.log("Updating bot with data:", bot);
+  
   // First update the bot
   const { error: botError } = await supabase
     .from('bots')
@@ -15,11 +17,24 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
       open_router_model: bot.openRouterModel,
       avatar: bot.avatar,
       memory_enabled: bot.memory_enabled,
-      published: bot.published
+      published: bot.published,
+      memory_enabled_model: bot.memory_enabled_model,
+      temperature: bot.temperature,
+      top_p: bot.top_p,
+      frequency_penalty: bot.frequency_penalty,
+      presence_penalty: bot.presence_penalty,
+      max_tokens: bot.max_tokens,
+      stream: bot.stream,
+      response_format: bot.response_format,
+      tool_config: bot.tool_config,
+      system_templates: bot.system_templates
     })
     .eq('id', bot.id);
 
-  if (botError) throw botError;
+  if (botError) {
+    console.error("Error updating bot:", botError);
+    throw botError;
+  }
 
   // Check if there's a shared bot configuration
   const { data: sharedBot } = await supabase
@@ -29,6 +44,7 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
     .maybeSingle();
 
   if (sharedBot) {
+    console.log("Updating shared bot configuration");
     // Update shared bot configuration
     const { error: sharedBotError } = await supabase
       .from('shared_bots')
@@ -40,11 +56,24 @@ export const updateBotAndSharedConfig = async (bot: Bot) => {
         open_router_model: bot.openRouterModel,
         avatar: bot.avatar,
         memory_enabled: bot.memory_enabled,
-        published: bot.published
+        published: bot.published,
+        memory_enabled_model: bot.memory_enabled_model,
+        temperature: bot.temperature,
+        top_p: bot.top_p,
+        frequency_penalty: bot.frequency_penalty,
+        presence_penalty: bot.presence_penalty,
+        max_tokens: bot.max_tokens,
+        stream: bot.stream,
+        response_format: bot.response_format,
+        tool_config: bot.tool_config,
+        system_templates: bot.system_templates
       })
       .eq('bot_id', bot.id);
 
-    if (sharedBotError) throw sharedBotError;
+    if (sharedBotError) {
+      console.error("Error updating shared bot:", sharedBotError);
+      throw sharedBotError;
+    }
   }
 };
 

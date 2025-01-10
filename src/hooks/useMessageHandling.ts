@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Message } from "@/components/chat/types/chatTypes";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
 import { useToast } from "@/components/ui/use-toast";
-import { useMemoryContext } from "./memory/useMemoryContext";
+import { useMemoryContext } from "@/hooks/chat/memory/useMemoryContext";
 
 export const useMessageHandling = (
   bot: Bot,
@@ -18,7 +18,7 @@ export const useMessageHandling = (
   const { handleMemoryUpdate } = useMemoryContext(bot, "default-client", null);
   const abortControllerRef = { current: null as AbortController | null };
 
-  const sendMessage = async (message: string) => {
+  const sendMessage = useCallback(async (message: string) => {
     if (!message.trim()) return;
 
     try {
@@ -72,16 +72,12 @@ export const useMessageHandling = (
           content: `Previous context about the user: ${JSON.stringify(contextToSend)}\n\nCurrent conversation:`
         };
         contextMessages.push(contextPrompt);
-      } else {
-        console.log("Memory is explicitly FALSE or undefined, skipping context addition");
       }
 
       contextMessages.push({
         role: "user",
         content: message
       });
-
-      console.log("Sending message to API with context:", contextMessages);
 
       let botResponse = "";
       try {
@@ -105,8 +101,6 @@ export const useMessageHandling = (
               });
             }
           );
-        } else {
-          throw new Error(`Unsupported model type: ${bot.model}`);
         }
 
         if (!botResponse || botResponse.trim() === "") {
@@ -121,7 +115,6 @@ export const useMessageHandling = (
           description: errorMessage,
           variant: "destructive",
         });
-        // Remove the loading message
         setMessages(newMessages);
         return;
       }
@@ -144,7 +137,7 @@ export const useMessageHandling = (
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  };
+  }, [bot, messages, setMessages, userContext, handleMemoryUpdate, toast]);
 
   return {
     isLoading,

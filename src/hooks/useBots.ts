@@ -18,6 +18,18 @@ export interface Bot {
   published?: boolean;
   default_bot?: boolean;
   quiz_mode?: boolean;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  max_tokens?: number;
+  temperature?: number;
+  top_p?: number;
+  response_format?: { type: string; [key: string]: any };
+  stream?: boolean;
+  tool_config?: any[];
+  system_templates?: any[];
+  memory_model?: string;
+  memory_enabled_model?: boolean;
+  share_key?: string;
 }
 
 export const useBots = () => {
@@ -25,10 +37,43 @@ export const useBots = () => {
   const [bots, setBots] = useState<Bot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch bots from Supabase on component mount
-  useEffect(() => {
-    fetchBots();
-  }, []);
+  const transformSharedBotToBot = (sharedBot: any): Bot => ({
+    id: sharedBot.share_key,
+    name: sharedBot.bot_name,
+    instructions: sharedBot.instructions || "",
+    starters: sharedBot.starters || [],
+    model: sharedBot.model as BaseModel,
+    apiKey: sharedBot.bot_api_keys?.api_key || "",
+    openRouterModel: sharedBot.open_router_model,
+    avatar: sharedBot.avatar,
+    memory_enabled: sharedBot.memory_enabled,
+    published: sharedBot.published,
+    default_bot: false,
+    quiz_mode: sharedBot.quiz_mode,
+    frequency_penalty: sharedBot.frequency_penalty ?? 0,
+    presence_penalty: sharedBot.presence_penalty ?? 0,
+    max_tokens: sharedBot.max_tokens ?? 4096,
+    temperature: sharedBot.temperature ?? 1,
+    top_p: sharedBot.top_p ?? 1,
+    response_format: sharedBot?.response_format ? 
+      (typeof sharedBot.response_format === 'string' ? 
+        JSON.parse(sharedBot.response_format) : 
+        sharedBot.response_format) : 
+      { type: "text" },
+    tool_config: sharedBot?.tool_config ? 
+      (typeof sharedBot.tool_config === 'string' ? 
+        JSON.parse(sharedBot.tool_config) : 
+        sharedBot.tool_config) : 
+      [],
+    system_templates: sharedBot?.system_templates ? 
+      (typeof sharedBot.system_templates === 'string' ? 
+        JSON.parse(sharedBot.system_templates) : 
+        sharedBot.system_templates) : 
+      [],
+    memory_enabled_model: sharedBot?.memory_enabled_model ?? false,
+    share_key: sharedBot?.share_key,
+    accessType: "private"
+  });
 
   const fetchBots = async () => {
     try {
@@ -36,28 +81,19 @@ export const useBots = () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) return;
 
-      const { data, error } = await supabase
-        .from('bots')
-        .select('*')
+      const { data: botsData, error: botsError } = await supabase
+        .from('shared_bots')
+        .select(`
+          *,
+          bot_api_keys (
+            api_key
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (botsError) throw botsError;
 
-      // Transform the data to match our Bot interface
-      const transformedBots = data.map((bot): Bot => ({
-        id: bot.id,
-        name: bot.name,
-        instructions: bot.instructions || "",
-        starters: bot.starters || [],
-        model: bot.model as BaseModel,
-        apiKey: bot.api_key,
-        openRouterModel: bot.open_router_model,
-        avatar: bot.avatar,
-        accessType: "private",
-        memory_enabled: bot.memory_enabled,
-        published: bot.published,
-      }));
-
+      const transformedBots = botsData.map(transformSharedBotToBot);
       setBots(transformedBots);
     } catch (error) {
       console.error("Error fetching bots:", error);
@@ -78,57 +114,43 @@ export const useBots = () => {
         throw new Error("No authenticated user");
       }
 
-      const botData = {
-        name: bot.name,
+      const sharedBotData = {
+        bot_name: bot.name,
         instructions: bot.instructions,
         starters: bot.starters,
         model: bot.model,
-        api_key: bot.apiKey,
         open_router_model: bot.openRouterModel,
         avatar: bot.avatar,
-        user_id: session.session.user.id,
         memory_enabled: bot.memory_enabled,
+        published: bot.published,
+        frequency_penalty: bot.frequency_penalty,
+        presence_penalty: bot.presence_penalty,
+        max_tokens: bot.max_tokens,
+        temperature: bot.temperature,
+        top_p: bot.top_p,
+        response_format: bot.response_format,
+        tool_config: bot.tool_config,
+        system_templates: bot.system_templates,
+        memory_enabled_model: bot.memory_enabled_model,
       };
 
-      let result;
-      if (bot.id) {
-        // Update existing bot
-        result = await supabase
-          .from('bots')
-          .update(botData)
-          .eq('id', bot.id)
-          .select()
-          .single();
-      } else {
-        // Insert new bot
-        result = await supabase
-          .from('bots')
-          .insert(botData)
-          .select()
-          .single();
-      }
+      const { data: updatedSharedBot, error: sharedBotError } = await supabase
+        .from('shared_bots')
+        .update(sharedBotData)
+        .eq('share_key', bot.id)
+        .select(`
+          *,
+          bot_api_keys (
+            api_key
+          )
+        `)
+        .single();
 
-      if (result.error) throw result.error;
+      if (sharedBotError) throw sharedBotError;
 
-      // Transform the saved bot data
-      const savedBot: Bot = {
-        id: result.data.id,
-        name: result.data.name,
-        instructions: result.data.instructions || "",
-        starters: result.data.starters || [],
-        model: result.data.model,
-        apiKey: result.data.api_key,
-        openRouterModel: result.data.open_router_model,
-        avatar: result.data.avatar,
-        accessType: "private",
-        memory_enabled: result.data.memory_enabled,
-      };
-
-      // Refresh the bots list
       await fetchBots();
 
-      // Return the saved bot
-      return savedBot;
+      return transformSharedBotToBot(updatedSharedBot);
 
     } catch (error) {
       console.error("Error saving bot:", error);
@@ -144,13 +166,12 @@ export const useBots = () => {
   const deleteBot = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('bots')
+        .from('shared_bots')
         .delete()
-        .eq('id', id);
+        .eq('share_key', id);
 
       if (error) throw error;
 
-      // Update local state
       setBots(bots.filter((b) => b.id !== id));
 
       toast({
@@ -166,6 +187,10 @@ export const useBots = () => {
       });
     }
   };
+
+  useEffect(() => {
+    fetchBots();
+  }, []);
 
   return { bots, saveBot, deleteBot, isLoading };
 };
