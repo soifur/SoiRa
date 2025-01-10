@@ -3,13 +3,15 @@ import { Message } from '@/components/chat/types/chatTypes';
 import { Bot } from '@/hooks/useBots';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 interface MemoryContext {
-  name?: string;
-  faith?: string;
+  name?: string | null;
+  faith?: string | null;
   likes: string[];
   topics: string[];
   facts: string[];
+  [key: string]: string | string[] | null | undefined; // Add index signature
 }
 
 interface DatabaseContext {
@@ -98,7 +100,7 @@ export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: strin
           bot_id: bot.id,
           client_id: clientId,
           session_token: sessionToken,
-          context,
+          context: context as Json,
           last_updated: new Date().toISOString()
         });
 
