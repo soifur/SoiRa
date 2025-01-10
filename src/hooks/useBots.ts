@@ -64,7 +64,7 @@ export const useBots = () => {
           instructions: sharedBot.instructions || "",
           starters: sharedBot.starters || [],
           model: sharedBot.model as BaseModel,
-          apiKey: sharedBot.bot_api_keys?.api_key || "", // Get API key from bot_api_keys join
+          apiKey: sharedBot.bot_api_keys?.api_key || "",
           openRouterModel: sharedBot.open_router_model,
           avatar: sharedBot.avatar,
           memory_enabled: sharedBot.memory_enabled,
