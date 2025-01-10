@@ -77,23 +77,37 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
         throw new Error('Failed to fetch bot settings');
       }
 
+      // Parse JSON fields with proper type checking
+      const parsedSettings = {
+        ...sharedBot,
+        response_format: typeof sharedBot.response_format === 'string' 
+          ? JSON.parse(sharedBot.response_format) 
+          : sharedBot.response_format || { type: "text" },
+        tool_config: typeof sharedBot.tool_config === 'string' 
+          ? JSON.parse(sharedBot.tool_config) 
+          : sharedBot.tool_config || [],
+        system_templates: typeof sharedBot.system_templates === 'string' 
+          ? JSON.parse(sharedBot.system_templates) 
+          : sharedBot.system_templates || []
+      };
+
       let response = "";
       if (selectedBot.model === "openrouter") {
         response = await ChatService.sendOpenRouterMessage(
           newMessages,
           {
             ...selectedBot,
-            temperature: sharedBot.temperature,
-            top_p: sharedBot.top_p,
-            frequency_penalty: sharedBot.frequency_penalty,
-            presence_penalty: sharedBot.presence_penalty,
-            max_tokens: sharedBot.max_tokens,
-            stream: sharedBot.stream,
-            response_format: sharedBot.response_format,
-            tool_config: sharedBot.tool_config,
-            system_templates: sharedBot.system_templates,
-            memory_enabled: sharedBot.memory_enabled,
-            memory_enabled_model: sharedBot.memory_enabled_model
+            temperature: parsedSettings.temperature,
+            top_p: parsedSettings.top_p,
+            frequency_penalty: parsedSettings.frequency_penalty,
+            presence_penalty: parsedSettings.presence_penalty,
+            max_tokens: parsedSettings.max_tokens,
+            stream: parsedSettings.stream,
+            response_format: parsedSettings.response_format,
+            tool_config: parsedSettings.tool_config,
+            system_templates: parsedSettings.system_templates,
+            memory_enabled: parsedSettings.memory_enabled,
+            memory_enabled_model: parsedSettings.memory_enabled_model
           },
           undefined,
           (chunk: string) => {
@@ -112,11 +126,11 @@ export const useChat = (selectedBot: Bot | undefined, sessionToken: string) => {
       } else if (selectedBot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(newMessages, {
           ...selectedBot,
-          temperature: sharedBot.temperature,
-          top_p: sharedBot.top_p,
-          max_tokens: sharedBot.max_tokens,
-          memory_enabled: sharedBot.memory_enabled,
-          memory_enabled_model: sharedBot.memory_enabled_model
+          temperature: parsedSettings.temperature,
+          top_p: parsedSettings.top_p,
+          max_tokens: parsedSettings.max_tokens,
+          memory_enabled: parsedSettings.memory_enabled,
+          memory_enabled_model: parsedSettings.memory_enabled_model
         });
         const botMessage = createMessage("assistant", response);
         setMessages([...newMessages, botMessage]);
