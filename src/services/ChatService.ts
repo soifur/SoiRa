@@ -5,19 +5,18 @@ export class ChatService {
   static async sendOpenRouterMessage(
     messages: Message[],
     bot: Bot,
-    signal?: AbortSignal,
   ): Promise<string> {
     try {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${bot.api_key}`,
+          "Authorization": `Bearer ${bot.apiKey}`,
           "HTTP-Referer": window.location.origin,
           "X-Title": "Lovable Chat",
         },
         body: JSON.stringify({
-          model: bot.open_router_model || "openai/gpt-3.5-turbo",
+          model: bot.openRouterModel || "openai/gpt-3.5-turbo",
           messages: messages.map(msg => ({
             role: msg.role,
             content: msg.content
@@ -28,7 +27,6 @@ export class ChatService {
           frequency_penalty: bot.frequency_penalty || 0,
           presence_penalty: bot.presence_penalty || 0,
         }),
-        signal
       });
 
       if (!response.ok) {
@@ -55,7 +53,7 @@ export class ChatService {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": bot.api_key,
+          "x-goog-api-key": bot.apiKey,
         },
         body: JSON.stringify({
           contents: messages.map(msg => ({

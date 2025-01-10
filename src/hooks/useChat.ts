@@ -1,11 +1,12 @@
 import { useState, useCallback } from "react";
-import { Message, Bot } from "@/components/chat/types/chatTypes";
+import { Message, MessageJson } from "@/components/chat/types/chatTypes";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Json } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from 'uuid';
+import { Bot } from "@/hooks/useBots";
 
 interface BotSettings {
   temperature: number;
@@ -65,10 +66,10 @@ const jsonToMessages = (json: Json): Message[] => {
   
   const messages = json.map(msg => {
     if (typeof msg === 'object' && msg !== null) {
-      const messageJson = msg as unknown as MessageJson;
+      const messageJson = msg as MessageJson;
       return {
         id: messageJson.id || uuidv4(),
-        role: messageJson.role === "user" ? "user" : "assistant",
+        role: messageJson.role,
         content: messageJson.content || "",
         timestamp: messageJson.timestamp ? new Date(messageJson.timestamp) : undefined
       } as Message;
@@ -172,7 +173,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
           throw new Error(`Unsupported model type: ${mergedBot.model}`);
         }
 
-        console.log('Bot response:', botResponse);
         if (!botResponse || botResponse.trim() === "") {
           throw new Error("The bot returned an empty response. Please try again or check your API configuration.");
         }
@@ -194,7 +194,6 @@ export const useChat = (selectedBot: Bot | null, sessionToken: string | null) =>
       console.log('Final messages:', updatedMessages);
       setMessages(updatedMessages);
 
-      // Save chat history
       if (currentChatId) {
         console.log('Updating existing chat:', currentChatId);
         const { error: saveError } = await supabase
