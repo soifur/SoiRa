@@ -10,7 +10,6 @@ interface ChatContainerProps {
   selectedBot: Bot | undefined;
   messages: Message[];
   isLoading: boolean;
-  isStreaming: boolean;
   sendMessage: (message: string) => void;
   disabled?: boolean;
   disabledReason?: string;
@@ -22,7 +21,6 @@ export const ChatContainer = ({
   selectedBot,
   messages,
   isLoading,
-  isStreaming,
   sendMessage,
   disabled,
   disabledReason,
@@ -47,7 +45,6 @@ export const ChatContainer = ({
               starters={selectedBot.starters || []}
               onStarterClick={disabled ? undefined : sendMessage}
               isLoading={isLoading}
-              isStreaming={isStreaming}
               disabled={disabled}
               disabledReason={disabledReason}
             />

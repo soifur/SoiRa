@@ -37,3 +37,25 @@ export interface Bot {
   memory_enabled?: boolean;
   quiz_mode?: boolean;
 }
+
+export interface ChatHistoryItem {
+  id: string;
+  messages: ChatMessage[];
+  created_at: string;
+  sequence_number: number;
+}
+
+export interface ChatHistoryData {
+  id?: string;
+  bot_id: string;
+  messages?: Json;
+  client_id?: string;
+  share_key?: string;
+  sequence_number: number;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
+  session_token?: string;
+  avatar_url?: string;
+  deleted?: string;
+}

@@ -16,19 +16,12 @@ export const useMessageHandling = (
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { handleMemoryUpdate } = useMemoryContext(bot, "default-client", null);
-  const abortControllerRef = { current: null as AbortController | null };
 
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
 
     try {
       setIsLoading(true);
-      
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      
-      abortControllerRef.current = new AbortController();
 
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
@@ -37,8 +30,6 @@ export const useMessageHandling = (
       const botMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, botMessage]);
 
-      console.log("Current memory_enabled status:", bot.memory_enabled);
-      
       if (bot.memory_enabled === true) {
         console.log("Memory is explicitly TRUE, updating context");
         handleMemoryUpdate([userMessage]).catch(error => {
@@ -49,8 +40,6 @@ export const useMessageHandling = (
       const contextMessages = [];
 
       if (bot.memory_enabled === true) {
-        console.log("Memory is explicitly TRUE, adding context to message");
-        
         const contextToSend = userContext ? {
           name: userContext.name || null,
           faith: userContext.faith || null,
@@ -65,46 +54,24 @@ export const useMessageHandling = (
           facts: []
         };
         
-        console.log("Using context for message:", contextToSend);
-        
         const contextPrompt = {
-          role: "system",
+          role: "system" as const,
           content: `Previous context about the user: ${JSON.stringify(contextToSend)}\n\nCurrent conversation:`
         };
         contextMessages.push(contextPrompt);
-      } else {
-        console.log("Memory is explicitly FALSE or undefined, skipping context addition");
       }
 
       contextMessages.push({
-        role: "user",
+        role: "user" as const,
         content: message
       });
-
-      console.log("Sending message to API with context:", contextMessages);
 
       let botResponse = "";
       try {
         if (bot.model === "gemini") {
           botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
         } else if (bot.model === "openrouter") {
-          botResponse = await ChatService.sendOpenRouterMessage(
-            contextMessages,
-            bot,
-            abortControllerRef.current.signal,
-            (chunk: string) => {
-              setMessages(prev => {
-                const lastMessage = prev[prev.length - 1];
-                if (lastMessage.role === "assistant") {
-                  return [
-                    ...prev.slice(0, -1),
-                    { ...lastMessage, content: lastMessage.content + chunk }
-                  ];
-                }
-                return prev;
-              });
-            }
-          );
+          botResponse = await ChatService.sendOpenRouterMessage(contextMessages, bot);
         } else {
           throw new Error(`Unsupported model type: ${bot.model}`);
         }
@@ -121,7 +88,6 @@ export const useMessageHandling = (
           description: errorMessage,
           variant: "destructive",
         });
-        // Remove the loading message
         setMessages(newMessages);
         return;
       }
@@ -130,10 +96,6 @@ export const useMessageHandling = (
       setMessages([...newMessages, finalBotMessage]);
 
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was cancelled');
-        return;
-      }
       console.error("Chat error:", error);
       toast({
         title: "Error",
@@ -142,7 +104,6 @@ export const useMessageHandling = (
       });
     } finally {
       setIsLoading(false);
-      abortControllerRef.current = null;
     }
   };
 
