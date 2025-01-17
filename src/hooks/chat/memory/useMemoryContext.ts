@@ -1,166 +1,143 @@
-import { useState, useCallback } from 'react';
-import { Message } from '@/components/chat/types/chatTypes';
-import { Bot } from '@/hooks/useBots';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { Json } from '@/integrations/supabase/types';
+import { Bot } from "@/components/chat/types/chatTypes";
+import { ChatService } from "@/services/ChatService";
 
-interface MemoryContext {
-  name?: string | null;
-  faith?: string | null;
-  likes: string[];
-  topics: string[];
-  facts: string[];
-  [key: string]: string | string[] | null | undefined;
-}
+export const useMemoryContext = (
+  bot: Bot,
+  userContext: any,
+  updateUserContext: (newContext: any) => Promise<void>
+) => {
+  const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
+    if (!bot.memory_enabled || !bot.apiKey || !bot.instructions) {
+      return;
+    }
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+    try {
+      // Get only the last user message
+      const lastUserMessage = messages.filter(msg => msg.role === "user").slice(-1)[0];
+      if (!lastUserMessage) return;
 
-const isValidArray = (arr: any): arr is string[] => {
-  return Array.isArray(arr) && arr.every(item => typeof item === 'string');
-};
+      const contextUpdatePrompt = `
+You are a context analyzer. Your task is to extract and maintain user context from conversations.
 
-const initializeContext = (): MemoryContext => ({
+Previous context: ${JSON.stringify(userContext || {
   name: null,
   faith: null,
   likes: [],
   topics: [],
   facts: []
-});
+})}
 
-const validateContext = (context: MemoryContext): boolean => {
-  if (!context) return false;
-  
-  // Ensure arrays exist and are valid
-  if (!isValidArray(context.likes) || 
-      !isValidArray(context.topics) || 
-      !isValidArray(context.facts)) {
-    console.error('Invalid context structure:', context);
-    return false;
-  }
+User message to analyze:
+${lastUserMessage.content}
 
-  // Validate optional string fields
-  if (context.name !== null && context.name !== undefined && typeof context.name !== 'string') {
-    return false;
-  }
-  if (context.faith !== null && context.faith !== undefined && typeof context.faith !== 'string') {
-    return false;
-  }
+Instructions:
+${bot.instructions}
 
-  return true;
-};
+Based on the message, update the user context following these rules:
+1. Extract the user's name if mentioned
+2. Note any likes, interests, or positive mentions
+3. Track topics they discuss
+4. If user expresses dislike for something that was in their "likes" array, REMOVE it
+5. Extract factual statements about the user (job, role, location, etc.)
+6. Preserve existing context unless explicitly contradicted
+7. Return ONLY a valid JSON object in this exact format:
 
-export const useMemoryContext = (bot: Bot, clientId: string, sessionToken: string | null) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+{
+  "name": "string or null",
+  "faith": "string or null",
+  "likes": ["array of strings"],
+  "topics": ["array of strings"],
+  "facts": ["array of strings"]
+}
 
-  const handleMemoryUpdate = useCallback(async (messages: Message[], retryCount = 0) => {
-    if (!bot.memory_enabled) {
-      console.log('Memory updates are disabled for this bot');
-      return;
-    }
+IMPORTANT: 
+- Merge new information with existing context
+- Keep previous values unless contradicted
+- If user says they don't like something anymore, remove it from likes array
+- Facts should be complete, clear statements about the user
+- Return ONLY the JSON object, no other text
+- Ensure all arrays exist even if empty`;
 
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Initialize context with default values
-      const context = initializeContext();
-
-      messages.forEach(message => {
-        if (message.role === 'user') {
-          // Extract name with null fallback
-          const nameMatch = message.content.match(/my name is ([^\.,!?]+)/i);
-          if (nameMatch) {
-            context.name = nameMatch[1].trim() || null;
-          }
-
-          // Extract faith with null fallback
-          const faithMatch = message.content.match(/I am (a |an )?([^\.,!?]+) (believer|faith|religion)/i);
-          if (faithMatch) {
-            context.faith = faithMatch[2].trim() || null;
-          }
-
-          // Extract and validate arrays
-          const likeMatches = message.content.match(/I (like|love|enjoy|prefer) ([^\.,!?]+)/gi);
-          if (likeMatches) {
-            const newLikes = likeMatches.map(match => 
-              match.replace(/I (like|love|enjoy|prefer) /i, '').trim()
-            ).filter(Boolean);
-            context.likes = [...new Set([...context.likes, ...newLikes])];
-          }
-
-          const topicMatches = message.content.match(/\b(about|regarding|concerning) ([^\.,!?]+)/gi);
-          if (topicMatches) {
-            const newTopics = topicMatches.map(match =>
-              match.replace(/\b(about|regarding|concerning) /i, '').trim()
-            ).filter(Boolean);
-            context.topics = [...new Set([...context.topics, ...newTopics])];
-          }
-
-          const factMatches = message.content.match(/I (am|work as|live in|have) ([^\.,!?]+)/gi);
-          if (factMatches) {
-            const newFacts = factMatches.map(match => match.trim()).filter(Boolean);
-            context.facts = [...new Set([...context.facts, ...newFacts])];
-          }
+      let apiResponse: string | undefined;
+      try {
+        if (bot.model === "gemini") {
+          apiResponse = await ChatService.sendGeminiMessage(
+            [{ role: "user", content: contextUpdatePrompt }],
+            bot
+          );
+        } else {
+          apiResponse = await ChatService.sendOpenRouterMessage(
+            [{ role: "user", content: contextUpdatePrompt }],
+            bot
+          );
         }
-      });
 
-      // Validate context before database update
-      if (!validateContext(context)) {
-        throw new Error('Invalid context structure detected');
+        // If request was cancelled or response is empty, maintain existing context
+        if (!apiResponse) {
+          console.log("Empty API response, maintaining existing context");
+          return;
+        }
+
+        const cleanedResponse = apiResponse.trim();
+        const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+        
+        if (!jsonMatch) {
+          console.log("No valid JSON found in response, maintaining existing context");
+          return;
+        }
+
+        let newContext;
+        try {
+          newContext = JSON.parse(jsonMatch[0]);
+        } catch (parseError) {
+          console.log("Parse error:", parseError, "Response:", jsonMatch[0]);
+          console.log("Maintaining existing context due to parse error");
+          return;
+        }
+
+        // Validate the required structure
+        if (!newContext || typeof newContext !== 'object') {
+          console.log("Invalid context structure, maintaining existing context");
+          return;
+        }
+
+        // Ensure all required fields exist with proper types
+        const mergedContext = {
+          name: newContext.name || userContext?.name || null,
+          faith: newContext.faith || userContext?.faith || null,
+          likes: Array.isArray(newContext.likes) ? 
+            [...new Set(newContext.likes)].filter(item => item && typeof item === 'string' && item.trim() !== "") : 
+            userContext?.likes || [],
+          topics: Array.from(new Set([
+            ...(Array.isArray(userContext?.topics) ? userContext.topics : []),
+            ...(Array.isArray(newContext.topics) ? newContext.topics : [])
+          ])).filter(item => item && typeof item === 'string' && item.trim() !== ""),
+          facts: Array.from(new Set([
+            ...(Array.isArray(userContext?.facts) ? userContext.facts : []),
+            ...(Array.isArray(newContext.facts) ? newContext.facts : [])
+          ])).filter(item => item && typeof item === 'string' && item.trim() !== "")
+        };
+
+        console.log("Merged context:", mergedContext);
+        await updateUserContext(mergedContext);
+      } catch (apiError) {
+        // Check if the error is due to request cancellation
+        if (apiError.name === 'AbortError' || apiError.message?.includes('cancelled')) {
+          console.log("Request was cancelled, maintaining existing context");
+          return;
+        }
+        
+        console.error("API or parsing error:", apiError);
+        // Preserve the existing context
+        if (userContext) {
+          await updateUserContext(userContext);
+        }
       }
-
-      console.log('Updating context in database:', context);
-
-      // Update context in database with proper type casting
-      const { error: updateError } = await supabase
-        .from('user_context')
-        .upsert({
-          bot_id: bot.id,
-          client_id: clientId,
-          session_token: sessionToken,
-          context: context as Json,
-          last_updated: new Date().toISOString()
-        });
-
-      if (updateError) throw updateError;
-
-      toast({
-        title: "Context Updated",
-        description: "Memory context has been successfully updated.",
-      });
-
-      console.log('Memory context updated successfully:', context);
-
-    } catch (err) {
-      console.error('Error updating memory context:', err);
-      
-      // Implement retry logic
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying memory update (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
-        setTimeout(() => {
-          handleMemoryUpdate(messages, retryCount + 1);
-        }, RETRY_DELAY);
-        return;
-      }
-
-      setError(err instanceof Error ? err.message : 'Failed to update memory context');
-      toast({
-        title: "Error",
-        description: "Failed to update memory context. Some features may be limited.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      // Only log the error without throwing it to prevent breaking the chat flow
+      console.error("Memory update failed:", error);
     }
-  }, [bot.memory_enabled, bot.id, clientId, sessionToken, toast]);
-
-  return {
-    handleMemoryUpdate,
-    isLoading,
-    error
   };
+
+  return { handleMemoryUpdate };
 };

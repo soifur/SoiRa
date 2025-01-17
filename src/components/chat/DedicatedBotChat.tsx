@@ -20,6 +20,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Array<{ role: string; content: string; timestamp?: Date; id: string; avatar?: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatId] = useState(() => uuidv4());
   const { combinedInstructions } = useQuizInstructions(bot.id, bot.quiz_mode);
@@ -71,19 +72,50 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
 
+      // Add temporary streaming message
+      const streamingMessage = createMessage("assistant", "", true, bot.avatar);
+      setMessages([...newMessages, streamingMessage]);
+      setIsStreaming(true);
+
       let response: string = "";
+      // Use combinedInstructions if quiz mode is enabled and instructions are available
       const instructions = bot.quiz_mode && combinedInstructions ? combinedInstructions : bot.instructions;
       console.log("Using instructions:", instructions, "Quiz mode:", bot.quiz_mode, "Combined instructions:", combinedInstructions);
 
       if (bot.model === "openrouter") {
-        response = await ChatService.sendOpenRouterMessage(
+        await ChatService.sendOpenRouterMessage(
           newMessages,
-          { ...bot, instructions }
+          { ...bot, instructions },
+          undefined,
+          (chunk: string) => {
+            response += chunk;
+            setMessages(prev => {
+              const lastMessage = prev[prev.length - 1];
+              if (lastMessage.role === "assistant") {
+                return [
+                  ...prev.slice(0, -1),
+                  { ...lastMessage, content: response }
+                ];
+              }
+              return prev;
+            });
+          }
         );
       } else if (bot.model === "gemini") {
         response = await ChatService.sendGeminiMessage(newMessages, { ...bot, instructions });
+        setMessages(prev => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.role === "assistant") {
+            return [
+              ...prev.slice(0, -1),
+              { ...lastMessage, content: response }
+            ];
+          }
+          return prev;
+        });
       }
 
+      // Get the next sequence number
       const { data: chatData } = await supabase
         .from('chat_history')
         .select('sequence_number')
@@ -94,12 +126,13 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
 
       const nextSequenceNumber = (chatData?.sequence_number || 0) + 1;
 
+      // Save to Supabase with avatar URL and sequence number
       const { error } = await supabase
         .from('chat_history')
         .upsert({
           id: chatId,
           bot_id: bot.id,
-          messages: [...newMessages, { ...userMessage, content: response }].map(msg => ({
+          messages: [...newMessages, { ...streamingMessage, content: response }].map(msg => ({
             ...msg,
             timestamp: msg.timestamp?.toISOString(),
           })),
@@ -113,8 +146,9 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
         throw error;
       }
 
+      // Save to localStorage
       const chatKey = `chat_${bot.id}_${chatId}`;
-      localStorage.setItem(chatKey, JSON.stringify([...newMessages, { ...userMessage, content: response }]));
+      localStorage.setItem(chatKey, JSON.stringify([...newMessages, { ...streamingMessage, content: response }]));
 
     } catch (error) {
       console.error("Chat error:", error);
@@ -125,6 +159,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
       });
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -161,6 +196,7 @@ const DedicatedBotChat = ({ bot }: DedicatedBotChatProps) => {
           starters={bot.starters}
           onStarterClick={sendMessage}
           isLoading={isLoading}
+          isStreaming={isStreaming}
           onQuizComplete={handleQuizComplete}
         />
         <div ref={messagesEndRef} />
