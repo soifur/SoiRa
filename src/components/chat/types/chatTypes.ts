@@ -5,7 +5,6 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp?: Date;
-  id?: string;
 }
 
 export interface Message {
@@ -51,4 +50,18 @@ export interface ChatHistoryData {
   session_token?: string;
   avatar_url?: string;
   deleted?: string;
+}
+
+export interface BotSettings {
+  temperature: number;
+  top_p: number;
+  frequency_penalty: number;
+  presence_penalty: number;
+  max_tokens: number;
+  stream: boolean;
+  response_format: { type: string; [key: string]: any };
+  tool_config: any[];
+  system_templates: any[];
+  memory_enabled: boolean;
+  memory_enabled_model: boolean;
 }
