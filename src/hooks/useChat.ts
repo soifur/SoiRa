@@ -8,43 +8,6 @@ import { Json } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from 'uuid';
 import { Bot } from "@/hooks/useBots";
 
-interface BotSettings {
-  temperature: number;
-  top_p: number;
-  frequency_penalty: number;
-  presence_penalty: number;
-  max_tokens: number;
-  stream: boolean;
-  response_format: { type: string; [key: string]: any };
-  tool_config: any[];
-  system_templates: any[];
-  memory_enabled: boolean;
-  memory_enabled_model: boolean;
-}
-
-const parseBotSettings = (sharedBot: any): BotSettings => {
-  console.log('Parsing bot settings from:', sharedBot);
-  return {
-    temperature: sharedBot.temperature ?? 1,
-    top_p: sharedBot.top_p ?? 1,
-    frequency_penalty: sharedBot.frequency_penalty ?? 0,
-    presence_penalty: sharedBot.presence_penalty ?? 0,
-    max_tokens: sharedBot.max_tokens ?? 4096,
-    stream: sharedBot.stream ?? true,
-    response_format: typeof sharedBot.response_format === 'string' 
-      ? JSON.parse(sharedBot.response_format) 
-      : sharedBot.response_format || { type: "text" },
-    tool_config: typeof sharedBot.tool_config === 'string' 
-      ? JSON.parse(sharedBot.tool_config) 
-      : sharedBot.tool_config || [],
-    system_templates: typeof sharedBot.system_templates === 'string' 
-      ? JSON.parse(sharedBot.system_templates) 
-      : sharedBot.system_templates || [],
-    memory_enabled: sharedBot.memory_enabled ?? false,
-    memory_enabled_model: sharedBot.memory_enabled_model ?? false
-  };
-};
-
 const messagesToJson = (messages: Message[]): Json => {
   console.log('Converting messages to JSON:', messages);
   const jsonMessages = messages.map(msg => ({

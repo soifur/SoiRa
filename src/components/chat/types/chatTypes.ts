@@ -1,5 +1,5 @@
-import { BaseModel } from "@/hooks/useBots";
 import { Json } from "@/integrations/supabase/types";
+import { BaseModel } from "@/hooks/useBots";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -36,13 +36,6 @@ export interface Bot {
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   quiz_mode?: boolean;
-}
-
-export interface ChatHistoryItem {
-  id: string;
-  messages: ChatMessage[];
-  created_at: string;
-  sequence_number: number;
 }
 
 export interface ChatHistoryData {
