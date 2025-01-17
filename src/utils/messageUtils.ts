@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Message } from '@/components/chat/types/chatTypes';
+import { Message, BotSettings } from '@/components/chat/types/chatTypes';
 
 export const createMessage = (
   role: "user" | "assistant",

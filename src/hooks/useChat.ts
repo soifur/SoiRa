@@ -34,7 +34,8 @@ const jsonToMessages = (json: Json): Message[] => {
         id: messageJson.id || uuidv4(),
         role: messageJson.role,
         content: messageJson.content || "",
-        timestamp: messageJson.timestamp ? new Date(messageJson.timestamp) : undefined
+        timestamp: messageJson.timestamp ? new Date(messageJson.timestamp) : undefined,
+        isBot: messageJson.role === "assistant"
       } as Message;
     }
     console.warn('Invalid message format:', msg);
