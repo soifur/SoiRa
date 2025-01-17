@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Json } from "@/integrations/supabase/types";
 import { v4 as uuidv4 } from 'uuid';
 import { Bot } from "@/hooks/useBots";
+import { parseBotSettings } from "@/utils/messageUtils";
 
 const messagesToJson = (messages: Message[]): Json => {
   console.log('Converting messages to JSON:', messages);

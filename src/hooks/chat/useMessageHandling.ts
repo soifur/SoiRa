@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Message } from "@/components/chat/types/chatTypes";
 import { createMessage } from "@/utils/messageUtils";
 import { ChatService } from "@/services/ChatService";
@@ -22,7 +22,7 @@ export const useMessageHandling = (
 
     try {
       setIsLoading(true);
-
+      
       const userMessage = createMessage("user", message);
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
