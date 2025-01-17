@@ -14,6 +14,8 @@ import { useSubscriptionLimits } from "@/hooks/useSubscriptionLimits";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useModalTrigger } from "@/hooks/useModalTrigger";
+import { EducationalModal } from "@/components/modals/EducationalModal";
 
 const Index = () => {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -23,6 +25,7 @@ const Index = () => {
   const { toast } = useToast();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isMobile = useIsMobile();
+  const educationalModal = useModalTrigger();
 
   const { data: userBots = [], isLoading: isLoadingUserBots } = useQuery({
     queryKey: ['published-bots'],
@@ -81,7 +84,6 @@ const Index = () => {
   const {
     messages,
     isLoading,
-    isStreaming,
     currentChatId,
     handleNewChat,
     handleSelectChat,
@@ -163,7 +165,6 @@ const Index = () => {
               selectedBot={selectedBot}
               messages={messages}
               isLoading={isLoading}
-              isStreaming={isStreaming}
               sendMessage={handleSendMessage}
               isExceeded={isExceeded}
               maxUsage={maxUsage}
@@ -179,6 +180,21 @@ const Index = () => {
         isOpen={showUpgradeModal} 
         onClose={() => setShowUpgradeModal(false)} 
       />
+      <EducationalModal
+        isOpen={educationalModal.isOpen}
+        onClose={educationalModal.closeModal}
+        isLoading={educationalModal.isLoading}
+        title="Welcome to SoiRa AI"
+      >
+        <div className="space-y-4">
+          <p>Welcome to your AI assistant! Here are some tips to get started:</p>
+          <ul className="list-disc pl-4 space-y-2">
+            <li>Select a bot from the dropdown menu above</li>
+            <li>Type your message in the chat input below</li>
+            <li>View your chat history on the left sidebar</li>
+          </ul>
+        </div>
+      </EducationalModal>
     </div>
   );
 };

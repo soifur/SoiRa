@@ -7,7 +7,6 @@ interface MainChatContainerProps {
   selectedBot: Bot | undefined;
   messages: Message[];
   isLoading: boolean;
-  isStreaming: boolean;
   sendMessage: (message: string) => Promise<void>;
   isExceeded: boolean;
   maxUsage?: number;
@@ -21,7 +20,6 @@ export const MainChatContainer = ({
   selectedBot,
   messages,
   isLoading,
-  isStreaming,
   sendMessage,
   isExceeded,
   maxUsage = 0,
@@ -36,7 +34,6 @@ export const MainChatContainer = ({
         selectedBot={selectedBot}
         messages={messages}
         isLoading={isLoading}
-        isStreaming={isStreaming}
         sendMessage={sendMessage}
         disabled={isExceeded}
         disabledReason={isExceeded ? "Usage limit exceeded" : undefined}

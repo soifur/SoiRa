@@ -17,6 +17,13 @@ export interface Message {
   avatar?: string;
 }
 
+export interface MessageJson {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp?: string;
+}
+
 export interface Bot {
   id: string;
   name: string;
@@ -29,26 +36,4 @@ export interface Bot {
   accessType?: "public" | "private";
   memory_enabled?: boolean;
   quiz_mode?: boolean;
-}
-
-export interface ChatHistoryItem {
-  id: string;
-  messages: ChatMessage[];
-  created_at: string;
-  sequence_number: number;
-}
-
-export interface ChatHistoryData {
-  id?: string;
-  bot_id: string;
-  messages?: Json;
-  client_id?: string;
-  share_key?: string;
-  sequence_number: number;
-  created_at?: string;
-  updated_at?: string;
-  user_id?: string;
-  session_token?: string;
-  avatar_url?: string;
-  deleted?: string;
 }

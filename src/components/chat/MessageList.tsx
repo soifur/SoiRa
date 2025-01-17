@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, memo } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, HelpCircle, Code, BookOpen, Lightbulb } from "lucide-react";
@@ -29,6 +29,8 @@ interface MessageListProps {
   onQuizComplete?: (instructions: string) => void;
 }
 
+const MemoizedChatMessage = memo(ChatMessage);
+
 export const MessageList = ({ 
   messages = [],
   selectedBot, 
@@ -44,7 +46,6 @@ export const MessageList = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
-  // Fetch shared bot data including quiz_mode and share_key
   const { data: sharedBot } = useQuery({
     queryKey: ['shared-bot', selectedBot?.id],
     queryFn: async () => {
@@ -92,7 +93,6 @@ export const MessageList = ({
     return null;
   }
 
-  // Only show quiz button if shared bot exists and has quiz_mode enabled
   const showQuizButton = selectedBot && sharedBot?.quiz_mode && sharedBot?.share_key;
 
   return (
@@ -160,7 +160,7 @@ export const MessageList = ({
                   ref={index === messages.length - 1 ? lastMessageRef : null}
                   className="relative group"
                 >
-                  <ChatMessage
+                  <MemoizedChatMessage
                     message={message.content}
                     isBot={message.role === "assistant"}
                     avatar={message.avatar || selectedBot?.avatar}
