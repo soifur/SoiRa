@@ -15,10 +15,10 @@ export const createMessage = (
   avatar
 });
 
-export const formatMessages = (messages: Array<{ role: string; content: string; timestamp?: Date }>): Message[] => {
+export const formatMessages = (messages: Array<{ role: "user" | "assistant"; content: string; timestamp?: Date }>): Message[] => {
   return messages.map(msg => ({
     id: uuidv4(),
-    role: msg.role === "user" ? "user" : "assistant",
+    role: msg.role,
     content: msg.content,
     timestamp: msg.timestamp,
     isBot: msg.role === "assistant"

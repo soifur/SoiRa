@@ -72,8 +72,6 @@ export const useMessageHandling = (
           botResponse = await ChatService.sendGeminiMessage(contextMessages, bot);
         } else if (bot.model === "openrouter") {
           botResponse = await ChatService.sendOpenRouterMessage(contextMessages, bot);
-        } else {
-          throw new Error(`Unsupported model type: ${bot.model}`);
         }
 
         if (!botResponse || botResponse.trim() === "") {
