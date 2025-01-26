@@ -67,6 +67,12 @@ export const useMessageHandling = (
           return;
         }
 
+        // Get client IP for session tracking
+        const clientIp = await fetch('https://api.ipify.org?format=json')
+          .then(response => response.json())
+          .then(data => data.ip)
+          .catch(() => null);
+
         // Store context in user_context table
         const { error: contextError } = await supabase
           .from('user_context')
@@ -75,6 +81,7 @@ export const useMessageHandling = (
             bot_id: bot.id,
             user_id: user.id,
             context: contextData,
+            session_token: clientIp,
             last_updated: new Date().toISOString()
           });
 
@@ -111,19 +118,15 @@ export const useMessageHandling = (
 
       // Process memory if enabled
       if (bot.memory_enabled === true) {
-        console.log("Memory enabled, updating context");
+        console.log("Memory enabled, storing context");
         // Store context first
         await storeUserContext(message);
-        // Then update memory context for the conversation
-        handleMemoryUpdate([userMessage]).catch(error => {
-          console.error("Memory update failed:", error);
-        });
       }
 
       // Prepare messages with context if memory is enabled
       const contextMessages = [];
       if (bot.memory_enabled === true && userContext) {
-        console.log("Adding memory context to message");
+        console.log("Adding memory context to message:", userContext);
         const contextPrompt = {
           role: "system",
           content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
@@ -167,25 +170,16 @@ export const useMessageHandling = (
         }
 
       } catch (error) {
-        console.error("Bot response error:", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to get response";
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        setMessages(newMessages);
-        return;
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return "Message cancelled by user.";
+        }
+        throw error;
       }
 
       const finalBotMessage = createMessage("assistant", botResponse, false, bot.avatar);
       setMessages([...newMessages, finalBotMessage]);
 
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request cancelled');
-        return;
-      }
       console.error("Chat error:", error);
       toast({
         title: "Error",
