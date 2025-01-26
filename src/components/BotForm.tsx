@@ -87,7 +87,38 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
     }
 
     try {
+      // First update the bot's memory settings
       await updateBotMemorySettings(editingBot.id, checked);
+      
+      // Then create an initial user context if memory is being enabled
+      if (checked) {
+        const { data: session } = await supabase.auth.getSession();
+        const userId = session?.session?.user?.id;
+        
+        if (userId) {
+          const { error: contextError } = await supabase
+            .from('user_context')
+            .upsert({
+              bot_id: editingBot.id,
+              user_id: userId,
+              client_id: 'default',
+              context: {
+                name: null,
+                faith: null,
+                likes: [],
+                topics: [],
+                facts: []
+              },
+              is_global: false
+            });
+
+          if (contextError) {
+            console.error('Error creating initial user context:', contextError);
+            throw contextError;
+          }
+        }
+      }
+
       handleBotChange({ memory_enabled: checked });
       toast({
         title: "Success",
