@@ -98,7 +98,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         if (userId) {
           const { error: contextError } = await supabase
             .from('user_context')
-            .upsert({
+            .insert({
               bot_id: editingBot.id,
               user_id: userId,
               client_id: 'default',
@@ -109,7 +109,8 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
                 topics: [],
                 facts: []
               },
-              is_global: false
+              is_global: false,
+              session_token: null
             });
 
           if (contextError) {
