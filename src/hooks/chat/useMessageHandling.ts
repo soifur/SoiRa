@@ -33,14 +33,16 @@ export const useMessageHandling = (
       }
 
       // Create Memory Bot configuration
-      const memoryBot = {
+      const memoryBot: Bot = {
         id: 'memory-bot',
         name: 'Memory Bot',
         model: memorySettings.model as any,
         apiKey: memorySettings.api_key,
         openRouterModel: memorySettings.open_router_model,
-        instructions: memorySettings.instructions,
-        memory_enabled: false // Prevent infinite loop
+        instructions: memorySettings.instructions || "",
+        starters: [], // Add the required starters property
+        memory_enabled: false, // Prevent infinite loop
+        accessType: "private" // Add required accessType
       };
 
       // Send message to Memory Bot for context extraction
