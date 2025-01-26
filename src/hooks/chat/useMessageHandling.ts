@@ -40,9 +40,9 @@ export const useMessageHandling = (
         apiKey: memorySettings.api_key,
         openRouterModel: memorySettings.open_router_model,
         instructions: memorySettings.instructions || "",
-        starters: [], // Add the required starters property
+        starters: [], // Required by Bot type
         memory_enabled: false, // Prevent infinite loop
-        accessType: "private" // Add required accessType
+        accessType: "private" // Required by Bot type
       };
 
       // Send message to Memory Bot for context extraction
@@ -116,10 +116,9 @@ export const useMessageHandling = (
       const botMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, botMessage]);
 
-      // Process memory if enabled
+      // If memory is enabled, store context first
       if (bot.memory_enabled === true) {
         console.log("Memory enabled, storing context");
-        // Store context first
         await storeUserContext(message);
       }
 
