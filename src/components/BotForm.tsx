@@ -8,6 +8,7 @@ import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useToast } from "./ui/use-toast";
 import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
+import { updateQuizConfiguration } from "@/utils/quizUtils";
 import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
