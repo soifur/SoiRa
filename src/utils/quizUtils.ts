@@ -74,3 +74,20 @@ export const saveQuizFields = async (quizId: string, fields: Field[]) => {
     throw error;
   }
 };
+
+export const updateQuizConfiguration = async (botId: string, enabled: boolean, fields: Field[]) => {
+  try {
+    // First, save the quiz configuration
+    const quizId = await saveQuizConfiguration(botId, enabled);
+    
+    // Then save the quiz fields if quiz is enabled and there are fields
+    if (enabled && fields.length > 0) {
+      await saveQuizFields(quizId, fields);
+    }
+    
+    return quizId;
+  } catch (error) {
+    console.error('Error in updateQuizConfiguration:', error);
+    throw error;
+  }
+};
