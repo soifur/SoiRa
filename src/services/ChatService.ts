@@ -66,6 +66,18 @@ export class ChatService {
     }
   }
 
+  static async sendMemoryBotMessage(messages: any[], bot: Bot): Promise<string> {
+    console.log("Sending message to Memory Bot:", messages);
+    
+    if (bot.model === "gemini") {
+      return this.sendGeminiMessage(messages, bot);
+    } else if (bot.model === "openrouter") {
+      return this.sendOpenRouterMessage(messages, bot);
+    }
+    
+    throw new Error("Unsupported model for Memory Bot");
+  }
+
   static async sendOpenRouterMessage(
     messages: Array<{ role: string; content: string }>,
     bot: Bot,

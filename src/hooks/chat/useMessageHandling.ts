@@ -5,6 +5,7 @@ import { ChatService } from "@/services/ChatService";
 import { Bot } from "@/components/chat/types/chatTypes";
 import { useToast } from "@/components/ui/use-toast";
 import { useMemoryContext } from "./memory/useMemoryContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useMessageHandling = (
   bot: Bot,
@@ -17,6 +18,75 @@ export const useMessageHandling = (
   const { toast } = useToast();
   const { handleMemoryUpdate } = useMemoryContext(bot, userContext, updateUserContext);
   const abortControllerRef = { current: null as AbortController | null };
+
+  const storeUserContext = async (message: string) => {
+    try {
+      // Get Memory Bot settings
+      const { data: memorySettings } = await supabase
+        .from('memory_bot_settings')
+        .select('*')
+        .maybeSingle();
+
+      if (!memorySettings) {
+        console.log("No memory settings found");
+        return;
+      }
+
+      // Create Memory Bot configuration
+      const memoryBot = {
+        id: 'memory-bot',
+        name: 'Memory Bot',
+        model: memorySettings.model as any,
+        apiKey: memorySettings.api_key,
+        openRouterModel: memorySettings.open_router_model,
+        instructions: memorySettings.instructions,
+        memory_enabled: false // Prevent infinite loop
+      };
+
+      // Send message to Memory Bot for context extraction
+      const contextResponse = await ChatService.sendMemoryBotMessage(
+        [{ role: "user", content: message }],
+        memoryBot
+      );
+
+      if (!contextResponse) {
+        console.log("No context response from Memory Bot");
+        return;
+      }
+
+      try {
+        const contextData = JSON.parse(contextResponse);
+        console.log("Extracted context:", contextData);
+
+        // Get user ID
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log("No authenticated user found");
+          return;
+        }
+
+        // Store context in user_context table
+        const { error: contextError } = await supabase
+          .from('user_context')
+          .upsert({
+            client_id: user.id,
+            bot_id: bot.id,
+            user_id: user.id,
+            context: contextData,
+            last_updated: new Date().toISOString()
+          });
+
+        if (contextError) {
+          console.error("Error storing context:", contextError);
+        }
+
+      } catch (parseError) {
+        console.error("Error parsing context response:", parseError);
+      }
+    } catch (error) {
+      console.error("Error in storeUserContext:", error);
+    }
+  };
 
   const sendMessage = async (message: string) => {
     if (!message.trim()) return;
@@ -40,6 +110,9 @@ export const useMessageHandling = (
       // Process memory if enabled
       if (bot.memory_enabled === true) {
         console.log("Memory enabled, updating context");
+        // Store context first
+        await storeUserContext(message);
+        // Then update memory context for the conversation
         handleMemoryUpdate([userMessage]).catch(error => {
           console.error("Memory update failed:", error);
         });
