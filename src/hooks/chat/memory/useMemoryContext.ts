@@ -1,13 +1,34 @@
 import { Bot } from "@/components/chat/types/chatTypes";
 import { ChatService } from "@/services/ChatService";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export const useMemoryContext = (
   bot: Bot,
   userContext: any,
   updateUserContext: (newContext: any) => Promise<void>
 ) => {
+  // Fetch Memory Bot settings
+  const { data: memorySettings } = useQuery({
+    queryKey: ['memory-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('memory_bot_settings')
+        .select('*')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching memory settings:', error);
+        return null;
+      }
+      return data;
+    },
+    enabled: bot?.memory_enabled === true
+  });
+
   const handleMemoryUpdate = async (messages: Array<{ role: string; content: string }>) => {
-    if (!bot.memory_enabled || !bot.apiKey || !bot.instructions) {
+    if (!bot?.memory_enabled || !memorySettings) {
+      console.log("Memory not enabled or settings not found");
       return;
     }
 
@@ -31,7 +52,7 @@ User message to analyze:
 ${lastUserMessage.content}
 
 Instructions:
-${bot.instructions}
+${memorySettings.instructions || "Extract and maintain user context from the conversation."}
 
 Based on the message, update the user context following these rules:
 1. Extract the user's name if mentioned
@@ -48,41 +69,46 @@ Based on the message, update the user context following these rules:
   "likes": ["array of strings"],
   "topics": ["array of strings"],
   "facts": ["array of strings"]
-}
+}`;
 
-IMPORTANT: 
-- Merge new information with existing context
-- Keep previous values unless contradicted
-- If user says they don't like something anymore, remove it from likes array
-- Facts should be complete, clear statements about the user
-- Return ONLY the JSON object, no other text
-- Ensure all arrays exist even if empty`;
+      console.log("Sending context update to Memory Bot");
 
       let apiResponse: string | undefined;
+      
+      // Use Memory Bot's configured model and API key
+      const memoryBot = {
+        ...bot,
+        model: memorySettings.model as any,
+        apiKey: memorySettings.api_key,
+        openRouterModel: memorySettings.open_router_model,
+        instructions: memorySettings.instructions
+      };
+
       try {
-        if (bot.model === "gemini") {
+        if (memorySettings.model === "gemini") {
           apiResponse = await ChatService.sendGeminiMessage(
             [{ role: "user", content: contextUpdatePrompt }],
-            bot
+            memoryBot
           );
         } else {
           apiResponse = await ChatService.sendOpenRouterMessage(
             [{ role: "user", content: contextUpdatePrompt }],
-            bot
+            memoryBot
           );
         }
 
-        // If request was cancelled or response is empty, maintain existing context
         if (!apiResponse) {
-          console.log("Empty API response, maintaining existing context");
+          console.log("Empty API response from Memory Bot");
           return;
         }
+
+        console.log("Memory Bot response:", apiResponse);
 
         const cleanedResponse = apiResponse.trim();
         const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
         
         if (!jsonMatch) {
-          console.log("No valid JSON found in response, maintaining existing context");
+          console.log("No valid JSON found in Memory Bot response");
           return;
         }
 
@@ -90,18 +116,17 @@ IMPORTANT:
         try {
           newContext = JSON.parse(jsonMatch[0]);
         } catch (parseError) {
-          console.log("Parse error:", parseError, "Response:", jsonMatch[0]);
-          console.log("Maintaining existing context due to parse error");
+          console.log("Parse error:", parseError);
           return;
         }
 
         // Validate the required structure
         if (!newContext || typeof newContext !== 'object') {
-          console.log("Invalid context structure, maintaining existing context");
+          console.log("Invalid context structure");
           return;
         }
 
-        // Ensure all required fields exist with proper types
+        // Merge with existing context
         const mergedContext = {
           name: newContext.name || userContext?.name || null,
           faith: newContext.faith || userContext?.faith || null,
@@ -118,23 +143,16 @@ IMPORTANT:
           ])).filter(item => item && typeof item === 'string' && item.trim() !== "")
         };
 
-        console.log("Merged context:", mergedContext);
+        console.log("Updating user context with:", mergedContext);
         await updateUserContext(mergedContext);
+
       } catch (apiError) {
-        // Check if the error is due to request cancellation
-        if (apiError.name === 'AbortError' || apiError.message?.includes('cancelled')) {
-          console.log("Request was cancelled, maintaining existing context");
-          return;
-        }
-        
-        console.error("API or parsing error:", apiError);
-        // Preserve the existing context
+        console.error("Memory Bot API error:", apiError);
         if (userContext) {
           await updateUserContext(userContext);
         }
       }
     } catch (error) {
-      // Only log the error without throwing it to prevent breaking the chat flow
       console.error("Memory update failed:", error);
     }
   };

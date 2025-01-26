@@ -37,51 +37,29 @@ export const useMessageHandling = (
       const botMessage = createMessage("assistant", "", true, bot.avatar);
       setMessages([...newMessages, botMessage]);
 
-      console.log("Current memory_enabled status:", bot.memory_enabled);
-      
+      // Process memory if enabled
       if (bot.memory_enabled === true) {
-        console.log("Memory is explicitly TRUE, updating context");
+        console.log("Memory enabled, updating context");
         handleMemoryUpdate([userMessage]).catch(error => {
-          console.error("Background memory update failed:", error);
+          console.error("Memory update failed:", error);
         });
       }
 
+      // Prepare messages with context if memory is enabled
       const contextMessages = [];
-
-      if (bot.memory_enabled === true) {
-        console.log("Memory is explicitly TRUE, adding context to message");
-        
-        const contextToSend = userContext ? {
-          name: userContext.name || null,
-          faith: userContext.faith || null,
-          likes: Array.isArray(userContext.likes) ? [...userContext.likes] : [],
-          topics: Array.isArray(userContext.topics) ? [...userContext.topics] : [],
-          facts: Array.isArray(userContext.facts) ? [...userContext.facts] : []
-        } : {
-          name: null,
-          faith: null,
-          likes: [],
-          topics: [],
-          facts: []
-        };
-        
-        console.log("Using context for message:", contextToSend);
-        
+      if (bot.memory_enabled === true && userContext) {
+        console.log("Adding memory context to message");
         const contextPrompt = {
           role: "system",
-          content: `Previous context about the user: ${JSON.stringify(contextToSend)}\n\nCurrent conversation:`
+          content: `Previous context about the user: ${JSON.stringify(userContext)}\n\nCurrent conversation:`
         };
         contextMessages.push(contextPrompt);
-      } else {
-        console.log("Memory is explicitly FALSE or undefined, skipping context addition");
       }
 
       contextMessages.push({
         role: "user",
         content: message
       });
-
-      console.log("Sending message to API with context:", contextMessages);
 
       let botResponse = "";
       try {
@@ -110,18 +88,17 @@ export const useMessageHandling = (
         }
 
         if (!botResponse || botResponse.trim() === "") {
-          throw new Error("The bot returned an empty response. Please try again or check your API configuration.");
+          throw new Error("Empty response from bot");
         }
 
       } catch (error) {
-        console.error("Error getting bot response:", error);
-        const errorMessage = error instanceof Error ? error.message : "Failed to get response from the bot. Please try again.";
+        console.error("Bot response error:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to get response";
         toast({
           title: "Error",
           description: errorMessage,
           variant: "destructive",
         });
-        // Remove the loading message
         setMessages(newMessages);
         return;
       }
@@ -131,7 +108,7 @@ export const useMessageHandling = (
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        console.log('Request was cancelled');
+        console.log('Request cancelled');
         return;
       }
       console.error("Chat error:", error);
