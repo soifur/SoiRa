@@ -7,7 +7,7 @@ import { StartersInput } from "./bot/StartersInput";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useToast } from "./ui/use-toast";
-import { updateBotAndSharedConfig, updateBotMemorySettings, updateQuizConfiguration } from "@/utils/botUtils";
+import { updateBotAndSharedConfig, updateBotMemorySettings } from "@/utils/botUtils";
 import { BotBasicInfo } from "./bot/BotBasicInfo";
 import { BotPublishToggle } from "./bot/BotPublishToggle";
 import { BotApiSettings } from "./bot/BotApiSettings";
@@ -154,10 +154,7 @@ export const BotForm = ({ bot, onSave, onCancel }: BotFormProps) => {
         return;
       }
 
-      // First update the bot
       await updateBotAndSharedConfig(editingBot);
-
-      // Then save quiz configuration
       await updateQuizConfiguration(editingBot.id, quizEnabled, quizFields);
 
       onSave(editingBot);
