@@ -143,6 +143,20 @@ export const useBots = () => {
 
   const deleteBot = async (id: string) => {
     try {
+      console.log("Deleting bot with ID:", id);
+      
+      // First, delete all associated chat history records
+      const { error: chatHistoryError } = await supabase
+        .from('chat_history')
+        .delete()
+        .eq('bot_id', id);
+
+      if (chatHistoryError) {
+        console.error("Error deleting chat history:", chatHistoryError);
+        throw chatHistoryError;
+      }
+
+      // Then delete the bot
       const { error } = await supabase
         .from('bots')
         .delete()
