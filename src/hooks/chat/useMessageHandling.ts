@@ -21,16 +21,25 @@ export const useMessageHandling = (
 
   const storeUserContext = async (message: string) => {
     try {
+      console.log("Starting storeUserContext with message:", message);
+      
       // Get Memory Bot settings
-      const { data: memorySettings } = await supabase
+      const { data: memorySettings, error: settingsError } = await supabase
         .from('memory_bot_settings')
         .select('*')
         .maybeSingle();
 
-      if (!memorySettings) {
-        console.log("No memory settings found");
+      if (settingsError) {
+        console.error("Error fetching memory settings:", settingsError);
         return;
       }
+
+      if (!memorySettings) {
+        console.log("No memory settings found in database");
+        return;
+      }
+
+      console.log("Retrieved memory settings:", memorySettings);
 
       // Create Memory Bot configuration
       const memoryBot: Bot = {
@@ -45,33 +54,52 @@ export const useMessageHandling = (
         accessType: "private" // Required by Bot type
       };
 
+      console.log("Created Memory Bot config:", { ...memoryBot, apiKey: '[REDACTED]' });
+
       // Send message to Memory Bot for context extraction
+      console.log("Sending message to Memory Bot:", [{ role: "user", content: message }]);
       const contextResponse = await ChatService.sendMemoryBotMessage(
         [{ role: "user", content: message }],
         memoryBot
       );
 
       if (!contextResponse) {
-        console.log("No context response from Memory Bot");
+        console.log("No context response received from Memory Bot");
         return;
       }
 
+      console.log("Raw context response from Memory Bot:", contextResponse);
+
       try {
         const contextData = JSON.parse(contextResponse);
-        console.log("Extracted context:", contextData);
+        console.log("Successfully parsed context data:", contextData);
 
         // Get user ID
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting user:", userError);
+          return;
+        }
+
         if (!user) {
           console.log("No authenticated user found");
           return;
         }
 
+        console.log("Got user ID:", user.id);
+
         // Get client IP for session tracking
+        console.log("Fetching client IP...");
         const clientIp = await fetch('https://api.ipify.org?format=json')
           .then(response => response.json())
-          .then(data => data.ip)
-          .catch(() => null);
+          .then(data => {
+            console.log("Got client IP:", data.ip);
+            return data.ip;
+          })
+          .catch(error => {
+            console.error("Error getting client IP:", error);
+            return null;
+          });
 
         // Store context in user_context table
         const { error: contextError } = await supabase
@@ -86,11 +114,18 @@ export const useMessageHandling = (
           });
 
         if (contextError) {
-          console.error("Error storing context:", contextError);
+          console.error("Error storing context in database:", contextError);
+        } else {
+          console.log("Successfully stored context in database:", {
+            client_id: user.id,
+            bot_id: bot.id,
+            context: contextData
+          });
         }
 
       } catch (parseError) {
         console.error("Error parsing context response:", parseError);
+        console.log("Failed context response content:", contextResponse);
       }
     } catch (error) {
       console.error("Error in storeUserContext:", error);
@@ -118,7 +153,8 @@ export const useMessageHandling = (
 
       // If memory is enabled, store context first
       if (bot.memory_enabled === true) {
-        console.log("Memory enabled, storing context");
+        console.log("Memory enabled for bot, storing context...");
+        console.log("Current user context:", userContext);
         await storeUserContext(message);
       }
 
@@ -137,6 +173,8 @@ export const useMessageHandling = (
         role: "user",
         content: message
       });
+
+      console.log("Final messages being sent to bot:", contextMessages);
 
       let botResponse = "";
       try {
@@ -167,6 +205,8 @@ export const useMessageHandling = (
         if (!botResponse || botResponse.trim() === "") {
           throw new Error("Empty response from bot");
         }
+
+        console.log("Received bot response:", botResponse);
 
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
